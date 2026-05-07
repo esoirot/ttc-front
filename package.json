@@ -14,7 +14,10 @@
     "format:check": "prettier . --check",
     "lint": "eslint . --fix",
     "preview": "vite preview",
-    "check": "pnpm run typecheck && pnpm run circular && pnpm run depcheck && pnpm run prune && pnpm run format:check && pnpm run lint"
+    "check": "pnpm run typecheck && pnpm run circular && pnpm run depcheck && pnpm run prune && pnpm run format:check && pnpm run lint",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@apollo/client": "^4.1.9",
@@ -35,6 +38,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.59.1",
     "@rolldown/plugin-babel": "^0.2.3",
     "@types/babel__core": "^7.20.5",
     "@types/node": "^24.12.2",
