@@ -8,6 +8,7 @@ import { formatTime, secsToHms } from "./helpers";
 import { BillableToggle } from "./BillableToggle";
 import { ProjectSelect } from "./ProjectSelect";
 import { TagChips } from "./TagChips";
+import { Button } from "@/components/ui/button";
 
 export function EntryRow({
   workspaceId,
@@ -56,9 +57,9 @@ export function EntryRow({
   return (
     <div className="flex items-start gap-3 px-4 py-3">
       <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-        <p className="text-sm text-zinc-900 dark:text-white truncate">
+        <p className="text-sm truncate">
           {entry.description || (
-            <span className="italic text-zinc-400">No description</span>
+            <span className="italic text-muted-foreground">No description</span>
           )}
         </p>
         <div className="flex items-center gap-2 flex-wrap">
@@ -81,33 +82,37 @@ export function EntryRow({
             onChange={(v) => patch({ billable: v })}
           />
         </div>
-        <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-400 dark:text-zinc-500">
+        <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
           <span>{formatTime(start)}</span>
           <span>–</span>
           {end ? (
             <span>{formatTime(end)}</span>
           ) : (
-            <span className="text-violet-500">running</span>
+            <span className="text-primary">running</span>
           )}
           <span className="mx-0.5">·</span>
           <span>{end ? secsToHms(durationSecs) : "—"}</span>
         </div>
       </div>
-      <div className="flex items-center gap-1.5 shrink-0 pt-1">
-        <button
+      <div className="flex items-center gap-1 shrink-0 pt-1">
+        <Button
+          size="icon-xs"
+          variant="ghost"
           onClick={() => onResume(entry)}
-          className="text-zinc-400 hover:text-emerald-600 transition-colors text-xs"
           aria-label="Resume entry"
+          className="text-muted-foreground hover:text-emerald-600"
         >
           ▶
-        </button>
-        <button
+        </Button>
+        <Button
+          size="icon-xs"
+          variant="ghost"
           onClick={() => onDelete(entry.id)}
-          className="text-zinc-400 hover:text-red-600 transition-colors text-xs"
           aria-label="Delete entry"
+          className="text-muted-foreground hover:text-destructive"
         >
           ✕
-        </button>
+        </Button>
       </div>
     </div>
   );

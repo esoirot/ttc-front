@@ -13,7 +13,7 @@ export function ProjectSelect({
     <select
       value={projectId ?? ""}
       onChange={(e) => onChange(e.target.value || null)}
-      className="text-xs bg-transparent border border-zinc-200 dark:border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 dark:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-violet-500"
+      className="text-xs bg-transparent border border-border rounded px-1.5 py-0.5 text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
     >
       <option value="">No project</option>
       {projects.map((p) => (

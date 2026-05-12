@@ -3,6 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../../components/auth/AuthLayout";
 import { GoogleOAuthButton } from "../../components/auth/GoogleOAuthButton";
 import { useRegister } from "../../hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -20,7 +24,7 @@ function passwordStrength(p: string): 0 | 1 | 2 | 3 {
 const strengthLabel = ["", "Weak", "Medium", "Strong"] as const;
 const strengthColor = [
   "",
-  "bg-red-500",
+  "bg-destructive",
   "bg-yellow-400",
   "bg-emerald-500",
 ] as const;
@@ -51,41 +55,23 @@ export function RegisterPage() {
     }
   }
 
-  const inputCls = (hasError: boolean) =>
-    `w-full px-3 py-2 border rounded-md text-base bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white outline-none transition-colors ${
-      hasError
-        ? "border-red-500 focus:border-red-500"
-        : "border-zinc-200 dark:border-zinc-700 focus:border-violet-500"
-    }`;
-
   return (
     <AuthLayout title="Create account">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="name"
-            className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
-          >
-            Name (optional)
-          </label>
-          <input
+          <Label htmlFor="name">Name (optional)</Label>
+          <Input
             id="name"
             type="text"
             autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={inputCls(false)}
           />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="email"
-            className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
-          >
-            Email
-          </label>
-          <input
+          <Label htmlFor="email">Email</Label>
+          <Input
             id="email"
             type="email"
             required
@@ -93,21 +79,16 @@ export function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onBlur={() => setEmailTouched(true)}
-            className={inputCls(!!emailError)}
+            aria-invalid={!!emailError}
           />
           {emailError && (
-            <p className="text-xs text-red-600 mt-0.5">{emailError}</p>
+            <p className="text-xs text-destructive">{emailError}</p>
           )}
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="password"
-            className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
-          >
-            Password
-          </label>
-          <input
+          <Label htmlFor="password">Password</Label>
+          <Input
             id="password"
             type="password"
             required
@@ -116,7 +97,7 @@ export function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onBlur={() => setPasswordTouched(true)}
-            className={inputCls(!!passwordError)}
+            aria-invalid={!!passwordError}
           />
           {password.length > 0 && (
             <div className="flex items-center gap-2 mt-1">
@@ -125,9 +106,7 @@ export function RegisterPage() {
                   <div
                     key={level}
                     className={`h-1 flex-1 rounded-full transition-colors ${
-                      strength >= level
-                        ? strengthColor[strength]
-                        : "bg-zinc-200 dark:bg-zinc-700"
+                      strength >= level ? strengthColor[strength] : "bg-border"
                     }`}
                   />
                 ))}
@@ -135,7 +114,7 @@ export function RegisterPage() {
               <span
                 className={`text-xs font-medium ${
                   strength === 1
-                    ? "text-red-500"
+                    ? "text-destructive"
                     : strength === 2
                       ? "text-yellow-500"
                       : "text-emerald-500"
@@ -146,35 +125,28 @@ export function RegisterPage() {
             </div>
           )}
           {passwordError && (
-            <p className="text-xs text-red-600 mt-0.5">{passwordError}</p>
+            <p className="text-xs text-destructive">{passwordError}</p>
           )}
         </div>
 
-        {error && <p className="text-sm text-red-600">{error.message}</p>}
+        {error && <p className="text-sm text-destructive">{error.message}</p>}
 
-        <button
-          type="submit"
-          className="w-full px-5 py-2.5 bg-violet-600 text-white rounded-md text-base font-semibold cursor-pointer hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-opacity"
-          disabled={loading}
-        >
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Creating account…" : "Create account"}
-        </button>
+        </Button>
       </form>
 
-      <div className="flex items-center gap-3 my-4 text-xs text-zinc-400">
-        <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
+      <div className="flex items-center gap-3 my-4 text-xs text-muted-foreground">
+        <Separator className="flex-1" />
         <span>or</span>
-        <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
+        <Separator className="flex-1" />
       </div>
 
       <GoogleOAuthButton />
 
-      <p className="text-sm text-center mt-4 text-zinc-500">
+      <p className="text-sm text-center mt-4 text-muted-foreground">
         Already have an account?{" "}
-        <Link
-          to="/login"
-          className="text-violet-600 dark:text-violet-400 font-medium no-underline hover:underline"
-        >
+        <Link to="/login" className="text-primary font-medium hover:underline">
           Sign in
         </Link>
       </p>

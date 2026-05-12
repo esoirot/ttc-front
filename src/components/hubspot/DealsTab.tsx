@@ -4,21 +4,22 @@ import {
   useCreateDeal,
   type HubspotDeal,
 } from "../../hooks/useHubspot";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function DealRow({ deal }: { deal: HubspotDeal }) {
   const p = deal.properties;
   return (
-    <tr className="border-b border-zinc-100 dark:border-zinc-800">
-      <td className="py-2.5 pr-4 text-sm text-zinc-900 dark:text-white">
-        {p.dealname ?? "—"}
-      </td>
-      <td className="py-2.5 pr-4 text-sm text-zinc-500 dark:text-zinc-400">
+    <tr className="border-b border-border">
+      <td className="py-2.5 pr-4 text-sm">{p.dealname ?? "—"}</td>
+      <td className="py-2.5 pr-4 text-sm text-muted-foreground">
         {p.amount ? `$${p.amount}` : "—"}
       </td>
-      <td className="py-2.5 pr-4 text-sm text-zinc-500 dark:text-zinc-400">
+      <td className="py-2.5 pr-4 text-sm text-muted-foreground">
         {p.dealstage ?? "—"}
       </td>
-      <td className="py-2.5 text-sm text-zinc-500 dark:text-zinc-400">
+      <td className="py-2.5 text-sm text-muted-foreground">
         {p.closedate ? p.closedate.slice(0, 10) : "—"}
       </td>
     </tr>
@@ -54,85 +55,83 @@ export function DealsTab() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-zinc-500 dark:text-zinc-400">
+        <span className="text-sm text-muted-foreground">
           {deals.length} {deals.length !== 1 ? "deals" : "deal"} loaded
         </span>
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => setShowForm((v) => !v)}
-          className="px-3 py-1.5 text-xs font-medium border border-zinc-200 dark:border-zinc-700 rounded-md hover:border-violet-500 hover:text-violet-600 transition-colors cursor-pointer"
         >
           {showForm ? "Cancel" : "+ New deal"}
-        </button>
+        </Button>
       </div>
 
       {showForm && (
-        <div className="grid grid-cols-2 gap-3 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <input
+        <div className="grid grid-cols-2 gap-3 p-4 bg-muted/50 rounded-lg border">
+          <Input
             type="text"
             placeholder="Deal name *"
             value={dealname}
             onChange={(e) => setDealname(e.target.value)}
-            className="col-span-2 px-3 py-2 text-sm bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-1 focus:ring-violet-500"
+            className="col-span-2"
           />
-          <input
+          <Input
             type="text"
             placeholder="Amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="px-3 py-2 text-sm bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-1 focus:ring-violet-500"
           />
-          <input
+          <Input
             type="text"
             placeholder="Stage"
             value={dealstage}
             onChange={(e) => setDealstage(e.target.value)}
-            className="px-3 py-2 text-sm bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-1 focus:ring-violet-500"
           />
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-zinc-400">Close date</label>
-            <input
+            <Label className="text-xs text-muted-foreground">Close date</Label>
+            <Input
               type="date"
               value={closedate}
               onChange={(e) => setClosedate(e.target.value)}
-              className="px-3 py-2 text-sm bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-1 focus:ring-violet-500"
             />
           </div>
           <div className="flex items-end justify-end gap-2">
             {createDeal.error && (
-              <span className="text-xs text-red-600 self-center">
+              <span className="text-xs text-destructive">
                 {createDeal.error.message}
               </span>
             )}
-            <button
+            <Button
               type="button"
+              size="sm"
               onClick={() => void handleCreate()}
               disabled={!dealname.trim() || createDeal.isPending}
-              className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
             >
               {createDeal.isPending ? "Saving…" : "Create"}
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {infinite.isLoading ? (
-        <p className="text-sm text-zinc-400 py-4">Loading…</p>
+        <p className="text-sm text-muted-foreground py-4">Loading…</p>
       ) : (
         <>
           <table className="w-full">
             <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                <th className="pb-2 pr-4 text-left text-xs font-medium text-zinc-400 uppercase tracking-wide">
+              <tr className="border-b border-border">
+                <th className="pb-2 pr-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Deal
                 </th>
-                <th className="pb-2 pr-4 text-left text-xs font-medium text-zinc-400 uppercase tracking-wide">
+                <th className="pb-2 pr-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Amount
                 </th>
-                <th className="pb-2 pr-4 text-left text-xs font-medium text-zinc-400 uppercase tracking-wide">
+                <th className="pb-2 pr-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Stage
                 </th>
-                <th className="pb-2 text-left text-xs font-medium text-zinc-400 uppercase tracking-wide">
+                <th className="pb-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Close date
                 </th>
               </tr>
@@ -142,7 +141,7 @@ export function DealsTab() {
                 <tr>
                   <td
                     colSpan={4}
-                    className="py-8 text-center text-sm text-zinc-400"
+                    className="py-8 text-center text-sm text-muted-foreground"
                   >
                     No deals yet
                   </td>
@@ -155,14 +154,15 @@ export function DealsTab() {
           </table>
           {infinite.hasNextPage && (
             <div className="flex justify-center pt-2">
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => void infinite.fetchNextPage()}
                 disabled={infinite.isFetchingNextPage}
-                className="px-4 py-2 text-sm font-medium border border-zinc-200 dark:border-zinc-700 rounded-md hover:border-violet-500 hover:text-violet-600 transition-colors cursor-pointer disabled:opacity-50"
               >
                 {infinite.isFetchingNextPage ? "Loading…" : "Load more"}
-              </button>
+              </Button>
             </div>
           )}
         </>

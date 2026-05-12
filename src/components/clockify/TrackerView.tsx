@@ -18,6 +18,8 @@ import {
 } from "./helpers";
 import { ActiveTimer } from "./ActiveTimer";
 import { DayGroup } from "./DayGroup";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function TrackerView({ workspaceId }: { workspaceId: string }) {
   const [startDate, setStartDate] = useState(() => daysAgoStr(30));
@@ -57,7 +59,7 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">From:</span>
+        <span className="text-xs text-muted-foreground">From:</span>
         <input
           type="date"
           value={startDate}
@@ -65,9 +67,9 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
           onChange={(e) => {
             if (e.target.value) setStartDate(e.target.value);
           }}
-          className="text-xs rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-violet-500"
+          className="text-xs rounded border border-border bg-background text-foreground px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
         />
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">To:</span>
+        <span className="text-xs text-muted-foreground">To:</span>
         <input
           type="date"
           value={endDate}
@@ -76,37 +78,41 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
           onChange={(e) => {
             if (e.target.value) setEndDate(e.target.value);
           }}
-          className="text-xs rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-violet-500"
+          className="text-xs rounded border border-border bg-background text-foreground px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
         />
       </div>
 
       {projects.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            Project:
-          </span>
-          <button
+          <span className="text-xs text-muted-foreground">Project:</span>
+          <Button
+            size="xs"
+            variant="ghost"
             onClick={() => setSelectedProject(null)}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+            className={cn(
+              "text-xs",
               selectedProject === null
-                ? "bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400"
-                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
-            }`}
+                ? "bg-primary/10 text-primary hover:bg-primary/10"
+                : "text-muted-foreground",
+            )}
           >
             All
-          </button>
+          </Button>
           {projects.map((p) => (
-            <button
+            <Button
               key={p.id}
+              size="xs"
+              variant="ghost"
               onClick={() => setSelectedProject(p.id)}
-              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+              className={cn(
+                "text-xs",
                 selectedProject === p.id
-                  ? "bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
-              }`}
+                  ? "bg-primary/10 text-primary hover:bg-primary/10"
+                  : "text-muted-foreground",
+              )}
             >
               {p.name}
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -114,13 +120,11 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
       <ActiveTimer workspaceId={workspaceId} projects={projects} tags={tags} />
 
       <div>
-        <h2 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Entries
         </h2>
         {grouped.length === 0 ? (
-          <p className="text-sm text-zinc-400 dark:text-zinc-500">
-            No entries yet.
-          </p>
+          <p className="text-sm text-muted-foreground">No entries yet.</p>
         ) : (
           <div className="flex flex-col gap-2">
             {grouped.map(([day, dayEntries]) => (

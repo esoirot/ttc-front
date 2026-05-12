@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useCreateTag, type ClockifyTag } from "../../hooks/useClockify";
+import { Badge } from "@/components/ui/badge";
 
 export function TagChips({
   workspaceId,
@@ -53,18 +54,19 @@ export function TagChips({
   return (
     <div className="flex items-center gap-1 flex-wrap">
       {active.map((tag) => (
-        <span
+        <Badge
           key={tag.id}
-          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
+          variant="secondary"
+          className="gap-0.5 px-1.5 py-0 text-xs"
         >
           {tag.name}
           <button
             onClick={() => onRemove(tag.id)}
-            className="text-zinc-400 hover:text-red-500 leading-none ml-0.5"
+            className="ml-0.5 text-muted-foreground hover:text-destructive leading-none"
           >
             ×
           </button>
-        </span>
+        </Badge>
       ))}
       <div className="relative">
         <input
@@ -79,15 +81,15 @@ export function TagChips({
             setTimeout(() => setOpen(false), 150);
           }}
           placeholder="+ tag"
-          className="text-xs w-10 focus:w-20 transition-all bg-transparent border-none outline-none text-zinc-400 placeholder:text-zinc-400 hover:placeholder:text-zinc-600 focus:text-zinc-700 dark:focus:text-zinc-200"
+          className="text-xs w-10 focus:w-20 transition-all bg-transparent border-none outline-none text-muted-foreground placeholder:text-muted-foreground/60"
         />
         {open && (filtered.length > 0 || showCreate) && (
-          <div className="absolute top-full left-0 mt-1 z-20 min-w-28 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-lg py-1">
+          <div className="absolute top-full left-0 mt-1 z-20 min-w-28 bg-popover border border-border rounded shadow-lg py-1">
             {filtered.map((t) => (
               <button
                 key={t.id}
                 onMouseDown={() => handleSelect(t.id)}
-                className="block w-full text-left px-2 py-1 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                className="block w-full text-left px-2 py-1 text-xs text-popover-foreground hover:bg-accent"
               >
                 {t.name}
               </button>
@@ -96,7 +98,7 @@ export function TagChips({
               <button
                 onMouseDown={handleCreate}
                 disabled={creating}
-                className="block w-full text-left px-2 py-1 text-xs text-violet-600 dark:text-violet-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 disabled:opacity-50"
+                className="block w-full text-left px-2 py-1 text-xs text-primary hover:bg-accent disabled:opacity-50"
               >
                 {creating ? "Creating…" : `Create "${query.trim()}"`}
               </button>

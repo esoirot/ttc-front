@@ -1,12 +1,15 @@
+import { Button } from "@/components/ui/button";
+
 const API_URL =
   import.meta.env.VITE_API_URL?.replace("/graphql", "") ??
   "http://localhost:3000";
 
 export function GoogleOAuthButton() {
   return (
-    <button
+    <Button
       type="button"
-      className="flex items-center justify-center gap-2.5 w-full px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md text-sm font-medium text-zinc-800 dark:text-zinc-200 cursor-pointer hover:border-violet-500 transition-colors"
+      variant="outline"
+      className="w-full gap-2.5"
       onClick={() => {
         window.location.href = `${API_URL}/auth/google`;
       }}
@@ -30,6 +33,6 @@ export function GoogleOAuthButton() {
         />
       </svg>
       Continue with Google
-    </button>
+    </Button>
   );
 }

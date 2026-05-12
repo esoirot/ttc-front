@@ -7,6 +7,7 @@ import {
 } from "../../hooks/useClockify";
 import { secsToHms } from "./helpers";
 import { EntryRow } from "./EntryRow";
+import { Button } from "@/components/ui/button";
 
 export function DescriptionGroup({
   workspaceId,
@@ -44,29 +45,33 @@ export function DescriptionGroup({
   return (
     <div>
       <div className="flex items-center gap-2 px-4 py-3">
-        <button
+        <Button
+          size="icon-xs"
+          variant="ghost"
           onClick={() => setExpanded(!expanded)}
-          className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 text-xs w-3 shrink-0 transition-colors"
           aria-label={expanded ? "Collapse entries" : "Expand entries"}
+          className="text-muted-foreground shrink-0"
         >
           {expanded ? "▼" : "▶"}
-        </button>
+        </Button>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-zinc-900 dark:text-white truncate">
+          <p className="text-sm truncate">
             {description || (
-              <span className="italic text-zinc-400">No description</span>
+              <span className="italic text-muted-foreground">
+                No description
+              </span>
             )}
           </p>
         </div>
-        <span className="text-xs text-zinc-400 shrink-0">
+        <span className="text-xs text-muted-foreground shrink-0">
           x{entries.length}
         </span>
-        <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 ml-2 shrink-0">
+        <span className="text-xs font-mono text-muted-foreground ml-2 shrink-0">
           {secsToHms(totalSecs)}
         </span>
       </div>
       {expanded && (
-        <div className="divide-y divide-zinc-100 dark:divide-zinc-800 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">
+        <div className="divide-y divide-border border-t bg-muted/30">
           {entries.map((entry) => (
             <EntryRow
               key={entry.id}

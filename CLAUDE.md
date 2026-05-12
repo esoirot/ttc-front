@@ -30,9 +30,11 @@ Always use **pnpm** — never npm or yarn.
 - **React 19** with **React Compiler** enabled — do not add manual `useMemo`/`useCallback`/`memo` wrappers; the compiler handles memoization automatically.
 - **Apollo Client v4** (`@apollo/client`) for all GraphQL communication with the backend. Configured with `credentials: 'include'` for HTTP-only cookie auth. v4 splits into subpackages — see import rules below.
 - **TanStack Query v5** (`@tanstack/react-query`) — used for all **REST** API calls (Clockify, any future non-GraphQL endpoints). Do not use TanStack Query for GraphQL calls.
-- **Tailwind CSS v4** via `@tailwindcss/vite` — no `tailwind.config.js` needed. Import is `@import "tailwindcss"` in `index.css`. All styling is done with inline Tailwind utility classes; there is no custom CSS.
+- **Shadcn/ui** — component library built on Radix UI primitives. Components generated into `src/components/ui/`. Always use Shadcn primitives (`Button`, `Input`, `Label`, `Card`, `Badge`, `Tabs`, `Skeleton`, `Separator`, `Alert`) instead of raw HTML elements. Add new components via `pnpm dlx shadcn@latest add <name>`.
+- **Tailwind CSS v4** via `@tailwindcss/vite` — no `tailwind.config.js` needed. Theme is defined in `src/index.css` via `@theme inline` + CSS custom properties (`:root` / `.dark`). Use semantic color tokens (`bg-background`, `text-foreground`, `text-muted-foreground`, `bg-primary`, `text-destructive`, etc.) — not raw `zinc-*`/`violet-*` classes.
+- **Geist** variable font — imported via `@fontsource-variable/geist` in `src/index.css`; set as `--font-sans` in `@theme`.
 - **Vite 8** bundler with `@rolldown/plugin-babel` wiring the React Compiler Babel preset.
-- **TypeScript 6** — strict mode via `tsconfig.app.json`.
+- **TypeScript 6** — strict mode via `tsconfig.app.json`. `erasableSyntaxOnly` is enabled: do not use parameter properties (`public readonly x` in constructors) — declare fields explicitly.
 
 ## Environment
 
@@ -44,7 +46,7 @@ VITE_API_URL=http://localhost:3000/graphql
 
 ## Architecture
 
-**GraphQL client**: `src/lib/apollo.ts` exports a single `apolloClient` instance. `ApolloProvider` wraps the app in `main.tsx`. All GraphQL operations go through Apollo — do not use `fetch` or TanStack Query for GraphQL calls. An `onError` link (from `@apollo/client/link/error`) sits first in the chain; on `UNAUTHENTICATED` outside public paths it calls `tryRefresh()` (from `api.ts`) and retries the original operation via `forward(operation)` using `Observable` (from `@apollo/client/utilities`). If refresh fails, falls back to `window.location.replace('/login')`.
+**GraphQL client**: `src/lib/apollo.ts` exports a single `apolloClient` instance. `ApolloProvider` wraps the app in `main.tsx`. All GraphQL operations go through Apollo — do not use `fetch` or TanStack Query for GraphQL calls. An `ErrorLink` (from `@apollo/client/link/error`) sits first in the chain; on `UNAUTHENTICATED` (checked via `CombinedGraphQLErrors.is(error)`) or HTTP 401 (checked via `ServerError.is(error)`) outside public paths it calls `tryRefresh()` (from `api.ts`) and retries the original operation via `forward(operation)` using `Observable` (from `@apollo/client/utilities`). If refresh fails, falls back to `window.location.replace('/login')`. Links composed via `ApolloLink.from([...])` — `from` is deprecated in v4.
 
 **REST client**: `src/lib/api.ts` exports `apiGet`, `apiPost`, `apiPatch`, `apiDelete` — thin `fetch` wrappers with `credentials: 'include'` and typed error (`ApiError`). Base URL derived from `VITE_API_URL` by stripping `/graphql`. On 401, automatically fires the `refreshToken` GraphQL mutation and retries the original request once; if refresh also fails, throws `ApiError(401)`. `Content-Type: application/json` is only sent when the request has a body — body-less requests (GET, DELETE) omit it. Use these for all REST endpoints; wrap them in TanStack Query hooks in `src/hooks/`.
 
@@ -56,30 +58,37 @@ VITE_API_URL=http://localhost:3000/graphql
 src/
 ├── lib/
 │   ├── apollo.ts                  — Apollo client (credentials: 'include')
-│   └── api.ts                     — REST fetch helpers (apiGet/apiPost/apiPatch/apiDelete, ApiError)
+│   ├── api.ts                     — REST fetch helpers (apiGet/apiPost/apiPatch/apiDelete, ApiError)
+│   └── utils.ts                   — cn() helper (clsx + tailwind-merge) for conditional class names
 ├── graphql/
-│   └── auth.operations.ts         — All auth queries/mutations (ME_QUERY, LOGIN_MUTATION, UPDATE_ME_MUTATION, etc.)
+│   └── auth.operations.ts         — All auth queries/mutations typed with TypedDocumentNode<Result, Vars>
 ├── hooks/
 │   ├── useAuth.ts                 — useCurrentUser, useLogin, useRegister, useLogout, useUpdateMe, useSetupTwoFactor, useEnableTwoFactor, useVerifyTwoFactor
 │   ├── useClockify.ts             — TanStack Query hooks for all Clockify REST endpoints
 │   └── useHubspot.ts              — TanStack Query hooks for all HubSpot REST endpoints (status, contacts, companies, deals, disconnect, infinite lists, contact search)
 ├── components/
+│   ├── ui/                        — Shadcn/ui generated components (Button, Input, Label, Card, Badge, Tabs, Skeleton, Separator, Alert)
 │   ├── auth/
-│   │   ├── AuthLayout.tsx         — Shared card wrapper for public auth pages
+│   │   ├── AuthLayout.tsx         — Card wrapper for public auth pages (uses Card/CardHeader/CardContent)
 │   │   ├── GoogleOAuthButton.tsx  — Full-page redirect to /auth/google (OAuth cannot use GraphQL)
 │   │   └── ProtectedRoute.tsx     — Redirects to /login when unauthenticated; shows loading state
+│   ├── clockify/                  — Time tracker sub-components (ActiveTimer, DayGroup, EntryRow, etc.)
+│   ├── hubspot/                   — HubSpot sub-components (SetupView, ConnectedView, ContactsTab, etc.)
 │   └── layout/
 │       ├── AppLayout.tsx          — App shell: renders <Sidebar /> + <Outlet /> side by side
 │       └── Sidebar.tsx            — Sticky sidebar with nav links; username is a <Link> to /profile/edit; sign-out button
 └── pages/
-    ├── LoginPage.tsx              — Email/password form; on requiresTwoFactor → navigate to /2fa/verify
-    ├── RegisterPage.tsx           — Registration form
-    ├── TwoFactorVerifyPage.tsx    — TOTP code input; reads tempToken from router state
-    ├── TwoFactorSetupPage.tsx     — Security settings page: QR setup + enable 2FA (legacy route kept)
-    ├── EditProfilePage.tsx        — Profile editor: Profile tab (name/email) + Security tab (2FA setup)
-    ├── DashboardPage.tsx          — Protected landing page with 2FA prompt
-    ├── TimeTrackerPage.tsx        — Clockify time tracker: connect → pick workspace → start/stop/edit timers, day-grouped entry calendar
-    └── HubspotPage.tsx            — HubSpot CRM: OAuth connect flow + tabbed view (Contacts | Companies | Deals) with inline create forms, infinite scroll pagination, and contact search
+    ├── auth/
+    │   ├── LoginPage.tsx          — Email/password form; on requiresTwoFactor → navigate to /2fa/verify
+    │   ├── RegisterPage.tsx       — Registration form
+    │   ├── TwoFactorVerifyPage.tsx — TOTP code input; reads tempToken from router state
+    │   └── TwoFactorSetupPage.tsx — Security settings page: QR setup + enable 2FA (legacy route kept)
+    ├── account/
+    │   ├── DashboardPage.tsx      — Protected landing page with 2FA prompt
+    │   └── EditProfilePage.tsx    — Profile editor: Profile tab (name/email) + Security tab (2FA setup)
+    └── integrations/
+        ├── TimeTrackerPage.tsx    — Clockify time tracker: connect → pick workspace → start/stop/edit timers
+        └── HubspotPage.tsx        — HubSpot CRM: OAuth connect flow + tabbed view
 ```
 
 **Routing** (`App.tsx` — `createBrowserRouter`):
@@ -110,8 +119,10 @@ The protected route hierarchy is: `ProtectedRoute → AppLayout → [page]`. Add
 - Nav links in `Sidebar.tsx` use `<NavLink end>` — always pass `end={true}` for the `/` route so it doesn't highlight on every sub-path.
 - Sidebar is `flex-row` (horizontal top bar) on mobile, `sm:flex-col sm:w-56` sticky on desktop — controlled by Tailwind `sm:` breakpoint (640px).
 - Dark mode is `@media (prefers-color-scheme: dark)` — Tailwind v4's default. Use `dark:` variants; do not add a class-based dark mode toggle.
-- Color palette: `violet-*` for accent, `zinc-*` for neutrals, `emerald-*` for success states, `red-600` for errors. Do not introduce other accent colors.
-- There is no custom CSS file — do not create one. If a style cannot be expressed with Tailwind utilities, use inline `style={{}}` as a last resort.
+- **Styling**: use Shadcn semantic tokens (`bg-background`, `text-foreground`, `text-muted-foreground`, `bg-primary`, `text-primary`, `border-border`, `bg-muted`, `text-destructive`, `bg-card`, etc.). Do not use raw `zinc-*` or `violet-*` classes for structural UI — reserve named palette classes only for non-themed values (e.g. `text-emerald-600` for success states that have no semantic token). Use `cn()` from `@/lib/utils` for conditional classes.
+- **Path alias**: `@/*` resolves to `./src/*`. Use it for cross-directory imports (e.g. `@/components/ui/button`, `@/lib/utils`). Relative imports are fine for same-directory siblings.
+- **Shadcn components**: import from `@/components/ui/<name>`. Add new ones via `pnpm dlx shadcn@latest add <name> --yes`. The CLI places files in `src/components/ui/` — verify after running since the CLI previously placed them in a literal `@/` directory.
+- **TypeScript 6 constraints**: `erasableSyntaxOnly` bans parameter properties. Declare class fields explicitly: `readonly x: T; constructor(x: T) { this.x = x; }`. `baseUrl` is deprecated — use `paths` alone in `tsconfig.app.json`.
 - Do not call `setState` synchronously inside `useEffect` bodies — the React Compiler lint rule flags this. For live timers, store the display string as state and update it inside `setInterval`: `setInterval(() => setDisplay(format(startIso)), 1000)`. Do NOT use a tick-counter (`setTick`) and compute during render — the compiler memoizes expressions like `format(startIso)` because `startIso` never changes, freezing the display. The interval callback is async (not render-phase), so `setDisplay(...)` inside it is allowed.
 - Do not read `ref.current` during render — the React Compiler lint rule `react-hooks/refs` flags this.
 
@@ -155,11 +166,19 @@ TimeTrackerPage
 
 **Apollo Client v4 import rules** — v4 no longer exports everything from `@apollo/client`. Use the correct subpackage or Vite will throw a missing-export error at runtime:
 
-| What                                                           | Import from               |
-| -------------------------------------------------------------- | ------------------------- |
-| `ApolloClient`, `InMemoryCache`, `HttpLink`, `from`, `gql`     | `@apollo/client/core`     |
-| `useQuery`, `useMutation`, `useApolloClient`, `ApolloProvider` | `@apollo/client/react`    |
-| `ApolloLink`, link utilities                                   | `@apollo/client/link/...` |
+| What                                                             | Import from                 |
+| ---------------------------------------------------------------- | --------------------------- |
+| `ApolloClient`, `InMemoryCache`, `HttpLink`, `ApolloLink`, `gql` | `@apollo/client/core`       |
+| `useQuery`, `useMutation`, `useApolloClient`, `ApolloProvider`   | `@apollo/client/react`      |
+| `ErrorLink`                                                      | `@apollo/client/link/error` |
+| `CombinedGraphQLErrors`, `ServerError`                           | `@apollo/client/errors`     |
+| `Observable`                                                     | `@apollo/client/utilities`  |
+| `TypedDocumentNode`                                              | `@apollo/client/core`       |
+
+- `from(links)` is **deprecated** — use `ApolloLink.from(links)` instead.
+- `onError(handler)` is **deprecated** — use `new ErrorLink(handler)` instead.
+- `ErrorLink.ErrorHandler` receives `{ error, result, operation, forward }` — not `{ graphQLErrors, networkError }`. Use `CombinedGraphQLErrors.is(error)` and `ServerError.is(error)` to type-narrow.
+- All GraphQL operations in `src/graphql/auth.operations.ts` are typed with `TypedDocumentNode<Result, Vars>` so `useQuery`/`useMutation` infer data shapes automatically.
 
 ## Status & Known Gaps
 

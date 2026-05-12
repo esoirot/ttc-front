@@ -1,14 +1,16 @@
 # Translator Companion — Frontend
 
-React 19 SPA for the TranslatorAssistant platform. Handles authentication, 2FA setup, and Clockify time tracking. Communicates with the backend via GraphQL (Apollo) for auth/core entities and REST (TanStack Query) for time tracking.
+React 19 SPA for the TranslatorAssistant platform. Handles authentication, 2FA setup, Clockify time tracking, and HubSpot CRM. Communicates with the backend via GraphQL (Apollo) for auth/core entities and REST (TanStack Query) for integrations.
 
 ## Stack
 
 - **React 19** with **React Compiler** (automatic memoization — no manual `useMemo`/`useCallback`)
 - **Apollo Client v4** — GraphQL communication (`credentials: 'include'` for cookie auth)
-- **TanStack Query v5** — REST API calls (Clockify proxy endpoints)
+- **TanStack Query v5** — REST API calls (Clockify, HubSpot proxy endpoints)
 - **React Router v7** — client-side routing
-- **Tailwind CSS v4** — utility-first styling via `@tailwindcss/vite`
+- **Shadcn/ui** — component library (Radix primitives + class-variance-authority); components live in `src/components/ui/`
+- **Tailwind CSS v4** — utility-first styling via `@tailwindcss/vite`; themed via CSS variables in `src/index.css`
+- **Geist** — variable font (`@fontsource-variable/geist`)
 - **Vite 8** — bundler with Rolldown + Babel (React Compiler preset)
 - **TypeScript 6** — strict mode
 

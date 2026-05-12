@@ -1,5 +1,9 @@
 import { NavLink, Link } from "react-router-dom";
 import { useCurrentUser, useLogout } from "../../hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   {
@@ -119,16 +123,14 @@ export function Sidebar() {
   const { logout, loading } = useLogout();
 
   return (
-    <aside className="flex flex-row flex-wrap border-b border-zinc-200 dark:border-zinc-800 sm:flex-col sm:flex-nowrap sm:w-56 sm:shrink-0 sm:sticky sm:top-0 sm:h-screen sm:overflow-y-auto sm:border-b-0 sm:border-r">
-      {/* Brand */}
-      <div className="flex items-center gap-2 px-4 py-5 font-bold text-sm text-zinc-900 dark:text-white tracking-tight border-r border-zinc-200 dark:border-zinc-800 sm:border-r-0 sm:border-b">
-        <span className="text-violet-500 text-base" aria-hidden="true">
+    <aside className="flex flex-row flex-wrap border-b border-border sm:flex-col sm:flex-nowrap sm:w-56 sm:shrink-0 sm:sticky sm:top-0 sm:h-screen sm:overflow-y-auto sm:border-b-0 sm:border-r bg-sidebar">
+      <div className="flex items-center gap-2 px-4 py-5 font-bold text-sm tracking-tight border-r border-border sm:border-r-0 sm:border-b">
+        <span className="text-primary text-base" aria-hidden="true">
           ⟡
         </span>
         Translator Assistant
       </div>
 
-      {/* Nav */}
       <nav
         className="flex flex-row flex-1 items-center gap-1 p-2 sm:flex-col sm:flex-1 sm:items-stretch"
         aria-label="Main navigation"
@@ -139,11 +141,12 @@ export function Sidebar() {
             to={to}
             end={end}
             className={({ isActive }) =>
-              `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium no-underline transition-colors ${
+              cn(
+                "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium no-underline transition-colors",
                 isActive
-                  ? "bg-violet-50 dark:bg-violet-950 text-violet-600 dark:text-violet-400"
-                  : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
-              }`
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )
             }
           >
             <span className="flex items-center shrink-0">{icon}</span>
@@ -152,25 +155,29 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="flex flex-row items-center gap-3 p-3 w-full border-t border-zinc-200 dark:border-zinc-800 sm:flex-col sm:items-stretch sm:p-4">
+      <Separator className="hidden sm:block" />
+
+      <div className="flex flex-row items-center gap-3 p-3 w-full sm:flex-col sm:items-stretch sm:p-4">
         <Link
           to="/profile/edit"
           className="flex-1 flex flex-col gap-1 min-w-0 no-underline hover:opacity-80 transition-opacity"
         >
-          <span className="text-xs font-medium text-zinc-900 dark:text-white truncate">
+          <span className="text-xs font-medium truncate">
             {user?.name ?? user?.email}
           </span>
-          <span className="text-xs font-semibold px-1.5 py-0.5 bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 rounded w-fit">
+          <Badge variant="secondary" className="w-fit text-xs">
             {user?.role}
-          </span>
+          </Badge>
         </Link>
-        <button
-          className="px-3 py-1.5 bg-transparent text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-md text-xs font-medium cursor-pointer hover:border-violet-500 hover:text-violet-600 transition-colors disabled:opacity-50 sm:w-full"
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0 sm:w-full"
           onClick={logout}
           disabled={loading}
         >
           {loading ? "Signing out…" : "Sign out"}
-        </button>
+        </Button>
       </div>
     </aside>
   );

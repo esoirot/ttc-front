@@ -8,6 +8,7 @@ import {
 import { formatTime, secsToHms, dayLabel, groupByDescription } from "./helpers";
 import { EntryRow } from "./EntryRow";
 import { DescriptionGroup } from "./DescriptionGroup";
+import { Button } from "@/components/ui/button";
 
 export function DayGroup({
   workspaceId,
@@ -58,30 +59,31 @@ export function DayGroup({
         : "";
 
   return (
-    <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-      <button
+    <div className="border border-border rounded-lg overflow-hidden">
+      <Button
+        variant="ghost"
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2 px-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors text-left"
+        className="w-full flex items-center gap-2 px-4 py-3 rounded-none bg-muted/50 hover:bg-muted h-auto justify-start"
       >
-        <span className="text-zinc-400 text-xs w-3 shrink-0">
+        <span className="text-muted-foreground text-xs w-3 shrink-0">
           {expanded ? "▼" : "▶"}
         </span>
-        <span className="font-medium text-sm text-zinc-900 dark:text-white">
-          {dayLabel(dayKey)}
+        <span className="font-medium text-sm">{dayLabel(dayKey)}</span>
+        <span className="text-xs text-muted-foreground">
+          ({entries.length})
         </span>
-        <span className="text-xs text-zinc-400">({entries.length})</span>
         <div className="flex-1" />
         {!expanded && earliest && (
-          <span className="text-xs font-mono text-zinc-400 dark:text-zinc-500">
+          <span className="text-xs font-mono text-muted-foreground">
             {earliest} – {latest}
           </span>
         )}
-        <span className="text-xs font-mono text-zinc-600 dark:text-zinc-300 ml-3 shrink-0">
+        <span className="text-xs font-mono text-foreground ml-3 shrink-0">
           {secsToHms(totalSecs)}
         </span>
-      </button>
+      </Button>
       {expanded && (
-        <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <div className="divide-y divide-border">
           {groupByDescription(entries).map(([key, group]) => {
             const desc = group[0].description?.trim() ?? "";
             return group.length === 1 ? (

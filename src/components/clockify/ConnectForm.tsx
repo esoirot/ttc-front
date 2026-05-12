@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useSetClockifyCredentials } from "../../hooks/useClockify";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function ConnectForm() {
   const [apiKey, setApiKey] = useState("");
@@ -13,29 +16,27 @@ export function ConnectForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-sm">
-      <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          Clockify API Key
-        </label>
-        <input
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="clockify-api-key">Clockify API Key</Label>
+        <Input
+          id="clockify-api-key"
           type="password"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           placeholder="Enter your Clockify API key"
-          className="w-full px-3 py-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
         />
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="text-xs text-muted-foreground">
           Find it in Clockify → Profile → API key
         </p>
       </div>
-      {error && <p className="text-sm text-red-600">{error.message}</p>}
-      <button
+      {error && <p className="text-sm text-destructive">{error.message}</p>}
+      <Button
         type="submit"
         disabled={isPending || !apiKey.trim()}
-        className="px-4 py-2 rounded-md bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-50 transition-colors"
+        className="self-start"
       >
         {isPending ? "Connecting…" : "Connect Clockify"}
-      </button>
+      </Button>
     </form>
   );
 }

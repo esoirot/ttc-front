@@ -2,6 +2,7 @@ import { useClockifyStatus } from "../../hooks/useClockify";
 import { ConnectForm } from "../../components/clockify/ConnectForm";
 import { WorkspacePicker } from "../../components/clockify/WorkspacePicker";
 import { TrackerView } from "../../components/clockify/TrackerView";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function TimeTrackerPage() {
   const { data: status, isLoading } = useClockifyStatus();
@@ -9,7 +10,8 @@ export function TimeTrackerPage() {
   if (isLoading) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <p className="text-sm text-zinc-500">Loading…</p>
+        <Skeleton className="h-8 w-36 mb-6" />
+        <Skeleton className="h-4 w-64" />
       </div>
     );
   }
@@ -22,14 +24,14 @@ export function TimeTrackerPage() {
 
       {!status?.connected ? (
         <>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+          <p className="text-sm text-muted-foreground mb-6">
             Connect your Clockify account to start tracking time.
           </p>
           <ConnectForm />
         </>
       ) : !status.workspaceId ? (
         <>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+          <p className="text-sm text-muted-foreground mb-6">
             Choose a workspace to track time in.
           </p>
           <WorkspacePicker />
@@ -39,9 +41,9 @@ export function TimeTrackerPage() {
       )}
 
       {status?.connected && (
-        <div className="mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800">
-          <details className="text-xs text-zinc-400">
-            <summary className="cursor-pointer hover:text-zinc-600 dark:hover:text-zinc-300">
+        <div className="mt-8 pt-6 border-t border-border">
+          <details className="text-xs text-muted-foreground">
+            <summary className="cursor-pointer hover:text-foreground transition-colors">
               Update API key or workspace
             </summary>
             <div className="mt-4">
