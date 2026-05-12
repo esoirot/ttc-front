@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { useCurrentUser, useLogout } from "../../hooks/useAuth";
 
 const NAV_ITEMS = [
@@ -77,9 +77,9 @@ const NAV_ITEMS = [
     ),
   },
   {
-    to: "/settings/2fa",
+    to: "/hubspot",
     end: false,
-    label: "Security",
+    label: "HubSpot",
     icon: (
       <svg
         width="16"
@@ -88,18 +88,26 @@ const NAV_ITEMS = [
         fill="none"
         aria-hidden="true"
       >
-        <path
-          d="M8 1L2 3.5v4C2 11 5 14 8 15c3-1 6-4 6-7.5v-4L8 1z"
+        <circle cx="5" cy="8" r="2" stroke="currentColor" strokeWidth="1.5" />
+        <circle
+          cx="12"
+          cy="4"
+          r="1.5"
           stroke="currentColor"
           strokeWidth="1.5"
-          strokeLinejoin="round"
+        />
+        <circle
+          cx="12"
+          cy="12"
+          r="1.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
         />
         <path
-          d="M5.5 8l1.5 1.5 3-3"
+          d="M7 7l3.5-2M7 9l3.5 2"
           stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"
-          strokeLinejoin="round"
         />
       </svg>
     ),
@@ -144,16 +152,18 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Footer */}
       <div className="flex flex-row items-center gap-3 p-3 w-full border-t border-zinc-200 dark:border-zinc-800 sm:flex-col sm:items-stretch sm:p-4">
-        <div className="flex-1 flex flex-col gap-1 min-w-0">
+        <Link
+          to="/profile/edit"
+          className="flex-1 flex flex-col gap-1 min-w-0 no-underline hover:opacity-80 transition-opacity"
+        >
           <span className="text-xs font-medium text-zinc-900 dark:text-white truncate">
             {user?.name ?? user?.email}
           </span>
           <span className="text-xs font-semibold px-1.5 py-0.5 bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 rounded w-fit">
             {user?.role}
           </span>
-        </div>
+        </Link>
         <button
           className="px-3 py-1.5 bg-transparent text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-md text-xs font-medium cursor-pointer hover:border-violet-500 hover:text-violet-600 transition-colors disabled:opacity-50 sm:w-full"
           onClick={logout}

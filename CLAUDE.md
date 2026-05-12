@@ -16,11 +16,14 @@ pnpm run prune          # Find unused exports (ts-prune)
 pnpm run format         # Prettier write
 pnpm run format:check   # Prettier check
 pnpm run check          # Run all checks in sequence
+pnpm run test:e2e       # Run Playwright E2E tests (headless)
+pnpm run test:e2e:ui    # Run Playwright with interactive UI
+pnpm run test:e2e:headed # Run Playwright with browser visible
 ```
 
 Always use **pnpm** — never npm or yarn.
 
-No test runner is configured yet.
+**E2E tests** use Playwright (`e2e/` directory). Config in `playwright.config.ts`. Tests mock all network traffic with `page.route()` — no real backend needed. Mock helpers in `e2e/helpers/mock.ts` (`mockGraphQL`, `mockClockifyStatus`, `mockClockifyTracker`, etc.).
 
 ## Stack
 
@@ -41,9 +44,9 @@ VITE_API_URL=http://localhost:3000/graphql
 
 ## Architecture
 
-**GraphQL client**: `src/lib/apollo.ts` exports a single `apolloClient` instance. `ApolloProvider` wraps the app in `main.tsx`. All GraphQL operations go through Apollo — do not use `fetch` or TanStack Query for GraphQL calls.
+**GraphQL client**: `src/lib/apollo.ts` exports a single `apolloClient` instance. `ApolloProvider` wraps the app in `main.tsx`. All GraphQL operations go through Apollo — do not use `fetch` or TanStack Query for GraphQL calls. An `onError` link (from `@apollo/client/link/error`) sits first in the chain; on `UNAUTHENTICATED` outside public paths it calls `tryRefresh()` (from `api.ts`) and retries the original operation via `forward(operation)` using `Observable` (from `@apollo/client/utilities`). If refresh fails, falls back to `window.location.replace('/login')`.
 
-**REST client**: `src/lib/api.ts` exports `apiGet`, `apiPost`, `apiPatch`, `apiDelete` — thin `fetch` wrappers with `credentials: 'include'` and typed error (`ApiError`). Base URL derived from `VITE_API_URL` by stripping `/graphql`. Use these for all REST endpoints; wrap them in TanStack Query hooks in `src/hooks/`.
+**REST client**: `src/lib/api.ts` exports `apiGet`, `apiPost`, `apiPatch`, `apiDelete` — thin `fetch` wrappers with `credentials: 'include'` and typed error (`ApiError`). Base URL derived from `VITE_API_URL` by stripping `/graphql`. On 401, automatically fires the `refreshToken` GraphQL mutation and retries the original request once; if refresh also fails, throws `ApiError(401)`. `Content-Type: application/json` is only sent when the request has a body — body-less requests (GET, DELETE) omit it. Use these for all REST endpoints; wrap them in TanStack Query hooks in `src/hooks/`.
 
 **Auth state**: determined by the `me` query. If it returns a user, the session is active. No tokens are managed in JS — auth cookies are HTTP-only and invisible to the frontend.
 
@@ -55,10 +58,11 @@ src/
 │   ├── apollo.ts                  — Apollo client (credentials: 'include')
 │   └── api.ts                     — REST fetch helpers (apiGet/apiPost/apiPatch/apiDelete, ApiError)
 ├── graphql/
-│   └── auth.operations.ts         — All auth queries/mutations (ME_QUERY, LOGIN_MUTATION, etc.)
+│   └── auth.operations.ts         — All auth queries/mutations (ME_QUERY, LOGIN_MUTATION, UPDATE_ME_MUTATION, etc.)
 ├── hooks/
-│   ├── useAuth.ts                 — useCurrentUser, useLogin, useRegister, useLogout, useSetupTwoFactor, useEnableTwoFactor, useVerifyTwoFactor
-│   └── useClockify.ts             — TanStack Query hooks for all Clockify REST endpoints
+│   ├── useAuth.ts                 — useCurrentUser, useLogin, useRegister, useLogout, useUpdateMe, useSetupTwoFactor, useEnableTwoFactor, useVerifyTwoFactor
+│   ├── useClockify.ts             — TanStack Query hooks for all Clockify REST endpoints
+│   └── useHubspot.ts              — TanStack Query hooks for all HubSpot REST endpoints (status, contacts, companies, deals, disconnect, infinite lists, contact search)
 ├── components/
 │   ├── auth/
 │   │   ├── AuthLayout.tsx         — Shared card wrapper for public auth pages
@@ -66,14 +70,16 @@ src/
 │   │   └── ProtectedRoute.tsx     — Redirects to /login when unauthenticated; shows loading state
 │   └── layout/
 │       ├── AppLayout.tsx          — App shell: renders <Sidebar /> + <Outlet /> side by side
-│       └── Sidebar.tsx            — Sticky sidebar with nav links, user info, and sign-out button
+│       └── Sidebar.tsx            — Sticky sidebar with nav links; username is a <Link> to /profile/edit; sign-out button
 └── pages/
     ├── LoginPage.tsx              — Email/password form; on requiresTwoFactor → navigate to /2fa/verify
     ├── RegisterPage.tsx           — Registration form
     ├── TwoFactorVerifyPage.tsx    — TOTP code input; reads tempToken from router state
-    ├── TwoFactorSetupPage.tsx     — Security settings page: QR setup + enable 2FA
+    ├── TwoFactorSetupPage.tsx     — Security settings page: QR setup + enable 2FA (legacy route kept)
+    ├── EditProfilePage.tsx        — Profile editor: Profile tab (name/email) + Security tab (2FA setup)
     ├── DashboardPage.tsx          — Protected landing page with 2FA prompt
-    └── TimeTrackerPage.tsx        — Clockify time tracker: connect → pick workspace → start/stop timers
+    ├── TimeTrackerPage.tsx        — Clockify time tracker: connect → pick workspace → start/stop/edit timers, day-grouped entry calendar
+    └── HubspotPage.tsx            — HubSpot CRM: OAuth connect flow + tabbed view (Contacts | Companies | Deals) with inline create forms, infinite scroll pagination, and contact search
 ```
 
 **Routing** (`App.tsx` — `createBrowserRouter`):
@@ -83,8 +89,10 @@ src/
 | `/register` | `RegisterPage` | public |
 | `/2fa/verify` | `TwoFactorVerifyPage` | public (has `tempToken` in router state) |
 | `/` | `DashboardPage` | protected (inside `AppLayout`) |
+| `/profile/edit` | `EditProfilePage` | protected (inside `AppLayout`) |
 | `/settings/2fa` | `TwoFactorSetupPage` | protected (inside `AppLayout`) |
 | `/time-tracker` | `TimeTrackerPage` | protected (inside `AppLayout`) |
+| `/hubspot` | `HubspotPage` | protected (inside `AppLayout`) |
 
 The protected route hierarchy is: `ProtectedRoute → AppLayout → [page]`. Adding a new protected page means adding it as a child of `AppLayout` in `App.tsx`.
 
@@ -93,16 +101,57 @@ The protected route hierarchy is: `ProtectedRoute → AppLayout → [page]`. Add
 - The React Compiler handles memoization — keep components and hooks pure.
 - Vite plugins: `tailwindcss()` (first) + `@vitejs/plugin-react` (JSX) + `@rolldown/plugin-babel` (React Compiler). Add Babel plugins to `vite.config.ts` only, not `.babelrc`.
 - `useCurrentUser()` uses `errorPolicy: 'ignore'` so unauthenticated requests don't throw.
-- After `logout`, call `client.clearStore()` to wipe the Apollo cache.
+- After `logout`, call `client.clearStore()` to wipe the Apollo cache. `useLogout` also writes `localStorage.setItem('ttc_logout', Date.now())` to trigger cross-tab logout via the `storage` event.
+- Cross-tab logout is handled by `RootLayout` in `App.tsx` — a root route element that wraps all routes and registers a `storage` listener. Must stay inside the router tree to use `useNavigate`.
+- `ProtectedRoute` passes `state={{ from: pathname + search }}` to `<Navigate to="/login">`. `LoginPage` reads `state.from` and navigates there on success. `TwoFactorVerifyPage` threads `from` through its own state so 2FA flows also land on the intended path.
 - Google OAuth is a full-page redirect (`window.location.href = .../auth/google`), not a GraphQL mutation.
-- `Sidebar.tsx` owns the user display, role badge, and sign-out button — do not duplicate these in page components.
+- `Sidebar.tsx` owns the user display, role badge, and sign-out button — do not duplicate these in page components. The username/role block is a `<Link to="/profile/edit">` — clicking it navigates to the edit profile page.
 - Protected page components use `max-w-3xl mx-auto px-6 py-8` for consistent padding/max-width. Do not add custom headers with back buttons; sidebar navigation replaces them.
 - Nav links in `Sidebar.tsx` use `<NavLink end>` — always pass `end={true}` for the `/` route so it doesn't highlight on every sub-path.
 - Sidebar is `flex-row` (horizontal top bar) on mobile, `sm:flex-col sm:w-56` sticky on desktop — controlled by Tailwind `sm:` breakpoint (640px).
 - Dark mode is `@media (prefers-color-scheme: dark)` — Tailwind v4's default. Use `dark:` variants; do not add a class-based dark mode toggle.
 - Color palette: `violet-*` for accent, `zinc-*` for neutrals, `emerald-*` for success states, `red-600` for errors. Do not introduce other accent colors.
 - There is no custom CSS file — do not create one. If a style cannot be expressed with Tailwind utilities, use inline `style={{}}` as a last resort.
-- Do not call `setState` synchronously inside `useEffect` bodies — the React Compiler lint rule flags this. Use a tick-counter pattern for live timers: `setInterval(() => setTick(t => t + 1), 1000)` and compute display value during render.
+- Do not call `setState` synchronously inside `useEffect` bodies — the React Compiler lint rule flags this. For live timers, store the display string as state and update it inside `setInterval`: `setInterval(() => setDisplay(format(startIso)), 1000)`. Do NOT use a tick-counter (`setTick`) and compute during render — the compiler memoizes expressions like `format(startIso)` because `startIso` never changes, freezing the display. The interval callback is async (not render-phase), so `setDisplay(...)` inside it is allowed.
+- Do not read `ref.current` during render — the React Compiler lint rule `react-hooks/refs` flags this.
+
+## TimeTrackerPage (`src/pages/TimeTrackerPage.tsx`)
+
+Internal component hierarchy:
+
+```
+TimeTrackerPage
+├── SetupView          — API key form + workspace picker (shown when not connected)
+└── TrackerView        — shown when connected; owns all TanStack Query hooks
+    ├── ActiveTimer    — new-entry form + running timer display (stop button)
+    └── DayGroup[]     — one per calendar day, collapsed by default
+        └── DescriptionGroup | EntryRow   — per description bucket
+            └── EntryRow[]               — individual entries (inside DescriptionGroup when expanded)
+```
+
+**Component responsibilities:**
+
+| Component          | Purpose                                                                                                                                                                                                                                                                |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BillableToggle`   | `$` button, green when billable                                                                                                                                                                                                                                        |
+| `ProjectSelect`    | Native `<select>` with "No project" option                                                                                                                                                                                                                             |
+| `TagChips`         | Tag chips with ×, text input for search/add/create                                                                                                                                                                                                                     |
+| `EntryRow`         | Single time entry row: description, project, tags, billable, time range, resume ▶, delete ✕                                                                                                                                                                            |
+| `DescriptionGroup` | Merged row for 2+ same-description entries in a day; `▶` expands to individual `EntryRow`s                                                                                                                                                                             |
+| `DayGroup`         | Day accordion (collapsed by default); header shows date/count/time-span/total; body groups by description                                                                                                                                                              |
+| `ActiveTimer`      | Shows running timer info + Stop button when active; shows new-entry form when idle                                                                                                                                                                                     |
+| `TrackerView`      | Owns `useClockifyProjects`, `useClockifyEntries`, `useClockifyTags`, `useDeleteEntry`, `useStartEntry`, `useUpdateEntry`; holds `startDate`/`endDate` state (defaults: 30 days ago → today); renders date range filter, project filter, `ActiveTimer`, `DayGroup` list |
+
+**Key rules:**
+
+- `TagChips` takes `workspaceId` as prop and calls `useCreateTag(workspaceId)` internally — it is self-contained for both selecting and creating tags.
+- Dropdown items in `TagChips` use `onMouseDown` (not `onClick`) so they fire before the `onBlur` timeout (150 ms) that closes the dropdown. Never change to `onClick` — the item won't register.
+- `DayGroup` groups entries by description via `groupByDescription()` helper. The map key is `desc || projectId || "__no_desc__"` — entries with the same non-empty description group together regardless of project; entries with an empty description are split by project so they don't all collapse into one group. Unique keys (after grouping) render as plain `EntryRow`.
+- Render call-site extracts `desc` from `group[0].description?.trim() ?? ""` — never use the map key as the display description, since the key may be a projectId when description is empty.
+- `EntryRow.patch()` constructs a full `UpdateEntryInput` from `entry` + a partial override — always passes all required fields (`start`, `billable`, `tagIds`) so the Clockify `PUT` never receives a partial body.
+- `workspaceId` must be threaded through `TrackerView → DayGroup → EntryRow → TagChips` and `ActiveTimer → TagChips`. All four components have it as a required prop.
+- `useClockifyActiveEntry` stops polling only when the error is `ApiError` with `status === 401`. Transient errors (500, network failure) keep the 10 s interval — check `err instanceof ApiError && err.status === 401` in `refetchInterval`. Never change back to stopping on any error.
+- Date range filter in `TrackerView`: `startDate`/`endDate` state holds `YYYY-MM-DD` strings. `toStartIso`/`toEndIso` module-level helpers convert them to local-timezone ISO for the API (`T00:00:00` / `T23:59:59.999`). The two `<input type="date">` fields have `max`/`min` constraints to prevent invalid ranges.
 
 **Apollo Client v4 import rules** — v4 no longer exports everything from `@apollo/client`. Use the correct subpackage or Vite will throw a missing-export error at runtime:
 
@@ -114,50 +163,79 @@ The protected route hierarchy is: `ProtectedRoute → AppLayout → [page]`. Add
 
 ## Status & Known Gaps
 
-- **Token refresh not wired**: the backend `refreshToken` mutation exists but the frontend never calls it. Needs an Apollo error link that intercepts `UNAUTHENTICATED` errors, calls `refreshToken`, then retries. On refresh failure → redirect to `/login`.
-- **No redirect-back after login**: `ProtectedRoute` redirects to `/login` but does not preserve the originally requested path. Store `location.pathname` in router state and restore it after successful login.
-- **No disable-2FA flow**: once 2FA is enabled there is no UI or mutation to turn it off.
-- **Existing resolvers unguarded**: `users` and `projects` resolvers on the backend still have no `@UseGuards(GqlAuthGuard)`.
-- **Clockify API key plaintext**: stored as-is in the DB — consider server-side encryption.
+- **Clockify API key and HubSpot tokens**: encrypted at rest with AES-256-GCM when `APP_ENCRYPTION_KEY` is set (see backend CLAUDE.md).
+- **Google OAuth persistent redirect**: `from` path not preserved before the full-page OAuth redirect. Requires storing in `sessionStorage` before `window.location.href = /auth/google` and reading it back after callback.
+- **HubSpot pagination**: ~~only loaded first page~~ — resolved. All three tabs use `useInfiniteQuery`; "Load more" button fetches next cursor page.
+- **HubSpot OAuth CSRF**: ~~state was bare userId~~ — resolved on backend (#12). OAuth state is now HMAC-SHA256 signed with a nonce and 10-min expiry.
 
 ## Docs
 
 Implementation logs live in `../../docs/implementations/`:
 
 - `auth-implementation.md` — backend auth system
-- `auth-ui.md` — this frontend auth UI
+- `auth-ui.md` — frontend auth pages and routing
+- `auth-remaining.md` — persistent redirect, cross-tab logout, resolver guards, disable 2FA, Apollo token refresh
 
 Plans live in `../../docs/plans/`:
 
 - `clockify-integration.md` — Clockify REST integration design
+- `auth-remaining.md` — plan for the auth follow-up items above
 
 ## Auth Hooks (`src/hooks/useAuth.ts`)
 
-| Hook                   | Description                                                                                                    |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `useCurrentUser()`     | Returns `{ user, loading, isAuthenticated }`. Polling `me` query.                                              |
-| `useLogin()`           | Returns `{ login(email, password), loading, error }`. Check `data.login.requiresTwoFactor` to detect 2FA flow. |
-| `useRegister()`        | Returns `{ register(email, password, name?), loading, error }`.                                                |
-| `useLogout()`          | Calls logout mutation + clears Apollo cache.                                                                   |
-| `useSetupTwoFactor()`  | Returns QR code URL and base32 secret for display.                                                             |
-| `useEnableTwoFactor()` | Confirms 2FA setup with a TOTP code.                                                                           |
-| `useVerifyTwoFactor()` | Completes login when 2FA is required — pass `tempToken` from login response + user code.                       |
+| Hook                    | Description                                                                                                                                                                                               |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useCurrentUser()`      | Returns `{ user, loading, isAuthenticated }`. Polls `me` every 60 s (`pollInterval: 60_000`). `errorPolicy: 'ignore'` — auth errors are handled by the Apollo `onError` link which redirects to `/login`. |
+| `useLogin()`            | Returns `{ login(email, password), loading, error }`. Check `data.login.requiresTwoFactor` to detect 2FA flow.                                                                                            |
+| `useRegister()`         | Returns `{ register(email, password, name?), loading, error }`.                                                                                                                                           |
+| `useLogout()`           | Calls logout mutation + clears Apollo cache + writes `ttc_logout` timestamp to localStorage (triggers cross-tab logout via `storage` event).                                                              |
+| `useUpdateMe()`         | Returns `{ updateMe({ name?, email? }), loading, error }`. Updates current user; refetches `me` query.                                                                                                    |
+| `useSetupTwoFactor()`   | Returns QR code URL and base32 secret for display.                                                                                                                                                        |
+| `useEnableTwoFactor()`  | Confirms 2FA setup with a TOTP code.                                                                                                                                                                      |
+| `useVerifyTwoFactor()`  | Completes login when 2FA is required — pass `tempToken` from login response + user code.                                                                                                                  |
+| `useDisableTwoFactor()` | Disables 2FA — sends TOTP code for verification; refetches `me` on success.                                                                                                                               |
 
 ## Clockify Hooks (`src/hooks/useClockify.ts`)
 
 All hooks use TanStack Query against the backend REST endpoints at `/clockify/*`.
 
-| Hook                                            | Type                        | Endpoint                                                                       |
-| ----------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------ |
-| `useClockifyStatus()`                           | query                       | `GET /clockify/status` → `{ connected, workspaceId }`                          |
-| `useSetClockifyCredentials()`                   | mutation                    | `POST /clockify/credentials` — validates key via Clockify then saves           |
-| `useSetClockifyWorkspace()`                     | mutation                    | `PATCH /clockify/workspace` — updates workspace pref without re-validating key |
-| `useClockifyWorkspaces()`                       | query                       | `GET /clockify/workspaces`                                                     |
-| `useClockifyProjects(workspaceId)`              | query                       | `GET /clockify/workspaces/:id/projects`                                        |
-| `useClockifyEntries(workspaceId, start?, end?)` | query                       | `GET /clockify/workspaces/:id/entries`                                         |
-| `useClockifyActiveEntry(workspaceId)`           | query, refetchInterval: 10s | `GET /clockify/workspaces/:id/entries/active`                                  |
-| `useStartEntry(workspaceId)`                    | mutation                    | `POST /clockify/workspaces/:id/entries`                                        |
-| `useStopEntry(workspaceId)`                     | mutation                    | `PATCH /clockify/workspaces/:id/entries/:eid/stop`                             |
-| `useDeleteEntry(workspaceId)`                   | mutation                    | `DELETE /clockify/workspaces/:id/entries/:eid`                                 |
+| Hook                                            | Type                                            | Endpoint                                                                       |
+| ----------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------ |
+| `useClockifyStatus()`                           | query                                           | `GET /clockify/status` → `{ connected, workspaceId }`                          |
+| `useSetClockifyCredentials()`                   | mutation                                        | `POST /clockify/credentials` — validates key via Clockify then saves           |
+| `useSetClockifyWorkspace()`                     | mutation                                        | `PATCH /clockify/workspace` — updates workspace pref without re-validating key |
+| `useClockifyWorkspaces()`                       | query                                           | `GET /clockify/workspaces`                                                     |
+| `useClockifyProjects(workspaceId)`              | query                                           | `GET /clockify/workspaces/:id/projects`                                        |
+| `useClockifyEntries(workspaceId, start?, end?)` | query                                           | `GET /clockify/workspaces/:id/entries`                                         |
+| `useClockifyActiveEntry(workspaceId)`           | query, refetchInterval: 10s (stops only on 401) | `GET /clockify/workspaces/:id/entries/active`                                  |
+| `useStartEntry(workspaceId)`                    | mutation                                        | `POST /clockify/workspaces/:id/entries`                                        |
+| `useStopEntry(workspaceId)`                     | mutation, no args                               | `PATCH /clockify/workspaces/:id/entries/stop` — stops running timer            |
+| `useDeleteEntry(workspaceId)`                   | mutation                                        | `DELETE /clockify/workspaces/:id/entries/:eid`                                 |
+| `useClockifyTags(workspaceId)`                  | query                                           | `GET /clockify/workspaces/:id/tags`                                            |
+| `useCreateTag(workspaceId)`                     | mutation                                        | `POST /clockify/workspaces/:id/tags` — creates tag in Clockify workspace       |
+| `useUpdateEntry(workspaceId)`                   | mutation                                        | `PATCH /clockify/workspaces/:id/entries/:eid` — full entry update (PUT to CW)  |
 
 `QueryClientProvider` is wired in `main.tsx` alongside `ApolloProvider`.
+
+## HubSpot Hooks (`src/hooks/useHubspot.ts`)
+
+All hooks use TanStack Query against the backend REST endpoints at `/hubspot/*`.
+
+| Hook                                  | Type                                  | Endpoint                                                                                  |
+| ------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `useHubspotStatus()`                  | query                                 | `GET /hubspot/status` → `{ connected, portalId }`                                         |
+| `useDisconnectHubspot()`              | mutation                              | `DELETE /hubspot/disconnect`                                                              |
+| `useInfiniteHubspotContacts(limit?)`  | infinite query                        | `GET /hubspot/contacts?limit=&after=` — pages via `paging.next.after`                     |
+| `useInfiniteHubspotCompanies(limit?)` | infinite query                        | `GET /hubspot/companies?limit=&after=`                                                    |
+| `useInfiniteHubspotDeals(limit?)`     | infinite query                        | `GET /hubspot/deals?limit=&after=`                                                        |
+| `useSearchHubspotContacts(query)`     | query, `enabled` when query non-empty | `POST /hubspot/contacts/search` — `CONTAINS_TOKEN` filter across email/firstname/lastname |
+| `useCreateContact()`                  | mutation                              | `POST /hubspot/contacts`                                                                  |
+| `useUpdateContact()`                  | mutation                              | `PATCH /hubspot/contacts/:id`                                                             |
+| `useCreateDeal()`                     | mutation                              | `POST /hubspot/deals`                                                                     |
+| `useUpdateDeal()`                     | mutation                              | `PATCH /hubspot/deals/:id`                                                                |
+
+**Key rules:**
+
+- All three list tabs use `useInfiniteQuery`. Flatten results with `data.pages.flatMap(p => p.results)`. "Load more" button appears when `hasNextPage`.
+- `ContactsTab` has a search input that debounces 300 ms (`useEffect` + `setTimeout`). When `debouncedSearch` is non-empty, renders search results from `useSearchHubspotContacts`; otherwise renders infinite list. "Load more" is hidden while searching.
+- The original `useHubspotContacts/Companies/Deals` hooks (plain `useQuery`) are kept for backwards compatibility — only the infinite variants are used in `HubspotPage`.

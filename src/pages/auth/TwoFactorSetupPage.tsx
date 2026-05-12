@@ -3,7 +3,7 @@ import {
   useCurrentUser,
   useSetupTwoFactor,
   useEnableTwoFactor,
-} from "../hooks/useAuth";
+} from "../../hooks/useAuth";
 
 export function TwoFactorSetupPage() {
   const { user } = useCurrentUser();

@@ -6,12 +6,15 @@ import {
   LOGOUT_MUTATION,
   SETUP_TWO_FACTOR_MUTATION,
   ENABLE_TWO_FACTOR_MUTATION,
+  DISABLE_TWO_FACTOR_MUTATION,
   VERIFY_TWO_FACTOR_MUTATION,
+  UPDATE_ME_MUTATION,
 } from "../graphql/auth.operations";
 
 export function useCurrentUser() {
   const { data, loading, error } = useQuery(ME_QUERY, {
     errorPolicy: "ignore",
+    pollInterval: 60_000,
   });
   return {
     user: data?.me ?? null,
@@ -50,6 +53,7 @@ export function useLogout() {
   const logout = async () => {
     await mutate();
     await client.clearStore();
+    localStorage.setItem("ttc_logout", Date.now().toString());
   };
 
   return { logout, loading };
@@ -83,6 +87,32 @@ export function useVerifyTwoFactor() {
   return {
     verifyTwoFactor: (tempToken: string, code: string) =>
       mutate({ variables: { input: { tempToken, code } } }),
+    loading,
+    error,
+  };
+}
+
+export function useDisableTwoFactor() {
+  const [mutate, { loading, error }] = useMutation(
+    DISABLE_TWO_FACTOR_MUTATION,
+    {
+      refetchQueries: [ME_QUERY],
+    },
+  );
+  return {
+    disableTwoFactor: (code: string) => mutate({ variables: { code } }),
+    loading,
+    error,
+  };
+}
+
+export function useUpdateMe() {
+  const [mutate, { loading, error }] = useMutation(UPDATE_ME_MUTATION, {
+    refetchQueries: [ME_QUERY],
+  });
+  return {
+    updateMe: (input: { name?: string; email?: string }) =>
+      mutate({ variables: { input } }),
     loading,
     error,
   };

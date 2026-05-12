@@ -1,14 +1,27 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { AuthLayout } from "../components/auth/AuthLayout";
-import { GoogleOAuthButton } from "../components/auth/GoogleOAuthButton";
-import { useLogin } from "../hooks/useAuth";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { AuthLayout } from "../../components/auth/AuthLayout";
+import { GoogleOAuthButton } from "../../components/auth/GoogleOAuthButton";
+import { useLogin } from "../../hooks/useAuth";
+
+function isValidEmail(v: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from ?? "/";
   const { login, loading, error } = useLogin();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
+  const emailError =
+    emailTouched && !isValidEmail(email) ? "Enter a valid email address." : "";
+  const passwordError =
+    passwordTouched && password.length === 0 ? "Password is required." : "";
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -16,11 +29,18 @@ export function LoginPage() {
     const data = result.data?.login;
 
     if (data?.requiresTwoFactor) {
-      navigate("/2fa/verify", { state: { tempToken: data.tempToken } });
+      navigate("/2fa/verify", { state: { tempToken: data.tempToken, from } });
     } else if (data?.user) {
-      navigate("/");
+      navigate(from, { replace: true });
     }
   }
+
+  const inputCls = (hasError: boolean) =>
+    `w-full px-3 py-2 border rounded-md text-base bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white outline-none transition-colors ${
+      hasError
+        ? "border-red-500 focus:border-red-500"
+        : "border-zinc-200 dark:border-zinc-700 focus:border-violet-500"
+    }`;
 
   return (
     <AuthLayout title="Sign in">
@@ -39,8 +59,12 @@ export function LoginPage() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-md text-base bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white outline-none focus:border-violet-500 transition-colors"
+            onBlur={() => setEmailTouched(true)}
+            className={inputCls(!!emailError)}
           />
+          {emailError && (
+            <p className="text-xs text-red-600 mt-0.5">{emailError}</p>
+          )}
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -57,8 +81,12 @@ export function LoginPage() {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-md text-base bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white outline-none focus:border-violet-500 transition-colors"
+            onBlur={() => setPasswordTouched(true)}
+            className={inputCls(!!passwordError)}
           />
+          {passwordError && (
+            <p className="text-xs text-red-600 mt-0.5">{passwordError}</p>
+          )}
         </div>
 
         {error && <p className="text-sm text-red-600">{error.message}</p>}

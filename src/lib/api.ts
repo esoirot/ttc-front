@@ -1,26 +1,51 @@
-const BASE = (import.meta.env.VITE_API_URL as string).replace("/graphql", "");
+const GRAPHQL_URL = import.meta.env.VITE_API_URL as string;
+const BASE = GRAPHQL_URL.replace("/graphql", "");
 
 class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    message: string,
-  ) {
+  readonly status: number;
+  constructor(status: number, message: string) {
     super(message);
     this.name = "ApiError";
+    this.status = status;
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function tryRefresh(): Promise<boolean> {
+  try {
+    const res = await fetch(GRAPHQL_URL, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: "mutation { refreshToken }" }),
+    });
+    if (!res.ok) return false;
+    const json = (await res.json()) as { data?: { refreshToken?: boolean } };
+    return json.data?.refreshToken === true;
+  } catch {
+    return false;
+  }
+}
+
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  isRetry = false,
+): Promise<T> {
+  const hasBody = init?.body !== undefined;
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     credentials: "include",
     headers: {
-      "Content-Type": "application/json",
+      ...(hasBody ? { "Content-Type": "application/json" } : {}),
       ...init?.headers,
     },
   });
 
   if (!res.ok) {
+    if (res.status === 401 && !isRetry) {
+      const refreshed = await tryRefresh();
+      if (refreshed) return request<T>(path, init, true);
+    }
     const raw: unknown = await res.json().catch(() => ({}));
     const msg =
       raw !== null &&
@@ -55,4 +80,4 @@ export function apiDelete(path: string): Promise<void> {
   return request<void>(path, { method: "DELETE" });
 }
 
-export { ApiError };
+export { ApiError, tryRefresh };

@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate, Navigate } from "react-router-dom";
-import { AuthLayout } from "../components/auth/AuthLayout";
-import { useVerifyTwoFactor } from "../hooks/useAuth";
+import { AuthLayout } from "../../components/auth/AuthLayout";
+import { useVerifyTwoFactor } from "../../hooks/useAuth";
 
 export function TwoFactorVerifyPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const tempToken = (location.state as { tempToken?: string })?.tempToken;
+  const state = location.state as { tempToken?: string; from?: string } | null;
+  const tempToken = state?.tempToken;
+  const from = state?.from ?? "/";
   const { verifyTwoFactor, loading, error } = useVerifyTwoFactor();
   const [code, setCode] = useState("");
 
@@ -16,7 +18,7 @@ export function TwoFactorVerifyPage() {
     e.preventDefault();
     const result = await verifyTwoFactor(tempToken!, code);
     if (result.data?.verifyTwoFactor?.user) {
-      navigate("/", { replace: true });
+      navigate(from, { replace: true });
     }
   }
 

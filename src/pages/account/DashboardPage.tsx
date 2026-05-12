@@ -1,8 +1,17 @@
 import { Link } from "react-router-dom";
-import { useCurrentUser } from "../hooks/useAuth";
+import { useCurrentUser } from "../../hooks/useAuth";
 
 export function DashboardPage() {
-  const { user } = useCurrentUser();
+  const { user, loading } = useCurrentUser();
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        <div className="h-8 w-36 bg-zinc-200 dark:bg-zinc-700 rounded animate-pulse mb-6" />
+        <div className="h-4 w-56 bg-zinc-200 dark:bg-zinc-700 rounded animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">

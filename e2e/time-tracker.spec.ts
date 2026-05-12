@@ -47,7 +47,7 @@ test("shows tracker view when connected with workspace", async ({ page }) => {
   await page.goto("/time-tracker");
   await expect(page.getByPlaceholder("What are you working on?")).toBeVisible();
   await expect(page.getByRole("button", { name: "Start" })).toBeVisible();
-  await expect(page.getByText("Recent entries")).toBeVisible();
+  await expect(page.getByText("Entries")).toBeVisible();
 });
 
 test("tracker shows no entries message when entry list is empty", async ({
