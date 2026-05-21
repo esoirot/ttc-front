@@ -1,22 +1,35 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthLayout } from "../../components/auth/AuthLayout";
 import { GoogleOAuthButton } from "../../components/auth/GoogleOAuthButton";
-import { useLogin } from "../../hooks/useAuth";
+import { useLogin, useCurrentUser } from "../../hooks/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-
-function isValidEmail(v: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-}
+import { isValidEmail } from "../../components/auth/utils";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: string } | null)?.from ?? "/";
+  const state = location.state as { from?: string; message?: string } | null;
+  const from = state?.from ?? "/";
+  const successMessage = state?.message ?? "";
+  const { isAuthenticated } = useCurrentUser();
   const { login, loading, error } = useLogin();
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const raw = sessionStorage.getItem("oauth_from");
+    if (!raw) return;
+    sessionStorage.removeItem("oauth_from");
+    try {
+      const { dest, ts } = JSON.parse(raw) as { dest: string; ts: number };
+      if (Date.now() - ts < 60_000) navigate(dest, { replace: true });
+    } catch {
+      /* malformed or legacy bare-string value — ignore */
+    }
+  }, [isAuthenticated, navigate]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
@@ -27,7 +40,7 @@ export function LoginPage() {
   const passwordError =
     passwordTouched && password.length === 0 ? "Password is required." : "";
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const result = await login(email, password);
     const data = result.data?.login;
@@ -41,6 +54,11 @@ export function LoginPage() {
 
   return (
     <AuthLayout title="Sign in">
+      {successMessage && (
+        <p className="text-sm text-center text-emerald-600 mb-2">
+          {successMessage}
+        </p>
+      )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="email">Email</Label>
@@ -60,7 +78,15 @@ export function LoginPage() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Password</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link
+              to="/forgot-password"
+              className="text-xs text-muted-foreground hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <Input
             id="password"
             type="password"
@@ -89,7 +115,7 @@ export function LoginPage() {
         <Separator className="flex-1" />
       </div>
 
-      <GoogleOAuthButton />
+      <GoogleOAuthButton from={from} />
 
       <p className="text-sm text-center mt-4 text-muted-foreground">
         No account?{" "}

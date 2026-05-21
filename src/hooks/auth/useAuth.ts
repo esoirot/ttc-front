@@ -8,8 +8,15 @@ import {
   ENABLE_TWO_FACTOR_MUTATION,
   DISABLE_TWO_FACTOR_MUTATION,
   VERIFY_TWO_FACTOR_MUTATION,
+  VERIFY_TWO_FACTOR_BACKUP_MUTATION,
   UPDATE_ME_MUTATION,
-} from "../graphql/auth.operations";
+  REQUEST_PASSWORD_RESET_MUTATION,
+  RESET_PASSWORD_MUTATION,
+  REGENERATE_BACKUP_CODES_MUTATION,
+  ADMIN_DISABLE_TWO_FACTOR_MUTATION,
+  BACKUP_CODE_COUNT_QUERY,
+} from "../../graphql/auth.operations";
+import { USERS_QUERY } from "../../graphql/users.operations";
 
 export function useCurrentUser() {
   const { data, loading, error } = useQuery(ME_QUERY, {
@@ -70,11 +77,26 @@ export function useSetupTwoFactor() {
 }
 
 export function useEnableTwoFactor() {
-  const [mutate, { loading, error }] = useMutation(ENABLE_TWO_FACTOR_MUTATION, {
-    refetchQueries: [ME_QUERY],
-  });
+  const [mutate, { loading, error, data }] = useMutation(
+    ENABLE_TWO_FACTOR_MUTATION,
+    { refetchQueries: [ME_QUERY] },
+  );
   return {
     enableTwoFactor: (code: string) => mutate({ variables: { code } }),
+    loading,
+    error,
+    backupCodes: data?.enableTwoFactor?.backupCodes ?? null,
+  };
+}
+
+export function useVerifyTwoFactorBackup() {
+  const [mutate, { loading, error }] = useMutation(
+    VERIFY_TWO_FACTOR_BACKUP_MUTATION,
+    { refetchQueries: [ME_QUERY] },
+  );
+  return {
+    verifyBackup: (tempToken: string, backupCode: string) =>
+      mutate({ variables: { input: { tempToken, backupCode } } }),
     loading,
     error,
   };
@@ -111,9 +133,56 @@ export function useUpdateMe() {
     refetchQueries: [ME_QUERY],
   });
   return {
-    updateMe: (input: { name?: string; email?: string }) =>
+    updateMe: (input: { name?: string; email?: string; logoUrl?: string }) =>
       mutate({ variables: { input } }),
     loading,
     error,
   };
+}
+
+export function useRequestPasswordReset() {
+  const [mutate, { loading }] = useMutation(REQUEST_PASSWORD_RESET_MUTATION);
+  return {
+    requestReset: (email: string) => mutate({ variables: { email } }),
+    loading,
+  };
+}
+
+export function useResetPassword() {
+  const [mutate, { loading }] = useMutation(RESET_PASSWORD_MUTATION);
+  return {
+    resetPassword: (token: string, newPassword: string) =>
+      mutate({ variables: { token, newPassword } }),
+    loading,
+  };
+}
+
+export function useRegenerateBackupCodes() {
+  const [mutate, { loading, error }] = useMutation(
+    REGENERATE_BACKUP_CODES_MUTATION,
+  );
+  return {
+    regenerateBackupCodes: (code: string) => mutate({ variables: { code } }),
+    loading,
+    error,
+  };
+}
+
+export function useAdminDisableTwoFactor() {
+  const [mutate, { loading }] = useMutation(ADMIN_DISABLE_TWO_FACTOR_MUTATION, {
+    refetchQueries: [USERS_QUERY],
+  });
+  return {
+    adminDisableTwoFactor: (userId: number) =>
+      mutate({ variables: { userId } }),
+    loading,
+  };
+}
+
+export function useBackupCodeCount(skip = false) {
+  const { data, loading } = useQuery(BACKUP_CODE_COUNT_QUERY, {
+    skip,
+    fetchPolicy: "cache-and-network",
+  });
+  return { count: data?.backupCodeCount ?? null, loading };
 }

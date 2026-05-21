@@ -1,33 +1,14 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../../components/auth/AuthLayout";
 import { GoogleOAuthButton } from "../../components/auth/GoogleOAuthButton";
-import { useRegister } from "../../hooks/useAuth";
+import { useRegister } from "../../hooks/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-
-function isValidEmail(v: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-}
-
-function passwordStrength(p: string): 0 | 1 | 2 | 3 {
-  if (p.length === 0) return 0;
-  let score = 0;
-  if (p.length >= 8) score++;
-  if (p.length >= 12) score++;
-  if (/[A-Z]/.test(p) && /[0-9]/.test(p)) score++;
-  return Math.min(score, 3) as 0 | 1 | 2 | 3;
-}
-
-const strengthLabel = ["", "Weak", "Medium", "Strong"] as const;
-const strengthColor = [
-  "",
-  "bg-destructive",
-  "bg-yellow-400",
-  "bg-emerald-500",
-] as const;
+import { isValidEmail } from "../../components/auth/utils";
+import { PasswordStrengthIndicator } from "../../components/auth/PasswordStrengthIndicator";
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -45,9 +26,7 @@ export function RegisterPage() {
       ? "Password must be at least 8 characters."
       : "";
 
-  const strength = passwordStrength(password);
-
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const result = await register(email, password, name || undefined);
     if (result.data?.register?.id) {
@@ -99,31 +78,7 @@ export function RegisterPage() {
             onBlur={() => setPasswordTouched(true)}
             aria-invalid={!!passwordError}
           />
-          {password.length > 0 && (
-            <div className="flex items-center gap-2 mt-1">
-              <div className="flex gap-1 flex-1">
-                {[1, 2, 3].map((level) => (
-                  <div
-                    key={level}
-                    className={`h-1 flex-1 rounded-full transition-colors ${
-                      strength >= level ? strengthColor[strength] : "bg-border"
-                    }`}
-                  />
-                ))}
-              </div>
-              <span
-                className={`text-xs font-medium ${
-                  strength === 1
-                    ? "text-destructive"
-                    : strength === 2
-                      ? "text-yellow-500"
-                      : "text-emerald-500"
-                }`}
-              >
-                {strengthLabel[strength]}
-              </span>
-            </div>
-          )}
+          <PasswordStrengthIndicator password={password} />
           {passwordError && (
             <p className="text-xs text-destructive">{passwordError}</p>
           )}

@@ -4,7 +4,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { apiDelete, apiGet, apiPatch, apiPost } from "../lib/api";
+import { apiDelete, apiGet, apiPatch, apiPost } from "../../lib/api";
 
 export type HubspotStatus = {
   connected: boolean;
@@ -32,6 +32,8 @@ export type HubspotCompanyProperties = {
   name?: string;
   domain?: string;
   phone?: string;
+  city?: string;
+  country?: string;
 };
 
 export type HubspotCompany = {
@@ -80,6 +82,39 @@ export type CreateDealInput = {
 };
 
 export type UpdateDealInput = Partial<CreateDealInput>;
+
+export type CreateCompanyInput = {
+  name: string;
+  domain?: string;
+  phone?: string;
+  city?: string;
+  country?: string;
+};
+
+export type UpdateCompanyInput = Partial<CreateCompanyInput>;
+
+export type AuditLogEntry = {
+  id: number;
+  userId: number;
+  action: string;
+  resource: string;
+  payload: unknown;
+  createdAt: string;
+  user: { email: string };
+};
+
+export type AuditPage = {
+  items: AuditLogEntry[];
+  nextCursor: number | null;
+};
+
+export type HubspotConnection = {
+  userId: number;
+  email: string;
+  connected: boolean;
+  portalId: string | null;
+  expiresAt: string | null;
+};
 
 export function useHubspotStatus() {
   return useQuery<HubspotStatus>({
@@ -220,6 +255,128 @@ export function useInfiniteHubspotDeals(limit = 20) {
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.paging?.next?.after,
+    retry: false,
+  });
+}
+
+export function useCreateCompany() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateCompanyInput) =>
+      apiPost<HubspotCompany>("/hubspot/companies", input),
+    onSuccess: () =>
+      void qc.invalidateQueries({ queryKey: ["hubspot", "companies"] }),
+  });
+}
+
+export function useUpdateCompany() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...input }: UpdateCompanyInput & { id: string }) =>
+      apiPatch<HubspotCompany>(`/hubspot/companies/${id}`, input),
+    onSuccess: () =>
+      void qc.invalidateQueries({ queryKey: ["hubspot", "companies"] }),
+  });
+}
+
+export function useAuditLog(userId?: number, limit = 50) {
+  return useInfiniteQuery<AuditPage>({
+    queryKey: ["admin", "audit", userId],
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams();
+      if (userId !== undefined) params.set("userId", String(userId));
+      params.set("limit", String(limit));
+      if (typeof pageParam === "number")
+        params.set("cursor", String(pageParam));
+      return apiGet<AuditPage>(`/admin/audit?${params.toString()}`);
+    },
+    initialPageParam: undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    retry: false,
+  });
+}
+
+export function useHubspotAdminConnections() {
+  return useQuery<HubspotConnection[]>({
+    queryKey: ["admin", "hubspot", "connections"],
+    queryFn: () => apiGet<HubspotConnection[]>("/hubspot/admin/connections"),
+    retry: false,
+  });
+}
+
+export function useForceDisconnectHubspot() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: number) =>
+      apiDelete(`/hubspot/admin/connections/${userId}`),
+    onSuccess: () =>
+      void qc.invalidateQueries({
+        queryKey: ["admin", "hubspot", "connections"],
+      }),
+  });
+}
+
+export type ImportedClient = {
+  id: number;
+  name: string;
+  email: string | null;
+  company: string | null;
+};
+
+export function useImportHubspotContact() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (contactId: string) =>
+      apiPost<ImportedClient>(`/hubspot/contacts/${contactId}/import-client`),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["clients"] });
+    },
+  });
+}
+
+export function useSearchHubspotCompanies(query: string) {
+  return useQuery<HubspotListResponse<HubspotCompany>>({
+    queryKey: ["hubspot", "companies", "search", query],
+    queryFn: () =>
+      apiPost<HubspotListResponse<HubspotCompany>>(
+        "/hubspot/companies/search",
+        {
+          filterGroups: [
+            {
+              filters: [
+                {
+                  propertyName: "name",
+                  operator: "CONTAINS_TOKEN",
+                  value: query,
+                },
+              ],
+            },
+          ],
+        },
+      ),
+    enabled: query.trim().length > 0,
+    retry: false,
+  });
+}
+
+export function useSearchHubspotDeals(query: string) {
+  return useQuery<HubspotListResponse<HubspotDeal>>({
+    queryKey: ["hubspot", "deals", "search", query],
+    queryFn: () =>
+      apiPost<HubspotListResponse<HubspotDeal>>("/hubspot/deals/search", {
+        filterGroups: [
+          {
+            filters: [
+              {
+                propertyName: "dealname",
+                operator: "CONTAINS_TOKEN",
+                value: query,
+              },
+            ],
+          },
+        ],
+      }),
+    enabled: query.trim().length > 0,
     retry: false,
   });
 }

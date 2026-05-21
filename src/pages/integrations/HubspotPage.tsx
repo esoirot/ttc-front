@@ -1,4 +1,4 @@
-import { useHubspotStatus } from "../../hooks/useHubspot";
+import { useHubspotStatus } from "../../hooks/integrations/useHubspot";
 import { SetupView } from "../../components/hubspot/SetupView";
 import { ConnectedView } from "../../components/hubspot/ConnectedView";
 import { Skeleton } from "@/components/ui/skeleton";

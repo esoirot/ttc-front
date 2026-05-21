@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSetClockifyCredentials } from "../../hooks/useClockify";
+import { useSetClockifyCredentials } from "../../hooks/integrations/useClockify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ export function ConnectForm() {
   const [apiKey, setApiKey] = useState("");
   const { mutate: save, isPending, error } = useSetClockifyCredentials();
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!apiKey.trim()) return;
     save({ apiKey: apiKey.trim() });

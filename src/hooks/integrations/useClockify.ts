@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiDelete, apiGet, apiPatch, apiPost, ApiError } from "../lib/api";
+import { apiDelete, apiGet, apiPatch, apiPost, ApiError } from "../../lib/api";
 
 export type ClockifyWorkspace = {
   id: string;
   name: string;
   imageUrl: string;
+  featureSubscriptionType: string | null;
 };
 
 export type ClockifyProject = {
@@ -74,6 +75,16 @@ export function useSetClockifyCredentials() {
   return useMutation({
     mutationFn: (input: { apiKey: string; workspaceId?: string }) =>
       apiPost<void>("/clockify/credentials", input),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["clockify"] });
+    },
+  });
+}
+
+export function useDisconnectClockify() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiDelete("/clockify/credentials"),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["clockify"] });
     },
@@ -235,5 +246,15 @@ export function useUpdateEntry(workspaceId: string | null) {
         queryKey: ["clockify", "entries", workspaceId],
       });
     },
+  });
+}
+
+export function useImportClockifyEntries(workspaceId: string | null) {
+  return useMutation({
+    mutationFn: (range: { start: string; end: string }) =>
+      apiPost<{ imported: number; skipped: number }>(
+        `/clockify/workspaces/${workspaceId}/entries/import`,
+        range,
+      ),
   });
 }

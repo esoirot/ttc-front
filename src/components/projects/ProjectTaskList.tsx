@@ -1,0 +1,605 @@
+import { useState } from "react";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+} from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  useTasks,
+  useCreateTask,
+  useUpdateTask,
+  useDeleteTask,
+  type Task,
+  type TaskStatus,
+} from "../../hooks/tasks/useTasks";
+import type { Member } from "../../hooks/account/useUsers";
+import { TASK_STATUSES, STATUS_LABELS } from "./taskConstants";
+
+const STATUS_COLORS: Record<TaskStatus, "default" | "secondary" | "outline"> = {
+  TODO: "secondary",
+  IN_PROGRESS: "default",
+  DONE: "outline",
+};
+
+interface EditForm {
+  title: string;
+  description: string;
+  status: TaskStatus;
+  dueDate: string;
+  assigneeId: string;
+}
+
+function defaultForm(task: Task): EditForm {
+  return {
+    title: task.title,
+    description: task.description ?? "",
+    status: task.status,
+    dueDate: task.dueDate?.slice(0, 10) ?? "",
+    assigneeId: task.assigneeId ? String(task.assigneeId) : "",
+  };
+}
+
+interface SortableRowProps {
+  task: Task;
+  selected: boolean;
+  editingId: number | null;
+  form: EditForm;
+  saving: boolean;
+  members: Member[];
+  onSelect: (id: number, checked: boolean) => void;
+  onStartEdit: (task: Task) => void;
+  onSave: (id: number) => void;
+  onCancelEdit: () => void;
+  onDelete: (id: number) => void;
+  setForm: React.Dispatch<React.SetStateAction<EditForm>>;
+}
+
+function SortableRow({
+  task,
+  selected,
+  editingId,
+  form,
+  saving,
+  members,
+  onSelect,
+  onStartEdit,
+  onSave,
+  onCancelEdit,
+  onDelete,
+  setForm,
+}: SortableRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  if (editingId === task.id) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="border border-border rounded-lg p-3 bg-card flex flex-col gap-2"
+      >
+        <div className="flex flex-col gap-1">
+          <Label htmlFor={`ptl-title-${task.id}`}>Title</Label>
+          <Input
+            id={`ptl-title-${task.id}`}
+            value={form.title}
+            onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor={`ptl-desc-${task.id}`}>Description</Label>
+          <Input
+            id={`ptl-desc-${task.id}`}
+            value={form.description}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, description: e.target.value }))
+            }
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-1">
+            <Label htmlFor={`ptl-status-${task.id}`}>Status</Label>
+            <Select
+              value={form.status}
+              onValueChange={(v) =>
+                setForm((p) => ({ ...p, status: v as TaskStatus }))
+              }
+            >
+              <SelectTrigger id={`ptl-status-${task.id}`} className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TASK_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {STATUS_LABELS[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor={`ptl-due-${task.id}`}>Due date</Label>
+            <Input
+              id={`ptl-due-${task.id}`}
+              type="date"
+              value={form.dueDate}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, dueDate: e.target.value }))
+              }
+              className="w-[150px]"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor={`ptl-assignee-${task.id}`}>Assignee</Label>
+            <Select
+              value={form.assigneeId || "__none__"}
+              onValueChange={(v) =>
+                setForm((p) => ({
+                  ...p,
+                  assigneeId: v === "__none__" ? "" : v,
+                }))
+              }
+            >
+              <SelectTrigger
+                id={`ptl-assignee-${task.id}`}
+                className="w-[140px]"
+              >
+                <SelectValue placeholder="Assignee" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">No assignee</SelectItem>
+                {members.map((m) => (
+                  <SelectItem key={m.id} value={String(m.id)}>
+                    {m.name ?? m.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" disabled={saving} onClick={() => onSave(task.id)}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onCancelEdit}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="border border-border rounded-lg p-3 bg-card flex items-center gap-2"
+    >
+      <Button
+        variant="ghost"
+        size="sm"
+        className="cursor-grab h-7 px-1 text-muted-foreground hover:text-foreground"
+        {...attributes}
+        {...listeners}
+        aria-label="Drag to reorder"
+        onClick={(e) => e.stopPropagation()}
+      >
+        ⠿
+      </Button>
+      <Checkbox
+        checked={selected}
+        onCheckedChange={(checked) => onSelect(task.id, !!checked)}
+        aria-label={`Select ${task.title}`}
+        onClick={(e) => e.stopPropagation()}
+      />
+      <div
+        className="flex-1 cursor-pointer min-w-0"
+        onClick={() => onStartEdit(task)}
+      >
+        <p className="font-medium truncate">{task.title}</p>
+        {task.dueDate && (
+          <p className="text-xs text-muted-foreground">
+            Due {task.dueDate.slice(0, 10)}
+          </p>
+        )}
+      </div>
+      <Badge variant={STATUS_COLORS[task.status as TaskStatus] ?? "secondary"}>
+        {STATUS_LABELS[task.status as TaskStatus] ?? task.status}
+      </Badge>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-7 px-2 text-muted-foreground hover:text-foreground"
+        onClick={(e) => {
+          e.stopPropagation();
+          onStartEdit(task);
+        }}
+      >
+        ✎
+      </Button>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-destructive hover:text-destructive"
+            onClick={(e) => e.stopPropagation()}
+          >
+            ✕
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{task.title}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => onDelete(task.id)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+interface ProjectTaskListProps {
+  projectId: number;
+  members: Member[];
+}
+
+export function ProjectTaskList({ projectId, members }: ProjectTaskListProps) {
+  const { tasks, loading, hasMore, loadMore } = useTasks(projectId);
+  const { createTask, loading: createLoading } = useCreateTask(projectId);
+  const { updateTask, loading: saving } = useUpdateTask(projectId);
+  const { deleteTask } = useDeleteTask(projectId);
+
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | "ALL">("ALL");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [form, setForm] = useState<EditForm>({
+    title: "",
+    description: "",
+    status: "TODO",
+    dueDate: "",
+    assigneeId: "",
+  });
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<TaskStatus>("TODO");
+  const [localOrder, setLocalOrder] = useState<number[] | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+
+  async function handleCreate() {
+    if (!newTitle.trim()) return;
+    await createTask({ projectId, title: newTitle.trim() });
+    setNewTitle("");
+    setShowCreate(false);
+  }
+
+  const sensors = useSensors(useSensor(PointerSensor));
+
+  const displayTasks = localOrder
+    ? localOrder
+        .map((id) => tasks.find((t) => t.id === id))
+        .filter((t): t is Task => t !== undefined)
+    : tasks;
+
+  const filtered =
+    statusFilter === "ALL"
+      ? displayTasks
+      : displayTasks.filter((t) => t.status === statusFilter);
+
+  function handleStartEdit(task: Task) {
+    setForm(defaultForm(task));
+    setEditingId(task.id);
+  }
+
+  async function handleSave(taskId: number) {
+    await updateTask({
+      id: taskId,
+      title: form.title || undefined,
+      description: form.description || undefined,
+      status: form.status,
+      dueDate: form.dueDate || undefined,
+      assigneeId: form.assigneeId ? Number(form.assigneeId) : undefined,
+    });
+    setEditingId(null);
+  }
+
+  function handleSelect(id: number, checked: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  function handleSelectAll(checked: boolean) {
+    setSelected(checked ? new Set(filtered.map((t) => t.id)) : new Set());
+  }
+
+  async function handleBulkDelete() {
+    for (const id of selected) {
+      await deleteTask(id);
+    }
+    setSelected(new Set());
+  }
+
+  async function handleBulkStatus() {
+    for (const id of selected) {
+      await updateTask({ id, status: bulkStatus });
+    }
+    setSelected(new Set());
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const ids = filtered.map((t) => t.id);
+    const oldIndex = ids.indexOf(active.id as number);
+    const newIndex = ids.indexOf(over.id as number);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(ids, oldIndex, newIndex);
+    const allIds = tasks.map((t) => t.id);
+    setLocalOrder(
+      reordered.concat(allIds.filter((id) => !reordered.includes(id))),
+    );
+
+    void updateTask({ id: active.id as number, sortOrder: newIndex });
+  }
+
+  const allSelected =
+    filtered.length > 0 && filtered.every((t) => selected.has(t.id));
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="ptl-filter" className="sr-only">
+            Filter by status
+          </Label>
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(v as TaskStatus | "ALL")}
+          >
+            <SelectTrigger id="ptl-filter" className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All statuses</SelectItem>
+              {TASK_STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {STATUS_LABELS[s]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => setShowCreate(true)}>
+          + New task
+        </Button>
+      </div>
+
+      {showCreate && (
+        <div className="border border-border rounded-lg p-3 bg-card flex flex-wrap items-end gap-2">
+          <div className="flex flex-col gap-1 flex-1 min-w-[160px]">
+            <Label htmlFor="ptl-new-title">Title</Label>
+            <Input
+              id="ptl-new-title"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Task title"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void handleCreate();
+                if (e.key === "Escape") {
+                  setShowCreate(false);
+                  setNewTitle("");
+                }
+              }}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              disabled={createLoading || !newTitle.trim()}
+              onClick={() => void handleCreate()}
+            >
+              {createLoading ? "Creating…" : "Create"}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setShowCreate(false);
+                setNewTitle("");
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {selected.size > 0 && (
+        <div className="flex items-center gap-2 p-2 border border-border rounded-lg bg-muted">
+          <span className="text-sm text-muted-foreground">
+            {selected.size} selected
+          </span>
+          <div className="flex items-center gap-1 ml-auto">
+            <Label htmlFor="ptl-bulk-status" className="sr-only">
+              Bulk status
+            </Label>
+            <Select
+              value={bulkStatus}
+              onValueChange={(v) => setBulkStatus(v as TaskStatus)}
+            >
+              <SelectTrigger
+                id="ptl-bulk-status"
+                className="w-[130px] h-7 text-xs"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TASK_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {STATUS_LABELS[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
+              onClick={() => void handleBulkStatus()}
+            >
+              Set status
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="destructive" className="h-7 text-xs">
+                  Delete selected
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Delete {selected.size} task{selected.size > 1 ? "s" : ""}?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => void handleBulkDelete()}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex flex-col gap-2">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-12 w-full rounded" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <p className="text-muted-foreground text-sm">No tasks.</p>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 px-3 py-1 text-xs text-muted-foreground">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                aria-label="Select all"
+              />
+              <span>Select all</span>
+            </div>
+            <SortableContext
+              items={filtered.map((t) => t.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {filtered.map((task) => (
+                <SortableRow
+                  key={task.id}
+                  task={task}
+                  selected={selected.has(task.id)}
+                  editingId={editingId}
+                  form={form}
+                  saving={saving}
+                  members={members}
+                  onSelect={handleSelect}
+                  onStartEdit={handleStartEdit}
+                  onSave={(id) => void handleSave(id)}
+                  onCancelEdit={() => setEditingId(null)}
+                  onDelete={(id) => void deleteTask(id)}
+                  setForm={setForm}
+                />
+              ))}
+            </SortableContext>
+          </div>
+        </DndContext>
+      )}
+
+      {hasMore && (
+        <Button
+          variant="outline"
+          className="mt-2 self-center"
+          onClick={loadMore}
+        >
+          Load more
+        </Button>
+      )}
+    </div>
+  );
+}

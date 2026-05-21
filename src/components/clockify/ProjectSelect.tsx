@@ -1,4 +1,11 @@
-import type { ClockifyProject } from "../../hooks/useClockify";
+import type { ClockifyProject } from "../../hooks/integrations/useClockify";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function ProjectSelect({
   projectId,
@@ -10,17 +17,21 @@ export function ProjectSelect({
   onChange: (id: string | null) => void;
 }) {
   return (
-    <select
-      value={projectId ?? ""}
-      onChange={(e) => onChange(e.target.value || null)}
-      className="text-xs bg-transparent border border-border rounded px-1.5 py-0.5 text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+    <Select
+      value={projectId ?? "__none__"}
+      onValueChange={(val) => onChange(val === "__none__" ? null : val)}
     >
-      <option value="">No project</option>
-      {projects.map((p) => (
-        <option key={p.id} value={p.id}>
-          {p.name}
-        </option>
-      ))}
-    </select>
+      <SelectTrigger size="sm" className="w-fit text-muted-foreground">
+        <SelectValue placeholder="No project" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="__none__">No project</SelectItem>
+        {projects.map((p) => (
+          <SelectItem key={p.id} value={p.id}>
+            {p.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

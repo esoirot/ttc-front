@@ -13,10 +13,21 @@ import { LoginPage } from "./pages/auth/LoginPage";
 import { RegisterPage } from "./pages/auth/RegisterPage";
 import { TwoFactorVerifyPage } from "./pages/auth/TwoFactorVerifyPage";
 import { TwoFactorSetupPage } from "./pages/auth/TwoFactorSetupPage";
+import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
+import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
 import { DashboardPage } from "./pages/account/DashboardPage";
 import { EditProfilePage } from "./pages/account/EditProfilePage";
-import { TimeTrackerPage } from "./pages/integrations/TimeTrackerPage";
+import { ClockifyPage } from "./pages/integrations/ClockifyPage";
 import { HubspotPage } from "./pages/integrations/HubspotPage";
+import { AuditLogPage } from "./pages/account/AuditLogPage";
+import { ClientsPage } from "./pages/clients/ClientsPage";
+import { ClientDetailPage } from "./pages/clients/ClientDetailPage";
+import { ProjectsPage } from "./pages/projects/ProjectsPage";
+import { ProjectDetailPage } from "./pages/projects/ProjectDetailPage";
+import { TimeEntriesPage } from "./pages/time/TimeEntriesPage";
+import { InvoicesPage } from "./pages/invoices/InvoicesPage";
+import { InvoiceDetailPage } from "./pages/invoices/InvoiceDetailPage";
+import { RatesPage } from "./pages/rates/RatesPage";
 
 function RootLayout() {
   const client = useApolloClient();
@@ -43,6 +54,8 @@ const router = createBrowserRouter([
       { path: "/login", element: <LoginPage /> },
       { path: "/register", element: <RegisterPage /> },
       { path: "/2fa/verify", element: <TwoFactorVerifyPage /> },
+      { path: "/forgot-password", element: <ForgotPasswordPage /> },
+      { path: "/reset-password", element: <ResetPasswordPage /> },
       {
         element: <ProtectedRoute />,
         children: [
@@ -52,8 +65,17 @@ const router = createBrowserRouter([
               { path: "/", element: <DashboardPage /> },
               { path: "/profile/edit", element: <EditProfilePage /> },
               { path: "/settings/2fa", element: <TwoFactorSetupPage /> },
-              { path: "/time-tracker", element: <TimeTrackerPage /> },
+              { path: "/time-tracker", element: <ClockifyPage /> },
               { path: "/hubspot", element: <HubspotPage /> },
+              { path: "/admin", element: <AuditLogPage /> },
+              { path: "/clients", element: <ClientsPage /> },
+              { path: "/clients/:id", element: <ClientDetailPage /> },
+              { path: "/projects", element: <ProjectsPage /> },
+              { path: "/projects/:id", element: <ProjectDetailPage /> },
+              { path: "/time", element: <TimeEntriesPage /> },
+              { path: "/invoices", element: <InvoicesPage /> },
+              { path: "/invoices/:id", element: <InvoiceDetailPage /> },
+              { path: "/rates", element: <RatesPage /> },
             ],
           },
         ],

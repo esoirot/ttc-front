@@ -7,6 +7,7 @@ export interface User {
   name: string | null;
   role: string;
   twoFactorEnabled: boolean;
+  logoUrl: string | null;
 }
 
 export const ME_QUERY: TypedDocumentNode<
@@ -20,6 +21,7 @@ export const ME_QUERY: TypedDocumentNode<
       name
       role
       twoFactorEnabled
+      logoUrl
     }
   }
 `;
@@ -90,11 +92,30 @@ export const SETUP_TWO_FACTOR_MUTATION: TypedDocumentNode<
 `;
 
 export const ENABLE_TWO_FACTOR_MUTATION: TypedDocumentNode<
-  { enableTwoFactor: boolean },
+  { enableTwoFactor: { backupCodes: string[] } },
   { code: string }
 > = gql`
   mutation EnableTwoFactor($code: String!) {
-    enableTwoFactor(code: $code)
+    enableTwoFactor(code: $code) {
+      backupCodes
+    }
+  }
+`;
+
+export const VERIFY_TWO_FACTOR_BACKUP_MUTATION: TypedDocumentNode<
+  { verifyTwoFactorBackup: { user: User } },
+  { input: { tempToken: string; backupCode: string } }
+> = gql`
+  mutation VerifyTwoFactorBackup($input: VerifyTwoFactorBackupInput!) {
+    verifyTwoFactorBackup(input: $input) {
+      user {
+        id
+        email
+        name
+        role
+        twoFactorEnabled
+      }
+    }
   }
 `;
 
@@ -126,7 +147,7 @@ export const DISABLE_TWO_FACTOR_MUTATION: TypedDocumentNode<
 
 export const UPDATE_ME_MUTATION: TypedDocumentNode<
   { updateMe: User },
-  { input: { name?: string; email?: string } }
+  { input: { name?: string; email?: string; logoUrl?: string } }
 > = gql`
   mutation UpdateMe($input: UpdateMeInput!) {
     updateMe(input: $input) {
@@ -135,6 +156,54 @@ export const UPDATE_ME_MUTATION: TypedDocumentNode<
       name
       role
       twoFactorEnabled
+      logoUrl
     }
+  }
+`;
+
+export const REGENERATE_BACKUP_CODES_MUTATION: TypedDocumentNode<
+  { regenerateBackupCodes: { backupCodes: string[] } },
+  { code: string }
+> = gql`
+  mutation RegenerateBackupCodes($code: String!) {
+    regenerateBackupCodes(code: $code) {
+      backupCodes
+    }
+  }
+`;
+
+export const ADMIN_DISABLE_TWO_FACTOR_MUTATION: TypedDocumentNode<
+  { adminDisableTwoFactor: boolean },
+  { userId: number }
+> = gql`
+  mutation AdminDisableTwoFactor($userId: Int!) {
+    adminDisableTwoFactor(userId: $userId)
+  }
+`;
+
+export const BACKUP_CODE_COUNT_QUERY: TypedDocumentNode<
+  { backupCodeCount: number },
+  Record<string, never>
+> = gql`
+  query BackupCodeCount {
+    backupCodeCount
+  }
+`;
+
+export const REQUEST_PASSWORD_RESET_MUTATION: TypedDocumentNode<
+  { requestPasswordReset: boolean },
+  { email: string }
+> = gql`
+  mutation RequestPasswordReset($email: String!) {
+    requestPasswordReset(email: $email)
+  }
+`;
+
+export const RESET_PASSWORD_MUTATION: TypedDocumentNode<
+  { resetPassword: boolean },
+  { token: string; newPassword: string }
+> = gql`
+  mutation ResetPassword($token: String!, $newPassword: String!) {
+    resetPassword(token: $token, newPassword: $newPassword)
   }
 `;

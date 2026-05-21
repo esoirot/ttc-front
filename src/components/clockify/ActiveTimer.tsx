@@ -5,12 +5,13 @@ import {
   useStopEntry,
   type ClockifyProject,
   type ClockifyTag,
-} from "../../hooks/useClockify";
+} from "../../hooks/integrations/useClockify";
 import { BillableToggle } from "./BillableToggle";
 import { ProjectSelect } from "./ProjectSelect";
 import { TagChips } from "./TagChips";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
 function elapsedHms(startIso: string): string {
@@ -40,10 +41,12 @@ export function ActiveTimer({
   workspaceId,
   projects,
   tags,
+  billabilityLocked,
 }: {
   workspaceId: string;
   projects: ClockifyProject[];
   tags: ClockifyTag[];
+  billabilityLocked: boolean;
 }) {
   const { data: active } = useClockifyActiveEntry(workspaceId);
   const { mutate: start, isPending: starting } = useStartEntry(workspaceId);
@@ -120,7 +123,11 @@ export function ActiveTimer({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-col sm:flex-row gap-2">
+        <Label htmlFor="at-description" className="sr-only">
+          Description
+        </Label>
         <Input
+          id="at-description"
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -151,7 +158,11 @@ export function ActiveTimer({
           onAdd={(id) => setTagIds((prev) => [...prev, id])}
           onRemove={(id) => setTagIds((prev) => prev.filter((t) => t !== id))}
         />
-        <BillableToggle billable={billable} onChange={setBillable} />
+        <BillableToggle
+          billable={billable}
+          disabled={billabilityLocked}
+          onChange={setBillable}
+        />
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import {
   type ClockifyProject,
   type ClockifyTag,
   type UpdateEntryInput,
-} from "../../hooks/useClockify";
+} from "../../hooks/integrations/useClockify";
 import { secsToHms } from "./helpers";
 import { EntryRow } from "./EntryRow";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ export function DescriptionGroup({
   entries,
   projects,
   tags,
+  billabilityLocked,
   onDelete,
   onResume,
   onUpdate,
@@ -24,6 +25,7 @@ export function DescriptionGroup({
   entries: ClockifyTimeEntry[];
   projects: ClockifyProject[];
   tags: ClockifyTag[];
+  billabilityLocked: boolean;
   onDelete: (id: string) => void;
   onResume: (entry: ClockifyTimeEntry) => void;
   onUpdate: (input: UpdateEntryInput) => void;
@@ -79,6 +81,7 @@ export function DescriptionGroup({
               entry={entry}
               projects={projects}
               tags={tags}
+              billabilityLocked={billabilityLocked}
               onDelete={onDelete}
               onResume={onResume}
               onUpdate={onUpdate}

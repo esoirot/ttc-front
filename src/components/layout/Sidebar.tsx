@@ -1,5 +1,5 @@
 import { NavLink, Link } from "react-router-dom";
-import { useCurrentUser, useLogout } from "../../hooks/useAuth";
+import { useCurrentUser, useLogout } from "../../hooks/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -58,9 +58,61 @@ const NAV_ITEMS = [
     ),
   },
   {
-    to: "/time-tracker",
+    to: "/clients",
     end: false,
-    label: "Time Tracker",
+    label: "Clients",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        aria-hidden="true"
+      >
+        <circle cx="8" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+        <path
+          d="M2 13c0-2.761 2.686-5 6-5s6 2.239 6 5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    to: "/projects",
+    end: false,
+    label: "Projects",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        aria-hidden="true"
+      >
+        <rect
+          x="1"
+          y="3"
+          width="14"
+          height="10"
+          rx="1.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M5 7h6M5 10h4"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    to: "/time",
+    end: false,
+    label: "Time",
     icon: (
       <svg
         width="16"
@@ -76,6 +128,88 @@ const NAV_ITEMS = [
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    to: "/invoices",
+    end: false,
+    label: "Invoices",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        aria-hidden="true"
+      >
+        <rect
+          x="2"
+          y="1"
+          width="12"
+          height="14"
+          rx="1.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M5 5h6M5 8h6M5 11h3"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    to: "/time-tracker",
+    end: false,
+    label: "Clockify",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        aria-hidden="true"
+      >
+        <circle
+          cx="8"
+          cy="8"
+          r="6"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeDasharray="2 2"
+        />
+        <path
+          d="M8 4.5v4l2.5 1.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    to: "/rates",
+    end: false,
+    label: "Rates",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        aria-hidden="true"
+      >
+        <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" />
+        <path
+          d="M8 5v1.5M8 9.5V11M6.5 6.5c0-.828.672-1.5 1.5-1.5s1.5.672 1.5 1.5c0 1-1.5 1.5-1.5 2.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
         />
       </svg>
     ),
@@ -118,6 +252,36 @@ const NAV_ITEMS = [
   },
 ];
 
+const ADMIN_NAV_ITEM = {
+  to: "/admin",
+  end: false,
+  label: "Admin",
+  icon: (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="8" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M2 13c0-2.761 2.686-5 6-5s6 2.239 6 5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle cx="13" cy="11" r="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M13 9.5v-.5M13 12.5v.5M11.5 11h-.5M14.5 11h.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  ),
+};
+
 export function Sidebar() {
   const { user } = useCurrentUser();
   const { logout, loading } = useLogout();
@@ -135,7 +299,10 @@ export function Sidebar() {
         className="flex flex-row flex-1 items-center gap-1 p-2 sm:flex-col sm:flex-1 sm:items-stretch"
         aria-label="Main navigation"
       >
-        {NAV_ITEMS.map(({ to, end, label, icon }) => (
+        {[
+          ...NAV_ITEMS,
+          ...(user?.role === "ADMIN" ? [ADMIN_NAV_ITEM] : []),
+        ].map(({ to, end, label, icon }) => (
           <NavLink
             key={to}
             to={to}

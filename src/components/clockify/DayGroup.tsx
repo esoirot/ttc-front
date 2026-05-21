@@ -4,7 +4,7 @@ import {
   type ClockifyProject,
   type ClockifyTag,
   type UpdateEntryInput,
-} from "../../hooks/useClockify";
+} from "../../hooks/integrations/useClockify";
 import { formatTime, secsToHms, dayLabel, groupByDescription } from "./helpers";
 import { EntryRow } from "./EntryRow";
 import { DescriptionGroup } from "./DescriptionGroup";
@@ -16,6 +16,7 @@ export function DayGroup({
   entries,
   projects,
   tags,
+  billabilityLocked,
   onDelete,
   onResume,
   onUpdate,
@@ -25,6 +26,7 @@ export function DayGroup({
   entries: ClockifyTimeEntry[];
   projects: ClockifyProject[];
   tags: ClockifyTag[];
+  billabilityLocked: boolean;
   onDelete: (id: string) => void;
   onResume: (entry: ClockifyTimeEntry) => void;
   onUpdate: (input: UpdateEntryInput) => void;
@@ -93,6 +95,7 @@ export function DayGroup({
                 entry={group[0]}
                 projects={projects}
                 tags={tags}
+                billabilityLocked={billabilityLocked}
                 onDelete={onDelete}
                 onResume={onResume}
                 onUpdate={onUpdate}
@@ -105,6 +108,7 @@ export function DayGroup({
                 entries={group}
                 projects={projects}
                 tags={tags}
+                billabilityLocked={billabilityLocked}
                 onDelete={onDelete}
                 onResume={onResume}
                 onUpdate={onUpdate}

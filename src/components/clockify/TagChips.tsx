@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useCreateTag, type ClockifyTag } from "../../hooks/useClockify";
+import {
+  useCreateTag,
+  type ClockifyTag,
+} from "../../hooks/integrations/useClockify";
 import { Badge } from "@/components/ui/badge";
 
 export function TagChips({

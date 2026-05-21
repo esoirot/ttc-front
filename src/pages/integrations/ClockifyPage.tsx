@@ -1,11 +1,23 @@
-import { useClockifyStatus } from "../../hooks/useClockify";
+import {
+  useClockifyStatus,
+  useClockifyWorkspaces,
+} from "../../hooks/integrations/useClockify";
 import { ConnectForm } from "../../components/clockify/ConnectForm";
 import { WorkspacePicker } from "../../components/clockify/WorkspacePicker";
 import { TrackerView } from "../../components/clockify/TrackerView";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
-export function TimeTrackerPage() {
+export function ClockifyPage() {
   const { data: status, isLoading } = useClockifyStatus();
+  const { data: workspaces = [] } = useClockifyWorkspaces(
+    status?.connected ?? false,
+  );
+
+  const plan = status?.workspaceId
+    ? (workspaces.find((w) => w.id === status.workspaceId)
+        ?.featureSubscriptionType ?? null)
+    : null;
 
   if (isLoading) {
     return (
@@ -18,9 +30,14 @@ export function TimeTrackerPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight mb-6">
-        Time Tracker
-      </h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Time Tracker</h1>
+        {plan && (
+          <Badge variant="secondary" className="text-xs font-mono">
+            {plan}
+          </Badge>
+        )}
+      </div>
 
       {!status?.connected ? (
         <>
@@ -38,19 +55,6 @@ export function TimeTrackerPage() {
         </>
       ) : (
         <TrackerView workspaceId={status.workspaceId} />
-      )}
-
-      {status?.connected && (
-        <div className="mt-8 pt-6 border-t border-border">
-          <details className="text-xs text-muted-foreground">
-            <summary className="cursor-pointer hover:text-foreground transition-colors">
-              Update API key or workspace
-            </summary>
-            <div className="mt-4">
-              <ConnectForm />
-            </div>
-          </details>
-        </div>
       )}
     </div>
   );

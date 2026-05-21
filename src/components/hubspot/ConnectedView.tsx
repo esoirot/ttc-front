@@ -1,4 +1,4 @@
-import { useDisconnectHubspot } from "../../hooks/useHubspot";
+import { useDisconnectHubspot } from "../../hooks/integrations/useHubspot";
 import { ContactsTab } from "./ContactsTab";
 import { CompaniesTab } from "./CompaniesTab";
 import { DealsTab } from "./DealsTab";

@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useInfiniteHubspotDeals,
+  useSearchHubspotDeals,
   useCreateDeal,
   type HubspotDeal,
-} from "../../hooks/useHubspot";
+} from "../../hooks/integrations/useHubspot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,14 +29,28 @@ function DealRow({ deal }: { deal: HubspotDeal }) {
 
 export function DealsTab() {
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [dealname, setDealname] = useState("");
   const [amount, setAmount] = useState("");
   const [dealstage, setDealstage] = useState("");
   const [closedate, setClosedate] = useState("");
 
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  const isSearching = debouncedSearch.length > 0;
   const infinite = useInfiniteHubspotDeals();
-  const deals = infinite.data?.pages.flatMap((p) => p.results) ?? [];
+  const searchQuery = useSearchHubspotDeals(debouncedSearch);
   const createDeal = useCreateDeal();
+
+  const deals = isSearching
+    ? (searchQuery.data?.results ?? [])
+    : (infinite.data?.pages.flatMap((p) => p.results) ?? []);
+
+  const isLoading = isSearching ? searchQuery.isLoading : infinite.isLoading;
 
   const handleCreate = async () => {
     if (!dealname.trim()) return;
@@ -54,10 +69,14 @@ export function DealsTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
-          {deals.length} {deals.length !== 1 ? "deals" : "deal"} loaded
-        </span>
+      <div className="flex items-center gap-3">
+        <Input
+          type="search"
+          placeholder="Search deals…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1"
+        />
         <Button
           type="button"
           variant="outline"
@@ -67,6 +86,11 @@ export function DealsTab() {
           {showForm ? "Cancel" : "+ New deal"}
         </Button>
       </div>
+      <span className="text-sm text-muted-foreground">
+        {isSearching
+          ? `${deals.length} result${deals.length !== 1 ? "s" : ""} for "${debouncedSearch}"`
+          : `${deals.length} ${deals.length !== 1 ? "deals" : "deal"} loaded`}
+      </span>
 
       {showForm && (
         <div className="grid grid-cols-2 gap-3 p-4 bg-muted/50 rounded-lg border">
@@ -115,7 +139,7 @@ export function DealsTab() {
         </div>
       )}
 
-      {infinite.isLoading ? (
+      {isLoading ? (
         <p className="text-sm text-muted-foreground py-4">Loading…</p>
       ) : (
         <>
@@ -143,7 +167,7 @@ export function DealsTab() {
                     colSpan={4}
                     className="py-8 text-center text-sm text-muted-foreground"
                   >
-                    No deals yet
+                    {isSearching ? "No deals found" : "No deals yet"}
                   </td>
                 </tr>
               )}
@@ -152,7 +176,7 @@ export function DealsTab() {
               ))}
             </tbody>
           </table>
-          {infinite.hasNextPage && (
+          {!isSearching && infinite.hasNextPage && (
             <div className="flex justify-center pt-2">
               <Button
                 type="button"

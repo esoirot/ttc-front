@@ -30,6 +30,7 @@ async function request<T>(
   path: string,
   init?: RequestInit,
   isRetry = false,
+  responseType: "json" | "blob" = "json",
 ): Promise<T> {
   const hasBody = init?.body !== undefined;
   const res = await fetch(`${BASE}${path}`, {
@@ -39,12 +40,13 @@ async function request<T>(
       ...(hasBody ? { "Content-Type": "application/json" } : {}),
       ...init?.headers,
     },
+    signal: init?.signal ?? AbortSignal.timeout(30_000),
   });
 
   if (!res.ok) {
     if (res.status === 401 && !isRetry) {
       const refreshed = await tryRefresh();
-      if (refreshed) return request<T>(path, init, true);
+      if (refreshed) return request<T>(path, init, true, responseType);
     }
     const raw: unknown = await res.json().catch(() => ({}));
     const msg =
@@ -58,11 +60,15 @@ async function request<T>(
   }
 
   if (res.status === 204) return undefined as unknown as T;
+  if (responseType === "blob") return res.blob() as Promise<T>;
   return res.json() as Promise<T>;
 }
 
-export function apiGet<T>(path: string): Promise<T> {
-  return request<T>(path);
+export function apiGet<T>(
+  path: string,
+  options?: { responseType?: "blob" },
+): Promise<T> {
+  return request<T>(path, undefined, false, options?.responseType ?? "json");
 }
 
 export function apiPost<T>(path: string, body?: unknown): Promise<T> {

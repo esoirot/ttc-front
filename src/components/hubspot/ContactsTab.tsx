@@ -3,10 +3,43 @@ import {
   useInfiniteHubspotContacts,
   useSearchHubspotContacts,
   useCreateContact,
+  useImportHubspotContact,
   type HubspotContact,
-} from "../../hooks/useHubspot";
+} from "../../hooks/integrations/useHubspot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+
+function ImportButton({ contactId }: { contactId: string }) {
+  const [done, setDone] = useState(false);
+  const importContact = useImportHubspotContact();
+
+  if (done) {
+    return (
+      <Badge variant="secondary" className="text-xs">
+        Imported
+      </Badge>
+    );
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="text-xs h-7"
+      disabled={importContact.isPending}
+      onClick={() =>
+        void importContact
+          .mutateAsync(contactId)
+          .then(() => setDone(true))
+          .catch(() => undefined)
+      }
+    >
+      {importContact.isPending ? "Importing…" : "Import as client"}
+    </Button>
+  );
+}
 
 function ContactRow({ contact }: { contact: HubspotContact }) {
   const p = contact.properties;
@@ -20,7 +53,12 @@ function ContactRow({ contact }: { contact: HubspotContact }) {
       <td className="py-2.5 pr-4 text-sm text-muted-foreground">
         {p.company ?? "—"}
       </td>
-      <td className="py-2.5 text-sm text-muted-foreground">{p.phone ?? "—"}</td>
+      <td className="py-2.5 pr-4 text-sm text-muted-foreground">
+        {p.phone ?? "—"}
+      </td>
+      <td className="py-2.5">
+        <ImportButton contactId={contact.id} />
+      </td>
     </tr>
   );
 }
@@ -161,8 +199,11 @@ export function ContactsTab() {
                 <th className="pb-2 pr-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Company
                 </th>
-                <th className="pb-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                <th className="pb-2 pr-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Phone
+                </th>
+                <th className="pb-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -170,7 +211,7 @@ export function ContactsTab() {
               {contacts.length === 0 && (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="py-8 text-center text-sm text-muted-foreground"
                   >
                     {isSearching ? "No contacts found" : "No contacts yet"}

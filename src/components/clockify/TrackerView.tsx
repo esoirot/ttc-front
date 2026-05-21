@@ -3,12 +3,13 @@ import {
   useClockifyProjects,
   useClockifyEntries,
   useClockifyTags,
+  useClockifyWorkspaces,
   useDeleteEntry,
   useStartEntry,
   useUpdateEntry,
   type ClockifyTimeEntry,
   type UpdateEntryInput,
-} from "../../hooks/useClockify";
+} from "../../hooks/integrations/useClockify";
 import {
   groupByDay,
   todayStr,
@@ -21,11 +22,14 @@ import { DayGroup } from "./DayGroup";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+const PAID_CLOCKIFY_PLANS = new Set(["BASIC", "STANDARD", "PRO", "ENTERPRISE"]);
+
 export function TrackerView({ workspaceId }: { workspaceId: string }) {
   const [startDate, setStartDate] = useState(() => daysAgoStr(30));
   const [endDate, setEndDate] = useState(() => todayStr());
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
+  const { data: workspaces = [] } = useClockifyWorkspaces();
   const { data: projects = [] } = useClockifyProjects(workspaceId);
   const { data: entries = [] } = useClockifyEntries(
     workspaceId,
@@ -37,9 +41,14 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
   const { mutate: startEntry } = useStartEntry(workspaceId);
   const { mutate: updateEntry } = useUpdateEntry(workspaceId);
 
+  const currentWorkspace = workspaces.find((w) => w.id === workspaceId);
+  const plan = currentWorkspace?.featureSubscriptionType;
+  const billabilityLocked = !plan || !PAID_CLOCKIFY_PLANS.has(plan);
+
+  const completed = entries.filter((e) => e.timeInterval.end !== null);
   const visible = selectedProject
-    ? entries.filter((e) => e.projectId === selectedProject)
-    : entries;
+    ? completed.filter((e) => e.projectId === selectedProject)
+    : completed;
 
   const grouped = groupByDay(visible);
 
@@ -117,7 +126,12 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
         </div>
       )}
 
-      <ActiveTimer workspaceId={workspaceId} projects={projects} tags={tags} />
+      <ActiveTimer
+        workspaceId={workspaceId}
+        projects={projects}
+        tags={tags}
+        billabilityLocked={billabilityLocked}
+      />
 
       <div>
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
@@ -135,6 +149,7 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
                 entries={dayEntries}
                 projects={projects}
                 tags={tags}
+                billabilityLocked={billabilityLocked}
                 onDelete={deleteEntry}
                 onResume={handleResume}
                 onUpdate={handleUpdate}

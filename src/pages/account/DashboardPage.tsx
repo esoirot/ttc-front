@@ -1,43 +1,52 @@
-import { Link } from "react-router-dom";
-import { useCurrentUser } from "../../hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCurrentUser } from "../../hooks/auth/useAuth";
+import { useDashboard } from "../../hooks/account/useDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TwoFactorPromptCard } from "@/components/account/TwoFactorPromptCard";
+import { StatsGrid } from "@/components/account/StatsGrid";
+import { UpcomingDeadlines } from "@/components/account/UpcomingDeadlines";
+import { RecentTimeEntries } from "@/components/account/RecentTimeEntries";
 
 export function DashboardPage() {
-  const { user, loading } = useCurrentUser();
+  const { user, loading: userLoading } = useCurrentUser();
+  const { dashboard, loading: dashLoading } = useDashboard();
+
+  const loading = userLoading || dashLoading;
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <Skeleton className="h-8 w-36 mb-6" />
-        <Skeleton className="h-4 w-56" />
+      <div className="max-w-4xl mx-auto px-6 py-8 flex flex-col gap-6">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-lg" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-48 w-full rounded-lg" />
+          <Skeleton className="h-48 w-full rounded-lg" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight mb-6">Dashboard</h1>
-
-      <p className="text-muted-foreground">
+    <div className="max-w-4xl mx-auto px-6 py-8">
+      <h1 className="text-2xl font-semibold tracking-tight mb-1">Dashboard</h1>
+      <p className="text-muted-foreground mb-6">
         Welcome back, {user?.name ?? user?.email}.
       </p>
 
-      {!user?.twoFactorEnabled && (
-        <Card className="mt-6 max-w-sm border-primary/20 bg-primary/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Secure your account</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <p className="text-sm text-muted-foreground">
-              Two-factor authentication is not enabled.
-            </p>
-            <Button asChild size="sm" className="self-start">
-              <Link to="/settings/2fa">Enable 2FA</Link>
-            </Button>
-          </CardContent>
-        </Card>
+      {!user?.twoFactorEnabled && <TwoFactorPromptCard />}
+
+      {dashboard && (
+        <>
+          <StatsGrid dashboard={dashboard} />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <UpcomingDeadlines deadlines={dashboard.upcomingDeadlines} />
+            <RecentTimeEntries entries={dashboard.recentTimeEntries} />
+          </div>
+        </>
       )}
     </div>
   );

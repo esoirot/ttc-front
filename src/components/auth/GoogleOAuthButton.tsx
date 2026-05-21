@@ -4,13 +4,21 @@ const API_URL =
   import.meta.env.VITE_API_URL?.replace("/graphql", "") ??
   "http://localhost:3000";
 
-export function GoogleOAuthButton() {
+interface Props {
+  from?: string;
+}
+
+export function GoogleOAuthButton({ from = "/" }: Props) {
   return (
     <Button
       type="button"
       variant="outline"
       className="w-full gap-2.5"
       onClick={() => {
+        sessionStorage.setItem(
+          "oauth_from",
+          JSON.stringify({ dest: from, ts: Date.now() }),
+        );
         window.location.href = `${API_URL}/auth/google`;
       }}
     >

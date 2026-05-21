@@ -1,4 +1,4 @@
-import type { ClockifyTimeEntry } from "../../hooks/useClockify";
+import type { ClockifyTimeEntry } from "../../hooks/integrations/useClockify";
 
 export function formatTime(iso: string): string {
   const d = new Date(iso);
