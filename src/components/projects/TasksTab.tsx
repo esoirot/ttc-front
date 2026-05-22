@@ -167,7 +167,7 @@ export function TasksTab({
                 </div>
               ))}
             </div>
-            <DragOverlay>
+            <DragOverlay dropAnimation={null}>
               {activeTask && (
                 <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg text-sm font-medium opacity-90 cursor-grabbing">
                   {activeTask.title}

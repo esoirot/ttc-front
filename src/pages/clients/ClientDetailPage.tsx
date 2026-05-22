@@ -65,8 +65,22 @@ export function ClientDetailPage() {
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="projects">
+            Projects
+            {clientProjects.length > 0 && (
+              <Badge variant="secondary" className="ml-1.5 text-xs">
+                {clientProjects.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="activity">
+            Activity
+            {invoices.length > 0 && (
+              <Badge variant="secondary" className="ml-1.5 text-xs">
+                {invoices.length}
+              </Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="contacts" className="mt-4">

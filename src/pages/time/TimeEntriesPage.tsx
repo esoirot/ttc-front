@@ -5,9 +5,12 @@ import {
   useActiveTimer,
   useStopTimer,
   useDeleteTimeEntry,
+  useUpdateTimeEntry,
+  useStartTimer,
 } from "../../hooks/time/useTimeEntries";
 import { useDateRangeFilter } from "../../hooks/time/useDateRangeFilter";
 import { useClockifyStatus } from "../../hooks/integrations/useClockify";
+import { useProjects } from "../../hooks/projects/useProjects";
 import { ActiveTimerBanner } from "../../components/time/ActiveTimerBanner";
 import { TimerStartInput } from "../../components/time/TimerStartInput";
 import { ManualEntryForm } from "../../components/time/ManualEntryForm";
@@ -24,6 +27,9 @@ export function TimeEntriesPage() {
   const { activeTimer } = useActiveTimer();
   const { stopTimer, loading: stopping } = useStopTimer();
   const { deleteTimeEntry } = useDeleteTimeEntry();
+  const { updateTimeEntry } = useUpdateTimeEntry();
+  const { startTimer } = useStartTimer();
+  const { projects } = useProjects();
 
   const { data: clockifyStatus } = useClockifyStatus();
   const workspaceId = clockifyStatus?.connected
@@ -101,6 +107,15 @@ export function TimeEntriesPage() {
         hasMore={hasMore}
         loadMore={loadMore}
         deleteTimeEntry={deleteTimeEntry}
+        projects={projects}
+        onResume={(entry) =>
+          void startTimer({
+            description: entry.description ?? undefined,
+            projectId: entry.projectId ?? undefined,
+            billable: entry.billable,
+          })
+        }
+        onUpdate={(input) => void updateTimeEntry(input)}
       />
     </div>
   );
