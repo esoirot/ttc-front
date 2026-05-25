@@ -96,7 +96,9 @@ export function TtcEntryRow({
             <Select
               open
               onOpenChange={(o) => !o && setEditingProject(false)}
-              value={entry.projectId != null ? String(entry.projectId) : "__none__"}
+              value={
+                entry.projectId != null ? String(entry.projectId) : "__none__"
+              }
               onValueChange={(v) => {
                 onUpdate({
                   id: entry.id,
