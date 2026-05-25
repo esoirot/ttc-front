@@ -43,25 +43,20 @@ import {
   useCreateTask,
   useUpdateTask,
   useDeleteTask,
-  type Task,
-  type TaskStatus,
 } from "../../hooks/tasks/useTasks";
-import type { Member } from "../../hooks/account/useUsers";
-import { TASK_STATUSES, STATUS_LABELS } from "./taskConstants";
+import type { Task, TaskStatus } from "@/types/tasks.types";
+import type {
+  TaskEditForm as EditForm,
+  SortableRowProps,
+  ProjectTaskListProps,
+} from "@/types/projects.types";
+import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
 
 const STATUS_COLORS: Record<TaskStatus, "default" | "secondary" | "outline"> = {
   TODO: "secondary",
   IN_PROGRESS: "default",
   DONE: "outline",
 };
-
-interface EditForm {
-  title: string;
-  description: string;
-  status: TaskStatus;
-  dueDate: string;
-  assigneeId: string;
-}
 
 function defaultForm(task: Task): EditForm {
   return {
@@ -71,21 +66,6 @@ function defaultForm(task: Task): EditForm {
     dueDate: task.dueDate?.slice(0, 10) ?? "",
     assigneeId: task.assigneeId ? String(task.assigneeId) : "",
   };
-}
-
-interface SortableRowProps {
-  task: Task;
-  selected: boolean;
-  editingId: number | null;
-  form: EditForm;
-  saving: boolean;
-  members: Member[];
-  onSelect: (id: number, checked: boolean) => void;
-  onStartEdit: (task: Task) => void;
-  onSave: (id: number) => void;
-  onCancelEdit: () => void;
-  onDelete: (id: number) => void;
-  setForm: React.Dispatch<React.SetStateAction<EditForm>>;
 }
 
 function SortableRow({
@@ -294,11 +274,6 @@ function SortableRow({
       </AlertDialog>
     </div>
   );
-}
-
-interface ProjectTaskListProps {
-  projectId: number;
-  members: Member[];
 }
 
 export function ProjectTaskList({ projectId, members }: ProjectTaskListProps) {

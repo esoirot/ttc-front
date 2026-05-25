@@ -17,15 +17,11 @@ import {
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  useUpdateTask,
-  useDeleteTask,
-  type Task,
-  type TaskStatus,
-} from "../../hooks/tasks/useTasks";
-import type { Member } from "../../hooks/account/useUsers";
+import { useUpdateTask, useDeleteTask } from "../../hooks/tasks/useTasks";
+import type { Task, TaskStatus } from "@/types/tasks.types";
+import type { TasksTabProps } from "@/types/projects.types";
 import { SortableTask } from "./SortableTask";
-import { TASK_STATUSES, STATUS_LABELS } from "./taskConstants";
+import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
 
 function DroppableColumn({
   id,
@@ -40,16 +36,6 @@ function DroppableColumn({
       {children}
     </div>
   );
-}
-
-interface TasksTabProps {
-  projectId: number;
-  tasks: Task[];
-  tasksLoading: boolean;
-  taskHasMore: boolean;
-  taskLoadMore: () => void;
-  members: Member[];
-  memberMap: Record<number, string>;
 }
 
 export function TasksTab({

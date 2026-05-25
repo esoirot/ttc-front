@@ -1,59 +1,32 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
-import type { Client } from "./clients.operations";
-import type { Project, ProjectStatus } from "./projects.operations";
-import type { Invoice, InvoiceStatus } from "./invoices.operations";
-import type { TimeEntry } from "./time-entries.operations";
-import type { Rate, RateType } from "./rates.operations";
+import type {
+  AdminPermission,
+  AdminOwner,
+  AdminStats,
+  AdminClient,
+  AdminProject,
+  AdminInvoice,
+  AdminTimeEntry,
+  AdminRate,
+  AdminConnection,
+} from "@/types/admin.types";
+import type { ProjectStatus } from "@/types/projects.types";
+import type { InvoiceStatus } from "@/types/invoices.types";
+import type { RateType } from "@/types/rates.types";
 
-export type AdminPermission =
-  | "MANAGE_USERS"
-  | "MANAGE_CLIENTS"
-  | "MANAGE_PROJECTS"
-  | "MANAGE_INVOICES"
-  | "MANAGE_TIME"
-  | "MANAGE_RATES";
-
-export interface AdminOwner {
-  id: number;
-  email: string;
-  name: string | null;
-}
-
-export interface AdminStats {
-  totalUsers: number;
-  totalClients: number;
-  totalProjects: number;
-  totalInvoices: number;
-  totalRevenue: number;
-  totalTimeSeconds: number;
-}
-
-export interface AdminClient extends Client {
-  owner: AdminOwner;
-}
-
-export interface AdminProject extends Project {
-  owner: AdminOwner;
-}
-
-export interface AdminInvoice extends Invoice {
-  owner: AdminOwner;
-}
-
-export interface AdminTimeEntry extends TimeEntry {
-  owner: AdminOwner;
-}
-
-export interface AdminRate extends Rate {
-  owner: AdminOwner;
-}
-
-export interface AdminConnection<T> {
-  items: T[];
-  nextCursor: number | null;
-  total: number;
-}
+export type {
+  AdminPermission,
+  AdminOwner,
+  AdminStats,
+  AdminClient,
+  AdminProject,
+  AdminInvoice,
+  AdminTimeEntry,
+  AdminRate,
+  AdminConnection,
+};
+export type { ProjectStatus, InvoiceStatus, RateType };
 
 // ── Stats ────────────────────────────────────────────────────────────────────
 

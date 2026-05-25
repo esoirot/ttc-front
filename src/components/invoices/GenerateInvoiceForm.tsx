@@ -11,15 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useGenerateInvoice } from "../../hooks/invoices/useInvoices";
-import type { Client } from "../../hooks/clients/useClients";
-import type { Project } from "../../hooks/projects/useProjects";
-
-type Props = {
-  clients: Client[];
-  projects: Project[];
-  onClose: () => void;
-  onGenerated: (id: number) => void;
-};
+import type { GenerateInvoiceFormProps as Props } from "@/types/shared-ui.types";
 
 export function GenerateInvoiceForm({
   clients,
@@ -31,17 +23,6 @@ export function GenerateInvoiceForm({
   const [clientId, setClientId] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [projectId, setProjectId] = useState("");
-  const [hourlyRate, setHourlyRate] = useState("");
-
-  function handleProjectChange(val: string) {
-    setProjectId(val === "__none__" ? "" : val);
-    if (val && val !== "__none__") {
-      const proj = projects.find((p) => String(p.id) === val);
-      setHourlyRate(proj?.unitPrice != null ? String(proj.unitPrice) : "");
-    } else {
-      setHourlyRate("");
-    }
-  }
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,7 +31,6 @@ export function GenerateInvoiceForm({
       projectId: Number(projectId),
       clientId: clientId ? Number(clientId) : undefined,
       dueDate: dueDate || undefined,
-      hourlyRate: hourlyRate ? Number(hourlyRate) : undefined,
     });
     onClose();
     if (result.data?.generateInvoice.id)
@@ -66,7 +46,9 @@ export function GenerateInvoiceForm({
               <Label htmlFor="gif-project">Project *</Label>
               <Select
                 value={projectId || "__none__"}
-                onValueChange={handleProjectChange}
+                onValueChange={(val) =>
+                  setProjectId(val === "__none__" ? "" : val)
+                }
               >
                 <SelectTrigger id="gif-project" className="w-full">
                   <SelectValue placeholder="Select project" />
@@ -111,21 +93,11 @@ export function GenerateInvoiceForm({
                 onChange={(e) => setDueDate(e.target.value)}
               />
             </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="gif-rate">
-                Hourly rate (leave blank to use project rate)
-              </Label>
-              <Input
-                id="gif-rate"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={hourlyRate}
-                onChange={(e) => setHourlyRate(e.target.value)}
-              />
-            </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Invoice line items generated from project pricing (fixed fee, hourly
+            rate, per-word rate) and billable time entries.
+          </p>
           <Button
             type="submit"
             disabled={loading || !projectId}

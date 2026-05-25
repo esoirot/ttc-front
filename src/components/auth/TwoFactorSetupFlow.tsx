@@ -6,10 +6,7 @@ import {
   useSetupTwoFactor,
   useEnableTwoFactor,
 } from "../../hooks/auth/useAuth";
-
-interface TwoFactorSetupFlowProps {
-  onEnabled: (codes: string[]) => void;
-}
+import type { TwoFactorSetupFlowProps } from "@/types/auth.types";
 
 export function TwoFactorSetupFlow({ onEnabled }: TwoFactorSetupFlowProps) {
   const {

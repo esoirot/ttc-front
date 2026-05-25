@@ -7,10 +7,7 @@ import {
   useRegenerateBackupCodes,
   useBackupCodeCount,
 } from "../../hooks/auth/useAuth";
-
-interface TwoFactorEnabledViewProps {
-  onCodesRegenerated: (codes: string[]) => void;
-}
+import type { TwoFactorEnabledViewProps } from "@/types/auth.types";
 
 export function TwoFactorEnabledView({
   onCodesRegenerated,

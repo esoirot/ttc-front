@@ -4,11 +4,8 @@ import {
   CREATE_RATE_MUTATION,
   UPDATE_RATE_MUTATION,
   DELETE_RATE_MUTATION,
-  type Rate,
   type RateType,
 } from "../../graphql/rates.operations";
-
-export type { Rate, RateType };
 
 export function useRates(type?: RateType) {
   const { data, loading } = useQuery(RATES_QUERY, {

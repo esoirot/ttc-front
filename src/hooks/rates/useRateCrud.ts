@@ -5,13 +5,9 @@ import {
   useDeleteRate,
   type RateType,
 } from "./useRates";
+import type { RateFormData } from "@/types/rates.types";
 
-export type RateFormData = {
-  name: string;
-  amount: number;
-  currency: string;
-  description?: string;
-};
+export type { RateFormData };
 
 export function useRateCrud(type: RateType) {
   const { createRate, loading: creating } = useCreateRate(type);

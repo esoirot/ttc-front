@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Project } from "../../hooks/projects/useProjects";
+import type { Project } from "@/types/projects.types";
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-muted text-muted-foreground",

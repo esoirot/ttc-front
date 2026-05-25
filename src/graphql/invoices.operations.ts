@@ -1,40 +1,13 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
+import type {
+  InvoiceStatus,
+  InvoiceItem,
+  Invoice,
+  InvoiceConnection,
+} from "@/types/invoices.types";
 
-export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED";
-
-export interface InvoiceItem {
-  id: number;
-  invoiceId: number;
-  projectId: number | null;
-  timeEntryId: number | null;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
-}
-
-export interface Invoice {
-  id: number;
-  userId: number;
-  clientId: number | null;
-  number: string;
-  status: InvoiceStatus;
-  currency: string;
-  issuedAt: string | null;
-  dueDate: string | null;
-  paidAt: string | null;
-  notes: string | null;
-  createdAt: string;
-  updatedAt: string;
-  items: InvoiceItem[];
-}
-
-export interface InvoiceConnection {
-  items: Invoice[];
-  nextCursor: number | null;
-  total: number;
-}
+export type { InvoiceStatus, InvoiceItem, Invoice, InvoiceConnection };
 
 const ITEM_FIELDS = `id invoiceId projectId timeEntryId description quantity unitPrice total`;
 const INV_FIELDS = `id userId clientId number status currency issuedAt dueDate paidAt notes createdAt updatedAt items { ${ITEM_FIELDS} }`;
@@ -90,7 +63,6 @@ export const GENERATE_INVOICE_MUTATION: TypedDocumentNode<
       clientId?: number;
       currency?: string;
       dueDate?: string;
-      hourlyRate?: number;
     };
   }
 > = gql`

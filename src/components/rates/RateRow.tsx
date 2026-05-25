@@ -11,13 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { Rate } from "../../hooks/rates/useRates";
-
-interface RateRowProps {
-  rate: Rate;
-  onEdit: () => void;
-  onDelete: () => void;
-}
+import type { RateRowProps } from "@/types/rates.types";
 
 export function RateRow({ rate, onEdit, onDelete }: RateRowProps) {
   return (

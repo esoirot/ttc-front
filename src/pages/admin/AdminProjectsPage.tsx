@@ -3,8 +3,8 @@ import {
   useAdminProjects,
   useAdminCrudProjects,
 } from "../../hooks/admin/useAdminData";
-import type { AdminProject } from "../../graphql/admin.operations";
-import type { ProjectStatus } from "../../graphql/projects.operations";
+import type { AdminProject } from "@/types/admin.types";
+import type { ProjectStatus } from "@/types/projects.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

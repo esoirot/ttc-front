@@ -1,7 +1,5 @@
-import type { ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-type Props = { title: string; children: ReactNode };
+import type { AuthLayoutProps as Props } from "@/types/auth.types";
 
 export function AuthLayout({ title, children }: Props) {
   return (

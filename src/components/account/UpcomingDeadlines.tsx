@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { DashboardDeadline } from "@/graphql/dashboard.operations";
+import type {
+  DashboardDeadline,
+  UpcomingDeadlinesProps as Props,
+} from "@/types/dashboard.types";
 
 const STATUS_BADGE: Record<
   string,
@@ -15,10 +18,6 @@ const STATUS_BADGE: Record<
   INVOICE_SENT: "outline",
   INVOICE_PAID: "outline",
 };
-
-interface Props {
-  deadlines: DashboardDeadline[];
-}
 
 export function UpcomingDeadlines({ deadlines }: Props) {
   return (

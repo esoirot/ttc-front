@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateClient } from "../../hooks/clients/useClients";
+import type { NewClientFormProps as Props } from "@/types/clients.types";
 
 const EMPTY_FORM = {
   name: "",
@@ -16,8 +17,6 @@ const EMPTY_FORM = {
   email: "",
   phone: "",
 };
-
-type Props = { onClose: () => void };
 
 export function NewClientForm({ onClose }: Props) {
   const { createClient, loading } = useCreateClient();

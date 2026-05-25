@@ -4,18 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateTimeEntry } from "../../hooks/time/useTimeEntries";
+import type { ManualEntryFormProps } from "@/types/time-entries.types";
+import { DescriptionCombobox } from "./DescriptionCombobox";
+import { TtcTagChips } from "./TtcTagChips";
 
 function toLocalIso(date: string, time: string): string {
   return `${date}T${time}:00`;
 }
 
-interface ManualEntryFormProps {
-  onClose: () => void;
-}
-
-export function ManualEntryForm({ onClose }: ManualEntryFormProps) {
+export function ManualEntryForm({
+  onClose,
+  recentDescriptions,
+  tags,
+}: ManualEntryFormProps) {
   const { createTimeEntry, loading: creating } = useCreateTimeEntry();
   const [desc, setDesc] = useState("");
+  const [tagIds, setTagIds] = useState<number[]>([]);
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endDate, setEndDate] = useState("");
@@ -28,8 +32,10 @@ export function ManualEntryForm({ onClose }: ManualEntryFormProps) {
       description: desc || undefined,
       startTime: toLocalIso(startDate, startTime),
       endTime: toLocalIso(endDate, endTime),
+      tagIds: tagIds.length ? tagIds : undefined,
     });
     setDesc("");
+    setTagIds([]);
     setStartDate("");
     setEndDate("");
     onClose();
@@ -41,11 +47,22 @@ export function ManualEntryForm({ onClose }: ManualEntryFormProps) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <Label htmlFor="me-desc">Description</Label>
-            <Input
-              id="me-desc"
+            <DescriptionCombobox
               value={desc}
-              onChange={(e) => setDesc(e.target.value)}
+              onChange={setDesc}
+              recentDescriptions={recentDescriptions}
               placeholder="What did you work on?"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">Tags</Label>
+            <TtcTagChips
+              tagIds={tagIds}
+              tags={tags}
+              onAdd={(id) => setTagIds((prev) => [...prev, id])}
+              onRemove={(id) =>
+                setTagIds((prev) => prev.filter((t) => t !== id))
+              }
             />
           </div>
           <div className="grid grid-cols-2 gap-3">

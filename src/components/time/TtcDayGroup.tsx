@@ -1,13 +1,15 @@
 import { useState } from "react";
-import type { TimeEntry } from "../../hooks/time/useTimeEntries";
-import type { Project } from "../../hooks/projects/useProjects";
+import type { TimeEntry } from "@/types/time-entries.types";
+import type { Project } from "@/types/projects.types";
+import type { Tag } from "@/types/tags.types";
 import {
   formatTime,
   secsToHms,
   dayLabel,
   groupByDescription,
 } from "./ttcHelpers";
-import { TtcEntryRow, type TtcUpdateInput } from "./TtcEntryRow";
+import { TtcEntryRow } from "./TtcEntryRow";
+import type { TtcUpdateInput } from "@/types/time-entries.types";
 import { TtcDescriptionGroup } from "./TtcDescriptionGroup";
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +17,7 @@ export function TtcDayGroup({
   dayKey,
   entries,
   projects,
+  tags,
   onDelete,
   onResume,
   onUpdate,
@@ -22,6 +25,7 @@ export function TtcDayGroup({
   dayKey: string;
   entries: TimeEntry[];
   projects: Project[];
+  tags: Tag[];
   onDelete: (id: number) => void;
   onResume: (entry: TimeEntry) => void;
   onUpdate: (input: TtcUpdateInput) => void;
@@ -81,6 +85,7 @@ export function TtcDayGroup({
                 key={group[0].id}
                 entry={group[0]}
                 projects={projects}
+                tags={tags}
                 onDelete={onDelete}
                 onResume={onResume}
                 onUpdate={onUpdate}
@@ -91,6 +96,7 @@ export function TtcDayGroup({
                 description={desc}
                 entries={group}
                 projects={projects}
+                tags={tags}
                 onDelete={onDelete}
                 onResume={onResume}
                 onUpdate={onUpdate}

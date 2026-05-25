@@ -1,42 +1,12 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
+import type {
+  Client,
+  ClientConnection,
+  CompanyContact,
+} from "@/types/clients.types";
 
-export interface CompanyContact {
-  id: number;
-  clientId: number;
-  firstName: string | null;
-  lastName: string | null;
-  email: string | null;
-  phone: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Client {
-  id: number;
-  userId: number;
-  name: string;
-  legalName: string | null;
-  email: string | null;
-  phone: string | null;
-  company: string | null;
-  address: string | null;
-  city: string | null;
-  country: string | null;
-  postalCode: string | null;
-  vatNumber: string | null;
-  notes: string | null;
-  hubspotId: string | null;
-  contacts: CompanyContact[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ClientConnection {
-  items: Client[];
-  nextCursor: number | null;
-  total: number;
-}
+export type { Client, ClientConnection, CompanyContact };
 
 const CONTACT_FIELDS = `id clientId firstName lastName email phone createdAt updatedAt`;
 

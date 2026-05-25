@@ -1,14 +1,11 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { useRates, type RateType } from "../../hooks/rates/useRates";
+import { useRates } from "../../hooks/rates/useRates";
 import { useRateCrud } from "../../hooks/rates/useRateCrud";
-import { TYPE_LABELS } from "./constants";
+import { TYPE_LABELS } from "@/constants/rates";
 import { RateForm } from "./RateForm";
 import { RateRow } from "./RateRow";
-
-interface RateListProps {
-  type: RateType;
-}
+import type { RateListProps } from "@/types/rates.types";
 
 export function RateList({ type }: RateListProps) {
   const { rates, loading } = useRates(type);

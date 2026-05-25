@@ -2,14 +2,11 @@ import { useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProject, useUpdateProject } from "../../hooks/projects/useProjects";
+import { useClients } from "../../hooks/clients/useClients";
 import { useTasks } from "../../hooks/tasks/useTasks";
-import {
-  useTimeEntries,
-  useStartTimer,
-  useStopTimer,
-  useActiveTimer,
-} from "../../hooks/time/useTimeEntries";
-import { useMembers, type Member } from "../../hooks/account/useUsers";
+import { useProjectTimeTab } from "../../hooks/projects/useProjectTimeTab";
+import { useMembers } from "../../hooks/account/useUsers";
+import type { Member } from "@/types/users.types";
 import { TasksTab } from "../../components/projects/TasksTab";
 import { ProjectTaskList } from "../../components/projects/ProjectTaskList";
 import { TimeTab } from "../../components/projects/TimeTab";
@@ -27,19 +24,12 @@ export function ProjectDetailPage() {
     hasMore: taskHasMore,
     loadMore: taskLoadMore,
   } = useTasks(projectId);
-  const { entries, loading: entriesLoading } = useTimeEntries({ projectId });
-  const { activeTimer } = useActiveTimer();
-  const { startTimer, loading: starting } = useStartTimer();
-  const { stopTimer, loading: stopping } = useStopTimer();
+  const timeTab = useProjectTimeTab(projectId);
   const { members } = useMembers();
+  const { clients } = useClients();
 
   const memberMap = Object.fromEntries(
     members.map((m: Member) => [m.id, m.name ?? m.email]),
-  );
-
-  const totalSeconds = entries.reduce(
-    (sum, e) => sum + (e.durationSeconds ?? 0),
-    0,
   );
 
   if (projectLoading) {
@@ -63,12 +53,13 @@ export function ProjectDetailPage() {
     <div className="max-w-4xl mx-auto px-6 py-8">
       <ProjectHeader
         project={project}
+        clients={clients}
         onUpdate={updateProject}
         saving={updatingProject}
       />
 
       <div className="mb-6">
-        <OverviewTab project={project} totalSeconds={totalSeconds} />
+        <OverviewTab project={project} totalSeconds={timeTab.totalSeconds} />
       </div>
 
       <Tabs defaultValue="tasks">
@@ -97,13 +88,20 @@ export function ProjectDetailPage() {
         <TabsContent value="time" className="mt-4">
           <TimeTab
             projectId={projectId}
-            entries={entries}
-            entriesLoading={entriesLoading}
-            activeTimer={activeTimer}
-            startTimer={startTimer}
-            stopTimer={stopTimer}
-            starting={starting}
-            stopping={stopping}
+            entries={timeTab.entries}
+            loading={timeTab.loading}
+            hasMore={timeTab.hasMore}
+            loadMore={timeTab.loadMore}
+            refetch={timeTab.refetch}
+            activeTimer={timeTab.activeTimer}
+            stopTimer={timeTab.stopTimer}
+            stopping={timeTab.stopping}
+            deleteTimeEntry={timeTab.deleteTimeEntry}
+            updateTimeEntry={timeTab.updateTimeEntry}
+            projects={timeTab.projects}
+            tags={timeTab.tags}
+            recentDescriptions={timeTab.recentDescriptions}
+            handleResume={timeTab.handleResume}
           />
         </TabsContent>
       </Tabs>

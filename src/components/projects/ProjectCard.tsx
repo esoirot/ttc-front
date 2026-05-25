@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { Project } from "../../hooks/projects/useProjects";
+import type { ProjectCardProps } from "@/types/projects.types";
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "secondary",
@@ -23,13 +23,6 @@ const STATUS_COLORS: Record<string, string> = {
   INVOICE_SENT: "outline",
   INVOICE_PAID: "outline",
 };
-
-interface ProjectCardProps {
-  project: Project;
-  clientName: string | undefined;
-  onDelete: (id: number) => void;
-  onClick: () => void;
-}
 
 export function ProjectCard({
   project,

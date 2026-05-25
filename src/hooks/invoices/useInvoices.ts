@@ -9,13 +9,7 @@ import {
   ADD_INVOICE_ITEM_MUTATION,
   UPDATE_INVOICE_ITEM_MUTATION,
   REMOVE_INVOICE_ITEM_MUTATION,
-  type Invoice,
-  type InvoiceItem,
-  type InvoiceStatus,
-  type InvoiceConnection,
 } from "../../graphql/invoices.operations";
-
-export type { Invoice, InvoiceItem, InvoiceStatus, InvoiceConnection };
 
 const LIMIT = 20;
 const FIRST_PAGE = { limit: LIMIT };

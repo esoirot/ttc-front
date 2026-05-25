@@ -13,7 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { Client } from "../../hooks/clients/useClients";
+import type { Client } from "@/types/clients.types";
 
 function contactLabel(client: Client): string | null {
   const first = client.contacts[0];

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,23 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useClients } from "../../hooks/clients/useClients";
-
-const CURRENCIES = ["EUR", "USD", "GBP", "CHF", "CAD", "AUD", "JPY"];
-
-type UpdateInput = {
-  clientId: number | null;
-  currency: string;
-  dueDate: string | null;
-  notes: string | null;
-};
-
-type Props = {
-  clientId: number | null;
-  currency: string;
-  dueDate: string | null;
-  notes: string | null;
-  onUpdate: (input: UpdateInput) => Promise<unknown>;
-};
+import { useInvoiceMetaEdit } from "../../hooks/invoices/useInvoiceMetaEdit";
+import { CURRENCIES } from "@/constants/invoices";
+import type { InvoiceMetaCardProps as Props } from "@/types/invoices.types";
 
 export function InvoiceMetaCard({
   clientId,
@@ -38,49 +23,8 @@ export function InvoiceMetaCard({
   onUpdate,
 }: Props) {
   const { clients } = useClients();
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  const [form, setForm] = useState<{
-    clientId: string;
-    currency: string;
-    dueDate: string;
-    notes: string;
-  }>({
-    clientId: clientId != null ? String(clientId) : "none",
-    currency,
-    dueDate: dueDate?.slice(0, 10) ?? "",
-    notes: notes ?? "",
-  });
-
-  function openEdit() {
-    setForm({
-      clientId: clientId != null ? String(clientId) : "none",
-      currency,
-      dueDate: dueDate?.slice(0, 10) ?? "",
-      notes: notes ?? "",
-    });
-    setEditing(true);
-  }
-
-  function cancelEdit() {
-    setEditing(false);
-  }
-
-  async function handleSave() {
-    setSaving(true);
-    try {
-      await onUpdate({
-        clientId: form.clientId !== "none" ? Number(form.clientId) : null,
-        currency: form.currency,
-        dueDate: form.dueDate || null,
-        notes: form.notes.trim() || null,
-      });
-      setEditing(false);
-    } finally {
-      setSaving(false);
-    }
-  }
+  const { editing, saving, form, setForm, openEdit, cancelEdit, handleSave } =
+    useInvoiceMetaEdit({ clientId, currency, dueDate, notes, onUpdate });
 
   const clientName =
     clientId != null

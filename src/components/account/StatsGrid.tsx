@@ -1,14 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { DashboardData } from "@/graphql/dashboard.operations";
+import type { StatsGridProps as Props } from "@/types/dashboard.types";
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
-
-interface Props {
-  dashboard: DashboardData;
 }
 
 export function StatsGrid({ dashboard }: Props) {

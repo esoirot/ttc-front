@@ -4,6 +4,7 @@ import { useInvoiceDetail } from "../../hooks/invoices/useInvoiceDetail";
 import { InvoiceDetailHeader } from "../../components/invoices/InvoiceDetailHeader";
 import { InvoiceMetaCard } from "../../components/invoices/InvoiceMetaCard";
 import { InvoiceLineItems } from "../../components/invoices/InvoiceLineItems";
+import { InvoiceSubtotal } from "../../components/invoices/InvoiceSubtotal";
 
 export function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -38,8 +39,6 @@ export function InvoiceDetailPage() {
       </div>
     );
   }
-
-  const subtotal = invoice.items.reduce((s, item) => s + item.total, 0);
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
@@ -81,14 +80,7 @@ export function InvoiceDetailPage() {
         adding={adding}
       />
 
-      <div className="mt-4 flex justify-end">
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">Subtotal</p>
-          <p className="text-xl font-bold font-mono">
-            {subtotal.toFixed(2)} {invoice.currency}
-          </p>
-        </div>
-      </div>
+      <InvoiceSubtotal items={invoice.items} currency={invoice.currency} />
     </div>
   );
 }

@@ -1,21 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { TimeEntry } from "../../hooks/time/useTimeEntries";
-import type { Project } from "../../hooks/projects/useProjects";
 import { groupByDay } from "./ttcHelpers";
 import { TtcDayGroup } from "./TtcDayGroup";
-import type { TtcUpdateInput } from "./TtcEntryRow";
-
-interface EntryListProps {
-  entries: TimeEntry[];
-  loading: boolean;
-  hasMore: boolean;
-  loadMore: () => void;
-  deleteTimeEntry: (id: number) => Promise<unknown>;
-  projects: Project[];
-  onResume: (entry: TimeEntry) => void;
-  onUpdate: (input: TtcUpdateInput) => void;
-}
+import type { EntryListProps } from "@/types/shared-ui.types";
 
 export function EntryList({
   entries,
@@ -24,6 +11,7 @@ export function EntryList({
   loadMore,
   deleteTimeEntry,
   projects,
+  tags,
   onResume,
   onUpdate,
 }: EntryListProps) {
@@ -54,6 +42,7 @@ export function EntryList({
             dayKey={dayKey}
             entries={dayEntries}
             projects={projects}
+            tags={tags}
             onDelete={(id) => void deleteTimeEntry(id)}
             onResume={onResume}
             onUpdate={onUpdate}

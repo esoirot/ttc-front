@@ -12,22 +12,7 @@ import {
   CREATE_COMMENT_MUTATION,
   UPDATE_COMMENT_MUTATION,
   DELETE_COMMENT_MUTATION,
-  type Task,
-  type TaskDetail,
-  type TaskStatus,
-  type TaskConnection,
-  type Subtask,
-  type TaskComment,
 } from "../../graphql/tasks.operations";
-
-export type {
-  Task,
-  TaskDetail,
-  TaskStatus,
-  TaskConnection,
-  Subtask,
-  TaskComment,
-};
 
 const LIMIT = 50;
 

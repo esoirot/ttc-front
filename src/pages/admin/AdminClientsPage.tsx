@@ -3,7 +3,7 @@ import {
   useAdminClients,
   useAdminCrudClients,
 } from "../../hooks/admin/useAdminData";
-import type { AdminClient } from "../../graphql/admin.operations";
+import type { AdminClient } from "@/types/admin.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

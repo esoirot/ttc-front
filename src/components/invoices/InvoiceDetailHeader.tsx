@@ -11,37 +11,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { InvoiceStatus } from "../../hooks/invoices/useInvoices";
-
-const STATUS_TRANSITIONS: Record<InvoiceStatus, InvoiceStatus[]> = {
-  DRAFT: ["SENT", "CANCELLED"],
-  SENT: ["PAID", "OVERDUE"],
-  PAID: [],
-  OVERDUE: ["PAID"],
-  CANCELLED: [],
-};
-
-const STATUS_BADGE: Record<
-  InvoiceStatus,
-  "default" | "secondary" | "outline" | "destructive"
-> = {
-  DRAFT: "secondary",
-  SENT: "default",
-  PAID: "outline",
-  OVERDUE: "destructive",
-  CANCELLED: "secondary",
-};
-
-type Props = {
-  number: string;
-  status: InvoiceStatus;
-  dueDate?: string | null;
-  logoUrl?: string | null;
-  downloading: boolean;
-  onStatusChange: (next: InvoiceStatus) => void;
-  onDownloadPdf: () => void;
-  onDelete: () => void;
-};
+import type { InvoiceDetailHeaderProps as Props } from "@/types/invoices.types";
+import { STATUS_BADGE, STATUS_TRANSITIONS } from "@/constants/invoices";
 
 export function InvoiceDetailHeader({
   number,

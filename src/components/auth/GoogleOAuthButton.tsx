@@ -1,12 +1,9 @@
 import { Button } from "@/components/ui/button";
+import type { GoogleOAuthButtonProps as Props } from "@/types/auth.types";
 
 const API_URL =
   import.meta.env.VITE_API_URL?.replace("/graphql", "") ??
   "http://localhost:3000";
-
-interface Props {
-  from?: string;
-}
 
 export function GoogleOAuthButton({ from = "/" }: Props) {
   return (

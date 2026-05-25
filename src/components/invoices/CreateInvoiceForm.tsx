@@ -11,13 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateInvoice } from "../../hooks/invoices/useInvoices";
-import type { Client } from "../../hooks/clients/useClients";
-
-type Props = {
-  clients: Client[];
-  onClose: () => void;
-  onCreated: (id: number) => void;
-};
+import type { CreateInvoiceFormProps as Props } from "@/types/shared-ui.types";
 
 export function CreateInvoiceForm({ clients, onClose, onCreated }: Props) {
   const { createInvoice, loading } = useCreateInvoice();

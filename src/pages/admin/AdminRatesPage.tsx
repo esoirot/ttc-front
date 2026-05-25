@@ -3,8 +3,8 @@ import {
   useAdminRates,
   useAdminCrudRates,
 } from "../../hooks/admin/useAdminData";
-import type { AdminRate } from "../../graphql/admin.operations";
-import type { RateType } from "../../graphql/rates.operations";
+import type { AdminRate } from "@/types/admin.types";
+import type { RateType } from "@/types/rates.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

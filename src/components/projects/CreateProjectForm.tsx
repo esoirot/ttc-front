@@ -11,12 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateProject } from "../../hooks/projects/useProjects";
-import type { Client } from "../../hooks/clients/useClients";
-
-interface CreateProjectFormProps {
-  clients: Client[];
-  onClose: () => void;
-}
+import type { CreateProjectFormProps } from "@/types/projects.types";
 
 export function CreateProjectForm({
   clients,

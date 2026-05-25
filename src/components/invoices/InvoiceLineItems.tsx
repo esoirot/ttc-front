@@ -3,31 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { InvoiceItemRow } from "./InvoiceItemRow";
-import { AddItemForm } from "./AddItemForm";
-import type { InvoiceItem } from "../../hooks/invoices/useInvoices";
-
-type AddItemInput = {
-  invoiceId: number;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  timeEntryId?: number;
-};
-type UpdateItemInput = {
-  id: number;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-};
-
-type Props = {
-  invoiceId: number;
-  items: InvoiceItem[];
-  onAddItem: (input: AddItemInput) => Promise<unknown>;
-  onUpdateItem: (input: UpdateItemInput) => Promise<unknown>;
-  onRemoveItem: (id: number) => void;
-  adding: boolean;
-};
+import { AddItemDialog } from "./AddItemDialog";
+import { useItemEdit } from "../../hooks/invoices/useItemEdit";
+import type { InvoiceLineItemsProps as Props } from "@/types/invoices.types";
 
 export function InvoiceLineItems({
   invoiceId,
@@ -37,34 +15,34 @@ export function InvoiceLineItems({
   onRemoveItem,
   adding,
 }: Props) {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editDesc, setEditDesc] = useState("");
-  const [editQty, setEditQty] = useState("");
-  const [editPrice, setEditPrice] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const {
+    editingId,
+    editState,
+    startEdit,
+    cancelEdit,
+    setEditDesc,
+    setEditQty,
+    setEditPrice,
+  } = useItemEdit();
 
-  function startEdit(item: InvoiceItem) {
-    setEditingId(item.id);
-    setEditDesc(item.description);
-    setEditQty(String(item.quantity));
-    setEditPrice(String(item.unitPrice));
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-  }
+  const alreadyAddedEntryIds = new Set(
+    items.flatMap((item) =>
+      item.timeEntryId != null ? [item.timeEntryId] : [],
+    ),
+  );
 
   async function handleSave(itemId: number) {
-    const qty = parseFloat(editQty);
-    const price = parseFloat(editPrice);
+    const qty = parseFloat(editState.qty);
+    const price = parseFloat(editState.price);
     if (isNaN(qty) || isNaN(price)) return;
     await onUpdateItem({
       id: itemId,
-      description: editDesc,
+      description: editState.desc,
       quantity: qty,
       unitPrice: price,
     });
-    setEditingId(null);
+    cancelEdit();
   }
 
   return (
@@ -89,7 +67,7 @@ export function InvoiceLineItems({
             key={item.id}
             item={item}
             editing={editingId === item.id}
-            editState={{ desc: editDesc, qty: editQty, price: editPrice }}
+            editState={editState}
             onStartEdit={() => startEdit(item)}
             onChangeDesc={setEditDesc}
             onChangeQty={setEditQty}
@@ -100,23 +78,22 @@ export function InvoiceLineItems({
           />
         ))}
 
-        {showAddForm ? (
-          <AddItemForm
-            invoiceId={invoiceId}
-            onAdd={onAddItem}
-            loading={adding}
-            onClose={() => setShowAddForm(false)}
-          />
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mt-2"
-            onClick={() => setShowAddForm(true)}
-          >
-            + Add item
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-2"
+          onClick={() => setDialogOpen(true)}
+        >
+          + Add item
+        </Button>
+        <AddItemDialog
+          invoiceId={invoiceId}
+          alreadyAddedEntryIds={alreadyAddedEntryIds}
+          onAdd={onAddItem}
+          adding={adding}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+        />
       </CardContent>
     </Card>
   );

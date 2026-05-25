@@ -2,15 +2,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRateCrud } from "../../hooks/rates/useRateCrud";
-import type { Rate, RateType } from "../../hooks/rates/useRates";
-import { TYPE_LABELS, TYPE_UNIT } from "./constants";
+import type { OverviewSectionProps } from "@/types/rates.types";
+import { TYPE_LABELS, TYPE_UNIT } from "@/constants/rates";
 import { RateForm } from "./RateForm";
-
-interface OverviewSectionProps {
-  type: RateType;
-  rates: Rate[];
-  loading: boolean;
-}
 
 export function OverviewSection({
   type,

@@ -4,26 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ContactRow } from "./ContactRow";
-import type { CompanyContact } from "../../hooks/clients/useClients";
-import type { EditInput } from "./ContactRow";
+import type { ContactsTabProps } from "@/types/clients.types";
 
 const EMPTY_CONTACT = { firstName: "", lastName: "", email: "", phone: "" };
-
-type ContactInput = {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-};
-
-type ContactsTabProps = {
-  contacts: CompanyContact[];
-  onDelete: (id: number) => void;
-  onEdit: (input: EditInput) => Promise<unknown>;
-  onAdd: (input: ContactInput) => Promise<unknown>;
-  saving?: boolean;
-  adding?: boolean;
-};
 
 export function ContactsTab({
   contacts,

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
-import type { TimeEntry } from "../../hooks/time/useTimeEntries";
-import type { Project } from "../../hooks/projects/useProjects";
+import type { TimeEntry } from "@/types/time-entries.types";
+import type { Project } from "@/types/projects.types";
+import type { Tag } from "@/types/tags.types";
 import { formatTime, secsToHms } from "./ttcHelpers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,24 +12,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TtcTagChips } from "./TtcTagChips";
 import { cn } from "@/lib/utils";
 
-export type TtcUpdateInput = {
-  id: number;
-  description?: string;
-  billable?: boolean;
-  projectId?: number | null;
-};
+import type { TtcUpdateInput } from "@/types/time-entries.types";
 
 export function TtcEntryRow({
   entry,
   projects,
+  tags,
   onDelete,
   onResume,
   onUpdate,
 }: {
   entry: TimeEntry;
   projects: Project[];
+  tags: Tag[];
   onDelete: (id: number) => void;
   onResume: (entry: TimeEntry) => void;
   onUpdate: (input: TtcUpdateInput) => void;
@@ -136,6 +135,22 @@ export function TtcEntryRow({
               {project?.title ?? "No project"}
             </Button>
           )}
+          <TtcTagChips
+            tagIds={entry.tags.map((t) => t.id)}
+            tags={tags}
+            onAdd={(id) =>
+              onUpdate({
+                id: entry.id,
+                tagIds: [...entry.tags.map((t) => t.id), id],
+              })
+            }
+            onRemove={(id) =>
+              onUpdate({
+                id: entry.id,
+                tagIds: entry.tags.map((t) => t.id).filter((x) => x !== id),
+              })
+            }
+          />
           <Button
             variant="outline"
             size="sm"

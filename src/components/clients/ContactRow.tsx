@@ -14,17 +14,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { CompanyContact } from "../../hooks/clients/useClients";
+import type { CompanyContact, EditInput } from "@/types/clients.types";
 
 const EMPTY_EDIT = { firstName: "", lastName: "", email: "", phone: "" };
-
-export type EditInput = {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-};
 
 export function ContactRow({
   contact,

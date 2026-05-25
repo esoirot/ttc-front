@@ -10,11 +10,8 @@ import {
   UPDATE_TIME_ENTRY_MUTATION,
   DELETE_TIME_ENTRY_MUTATION,
   type TimeEntry,
-  type TimeEntryConnection,
 } from "../../graphql/time-entries.operations";
 import { useCurrentUser } from "../auth/useAuth";
-
-export type { TimeEntry, TimeEntryConnection };
 
 const LIMIT = 20;
 const FIRST_PAGE = { limit: LIMIT };

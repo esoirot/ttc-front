@@ -1,17 +1,9 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
-
-export interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  role: string;
-  twoFactorEnabled: boolean;
-  logoUrl: string | null;
-}
+import type { AuthUser } from "@/types/auth.types";
 
 export const ME_QUERY: TypedDocumentNode<
-  { me: User | null },
+  { me: AuthUser | null },
   Record<string, never>
 > = gql`
   query Me {
@@ -28,7 +20,11 @@ export const ME_QUERY: TypedDocumentNode<
 
 export const LOGIN_MUTATION: TypedDocumentNode<
   {
-    login: { user: User; requiresTwoFactor: boolean; tempToken: string | null };
+    login: {
+      user: AuthUser;
+      requiresTwoFactor: boolean;
+      tempToken: string | null;
+    };
   },
   { input: { email: string; password: string } }
 > = gql`
@@ -48,7 +44,7 @@ export const LOGIN_MUTATION: TypedDocumentNode<
 `;
 
 export const REGISTER_MUTATION: TypedDocumentNode<
-  { register: User },
+  { register: AuthUser },
   { input: { email: string; password: string; name?: string } }
 > = gql`
   mutation Register($input: RegisterInput!) {
@@ -103,7 +99,7 @@ export const ENABLE_TWO_FACTOR_MUTATION: TypedDocumentNode<
 `;
 
 export const VERIFY_TWO_FACTOR_BACKUP_MUTATION: TypedDocumentNode<
-  { verifyTwoFactorBackup: { user: User } },
+  { verifyTwoFactorBackup: { user: AuthUser } },
   { input: { tempToken: string; backupCode: string } }
 > = gql`
   mutation VerifyTwoFactorBackup($input: VerifyTwoFactorBackupInput!) {
@@ -120,7 +116,7 @@ export const VERIFY_TWO_FACTOR_BACKUP_MUTATION: TypedDocumentNode<
 `;
 
 export const VERIFY_TWO_FACTOR_MUTATION: TypedDocumentNode<
-  { verifyTwoFactor: { user: User } },
+  { verifyTwoFactor: { user: AuthUser } },
   { input: { tempToken: string; code: string } }
 > = gql`
   mutation VerifyTwoFactor($input: VerifyTwoFactorInput!) {
@@ -146,7 +142,7 @@ export const DISABLE_TWO_FACTOR_MUTATION: TypedDocumentNode<
 `;
 
 export const UPDATE_ME_MUTATION: TypedDocumentNode<
-  { updateMe: User },
+  { updateMe: AuthUser },
   { input: { name?: string; email?: string; logoUrl?: string } }
 > = gql`
   mutation UpdateMe($input: UpdateMeInput!) {

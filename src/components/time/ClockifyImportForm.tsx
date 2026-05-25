@@ -5,12 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { useImportClockifyEntries } from "../../hooks/integrations/useClockify";
-
-interface ClockifyImportFormProps {
-  workspaceId: string;
-  refetch: () => void;
-  onClose: () => void;
-}
+import type { ClockifyImportFormProps } from "@/types/time-entries.types";
 
 export function ClockifyImportForm({
   workspaceId,

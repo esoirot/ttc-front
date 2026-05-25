@@ -1,4 +1,4 @@
-import type { RateType } from "../../hooks/rates/useRates";
+import type { RateType } from "@/types/rates.types";
 
 export const CURRENCIES = ["EUR", "USD", "GBP", "CHF", "CAD", "AUD", "JPY"];
 

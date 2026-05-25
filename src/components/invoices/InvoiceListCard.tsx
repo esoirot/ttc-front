@@ -1,23 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { Invoice, InvoiceStatus } from "../../hooks/invoices/useInvoices";
-
-const STATUS_BADGE: Record<
-  InvoiceStatus,
-  "default" | "secondary" | "outline" | "destructive"
-> = {
-  DRAFT: "secondary",
-  SENT: "default",
-  PAID: "outline",
-  OVERDUE: "destructive",
-  CANCELLED: "secondary",
-};
-
-type Props = {
-  inv: Invoice;
-  clientName?: string;
-};
+import type { InvoiceListCardProps as Props } from "@/types/invoices.types";
+import { STATUS_BADGE } from "@/constants/invoices";
 
 export function InvoiceListCard({ inv, clientName }: Props) {
   const navigate = useNavigate();

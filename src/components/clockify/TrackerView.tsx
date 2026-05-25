@@ -45,6 +45,14 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
   const plan = currentWorkspace?.featureSubscriptionType;
   const billabilityLocked = !plan || !PAID_CLOCKIFY_PLANS.has(plan);
 
+  const recentDescriptions = [
+    ...new Set(
+      entries
+        .map((e) => e.description)
+        .filter((d): d is string => !!d && d.trim() !== ""),
+    ),
+  ];
+
   const completed = entries.filter((e) => e.timeInterval.end !== null);
   const visible = selectedProject
     ? completed.filter((e) => e.projectId === selectedProject)
@@ -131,6 +139,7 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
         projects={projects}
         tags={tags}
         billabilityLocked={billabilityLocked}
+        recentDescriptions={recentDescriptions}
       />
 
       <div>

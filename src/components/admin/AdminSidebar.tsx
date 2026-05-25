@@ -1,6 +1,6 @@
 import { NavLink, Link } from "react-router-dom";
 import { useCurrentUser } from "../../hooks/auth/useAuth";
-import type { AdminPermission } from "../../graphql/admin.operations";
+import type { AdminPermission } from "@/types/users.types";
 import { cn } from "@/lib/utils";
 
 const RESOURCE_LINKS: {

@@ -1,16 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Project } from "../../hooks/projects/useProjects";
+import type { OverviewTabProps } from "@/types/projects.types";
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
   return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
-
-interface OverviewTabProps {
-  project: Project;
-  totalSeconds: number;
 }
 
 export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {

@@ -9,17 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Rate, RateType } from "../../hooks/rates/useRates";
-import type { RateFormData } from "../../hooks/rates/useRateCrud";
-import { CURRENCIES, TYPE_UNIT } from "./constants";
-
-interface RateFormProps {
-  type: RateType;
-  initial?: Rate;
-  onSave: (data: RateFormData) => void;
-  onCancel: () => void;
-  saving: boolean;
-}
+import type { RateFormProps } from "@/types/rates.types";
+import { CURRENCIES, TYPE_UNIT } from "@/constants/rates";
 
 export function RateForm({
   type,

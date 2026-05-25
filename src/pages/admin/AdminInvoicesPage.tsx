@@ -3,8 +3,8 @@ import {
   useAdminInvoices,
   useAdminCrudInvoices,
 } from "../../hooks/admin/useAdminData";
-import type { AdminInvoice } from "../../graphql/admin.operations";
-import type { InvoiceStatus } from "../../graphql/invoices.operations";
+import type { AdminInvoice } from "@/types/admin.types";
+import type { InvoiceStatus } from "@/types/invoices.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -1,42 +1,16 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
+import type {
+  Project,
+  ProjectConnection,
+  ProjectStatus,
+} from "@/types/projects.types";
 
-export type ProjectStatus =
-  | "DRAFT"
-  | "ACTIVE"
-  | "COMPLETED"
-  | "CANCELLED"
-  | "ARCHIVED"
-  | "INVOICE_SENT"
-  | "INVOICE_PAID";
-
-export interface Project {
-  id: number;
-  userId: number | null;
-  clientId: number | null;
-  title: string;
-  description: string | null;
-  status: ProjectStatus;
-  sourceLanguage: string | null;
-  targetLanguage: string | null;
-  wordCount: number | null;
-  unitPrice: number | null;
-  currency: string;
-  deadline: string | null;
-  startDate: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProjectConnection {
-  items: Project[];
-  nextCursor: number | null;
-  total: number;
-}
+export type { Project, ProjectConnection, ProjectStatus };
 
 const PROJECT_FIELDS = `
   id userId clientId title description status
-  sourceLanguage targetLanguage wordCount unitPrice currency
+  sourceLanguage targetLanguage wordCount unitPrice fixedFee hourlyRate perWordRate currency
   deadline startDate createdAt updatedAt
 `;
 
@@ -69,12 +43,15 @@ export const PROJECT_QUERY: TypedDocumentNode<
 type ProjectInput = {
   title: string;
   description?: string;
-  clientId?: number;
+  clientId?: number | null;
   status?: ProjectStatus;
   sourceLanguage?: string;
   targetLanguage?: string;
   wordCount?: number;
   unitPrice?: number;
+  fixedFee?: number | null;
+  hourlyRate?: number | null;
+  perWordRate?: number | null;
   currency?: string;
   deadline?: string;
   startDate?: string;

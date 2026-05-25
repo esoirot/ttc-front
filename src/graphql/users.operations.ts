@@ -1,19 +1,13 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
-import type { AdminPermission } from "./admin.operations";
+import type {
+  UserRole,
+  User,
+  Member,
+  AdminPermission,
+} from "@/types/users.types";
 
-export type UserRole = "ADMIN" | "MANAGER" | "USER";
-export type { AdminPermission };
-
-export interface User {
-  id: number;
-  email: string;
-  name: string | null;
-  role: UserRole;
-  twoFactorEnabled: boolean;
-  adminPermissions: AdminPermission[];
-  createdAt: string;
-}
+export type { UserRole, User, Member, AdminPermission };
 
 const USER_FIELDS = gql`
   fragment UserFields on User {
@@ -38,12 +32,6 @@ export const USERS_QUERY: TypedDocumentNode<
     }
   }
 `;
-
-export interface Member {
-  id: number;
-  name: string | null;
-  email: string;
-}
 
 export const MEMBERS_QUERY: TypedDocumentNode<
   { members: Member[] },

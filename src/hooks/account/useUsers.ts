@@ -4,12 +4,7 @@ import {
   MEMBERS_QUERY,
   UPDATE_USER_MUTATION,
   DELETE_USER_MUTATION,
-  type User,
-  type UserRole,
-  type Member,
 } from "../../graphql/users.operations";
-
-export type { User, UserRole, Member };
 
 export function useUsers() {
   const { data, loading, error } = useQuery(USERS_QUERY);

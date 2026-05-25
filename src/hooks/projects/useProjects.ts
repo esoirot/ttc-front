@@ -5,12 +5,8 @@ import {
   CREATE_PROJECT_MUTATION,
   UPDATE_PROJECT_MUTATION,
   DELETE_PROJECT_MUTATION,
-  type Project,
   type ProjectStatus,
-  type ProjectConnection,
 } from "../../graphql/projects.operations";
-
-export type { Project, ProjectStatus, ProjectConnection };
 
 const LIMIT = 20;
 

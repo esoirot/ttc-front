@@ -8,12 +8,7 @@ import {
   CREATE_COMPANY_CONTACT_MUTATION,
   UPDATE_COMPANY_CONTACT_MUTATION,
   DELETE_COMPANY_CONTACT_MUTATION,
-  type Client,
-  type ClientConnection,
-  type CompanyContact,
 } from "../../graphql/clients.operations";
-
-export type { Client, ClientConnection, CompanyContact };
 
 export function useClients(search?: string) {
   const baseVars = {

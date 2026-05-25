@@ -1,21 +1,7 @@
+import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { InvoiceItem } from "../../hooks/invoices/useInvoices";
-
-type EditState = { desc: string; qty: string; price: string };
-
-type Props = {
-  item: InvoiceItem;
-  editing: boolean;
-  editState: EditState;
-  onStartEdit: () => void;
-  onChangeDesc: (v: string) => void;
-  onChangeQty: (v: string) => void;
-  onChangePrice: (v: string) => void;
-  onSave: () => void;
-  onCancel: () => void;
-  onRemove: () => void;
-};
+import type { InvoiceItemRowProps as Props } from "@/types/invoices.types";
 
 export function InvoiceItemRow({
   item,
@@ -92,10 +78,13 @@ export function InvoiceItemRow({
   return (
     <div className="grid grid-cols-[1fr_80px_100px_100px_64px] gap-2 text-sm py-1.5 border-b border-border last:border-0 group">
       <span
-        className="cursor-pointer hover:text-primary"
+        className="cursor-pointer hover:text-primary flex items-center gap-1.5"
         onClick={onStartEdit}
         title="Click to edit"
       >
+        {item.timeEntryId != null && (
+          <Clock className="size-3 text-muted-foreground shrink-0" />
+        )}
         {item.description}
       </span>
       <span

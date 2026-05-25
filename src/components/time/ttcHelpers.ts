@@ -1,4 +1,4 @@
-import type { TimeEntry } from "../../hooks/time/useTimeEntries";
+import type { TimeEntry } from "@/types/time-entries.types";
 
 export { formatTime, secsToHms, dayLabel } from "../clockify/helpers";
 

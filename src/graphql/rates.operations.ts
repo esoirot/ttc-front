@@ -1,19 +1,8 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
+import type { RateType, Rate } from "@/types/rates.types";
 
-export type RateType = "HOURLY" | "PER_WORD" | "FIXED";
-
-export interface Rate {
-  id: number;
-  userId: number;
-  type: RateType;
-  name: string;
-  amount: number;
-  currency: string;
-  description: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+export type { RateType, Rate };
 
 const RATE_FIELDS = `id userId type name amount currency description createdAt updatedAt`;
 

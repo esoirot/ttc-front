@@ -1,27 +1,13 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
+import type {
+  TimeEntry,
+  TimeEntryConnection,
+} from "@/types/time-entries.types";
 
-export interface TimeEntry {
-  id: number;
-  userId: number;
-  projectId: number | null;
-  description: string | null;
-  startTime: string;
-  endTime: string | null;
-  durationSeconds: number | null;
-  billable: boolean;
-  clockifyEntryId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+export type { TimeEntry, TimeEntryConnection };
 
-export interface TimeEntryConnection {
-  items: TimeEntry[];
-  nextCursor: number | null;
-  total: number;
-}
-
-const TE_FIELDS = `id userId projectId description startTime endTime durationSeconds billable clockifyEntryId createdAt updatedAt`;
+const TE_FIELDS = `id userId projectId description startTime endTime durationSeconds billable clockifyEntryId tags { id name } createdAt updatedAt`;
 
 export const TIME_ENTRIES_QUERY: TypedDocumentNode<
   { timeEntries: TimeEntryConnection },
@@ -61,6 +47,7 @@ export const CREATE_TIME_ENTRY_MUTATION: TypedDocumentNode<
       endTime: string;
       billable?: boolean;
       clockifyEntryId?: string;
+      tagIds?: number[];
     };
   }
 > = gql`
@@ -71,7 +58,14 @@ export const CREATE_TIME_ENTRY_MUTATION: TypedDocumentNode<
 
 export const START_TIMER_MUTATION: TypedDocumentNode<
   { startTimer: TimeEntry },
-  { input: { projectId?: number; description?: string; billable?: boolean } }
+  {
+    input: {
+      projectId?: number;
+      description?: string;
+      billable?: boolean;
+      tagIds?: number[];
+    };
+  }
 > = gql`
   mutation StartTimer($input: StartTimerInput!) {
     startTimer(input: $input) { ${TE_FIELDS} }
@@ -97,6 +91,7 @@ export const UPDATE_TIME_ENTRY_MUTATION: TypedDocumentNode<
       startTime?: string;
       endTime?: string;
       billable?: boolean;
+      tagIds?: number[];
     };
   }
 > = gql`

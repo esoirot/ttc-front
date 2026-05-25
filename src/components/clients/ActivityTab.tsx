@@ -1,20 +1,12 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { InvoiceRow } from "./InvoiceRow";
-import type { Invoice } from "../../hooks/invoices/useInvoices";
+import type { ActivityTabProps } from "@/types/clients.types";
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   return `${h}h ${String(m).padStart(2, "0")}m`;
 }
-
-type ActivityTabProps = {
-  invoices: Invoice[];
-  invoicesLoading: boolean;
-  totalSeconds: number;
-  timeLoading: boolean;
-  hasProjects: boolean;
-};
 
 export function ActivityTab({
   invoices,

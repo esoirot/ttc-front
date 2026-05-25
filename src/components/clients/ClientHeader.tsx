@@ -3,24 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { Client } from "../../hooks/clients/useClients";
-
-interface ClientHeaderProps {
-  client: Client;
-  onUpdate: (input: {
-    id: number;
-    name?: string;
-    legalName?: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-    city?: string;
-    country?: string;
-    postalCode?: string;
-    vatNumber?: string;
-  }) => Promise<unknown>;
-  saving: boolean;
-}
+import type { ClientHeaderProps } from "@/types/clients.types";
 
 export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
   const [editing, setEditing] = useState(false);

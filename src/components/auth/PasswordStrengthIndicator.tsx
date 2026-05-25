@@ -21,9 +21,7 @@ const STRENGTH_TEXT_COLOR = [
   "text-emerald-500",
 ] as const;
 
-interface PasswordStrengthIndicatorProps {
-  password: string;
-}
+import type { PasswordStrengthIndicatorProps } from "@/types/auth.types";
 
 export function PasswordStrengthIndicator({
   password,

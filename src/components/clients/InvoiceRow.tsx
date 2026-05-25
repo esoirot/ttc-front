@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import type { Invoice } from "../../hooks/invoices/useInvoices";
+import type { Invoice } from "@/types/invoices.types";
 
 const INVOICE_STATUS_COLORS: Record<
   string,

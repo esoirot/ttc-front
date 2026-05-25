@@ -1,73 +1,45 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  useInvoices,
-  type InvoiceStatus,
-} from "../../hooks/invoices/useInvoices";
-import { useClients } from "../../hooks/clients/useClients";
-import { useProjects } from "../../hooks/projects/useProjects";
+import type { InvoiceStatus } from "@/types/invoices.types";
+import { useInvoicesPage } from "../../hooks/invoices/useInvoicesPage";
+import { InvoicesPageHeader } from "../../components/invoices/InvoicesPageHeader";
 import { CreateInvoiceForm } from "../../components/invoices/CreateInvoiceForm";
 import { GenerateInvoiceForm } from "../../components/invoices/GenerateInvoiceForm";
 import { InvoiceListCard } from "../../components/invoices/InvoiceListCard";
-
-const STATUS_TABS: { value: InvoiceStatus | "ALL"; label: string }[] = [
-  { value: "ALL", label: "All" },
-  { value: "DRAFT", label: "Draft" },
-  { value: "SENT", label: "Sent" },
-  { value: "PAID", label: "Paid" },
-];
+import { STATUS_TABS } from "@/constants/invoices";
 
 export function InvoicesPage() {
-  const navigate = useNavigate();
-  const [tab, setTab] = useState<InvoiceStatus | "ALL">("ALL");
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [showCreate, setShowCreate] = useState(false);
-  const [showGenerate, setShowGenerate] = useState(false);
-
-  useEffect(() => {
-    const id = setTimeout(() => setDebouncedSearch(search.trim()), 300);
-    return () => clearTimeout(id);
-  }, [search]);
-
-  const { invoices, loading, hasMore, loadMore, total } = useInvoices(
-    tab === "ALL" ? undefined : tab,
-    undefined,
-    debouncedSearch || undefined,
-  );
-  const { clients } = useClients();
-  const { projects } = useProjects();
-  const clientMap = Object.fromEntries(clients.map((c) => [c.id, c.name]));
+  const {
+    navigate,
+    tab,
+    setTab,
+    search,
+    setSearch,
+    invoices,
+    loading,
+    hasMore,
+    loadMore,
+    total,
+    clients,
+    projects,
+    clientMap,
+    showCreate,
+    setShowCreate,
+    showGenerate,
+    setShowGenerate,
+    toggleCreate,
+    toggleGenerate,
+  } = useInvoicesPage();
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Invoices</h1>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setShowGenerate(!showGenerate);
-              setShowCreate(false);
-            }}
-          >
-            Generate from project
-          </Button>
-          <Button
-            onClick={() => {
-              setShowCreate(!showCreate);
-              setShowGenerate(false);
-            }}
-          >
-            New invoice
-          </Button>
-        </div>
-      </div>
+      <InvoicesPageHeader
+        onToggleCreate={toggleCreate}
+        onToggleGenerate={toggleGenerate}
+      />
 
       {showCreate && (
         <CreateInvoiceForm

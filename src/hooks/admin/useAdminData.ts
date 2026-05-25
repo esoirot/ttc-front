@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useApolloClient } from "@apollo/client/react";
-import type { ProjectStatus } from "../../graphql/projects.operations";
-import type { InvoiceStatus } from "../../graphql/invoices.operations";
-import type { RateType } from "../../graphql/rates.operations";
+import type { ProjectStatus } from "@/types/projects.types";
+import type { InvoiceStatus } from "@/types/invoices.types";
+import type { RateType } from "@/types/rates.types";
 import {
   ADMIN_STATS_QUERY,
   ADMIN_CLIENTS_QUERY,

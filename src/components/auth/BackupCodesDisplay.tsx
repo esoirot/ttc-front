@@ -1,11 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-interface BackupCodesDisplayProps {
-  codes: string[];
-  onDone: () => void;
-}
+import type { BackupCodesDisplayProps } from "@/types/auth.types";
 
 export function BackupCodesDisplay({ codes, onDone }: BackupCodesDisplayProps) {
   function copyAll() {

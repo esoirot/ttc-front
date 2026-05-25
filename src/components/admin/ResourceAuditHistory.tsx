@@ -8,12 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface Props {
-  open: boolean;
-  onClose: () => void;
-  resourceName: string;
-}
+import type { ResourceAuditHistoryProps as Props } from "@/types/admin.types";
 
 const ACTION_VARIANT: Record<string, "default" | "secondary" | "destructive"> =
   {

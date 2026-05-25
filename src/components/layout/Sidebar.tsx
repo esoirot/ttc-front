@@ -4,13 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-
-type NavItem = {
-  to: string;
-  end: boolean;
-  label: string;
-  icon: React.ReactNode;
-};
+import type { NavItem } from "@/types/layout.types";
 
 const DASHBOARD_ITEM: NavItem = {
   to: "/",

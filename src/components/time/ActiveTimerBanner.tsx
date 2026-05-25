@@ -2,14 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useElapsedTimer } from "../../hooks/time/useElapsedTimer";
-import type { TimeEntry } from "../../hooks/time/useTimeEntries";
-
-interface ActiveTimerBannerProps {
-  activeTimer: TimeEntry;
-  stopTimer: () => Promise<unknown>;
-  stopping: boolean;
-  refetch: () => void;
-}
+import type { ActiveTimerBannerProps } from "@/types/time-entries.types";
 
 export function ActiveTimerBanner({
   activeTimer,
@@ -29,6 +22,19 @@ export function ActiveTimerBanner({
           <p className="text-sm">
             {activeTimer.description ?? "No description"}
           </p>
+          {activeTimer.tags.length > 0 && (
+            <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+              {activeTimer.tags.map((t) => (
+                <Badge
+                  key={t.id}
+                  variant="secondary"
+                  className="text-xs px-1.5 py-0"
+                >
+                  {t.name}
+                </Badge>
+              ))}
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
             Started {activeTimer.startTime.slice(0, 16).replace("T", " ")}
           </p>

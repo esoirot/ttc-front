@@ -22,18 +22,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { Task, TaskStatus } from "../../hooks/tasks/useTasks";
-import type { Member } from "../../hooks/account/useUsers";
-import { TASK_STATUSES, STATUS_LABELS } from "./taskConstants";
-
-interface SortableTaskProps {
-  task: Task;
-  onStatusChange: (id: number, status: TaskStatus) => void;
-  onDelete: (id: number) => void;
-  onUpdate: (id: number, assigneeId?: number, dueDate?: string) => void;
-  memberMap: Record<number, string>;
-  members: Member[];
-}
+import type { TaskStatus } from "@/types/tasks.types";
+import type { Member } from "@/types/users.types";
+import type { SortableTaskProps } from "@/types/projects.types";
+import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
 
 export function SortableTask({
   task,

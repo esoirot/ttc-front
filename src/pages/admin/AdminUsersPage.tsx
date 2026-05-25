@@ -3,10 +3,14 @@ import {
   useUsers,
   useUpdateUser,
   useDeleteUser,
-  type User,
-  type UserRole,
 } from "@/hooks/account/useUsers";
 import { useCurrentUser, useAdminDisableTwoFactor } from "@/hooks/auth/useAuth";
+import type {
+  User,
+  UserRole,
+  AdminPermission,
+  UserEditForm as EditForm,
+} from "@/types/users.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -45,7 +49,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { AdminPermission } from "../../graphql/admin.operations";
 import { ResourceAuditHistory } from "../../components/admin/ResourceAuditHistory";
 
 const ALL_PERMISSIONS: AdminPermission[] = [
@@ -82,12 +85,6 @@ function PermissionsEditor({
       ))}
     </div>
   );
-}
-
-interface EditForm {
-  id: number;
-  role: UserRole;
-  adminPermissions: AdminPermission[];
 }
 
 export function AdminUsersPage() {

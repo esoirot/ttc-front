@@ -10,8 +10,8 @@ import { BillableToggle } from "./BillableToggle";
 import { ProjectSelect } from "./ProjectSelect";
 import { TagChips } from "./TagChips";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DescriptionCombobox } from "../time/DescriptionCombobox";
 import { Badge } from "@/components/ui/badge";
 
 function elapsedHms(startIso: string): string {
@@ -42,11 +42,13 @@ export function ActiveTimer({
   projects,
   tags,
   billabilityLocked,
+  recentDescriptions,
 }: {
   workspaceId: string;
   projects: ClockifyProject[];
   tags: ClockifyTag[];
   billabilityLocked: boolean;
+  recentDescriptions: string[];
 }) {
   const { data: active } = useClockifyActiveEntry(workspaceId);
   const { mutate: start, isPending: starting } = useStartEntry(workspaceId);
@@ -126,15 +128,11 @@ export function ActiveTimer({
         <Label htmlFor="at-description" className="sr-only">
           Description
         </Label>
-        <Input
-          id="at-description"
-          type="text"
+        <DescriptionCombobox
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleStart();
-          }}
-          placeholder="What are you working on?"
+          onChange={setDescription}
+          onEnter={handleStart}
+          recentDescriptions={recentDescriptions}
           className="flex-1"
         />
         <Button

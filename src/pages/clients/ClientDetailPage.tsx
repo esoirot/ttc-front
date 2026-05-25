@@ -7,6 +7,7 @@ import { ClientHeader } from "../../components/clients/ClientHeader";
 import { ContactsTab } from "../../components/clients/ContactsTab";
 import { ProjectsTab } from "../../components/clients/ProjectsTab";
 import { ActivityTab } from "../../components/clients/ActivityTab";
+import { ClientRatesTab } from "../../components/clients/ClientRatesTab";
 
 export function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -81,6 +82,7 @@ export function ClientDetailPage() {
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="rates">Rates</TabsTrigger>
         </TabsList>
 
         <TabsContent value="contacts" className="mt-4">
@@ -106,6 +108,10 @@ export function ClientDetailPage() {
             timeLoading={timeLoading}
             hasProjects={clientProjectIds.length > 0}
           />
+        </TabsContent>
+
+        <TabsContent value="rates" className="mt-4">
+          <ClientRatesTab clientId={clientId} />
         </TabsContent>
       </Tabs>
     </div>

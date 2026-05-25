@@ -1,28 +1,12 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
+import type {
+  DashboardDeadline,
+  DashboardTimeEntry,
+  DashboardData,
+} from "@/types/dashboard.types";
 
-export interface DashboardDeadline {
-  id: number;
-  title: string;
-  deadline: string;
-  status: string;
-}
-
-export interface DashboardTimeEntry {
-  id: number;
-  description: string | null;
-  startTime: string;
-  durationSeconds: number | null;
-}
-
-export interface DashboardData {
-  activeProjectCount: number;
-  unpaidInvoiceCount: number;
-  monthToDateSeconds: number;
-  monthToDateRevenue: number;
-  upcomingDeadlines: DashboardDeadline[];
-  recentTimeEntries: DashboardTimeEntry[];
-}
+export type { DashboardDeadline, DashboardTimeEntry, DashboardData };
 
 export const DASHBOARD_QUERY: TypedDocumentNode<
   { dashboard: DashboardData },
