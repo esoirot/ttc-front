@@ -19,7 +19,17 @@ import { DashboardPage } from "./pages/account/DashboardPage";
 import { EditProfilePage } from "./pages/account/EditProfilePage";
 import { ClockifyPage } from "./pages/integrations/ClockifyPage";
 import { HubspotPage } from "./pages/integrations/HubspotPage";
-import { AuditLogPage } from "./pages/account/AuditLogPage";
+import { AdminLayout } from "./components/admin/AdminLayout";
+import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
+import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
+import { AdminClientsPage } from "./pages/admin/AdminClientsPage";
+import { AdminProjectsPage } from "./pages/admin/AdminProjectsPage";
+import { AdminInvoicesPage } from "./pages/admin/AdminInvoicesPage";
+import { AdminTimeEntriesPage } from "./pages/admin/AdminTimeEntriesPage";
+import { AdminRatesPage } from "./pages/admin/AdminRatesPage";
+import { AdminAuditPage } from "./pages/admin/AdminAuditPage";
+import { AdminHubspotPage } from "./pages/admin/AdminHubspotPage";
+import { AdminActivityLogPage } from "./pages/admin/AdminActivityLogPage";
 import { ClientsPage } from "./pages/clients/ClientsPage";
 import { ClientDetailPage } from "./pages/clients/ClientDetailPage";
 import { ProjectsPage } from "./pages/projects/ProjectsPage";
@@ -60,6 +70,21 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           {
+            element: <AdminLayout />,
+            children: [
+              { path: "/admin", element: <AdminDashboardPage /> },
+              { path: "/admin/users", element: <AdminUsersPage /> },
+              { path: "/admin/clients", element: <AdminClientsPage /> },
+              { path: "/admin/projects", element: <AdminProjectsPage /> },
+              { path: "/admin/invoices", element: <AdminInvoicesPage /> },
+              { path: "/admin/time", element: <AdminTimeEntriesPage /> },
+              { path: "/admin/rates", element: <AdminRatesPage /> },
+              { path: "/admin/audit", element: <AdminAuditPage /> },
+              { path: "/admin/hubspot", element: <AdminHubspotPage /> },
+              { path: "/admin/activity", element: <AdminActivityLogPage /> },
+            ],
+          },
+          {
             element: <AppLayout />,
             children: [
               { path: "/", element: <DashboardPage /> },
@@ -67,7 +92,6 @@ const router = createBrowserRouter([
               { path: "/settings/2fa", element: <TwoFactorSetupPage /> },
               { path: "/time-tracker", element: <ClockifyPage /> },
               { path: "/hubspot", element: <HubspotPage /> },
-              { path: "/admin", element: <AuditLogPage /> },
               { path: "/clients", element: <ClientsPage /> },
               { path: "/clients/:id", element: <ClientDetailPage /> },
               { path: "/projects", element: <ProjectsPage /> },

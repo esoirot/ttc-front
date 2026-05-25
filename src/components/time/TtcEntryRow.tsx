@@ -3,14 +3,21 @@ import type { TimeEntry } from "../../hooks/time/useTimeEntries";
 import type { Project } from "../../hooks/projects/useProjects";
 import { formatTime, secsToHms } from "./ttcHelpers";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 export type TtcUpdateInput = {
   id: number;
   description?: string;
   billable?: boolean;
+  projectId?: number | null;
 };
 
 export function TtcEntryRow({
@@ -28,10 +35,10 @@ export function TtcEntryRow({
 }) {
   const [editingDesc, setEditingDesc] = useState(false);
   const [descValue, setDescValue] = useState(entry.description ?? "");
+  const [editingProject, setEditingProject] = useState(false);
   const descInputRef = useRef<HTMLInputElement>(null);
 
-  const projectName =
-    projects.find((p) => p.id === entry.projectId)?.title ?? null;
+  const project = projects.find((p) => p.id === entry.projectId) ?? null;
 
   function startEditDesc() {
     setDescValue(entry.description ?? "");
@@ -85,10 +92,47 @@ export function TtcEntryRow({
           </p>
         )}
         <div className="flex items-center gap-2 flex-wrap">
-          {projectName && (
-            <Badge variant="outline" className="text-xs font-normal">
-              {projectName}
-            </Badge>
+          {editingProject ? (
+            <Select
+              open
+              onOpenChange={(o) => !o && setEditingProject(false)}
+              value={entry.projectId != null ? String(entry.projectId) : "__none__"}
+              onValueChange={(v) => {
+                onUpdate({
+                  id: entry.id,
+                  projectId: v === "__none__" ? null : Number(v),
+                });
+                setEditingProject(false);
+              }}
+            >
+              <SelectTrigger className="h-6 text-xs w-[160px]">
+                <SelectValue placeholder="No project" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">No project</SelectItem>
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>
+                    {p.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingProject(true);
+              }}
+              className={cn(
+                "h-5 px-1.5 text-xs font-normal",
+                !project && "text-muted-foreground border-dashed",
+              )}
+              title="Edit project"
+            >
+              {project?.title ?? "No project"}
+            </Button>
           )}
           <Button
             variant="outline"

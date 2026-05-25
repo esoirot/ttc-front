@@ -12,6 +12,8 @@ const STATUS_BADGE: Record<
   COMPLETED: "outline",
   CANCELLED: "destructive",
   ARCHIVED: "secondary",
+  INVOICE_SENT: "outline",
+  INVOICE_PAID: "outline",
 };
 
 interface Props {

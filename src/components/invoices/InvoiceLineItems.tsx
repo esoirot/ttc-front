@@ -11,6 +11,7 @@ type AddItemInput = {
   description: string;
   quantity: number;
   unitPrice: number;
+  timeEntryId?: number;
 };
 type UpdateItemInput = {
   id: number;

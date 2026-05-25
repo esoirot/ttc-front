@@ -48,7 +48,7 @@ export function InvoiceItemRow({
           onChange={(e) => onChangeQty(e.target.value)}
           className="h-7 text-sm text-right"
           min="0"
-          step="0.01"
+          step="1"
           onKeyDown={(e) => {
             if (e.key === "Escape") onCancel();
           }}

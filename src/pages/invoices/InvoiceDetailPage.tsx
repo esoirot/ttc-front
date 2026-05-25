@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInvoiceDetail } from "../../hooks/invoices/useInvoiceDetail";
 import { InvoiceDetailHeader } from "../../components/invoices/InvoiceDetailHeader";
+import { InvoiceMetaCard } from "../../components/invoices/InvoiceMetaCard";
 import { InvoiceLineItems } from "../../components/invoices/InvoiceLineItems";
 
 export function InvoiceDetailPage() {
@@ -53,6 +54,22 @@ export function InvoiceDetailPage() {
         }
         onDownloadPdf={handleDownloadPdf}
         onDelete={handleDelete}
+      />
+
+      <InvoiceMetaCard
+        clientId={invoice.clientId}
+        currency={invoice.currency}
+        dueDate={invoice.dueDate}
+        notes={invoice.notes}
+        onUpdate={(input) =>
+          updateInvoice({
+            id: invoiceId,
+            clientId: input.clientId ?? undefined,
+            currency: input.currency,
+            dueDate: input.dueDate ?? undefined,
+            notes: input.notes ?? undefined,
+          })
+        }
       />
 
       <InvoiceLineItems

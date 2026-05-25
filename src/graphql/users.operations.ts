@@ -1,7 +1,9 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
+import type { AdminPermission } from "./admin.operations";
 
 export type UserRole = "ADMIN" | "MANAGER" | "USER";
+export type { AdminPermission };
 
 export interface User {
   id: number;
@@ -9,6 +11,7 @@ export interface User {
   name: string | null;
   role: UserRole;
   twoFactorEnabled: boolean;
+  adminPermissions: AdminPermission[];
   createdAt: string;
 }
 
@@ -19,6 +22,7 @@ const USER_FIELDS = gql`
     name
     role
     twoFactorEnabled
+    adminPermissions
     createdAt
   }
 `;
@@ -55,13 +59,14 @@ export const MEMBERS_QUERY: TypedDocumentNode<
 `;
 
 export const UPDATE_USER_MUTATION: TypedDocumentNode<
-  { updateUser: Pick<User, "id" | "role"> },
+  { updateUser: Pick<User, "id" | "role" | "adminPermissions"> },
   {
     updateUserInput: {
       id: number;
       role?: UserRole;
       name?: string;
       email?: string;
+      adminPermissions?: AdminPermission[];
     };
   }
 > = gql`
@@ -69,6 +74,7 @@ export const UPDATE_USER_MUTATION: TypedDocumentNode<
     updateUser(updateUserInput: $updateUserInput) {
       id
       role
+      adminPermissions
     }
   }
 `;

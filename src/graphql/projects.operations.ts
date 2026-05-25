@@ -6,7 +6,9 @@ export type ProjectStatus =
   | "ACTIVE"
   | "COMPLETED"
   | "CANCELLED"
-  | "ARCHIVED";
+  | "ARCHIVED"
+  | "INVOICE_SENT"
+  | "INVOICE_PAID";
 
 export interface Project {
   id: number;

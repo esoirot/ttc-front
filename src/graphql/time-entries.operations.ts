@@ -92,7 +92,7 @@ export const UPDATE_TIME_ENTRY_MUTATION: TypedDocumentNode<
   {
     input: {
       id: number;
-      projectId?: number;
+      projectId?: number | null;
       description?: string;
       startTime?: string;
       endTime?: string;

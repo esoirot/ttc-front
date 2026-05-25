@@ -18,6 +18,8 @@ const STATUSES: ProjectStatus[] = [
   "COMPLETED",
   "CANCELLED",
   "ARCHIVED",
+  "INVOICE_SENT",
+  "INVOICE_PAID",
 ];
 
 interface ProjectHeaderProps {
