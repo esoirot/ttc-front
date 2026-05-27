@@ -1,8 +1,6 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
 import type {
-  AdminPermission,
-  AdminOwner,
   AdminStats,
   AdminClient,
   AdminProject,
@@ -14,19 +12,6 @@ import type {
 import type { ProjectStatus } from "@/types/projects.types";
 import type { InvoiceStatus } from "@/types/invoices.types";
 import type { RateType } from "@/types/rates.types";
-
-export type {
-  AdminPermission,
-  AdminOwner,
-  AdminStats,
-  AdminClient,
-  AdminProject,
-  AdminInvoice,
-  AdminTimeEntry,
-  AdminRate,
-  AdminConnection,
-};
-export type { ProjectStatus, InvoiceStatus, RateType };
 
 // ── Stats ────────────────────────────────────────────────────────────────────
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   useAdminProjects,
   useAdminCrudProjects,
-} from "../../hooks/admin/useAdminData";
+} from "../../hooks/admin/useAdminProjects";
 import type { AdminProject } from "@/types/admin.types";
 import type { ProjectStatus } from "@/types/projects.types";
 import { Button } from "@/components/ui/button";

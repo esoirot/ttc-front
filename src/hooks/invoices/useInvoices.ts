@@ -10,6 +10,7 @@ import {
   UPDATE_INVOICE_ITEM_MUTATION,
   REMOVE_INVOICE_ITEM_MUTATION,
 } from "../../graphql/invoices.operations";
+import type { InvoiceStatus } from "@/types/invoices.types";
 
 const LIMIT = 20;
 const FIRST_PAGE = { limit: LIMIT };

@@ -8,20 +8,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   useProjects,
   useDeleteProject,
-  type ProjectStatus,
 } from "../../hooks/projects/useProjects";
 import { useClients } from "../../hooks/clients/useClients";
 import { CreateProjectForm } from "../../components/projects/CreateProjectForm";
 import { ProjectCard } from "../../components/projects/ProjectCard";
-
-const STATUS_TABS: { value: ProjectStatus | "ALL"; label: string }[] = [
-  { value: "ALL", label: "All" },
-  { value: "ACTIVE", label: "Active" },
-  { value: "DRAFT", label: "Draft" },
-  { value: "COMPLETED", label: "Completed" },
-  { value: "INVOICE_SENT", label: "Invoice Sent" },
-  { value: "INVOICE_PAID", label: "Invoice Paid" },
-];
+import type { ProjectStatus } from "@/types/projects.types";
+import { PROJECT_STATUS_TABS } from "@/constants/projects";
 
 export function ProjectsPage() {
   const navigate = useNavigate();
@@ -79,7 +71,7 @@ export function ProjectsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
           <TabsList>
-            {STATUS_TABS.map((t) => (
+            {PROJECT_STATUS_TABS.map((t) => (
               <TabsTrigger key={t.value} value={t.value}>
                 {t.label}
               </TabsTrigger>
@@ -87,7 +79,7 @@ export function ProjectsPage() {
           </TabsList>
         </div>
 
-        {STATUS_TABS.map((t) => (
+        {PROJECT_STATUS_TABS.map((t) => (
           <TabsContent key={t.value} value={t.value}>
             {loading ? (
               <div className="flex flex-col gap-2">

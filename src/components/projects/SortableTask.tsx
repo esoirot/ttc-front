@@ -1,6 +1,3 @@
-import { useState } from "react";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +23,9 @@ import type { TaskStatus } from "@/types/tasks.types";
 import type { Member } from "@/types/users.types";
 import type { SortableTaskProps } from "@/types/projects.types";
 import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
+import { renderAssigneeDisplay } from "@/hooks/tasks/useTaskDisplay";
+import { useSortableItem } from "@/hooks/projects/useSortableItem";
+import { useSortableTaskEdit } from "@/hooks/projects/useSortableTaskEdit";
 
 export function SortableTask({
   task,
@@ -35,44 +35,22 @@ export function SortableTask({
   memberMap,
   members,
 }: SortableTaskProps) {
+  const { setNodeRef, style, attributes, listeners } = useSortableItem(
+    task.id,
+    0,
+  );
   const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: task.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0 : 1,
-  };
+    editing,
+    setEditing,
+    editAssigneeId,
+    setEditAssigneeId,
+    editDueDate,
+    setEditDueDate,
+    handleStartEdit,
+    handleSave,
+  } = useSortableTaskEdit(task, onUpdate);
 
   const isOverdue = task.dueDate ? new Date(task.dueDate) < new Date() : false;
-  const [editing, setEditing] = useState(false);
-  const [editAssigneeId, setEditAssigneeId] = useState(
-    String(task.assigneeId ?? ""),
-  );
-  const [editDueDate, setEditDueDate] = useState(
-    task.dueDate?.slice(0, 10) ?? "",
-  );
-
-  function handleSave() {
-    onUpdate(
-      task.id,
-      editAssigneeId ? Number(editAssigneeId) : undefined,
-      editDueDate || undefined,
-    );
-    setEditing(false);
-  }
-
-  function handleStartEdit() {
-    setEditAssigneeId(String(task.assigneeId ?? ""));
-    setEditDueDate(task.dueDate?.slice(0, 10) ?? "");
-    setEditing(true);
-  }
 
   return (
     <div ref={setNodeRef} style={style} className="mb-2 relative">
@@ -125,11 +103,7 @@ export function SortableTask({
               <p className="text-sm truncate">{task.title}</p>
               {!editing && (
                 <div className="flex items-center gap-2 mt-0.5">
-                  {task.assigneeId && memberMap[task.assigneeId] && (
-                    <span className="text-xs text-muted-foreground">
-                      @{memberMap[task.assigneeId]}
-                    </span>
-                  )}
+                  {renderAssigneeDisplay(task.assigneeId, memberMap)}
                   {task.dueDate && (
                     <span
                       className={`text-xs ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}
@@ -155,28 +129,30 @@ export function SortableTask({
 
           {editing && (
             <div className="mt-2 flex flex-col gap-2">
-              <Select
-                value={editAssigneeId || "__none__"}
-                onValueChange={(val) =>
-                  setEditAssigneeId(val === "__none__" ? "" : val)
-                }
-              >
-                <SelectTrigger
-                  size="sm"
-                  className="w-full h-7 text-xs"
-                  aria-label="Assignee"
+              <div className="hidden">
+                <Select
+                  value={editAssigneeId || "__none__"}
+                  onValueChange={(val) =>
+                    setEditAssigneeId(val === "__none__" ? "" : val)
+                  }
                 >
-                  <SelectValue placeholder="Assignee" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">No assignee</SelectItem>
-                  {members.map((m: Member) => (
-                    <SelectItem key={m.id} value={String(m.id)}>
-                      {m.name ?? m.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  <SelectTrigger
+                    size="sm"
+                    className="w-full h-7 text-xs"
+                    aria-label="Assignee"
+                  >
+                    <SelectValue placeholder="Assignee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">No assignee</SelectItem>
+                    {members.map((m: Member) => (
+                      <SelectItem key={m.id} value={String(m.id)}>
+                        {m.name ?? m.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               <Select
                 value={task.status}

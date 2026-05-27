@@ -5,8 +5,6 @@ import type {
   TimeEntryConnection,
 } from "@/types/time-entries.types";
 
-export type { TimeEntry, TimeEntryConnection };
-
 const TE_FIELDS = `id userId projectId description startTime endTime durationSeconds billable clockifyEntryId tags { id name } createdAt updatedAt`;
 
 export const TIME_ENTRIES_QUERY: TypedDocumentNode<

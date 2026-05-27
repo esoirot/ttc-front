@@ -26,7 +26,15 @@ export function useCreateClientRate(clientId: number) {
       "id" | "clientId" | "userId" | "createdAt" | "updatedAt"
     >,
   ) {
-    return mutate({ variables: { input: { ...input, clientId } } });
+    return mutate({
+      variables: {
+        input: {
+          ...input,
+          clientId,
+          description: input.description ?? undefined,
+        },
+      },
+    });
   }
 
   return { createClientRate, loading };
@@ -42,7 +50,11 @@ export function useUpdateClientRate(clientId: number) {
       Omit<ClientRate, "clientId" | "userId" | "createdAt" | "updatedAt">
     > & { id: number },
   ) {
-    return mutate({ variables: { input } });
+    return mutate({
+      variables: {
+        input: { ...input, description: input.description ?? undefined },
+      },
+    });
   }
 
   return { updateClientRate, loading };

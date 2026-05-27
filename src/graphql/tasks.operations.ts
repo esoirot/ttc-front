@@ -9,15 +9,6 @@ import type {
   TaskConnection,
 } from "@/types/tasks.types";
 
-export type {
-  TaskStatus,
-  Subtask,
-  TaskComment,
-  Task,
-  TaskDetail,
-  TaskConnection,
-};
-
 const TASK_FIELDS = `id projectId assigneeId title description status dueDate sortOrder createdAt updatedAt`;
 
 export const TASKS_QUERY: TypedDocumentNode<

@@ -7,8 +7,6 @@ import type {
   InvoiceConnection,
 } from "@/types/invoices.types";
 
-export type { InvoiceStatus, InvoiceItem, Invoice, InvoiceConnection };
-
 const ITEM_FIELDS = `id invoiceId projectId timeEntryId description quantity unitPrice total`;
 const INV_FIELDS = `id userId clientId number status currency issuedAt dueDate paidAt notes createdAt updatedAt items { ${ITEM_FIELDS} }`;
 

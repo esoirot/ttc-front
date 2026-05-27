@@ -1,11 +1,6 @@
 import { useState } from "react";
-import {
-  useCreateRate,
-  useUpdateRate,
-  useDeleteRate,
-  type RateType,
-} from "./useRates";
-import type { RateFormData } from "@/types/rates.types";
+import { useCreateRate, useUpdateRate, useDeleteRate } from "./useRates";
+import type { RateFormData, RateType } from "@/types/rates.types";
 
 export type { RateFormData };
 

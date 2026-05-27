@@ -5,8 +5,8 @@ import {
   CREATE_PROJECT_MUTATION,
   UPDATE_PROJECT_MUTATION,
   DELETE_PROJECT_MUTATION,
-  type ProjectStatus,
 } from "../../graphql/projects.operations";
+import type { ProjectStatus } from "@/types/projects.types";
 
 const LIMIT = 20;
 

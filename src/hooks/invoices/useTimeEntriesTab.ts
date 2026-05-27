@@ -2,19 +2,11 @@ import { useState } from "react";
 import { useRates } from "../rates/useRates";
 import { useProjects } from "../projects/useProjects";
 import { useTimeEntries } from "../time/useTimeEntries";
-
-type AddItemInput = {
-  invoiceId: number;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  projectId?: number;
-  timeEntryId?: number;
-};
+import type { InvoiceAddItemInput } from "@/types/invoices.types";
 
 export function useTimeEntriesTab(
   invoiceId: number,
-  onAdd: (input: AddItemInput) => Promise<unknown>,
+  onAdd: (input: InvoiceAddItemInput) => Promise<unknown>,
 ) {
   const { rates } = useRates();
   const { projects } = useProjects();

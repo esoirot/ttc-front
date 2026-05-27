@@ -3,26 +3,33 @@ import type { TypedDocumentNode } from "@apollo/client/core";
 import type {
   Client,
   ClientConnection,
+  ClientType,
+  ClientIndustry,
   CompanyContact,
 } from "@/types/clients.types";
-
-export type { Client, ClientConnection, CompanyContact };
 
 const CONTACT_FIELDS = `id clientId firstName lastName email phone createdAt updatedAt`;
 
 const CLIENT_FIELDS = `
   id userId name legalName email phone company address
   city country postalCode vatNumber
-  notes hubspotId createdAt updatedAt
+  notes hubspotId
+  clientType firstName lastName paymentDelayDays taxRate billingEndOfMonth
+  website industry tags { id name }
+  createdAt updatedAt
   contacts { ${CONTACT_FIELDS} }
 `;
 
 export const CLIENTS_QUERY: TypedDocumentNode<
   { clients: ClientConnection },
-  { search?: string; pagination?: { limit?: number; cursor?: number } }
+  {
+    search?: string;
+    clientType?: ClientType;
+    pagination?: { limit?: number; cursor?: number };
+  }
 > = gql`
-  query Clients($search: String, $pagination: PaginationInput) {
-    clients(search: $search, pagination: $pagination) {
+  query Clients($search: String, $clientType: ClientType, $pagination: PaginationInput) {
+    clients(search: $search, clientType: $clientType, pagination: $pagination) {
       items { ${CLIENT_FIELDS} }
       nextCursor
       total
@@ -51,6 +58,15 @@ type ClientInput = {
   vatNumber?: string;
   notes?: string;
   hubspotId?: string;
+  clientType?: ClientType;
+  firstName?: string;
+  lastName?: string;
+  paymentDelayDays?: number;
+  taxRate?: number;
+  billingEndOfMonth?: boolean;
+  website?: string;
+  industry?: ClientIndustry | null;
+  tagIds?: number[];
 };
 
 export const CREATE_CLIENT_MUTATION: TypedDocumentNode<

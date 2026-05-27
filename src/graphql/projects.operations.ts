@@ -6,8 +6,6 @@ import type {
   ProjectStatus,
 } from "@/types/projects.types";
 
-export type { Project, ProjectConnection, ProjectStatus };
-
 const PROJECT_FIELDS = `
   id userId clientId title description status
   sourceLanguage targetLanguage wordCount unitPrice fixedFee hourlyRate perWordRate currency

@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   useAdminTimeEntries,
   useAdminDeleteTimeEntry,
-} from "../../hooks/admin/useAdminData";
+} from "../../hooks/admin/useAdminTimeEntries";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

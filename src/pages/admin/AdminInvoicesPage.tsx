@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   useAdminInvoices,
   useAdminCrudInvoices,
-} from "../../hooks/admin/useAdminData";
+} from "../../hooks/admin/useAdminInvoices";
 import type { AdminInvoice } from "@/types/admin.types";
 import type { InvoiceStatus } from "@/types/invoices.types";
 import { Button } from "@/components/ui/button";

@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   useAdminClients,
   useAdminCrudClients,
-} from "../../hooks/admin/useAdminData";
+} from "../../hooks/admin/useAdminClients";
 import type { AdminClient } from "@/types/admin.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

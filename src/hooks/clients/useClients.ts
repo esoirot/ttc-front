@@ -9,10 +9,12 @@ import {
   UPDATE_COMPANY_CONTACT_MUTATION,
   DELETE_COMPANY_CONTACT_MUTATION,
 } from "../../graphql/clients.operations";
+import type { ClientType } from "@/types/clients.types";
 
-export function useClients(search?: string) {
+export function useClients(search?: string, clientType?: ClientType) {
   const baseVars = {
     ...(search ? { search } : {}),
+    ...(clientType ? { clientType } : {}),
     pagination: { limit: 20 },
   };
 

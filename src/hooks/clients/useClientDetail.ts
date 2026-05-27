@@ -5,17 +5,15 @@ import {
   useDeleteCompanyContact,
   useUpdateClient,
 } from "./useClients";
-import { useProjects, type Project } from "../projects/useProjects";
+import { useProjects } from "../projects/useProjects";
 import { useInvoices } from "../invoices/useInvoices";
-import { useTimeEntries, type TimeEntry } from "../time/useTimeEntries";
+import { useTimeEntries } from "../time/useTimeEntries";
 
 export function useClientDetail(clientId: number) {
   const { client, loading: clientLoading } = useClient(clientId);
   const { projects, loading: projectsLoading } = useProjects();
-  const clientProjects = projects.filter(
-    (p: Project) => p.clientId === clientId,
-  );
-  const clientProjectIds = clientProjects.map((p: Project) => p.id);
+  const clientProjects = projects.filter((p) => p.clientId === clientId);
+  const clientProjectIds = clientProjects.map((p) => p.id);
   const { invoices, loading: invoicesLoading } = useInvoices(
     undefined,
     clientId,
@@ -24,7 +22,7 @@ export function useClientDetail(clientId: number) {
     clientProjectIds.length > 0 ? { projectIds: clientProjectIds } : undefined,
   );
   const totalSeconds = timeEntries.reduce(
-    (sum: number, e: TimeEntry) => sum + (e.durationSeconds ?? 0),
+    (sum, e) => sum + (e.durationSeconds ?? 0),
     0,
   );
   const { updateClient, loading: updatingClient } = useUpdateClient();

@@ -1,16 +1,10 @@
 import { useState } from "react";
 import { useRates } from "../rates/useRates";
-
-type AddItemInput = {
-  invoiceId: number;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-};
+import type { CustomLineAddItemInput } from "@/types/invoices.types";
 
 export function useCustomLineTab(
   invoiceId: number,
-  onAdd: (input: AddItemInput) => Promise<unknown>,
+  onAdd: (input: CustomLineAddItemInput) => Promise<unknown>,
 ) {
   const { rates } = useRates();
   const [selectedRateId, setSelectedRateId] = useState<string>("");

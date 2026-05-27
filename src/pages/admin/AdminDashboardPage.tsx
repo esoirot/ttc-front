@@ -8,8 +8,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { useAdminStats } from "../../hooks/admin/useAdminData";
-import { useAdminInvoices } from "../../hooks/admin/useAdminData";
+import { useAdminStats } from "../../hooks/admin/useAdminStats";
+import { useAdminInvoices } from "../../hooks/admin/useAdminInvoices";
 import { useAuditLog } from "../../hooks/integrations/useHubspot";
 import { Badge } from "@/components/ui/badge";
 

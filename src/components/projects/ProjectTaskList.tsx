@@ -1,21 +1,9 @@
-import { useState } from "react";
-import {
-  DndContext,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  closestCenter,
-} from "@dnd-kit/core";
-import type { DragEndEvent } from "@dnd-kit/core";
+import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
-  useSortable,
   verticalListSortingStrategy,
-  arrayMove,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,349 +26,45 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  useTasks,
-  useCreateTask,
-  useUpdateTask,
-  useDeleteTask,
-} from "../../hooks/tasks/useTasks";
-import type { Task, TaskStatus } from "@/types/tasks.types";
-import type {
-  TaskEditForm as EditForm,
-  SortableRowProps,
-  ProjectTaskListProps,
-} from "@/types/projects.types";
+import type { TaskStatus } from "@/types/tasks.types";
+import type { ProjectTaskListProps } from "@/types/projects.types";
 import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
-
-const STATUS_COLORS: Record<TaskStatus, "default" | "secondary" | "outline"> = {
-  TODO: "secondary",
-  IN_PROGRESS: "default",
-  DONE: "outline",
-};
-
-function defaultForm(task: Task): EditForm {
-  return {
-    title: task.title,
-    description: task.description ?? "",
-    status: task.status,
-    dueDate: task.dueDate?.slice(0, 10) ?? "",
-    assigneeId: task.assigneeId ? String(task.assigneeId) : "",
-  };
-}
-
-function SortableRow({
-  task,
-  selected,
-  editingId,
-  form,
-  saving,
-  members,
-  onSelect,
-  onStartEdit,
-  onSave,
-  onCancelEdit,
-  onDelete,
-  setForm,
-}: SortableRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: task.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
-
-  if (editingId === task.id) {
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className="border border-border rounded-lg p-3 bg-card flex flex-col gap-2"
-      >
-        <div className="flex flex-col gap-1">
-          <Label htmlFor={`ptl-title-${task.id}`}>Title</Label>
-          <Input
-            id={`ptl-title-${task.id}`}
-            value={form.title}
-            onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <Label htmlFor={`ptl-desc-${task.id}`}>Description</Label>
-          <Input
-            id={`ptl-desc-${task.id}`}
-            value={form.description}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, description: e.target.value }))
-            }
-          />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <div className="flex flex-col gap-1">
-            <Label htmlFor={`ptl-status-${task.id}`}>Status</Label>
-            <Select
-              value={form.status}
-              onValueChange={(v) =>
-                setForm((p) => ({ ...p, status: v as TaskStatus }))
-              }
-            >
-              <SelectTrigger id={`ptl-status-${task.id}`} className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TASK_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {STATUS_LABELS[s]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor={`ptl-due-${task.id}`}>Due date</Label>
-            <Input
-              id={`ptl-due-${task.id}`}
-              type="date"
-              value={form.dueDate}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, dueDate: e.target.value }))
-              }
-              className="w-[150px]"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor={`ptl-assignee-${task.id}`}>Assignee</Label>
-            <Select
-              value={form.assigneeId || "__none__"}
-              onValueChange={(v) =>
-                setForm((p) => ({
-                  ...p,
-                  assigneeId: v === "__none__" ? "" : v,
-                }))
-              }
-            >
-              <SelectTrigger
-                id={`ptl-assignee-${task.id}`}
-                className="w-[140px]"
-              >
-                <SelectValue placeholder="Assignee" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">No assignee</SelectItem>
-                {members.map((m) => (
-                  <SelectItem key={m.id} value={String(m.id)}>
-                    {m.name ?? m.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button size="sm" disabled={saving} onClick={() => onSave(task.id)}>
-            {saving ? "Saving…" : "Save"}
-          </Button>
-          <Button size="sm" variant="ghost" onClick={onCancelEdit}>
-            Cancel
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="border border-border rounded-lg p-3 bg-card flex items-center gap-2"
-    >
-      <Button
-        variant="ghost"
-        size="sm"
-        className="cursor-grab h-7 px-1 text-muted-foreground hover:text-foreground"
-        {...attributes}
-        {...listeners}
-        aria-label="Drag to reorder"
-        onClick={(e) => e.stopPropagation()}
-      >
-        ⠿
-      </Button>
-      <Checkbox
-        checked={selected}
-        onCheckedChange={(checked) => onSelect(task.id, !!checked)}
-        aria-label={`Select ${task.title}`}
-        onClick={(e) => e.stopPropagation()}
-      />
-      <div
-        className="flex-1 cursor-pointer min-w-0"
-        onClick={() => onStartEdit(task)}
-      >
-        <p className="font-medium truncate">{task.title}</p>
-        {task.dueDate && (
-          <p className="text-xs text-muted-foreground">
-            Due {task.dueDate.slice(0, 10)}
-          </p>
-        )}
-      </div>
-      <Badge variant={STATUS_COLORS[task.status as TaskStatus] ?? "secondary"}>
-        {STATUS_LABELS[task.status as TaskStatus] ?? task.status}
-      </Badge>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-7 px-2 text-muted-foreground hover:text-foreground"
-        onClick={(e) => {
-          e.stopPropagation();
-          onStartEdit(task);
-        }}
-      >
-        ✎
-      </Button>
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-destructive hover:text-destructive"
-            onClick={(e) => e.stopPropagation()}
-          >
-            ✕
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete "{task.title}"?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => onDelete(task.id)}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-}
+import { SortableRow } from "./SortableRow";
+import { useProjectTaskList } from "@/hooks/projects/useProjectTaskList";
 
 export function ProjectTaskList({ projectId, members }: ProjectTaskListProps) {
-  const { tasks, loading, hasMore, loadMore } = useTasks(projectId);
-  const { createTask, loading: createLoading } = useCreateTask(projectId);
-  const { updateTask, loading: saving } = useUpdateTask(projectId);
-  const { deleteTask } = useDeleteTask(projectId);
-
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | "ALL">("ALL");
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState<EditForm>({
-    title: "",
-    description: "",
-    status: "TODO",
-    dueDate: "",
-    assigneeId: "",
-  });
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [bulkStatus, setBulkStatus] = useState<TaskStatus>("TODO");
-  const [localOrder, setLocalOrder] = useState<number[] | null>(null);
-  const [showCreate, setShowCreate] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-
-  async function handleCreate() {
-    if (!newTitle.trim()) return;
-    await createTask({ projectId, title: newTitle.trim() });
-    setNewTitle("");
-    setShowCreate(false);
-  }
-
-  const sensors = useSensors(useSensor(PointerSensor));
-
-  const displayTasks = localOrder
-    ? localOrder
-        .map((id) => tasks.find((t) => t.id === id))
-        .filter((t): t is Task => t !== undefined)
-    : tasks;
-
-  const filtered =
-    statusFilter === "ALL"
-      ? displayTasks
-      : displayTasks.filter((t) => t.status === statusFilter);
-
-  function handleStartEdit(task: Task) {
-    setForm(defaultForm(task));
-    setEditingId(task.id);
-  }
-
-  async function handleSave(taskId: number) {
-    await updateTask({
-      id: taskId,
-      title: form.title || undefined,
-      description: form.description || undefined,
-      status: form.status,
-      dueDate: form.dueDate || undefined,
-      assigneeId: form.assigneeId ? Number(form.assigneeId) : undefined,
-    });
-    setEditingId(null);
-  }
-
-  function handleSelect(id: number, checked: boolean) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (checked) next.add(id);
-      else next.delete(id);
-      return next;
-    });
-  }
-
-  function handleSelectAll(checked: boolean) {
-    setSelected(checked ? new Set(filtered.map((t) => t.id)) : new Set());
-  }
-
-  async function handleBulkDelete() {
-    for (const id of selected) {
-      await deleteTask(id);
-    }
-    setSelected(new Set());
-  }
-
-  async function handleBulkStatus() {
-    for (const id of selected) {
-      await updateTask({ id, status: bulkStatus });
-    }
-    setSelected(new Set());
-  }
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const ids = filtered.map((t) => t.id);
-    const oldIndex = ids.indexOf(active.id as number);
-    const newIndex = ids.indexOf(over.id as number);
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    const reordered = arrayMove(ids, oldIndex, newIndex);
-    const allIds = tasks.map((t) => t.id);
-    setLocalOrder(
-      reordered.concat(allIds.filter((id) => !reordered.includes(id))),
-    );
-
-    void updateTask({ id: active.id as number, sortOrder: newIndex });
-  }
-
-  const allSelected =
-    filtered.length > 0 && filtered.every((t) => selected.has(t.id));
+  const {
+    loading,
+    hasMore,
+    loadMore,
+    createLoading,
+    saving,
+    deleteTask,
+    statusFilter,
+    setStatusFilter,
+    editingId,
+    setEditingId,
+    form,
+    setForm,
+    selected,
+    bulkStatus,
+    setBulkStatus,
+    showCreate,
+    setShowCreate,
+    newTitle,
+    setNewTitle,
+    sensors,
+    filtered,
+    allSelected,
+    handleCreate,
+    handleStartEdit,
+    handleSave,
+    handleSelect,
+    handleSelectAll,
+    handleBulkDelete,
+    handleBulkStatus,
+    handleDragEnd,
+  } = useProjectTaskList({ projectId, members });
 
   return (
     <div className="flex flex-col gap-3">

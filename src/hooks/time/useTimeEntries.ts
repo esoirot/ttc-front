@@ -9,9 +9,9 @@ import {
   STOP_TIMER_MUTATION,
   UPDATE_TIME_ENTRY_MUTATION,
   DELETE_TIME_ENTRY_MUTATION,
-  type TimeEntry,
 } from "../../graphql/time-entries.operations";
 import { useCurrentUser } from "../auth/useAuth";
+import type { TimeEntry } from "@/types/time-entries.types";
 
 const LIMIT = 20;
 const FIRST_PAGE = { limit: LIMIT };

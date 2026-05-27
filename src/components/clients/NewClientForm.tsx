@@ -1,53 +1,40 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCreateClient } from "../../hooks/clients/useClients";
-import type { NewClientFormProps as Props } from "@/types/clients.types";
-
-const EMPTY_FORM = {
-  name: "",
-  legalName: "",
-  address: "",
-  city: "",
-  country: "",
-  postalCode: "",
-  vatNumber: "",
-  email: "",
-  phone: "",
-};
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TtcTagChips } from "@/components/time/TtcTagChips";
+import { AddressFields } from "./AddressFields";
+import { BillingFields } from "./BillingFields";
+import { useNewClientForm } from "@/hooks/clients/useNewClientForm";
+import { INDUSTRY_LABELS } from "@/types/clients.types";
+import type {
+  ClientType,
+  ClientIndustry,
+  NewClientFormProps as Props,
+} from "@/types/clients.types";
 
 export function NewClientForm({ onClose }: Props) {
-  const { createClient, loading } = useCreateClient();
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [error, setError] = useState<string | null>(null);
-
-  function setField(key: keyof typeof EMPTY_FORM, value: string) {
-    setForm((f) => ({ ...f, [key]: value }));
-  }
-
-  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!form.name.trim()) {
-      setError("Company name is required");
-      return;
-    }
-    setError(null);
-    await createClient({
-      name: form.name.trim(),
-      legalName: form.legalName || undefined,
-      address: form.address || undefined,
-      city: form.city || undefined,
-      country: form.country || undefined,
-      postalCode: form.postalCode || undefined,
-      vatNumber: form.vatNumber || undefined,
-      email: form.email || undefined,
-      phone: form.phone || undefined,
-    });
-    setForm(EMPTY_FORM);
-    onClose();
-  }
+  const {
+    form,
+    setField,
+    tagIds,
+    setTagIds,
+    error,
+    loading,
+    tags,
+    handleAddressChange,
+    handleBillingChange,
+    handleSubmit,
+    isCompany,
+  } = useNewClientForm(onClose);
 
   return (
     <Card className="mb-6">
@@ -56,87 +43,161 @@ export function NewClientForm({ onClose }: Props) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Tabs
+            value={form.clientType}
+            onValueChange={(v) => setField("clientType", v as ClientType)}
+          >
+            <TabsList>
+              <TabsTrigger value="COMPANY">Company</TabsTrigger>
+              <TabsTrigger value="INDIVIDUAL">Individual</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="name">Company name *</Label>
-              <Input
-                id="name"
-                value={form.name}
-                onChange={(e) => setField("name", e.target.value)}
-                placeholder="Acme Ltd."
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="legalName">Legal name</Label>
-              <Input
-                id="legalName"
-                value={form.legalName}
-                onChange={(e) => setField("legalName", e.target.value)}
-                placeholder="Acme Limited"
-              />
-            </div>
+            {isCompany ? (
+              <>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="ncf-name">Company name *</Label>
+                  <Input
+                    id="ncf-name"
+                    value={form.name}
+                    onChange={(e) => setField("name", e.target.value)}
+                    placeholder="Acme Ltd."
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="ncf-legalName">Legal name</Label>
+                  <Input
+                    id="ncf-legalName"
+                    value={form.legalName}
+                    onChange={(e) => setField("legalName", e.target.value)}
+                    placeholder="Acme Limited"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="ncf-vatNumber">VAT number</Label>
+                  <Input
+                    id="ncf-vatNumber"
+                    value={form.vatNumber}
+                    onChange={(e) => setField("vatNumber", e.target.value)}
+                    placeholder="FR00123456789"
+                  />
+                </div>
+                <div />
+              </>
+            ) : (
+              <>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="ncf-firstName">First name *</Label>
+                  <Input
+                    id="ncf-firstName"
+                    value={form.firstName}
+                    onChange={(e) => setField("firstName", e.target.value)}
+                    placeholder="Jane"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="ncf-lastName">Last name</Label>
+                  <Input
+                    id="ncf-lastName"
+                    value={form.lastName}
+                    onChange={(e) => setField("lastName", e.target.value)}
+                    placeholder="Doe"
+                  />
+                </div>
+              </>
+            )}
+
             <div className="col-span-2 flex flex-col gap-1">
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="ncf-website">Website</Label>
               <Input
-                id="address"
-                value={form.address}
-                onChange={(e) => setField("address", e.target.value)}
-                placeholder="123 Main St"
+                id="ncf-website"
+                value={form.website}
+                onChange={(e) => setField("website", e.target.value)}
+                placeholder="https://acme.com"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                value={form.city}
-                onChange={(e) => setField("city", e.target.value)}
-                placeholder="Paris"
-              />
+              <Label htmlFor="ncf-industry">Industry</Label>
+              <Select
+                value={form.industry ?? ""}
+                onValueChange={(v) =>
+                  setField("industry", (v as ClientIndustry) || null)
+                }
+              >
+                <SelectTrigger id="ncf-industry">
+                  <SelectValue placeholder="Select industry" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(
+                    Object.entries(INDUSTRY_LABELS) as [
+                      ClientIndustry,
+                      string,
+                    ][]
+                  ).map(([val, label]) => (
+                    <SelectItem key={val} value={val}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            <div />
+
             <div className="flex flex-col gap-1">
-              <Label htmlFor="country">Country</Label>
+              <Label htmlFor="ncf-email">
+                {isCompany ? "Company email" : "Email"}
+              </Label>
               <Input
-                id="country"
-                value={form.country}
-                onChange={(e) => setField("country", e.target.value)}
-                placeholder="France"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="postalCode">Postal code</Label>
-              <Input
-                id="postalCode"
-                value={form.postalCode}
-                onChange={(e) => setField("postalCode", e.target.value)}
-                placeholder="75001"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="vatNumber">VAT number</Label>
-              <Input
-                id="vatNumber"
-                value={form.vatNumber}
-                onChange={(e) => setField("vatNumber", e.target.value)}
-                placeholder="FR00123456789"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="email">Company email</Label>
-              <Input
-                id="email"
+                id="ncf-email"
                 type="email"
                 value={form.email}
                 onChange={(e) => setField("email", e.target.value)}
-                placeholder="billing@acme.com"
+                placeholder={
+                  isCompany ? "billing@acme.com" : "jane@example.com"
+                }
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="phone">Company phone</Label>
+              <Label htmlFor="ncf-phone">
+                {isCompany ? "Company phone" : "Phone"}
+              </Label>
               <Input
-                id="phone"
+                id="ncf-phone"
                 value={form.phone}
                 onChange={(e) => setField("phone", e.target.value)}
                 placeholder="+33 1 00 00 00 00"
+              />
+            </div>
+
+            <AddressFields
+              address={form.address}
+              city={form.city}
+              country={form.country}
+              postalCode={form.postalCode}
+              onChange={handleAddressChange}
+              idPrefix="ncf"
+            />
+
+            <BillingFields
+              paymentDelayDays={form.paymentDelayDays}
+              taxRate={form.taxRate}
+              billingEndOfMonth={form.billingEndOfMonth}
+              onChange={handleBillingChange}
+              idPrefix="ncf"
+            />
+
+            <div className="col-span-2 pt-4 border-t border-border flex flex-col gap-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Tags
+              </p>
+              <TtcTagChips
+                tagIds={tagIds}
+                tags={tags}
+                onAdd={(id) => setTagIds((prev) => [...prev, id])}
+                onRemove={(id) =>
+                  setTagIds((prev) => prev.filter((x) => x !== id))
+                }
               />
             </div>
           </div>

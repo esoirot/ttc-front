@@ -1,5 +1,5 @@
+import type { InvoiceItem } from "@/types/invoices.types";
 import { useState } from "react";
-import type { InvoiceItem } from "./useInvoices";
 
 export function useItemEdit() {
   const [editingId, setEditingId] = useState<number | null>(null);

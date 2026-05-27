@@ -10,16 +10,6 @@ import type {
   UpdateEntryInput,
 } from "@/types/clockify.types";
 
-export type {
-  ClockifyWorkspace,
-  ClockifyProject,
-  ClockifyTimeEntry,
-  ClockifyTag,
-  ClockifyStatus,
-  StartEntryInput,
-  UpdateEntryInput,
-};
-
 export function useClockifyStatus() {
   return useQuery<ClockifyStatus>({
     queryKey: ["clockify", "status"],

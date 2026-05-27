@@ -1,11 +1,5 @@
 import { useState } from "react";
-
-type UpdateInput = {
-  clientId: number | null;
-  currency: string;
-  dueDate: string | null;
-  notes: string | null;
-};
+import type { InvoiceMetaUpdateInput } from "@/types/invoices.types";
 
 type FormState = {
   clientId: string;
@@ -25,7 +19,7 @@ export function useInvoiceMetaEdit({
   currency: string;
   dueDate: string | null;
   notes: string | null;
-  onUpdate: (input: UpdateInput) => Promise<unknown>;
+  onUpdate: (input: InvoiceMetaUpdateInput) => Promise<unknown>;
 }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);

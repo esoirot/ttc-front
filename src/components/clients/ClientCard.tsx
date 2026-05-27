@@ -13,28 +13,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { Client } from "@/types/clients.types";
+import { INDUSTRY_LABELS } from "@/types/clients.types";
+import type { ClientCardProps } from "@/types/clients.types";
+import { contactLabel } from "@/hooks/clients/clientUtils";
 
-function contactLabel(client: Client): string | null {
-  const first = client.contacts[0];
-  if (first) {
-    return (
-      [first.firstName, first.lastName].filter(Boolean).join(" ") ||
-      first.email ||
-      first.phone ||
-      null
-    );
-  }
-  return client.email || client.phone || null;
-}
-
-export function ClientCard({
-  client,
-  onDelete,
-}: {
-  client: Client;
-  onDelete: (id: number) => void;
-}) {
+export function ClientCard({ client, onDelete }: ClientCardProps) {
   const navigate = useNavigate();
   const label = contactLabel(client);
   return (
@@ -55,6 +38,27 @@ export function ClientCard({
             <span className="text-xs">
               {[client.city, client.country].filter(Boolean).join(", ")}
             </span>
+          )}
+          <Badge
+            variant={client.clientType === "COMPANY" ? "secondary" : "outline"}
+            className="text-xs"
+          >
+            {client.clientType === "COMPANY" ? "Company" : "Individual"}
+          </Badge>
+          {client.industry && (
+            <Badge variant="outline" className="text-xs">
+              {INDUSTRY_LABELS[client.industry]}
+            </Badge>
+          )}
+          {client.tags.slice(0, 2).map((t) => (
+            <Badge key={t.id} variant="secondary" className="text-xs">
+              {t.name}
+            </Badge>
+          ))}
+          {client.tags.length > 2 && (
+            <Badge variant="secondary" className="text-xs">
+              +{client.tags.length - 2}
+            </Badge>
           )}
           {client.contacts.length > 1 && (
             <Badge variant="secondary" className="text-xs">

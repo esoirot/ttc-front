@@ -17,29 +17,10 @@ import type {
   UpdateDealInput,
   CreateCompanyInput,
   UpdateCompanyInput,
-  AuditLogEntry,
   AuditPage,
   HubspotConnection,
   ImportedClient,
 } from "@/types/hubspot.types";
-
-export type {
-  HubspotStatus,
-  HubspotContact,
-  HubspotCompany,
-  HubspotDeal,
-  HubspotListResponse,
-  CreateContactInput,
-  UpdateContactInput,
-  CreateDealInput,
-  UpdateDealInput,
-  CreateCompanyInput,
-  UpdateCompanyInput,
-  AuditLogEntry,
-  AuditPage,
-  HubspotConnection,
-  ImportedClient,
-};
 
 export function useHubspotStatus() {
   return useQuery<HubspotStatus>({

@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   useAdminRates,
   useAdminCrudRates,
-} from "../../hooks/admin/useAdminData";
+} from "../../hooks/admin/useAdminRates";
 import type { AdminRate } from "@/types/admin.types";
 import type { RateType } from "@/types/rates.types";
 import { Button } from "@/components/ui/button";

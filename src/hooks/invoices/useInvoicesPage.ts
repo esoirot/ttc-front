@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useInvoices, type InvoiceStatus } from "./useInvoices";
+import { useInvoices } from "./useInvoices";
 import { useClients } from "../clients/useClients";
 import { useProjects } from "../projects/useProjects";
+import type { InvoiceStatus } from "@/types/invoices.types";
 
 export function useInvoicesPage() {
   const navigate = useNavigate();

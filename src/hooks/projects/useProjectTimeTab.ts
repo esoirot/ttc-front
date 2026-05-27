@@ -5,10 +5,10 @@ import {
   useStopTimer,
   useDeleteTimeEntry,
   useUpdateTimeEntry,
-  type TimeEntry,
 } from "../time/useTimeEntries";
 import { useProjects } from "./useProjects";
 import { useTags } from "../tags/useTags";
+import type { TimeEntry } from "@/types/time-entries.types";
 
 export function useProjectTimeTab(projectId: number) {
   const { entries, loading, hasMore, loadMore, refetch } = useTimeEntries({
