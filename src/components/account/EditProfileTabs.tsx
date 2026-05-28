@@ -1,8 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProfileTab } from "./ProfileTab";
-import { SecurityTab } from "./SecurityTab";
-import { ClockifyTab } from "./ClockifyTab";
-import { HubspotTab } from "./HubspotTab";
+import { ProfileTab } from "./tabs/ProfileTab";
+import { SecurityTab } from "./tabs/security/SecurityTab";
+import { ClockifyTab } from "./tabs/clockify/ClockifyTab";
+import { HubspotTab } from "./tabs/hubspot/HubspotTab";
 
 export function EditProfileTabs() {
   return (

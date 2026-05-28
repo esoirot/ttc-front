@@ -1,4 +1,4 @@
-import { TwoFactorSetupCard } from "@/components/auth/TwoFactorSetupCard";
+import { TwoFactorSetupCard } from "@/components/auth/2FA/TwoFactorSetupCard";
 
 export function TwoFactorSetupPage() {
   return (

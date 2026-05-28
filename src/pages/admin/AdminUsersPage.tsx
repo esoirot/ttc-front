@@ -1,4 +1,4 @@
-import { AdminUsersTable } from "@/components/admin/AdminUsersTable";
+import { AdminUsersTable } from "@/components/admin/users/AdminUsersTable";
 
 export function AdminUsersPage() {
   return (

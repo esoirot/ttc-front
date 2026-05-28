@@ -1,4 +1,4 @@
-import { AdminInvoicesTable } from "@/components/admin/AdminInvoicesTable";
+import { AdminInvoicesTable } from "@/components/admin/invoices/AdminInvoicesTable";
 
 export function AdminInvoicesPage() {
   return (

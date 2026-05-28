@@ -1,4 +1,4 @@
-import { AdminActivityLogTable } from "@/components/admin/AdminActivityLogTable";
+import { AdminActivityLogTable } from "@/components/admin/activityLog/AdminActivityLogTable";
 
 export function AdminActivityLogPage() {
   return (

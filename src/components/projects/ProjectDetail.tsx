@@ -7,11 +7,11 @@ import { useTasks } from "@/hooks/tasks/useTasks";
 import { useProjectTimeTab } from "@/hooks/projects/useProjectTimeTab";
 import { useMembers } from "@/hooks/account/useUsers";
 import type { Member } from "@/types/users.types";
-import { TasksTab } from "./TasksTab";
-import { ProjectTaskList } from "./ProjectTaskList";
-import { TimeTab } from "./TimeTab";
-import { OverviewTab } from "./OverviewTab";
-import { ProjectHeader } from "./ProjectHeader";
+import { ProjectHeader } from "./headers/ProjectHeader";
+import { OverviewTab } from "./tabs/OverviewTab";
+import { ProjectTaskList } from "./lists/ProjectTaskList";
+import { TasksTab } from "./tabs/TasksTab";
+import { TimeTab } from "./tabs/TimeTab";
 
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>();

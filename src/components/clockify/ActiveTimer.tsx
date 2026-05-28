@@ -3,16 +3,16 @@ import {
   useClockifyActiveEntry,
   useStartEntry,
   useStopEntry,
-  type ClockifyProject,
-  type ClockifyTag,
 } from "../../hooks/integrations/useClockify";
-import { BillableToggle } from "./BillableToggle";
-import { ProjectSelect } from "./ProjectSelect";
-import { TagChips } from "./TagChips";
+
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { DescriptionCombobox } from "../time/DescriptionCombobox";
 import { Badge } from "@/components/ui/badge";
+import type { ClockifyProject, ClockifyTag } from "@/types/clockify.types";
+import { DescriptionCombobox } from "../time/form-inputs/DescriptionCombobox";
+import { TagChips } from "./tags/TagChips";
+import { BillableToggle } from "./forms-inputs/BillableToggle";
+import { ProjectSelect } from "./forms-inputs/ProjectSelect";
 
 function elapsedHms(startIso: string): string {
   const secs = Math.max(

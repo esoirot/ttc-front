@@ -1,4 +1,4 @@
-import { ConnectionsTable } from "../../components/account/ConnectionsTable";
+import { ConnectionsTable } from "@/components/admin/hubspot/ConnectionsTable";
 
 export function AdminHubspotPage() {
   return (

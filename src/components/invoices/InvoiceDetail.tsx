@@ -1,10 +1,11 @@
 import { useParams } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInvoiceDetail } from "@/hooks/invoices/useInvoiceDetail";
-import { InvoiceDetailHeader } from "./InvoiceDetailHeader";
-import { InvoiceMetaCard } from "./InvoiceMetaCard";
-import { InvoiceLineItems } from "./InvoiceLineItems";
-import { InvoiceSubtotal } from "./InvoiceSubtotal";
+
+import { InvoiceSubtotal } from "./subTotals/InvoiceSubtotal";
+import { InvoiceMetaCard } from "./cards/InvoiceMetaCard";
+import { InvoiceLineItems } from "./lineItems/InvoiceLineItems";
+import { InvoiceDetailHeader } from "./headers/InvoiceDetailHeader";
 
 export function InvoiceDetail() {
   const { id } = useParams<{ id: string }>();

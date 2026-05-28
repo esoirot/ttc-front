@@ -4,9 +4,9 @@ import {
 } from "@/hooks/integrations/useClockify";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { ConnectForm } from "./ConnectForm";
-import { WorkspacePicker } from "./WorkspacePicker";
-import { TrackerView } from "./TrackerView";
+import { ConnectForm } from "./forms/ConnectForm";
+import { TrackerView } from "./views/TrackerView";
+import { WorkspacePicker } from "./forms-inputs/WorkspacePicker";
 
 export function ClockifyTracker() {
   const { data: status, isLoading } = useClockifyStatus();

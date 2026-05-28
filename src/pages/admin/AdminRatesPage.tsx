@@ -1,4 +1,4 @@
-import { AdminRatesTable } from "@/components/admin/AdminRatesTable";
+import { AdminRatesTable } from "@/components/admin/rates/AdminRatesTable";
 
 export function AdminRatesPage() {
   return (

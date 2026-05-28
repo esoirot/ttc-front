@@ -3,11 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useClientDetail } from "@/hooks/clients/useClientDetail";
-import { ClientHeader } from "./ClientHeader";
-import { ContactsTab } from "./ContactsTab";
-import { ProjectsTab } from "./ProjectsTab";
-import { ActivityTab } from "./ActivityTab";
-import { ClientRatesTab } from "./ClientRatesTab";
+import { ContactsTab } from "./tabs/ContactsTab";
+import { ProjectsTab } from "./tabs/ProjectsTab";
+import { ActivityTab } from "./tabs/ActivityTab";
+import { ClientRatesTab } from "./tabs/ClientRatesTab";
+import { ClientHeader } from "./headers/ClientHeader";
 
 export function ClientDetail() {
   const { id } = useParams<{ id: string }>();

@@ -1,4 +1,4 @@
-import { AdminProjectsTable } from "@/components/admin/AdminProjectsTable";
+import { AdminProjectsTable } from "@/components/admin/projects/AdminProjectsTable";
 
 export function AdminProjectsPage() {
   return (

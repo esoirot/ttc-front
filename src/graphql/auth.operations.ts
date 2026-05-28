@@ -14,6 +14,7 @@ export const ME_QUERY: TypedDocumentNode<
       role
       twoFactorEnabled
       logoUrl
+      adminPermissions
     }
   }
 `;

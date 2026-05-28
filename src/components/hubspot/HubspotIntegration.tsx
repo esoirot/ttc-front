@@ -1,7 +1,7 @@
 import { useHubspotStatus } from "@/hooks/integrations/useHubspot";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SetupView } from "./SetupView";
-import { ConnectedView } from "./ConnectedView";
+import { ConnectedView } from "./views/ConnectedView";
+import { SetupView } from "./views/SetupView";
 
 export function HubspotIntegration() {
   const { data: status, isLoading } = useHubspotStatus();

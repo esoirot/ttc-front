@@ -1,4 +1,4 @@
-import { AdminTimeEntriesTable } from "@/components/admin/AdminTimeEntriesTable";
+import { AdminTimeEntriesTable } from "@/components/admin/timeEntries/AdminTimeEntriesTable";
 
 export function AdminTimeEntriesPage() {
   return (

@@ -1,4 +1,4 @@
-import { AuditTable } from "@/components/account/AuditTable";
+import { AuditTable } from "@/components/admin/audits/AuditTable";
 
 export function AdminAuditPage() {
   return (

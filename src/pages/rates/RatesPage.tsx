@@ -1,4 +1,4 @@
-import { RatesTabs } from "@/components/rates/RatesTabs";
+import { RatesTabs } from "@/components/rates/tabs/RatesTabs";
 
 export function RatesPage() {
   return (

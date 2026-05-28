@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { AdminPermission } from "./users.types";
 
 export interface AuthUser {
   id: string;
@@ -7,6 +8,7 @@ export interface AuthUser {
   role: string;
   twoFactorEnabled: boolean;
   logoUrl: string | null;
+  adminPermissions?: AdminPermission[];
 }
 
 export type AuthLayoutProps = { title: string; children: ReactNode };

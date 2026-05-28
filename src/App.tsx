@@ -15,11 +15,10 @@ import { TwoFactorVerifyPage } from "./pages/auth/TwoFactorVerifyPage";
 import { TwoFactorSetupPage } from "./pages/auth/TwoFactorSetupPage";
 import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
-import { DashboardPage } from "./pages/account/DashboardPage";
+import { DashboardPage } from "./pages/dashboard/DashboardPage";
 import { EditProfilePage } from "./pages/account/EditProfilePage";
 import { ClockifyPage } from "./pages/integrations/ClockifyPage";
 import { HubspotPage } from "./pages/integrations/HubspotPage";
-import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 import { AdminClientsPage } from "./pages/admin/AdminClientsPage";
@@ -38,6 +37,7 @@ import { TimeEntriesPage } from "./pages/time/TimeEntriesPage";
 import { InvoicesPage } from "./pages/invoices/InvoicesPage";
 import { InvoiceDetailPage } from "./pages/invoices/InvoiceDetailPage";
 import { RatesPage } from "./pages/rates/RatesPage";
+import { AdminLayout } from "./components/admin/layout/AdminLayout";
 
 function RootLayout() {
   const client = useApolloClient();
