@@ -2,6 +2,7 @@ import { useAuditLog } from "@/hooks/integrations/useHubspot";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { exportCsv } from "@/lib/csv";
 
 export function AuditTable() {
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
@@ -19,6 +20,26 @@ export function AuditTable() {
 
   return (
     <>
+      <div className="flex justify-end mb-3">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            exportCsv(
+              entries.map((e) => ({
+                id: e.id,
+                user: e.user.email,
+                action: e.action,
+                resource: e.resource,
+                createdAt: e.createdAt,
+              })),
+              "audit-log.csv",
+            )
+          }
+        >
+          Export CSV
+        </Button>
+      </div>
       <table className="w-full mt-4">
         <thead>
           <tr className="border-b border-border">
