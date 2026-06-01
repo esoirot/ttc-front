@@ -1,17 +1,13 @@
 import { useQuery, useMutation } from "@apollo/client/react";
-import { useEffect } from "react";
 import {
   TIME_ENTRIES_QUERY,
   ACTIVE_TIMER_QUERY,
-  TIMER_UPDATED_SUBSCRIPTION,
   CREATE_TIME_ENTRY_MUTATION,
   START_TIMER_MUTATION,
   STOP_TIMER_MUTATION,
   UPDATE_TIME_ENTRY_MUTATION,
   DELETE_TIME_ENTRY_MUTATION,
 } from "../../graphql/time-entries.operations";
-import { useCurrentUser } from "../auth/useAuth";
-import type { TimeEntry } from "@/types/time-entries.types";
 
 const LIMIT = 20;
 const FIRST_PAGE = { limit: LIMIT };
@@ -72,26 +68,7 @@ export function useTimeEntries(filters?: {
 }
 
 export function useActiveTimer() {
-  const { user } = useCurrentUser();
-  const { data, loading, refetch, subscribeToMore } = useQuery(
-    ACTIVE_TIMER_QUERY,
-    { pollInterval: 30_000 },
-  );
-
-  useEffect(() => {
-    if (!user?.id) return;
-    return subscribeToMore<
-      { timerUpdated: TimeEntry | null },
-      { userId: number }
-    >({
-      document: TIMER_UPDATED_SUBSCRIPTION,
-      variables: { userId: Number(user.id) },
-      updateQuery(_prev, { subscriptionData }) {
-        return { activeTimer: subscriptionData.data.timerUpdated };
-      },
-    });
-  }, [user?.id, subscribeToMore]);
-
+  const { data, loading, refetch } = useQuery(ACTIVE_TIMER_QUERY);
   return { activeTimer: data?.activeTimer ?? null, loading, refetch };
 }
 

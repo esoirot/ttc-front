@@ -10,7 +10,7 @@ export function AccountDashboard() {
   const { user, loading: userLoading } = useCurrentUser();
   const { dashboard, loading: dashLoading } = useDashboard();
 
-  const loading = userLoading || dashLoading;
+  const loading = (userLoading && !user) || dashLoading;
 
   if (loading) {
     return (

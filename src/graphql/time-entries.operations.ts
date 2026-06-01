@@ -106,12 +106,3 @@ export const DELETE_TIME_ENTRY_MUTATION: TypedDocumentNode<
     deleteTimeEntry(id: $id)
   }
 `;
-
-export const TIMER_UPDATED_SUBSCRIPTION: TypedDocumentNode<
-  { timerUpdated: TimeEntry | null },
-  { userId: number }
-> = gql`
-  subscription TimerUpdated($userId: Int!) {
-    timerUpdated(userId: $userId) { ${TE_FIELDS} }
-  }
-`;

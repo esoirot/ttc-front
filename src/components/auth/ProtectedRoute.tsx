@@ -3,7 +3,10 @@ import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useCurrentUser } from "../../hooks/auth/useAuth";
 
 export function ProtectedRoute() {
-  const { isAuthenticated, loading } = useCurrentUser();
+  const { isAuthenticated, loading, user } = useCurrentUser();
+  // Only show loading spinner on initial check — not during 60s polls.
+  // Polls keep previous data so isAuthenticated stays true; no flicker needed.
+  const hasData = user !== null || !loading;
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -44,7 +47,7 @@ export function ProtectedRoute() {
     }
   }, [isAuthenticated, location.pathname, location.search, navigate]);
 
-  if (loading)
+  if (!hasData)
     return (
       <div className="flex items-center justify-center min-h-screen text-zinc-500">
         Loading…

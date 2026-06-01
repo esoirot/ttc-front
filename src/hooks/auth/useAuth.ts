@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useApolloClient } from "@apollo/client/react";
 import {
   ME_QUERY,
@@ -19,10 +20,18 @@ import {
 import { USERS_QUERY } from "../../graphql/users.operations";
 
 export function useCurrentUser() {
-  const { data, loading, error } = useQuery(ME_QUERY, {
+  const { data, loading, error, refetch } = useQuery(ME_QUERY, {
     errorPolicy: "ignore",
-    pollInterval: 60_000,
   });
+
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState === "visible") void refetch();
+    };
+    document.addEventListener("visibilitychange", check);
+    return () => document.removeEventListener("visibilitychange", check);
+  }, [refetch]);
+
   return {
     user: data?.me ?? null,
     loading,
