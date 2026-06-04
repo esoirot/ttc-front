@@ -11,16 +11,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { RateRowProps } from "@/types/rates.types";
+import type { TranslationRateRowProps } from "@/types/rates.types";
 
-export function RateRow({ rate, onEdit, onDelete }: RateRowProps) {
+export function RateRow({ rate, onEdit, onDelete }: TranslationRateRowProps) {
   return (
     <div className="flex items-center justify-between py-3 border-b border-border last:border-0 gap-4">
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium text-sm truncate">{rate.name}</span>
+          {rate.sourceLanguage && rate.targetLanguage && (
+            <Badge variant="outline" className="text-xs font-mono shrink-0">
+              {rate.sourceLanguage} → {rate.targetLanguage}
+            </Badge>
+          )}
           {rate.description && (
-            <span className="text-xs text-muted-foreground truncate">
+            <span className="text-xs text-muted-foreground truncate hidden sm:inline">
               — {rate.description}
             </span>
           )}

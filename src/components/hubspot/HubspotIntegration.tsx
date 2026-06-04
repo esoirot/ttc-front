@@ -18,11 +18,7 @@ export function HubspotIntegration() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
       <h1 className="text-xl font-semibold mb-6">HubSpot</h1>
-      {status?.connected ? (
-        <ConnectedView portalId={status.portalId} />
-      ) : (
-        <SetupView />
-      )}
+      {status?.connected ? <ConnectedView /> : <SetupView />}
     </div>
   );
 }

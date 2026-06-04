@@ -48,6 +48,7 @@ export const apolloClient = new ApolloClient({
   link: ApolloLink.from([errorLink, httpLink]),
   cache: new InMemoryCache(),
   defaultOptions: {
-    watchQuery: { fetchPolicy: "cache-and-network" },
+    watchQuery: { fetchPolicy: "no-cache" },
+    query: { fetchPolicy: "no-cache" },
   },
 });

@@ -9,15 +9,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import type { RateType } from "@/types/rates.types";
 import type { CustomLineTabProps as Props } from "@/types/invoices.types";
 import { useCustomLineTab } from "@/hooks/invoices/useCustomLineTab";
-
-const QTY_LABEL: Record<RateType, string> = {
-  HOURLY: "Hours",
-  PER_WORD: "Words",
-  FIXED: "Qty",
-};
+import { QTY_LABEL } from "@/constants/invoices";
 
 export function CustomLineTab({ invoiceId, onAdd, adding }: Props) {
   const {

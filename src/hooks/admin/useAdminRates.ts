@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useApolloClient } from "@apollo/client/react";
-import type { RateType } from "@/types/rates.types";
+import type { TranslationRateType } from "@/types/rates.types";
 import {
   ADMIN_RATES_QUERY,
   ADMIN_CREATE_RATE_MUTATION,
@@ -7,7 +7,7 @@ import {
   ADMIN_DELETE_RATE_MUTATION,
 } from "../../graphql/admin.operations";
 
-export function useAdminRates(type?: RateType) {
+export function useAdminRates(type?: TranslationRateType) {
   const { data, loading } = useQuery(ADMIN_RATES_QUERY, {
     variables: { type },
     fetchPolicy: "cache-and-network",

@@ -9,13 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ResourceAuditHistoryProps as Props } from "@/types/admin.types";
 import { useAuditLog } from "@/hooks/integrations/useHubspot";
-
-const ACTION_VARIANT: Record<string, "default" | "secondary" | "destructive"> =
-  {
-    CREATE: "default",
-    UPDATE: "secondary",
-    DELETE: "destructive",
-  };
+import { ACTION_VARIANT } from "@/constants/admin";
 
 export function ResourceAuditHistory({ open, onClose, resourceName }: Props) {
   const { data, isLoading, hasNextPage, fetchNextPage } = useAuditLog(

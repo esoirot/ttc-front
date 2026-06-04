@@ -37,6 +37,8 @@ import { TimeEntriesPage } from "./pages/time/TimeEntriesPage";
 import { InvoicesPage } from "./pages/invoices/InvoicesPage";
 import { InvoiceDetailPage } from "./pages/invoices/InvoiceDetailPage";
 import { RatesPage } from "./pages/rates/RatesPage";
+import { ActivitiesPage } from "./pages/activities/ActivitiesPage";
+import { ActivityDetailPage } from "./pages/activities/ActivityDetailPage";
 import { AdminLayout } from "./components/admin/layout/AdminLayout";
 
 function RootLayout() {
@@ -100,6 +102,8 @@ const router = createBrowserRouter([
               { path: "/invoices", element: <InvoicesPage /> },
               { path: "/invoices/:id", element: <InvoiceDetailPage /> },
               { path: "/rates", element: <RatesPage /> },
+              { path: "/activities", element: <ActivitiesPage /> },
+              { path: "/activities/:id", element: <ActivityDetailPage /> },
             ],
           },
         ],

@@ -1,7 +1,7 @@
 import type { InvoiceStatus } from "@/types/invoices.types";
 import type { ProjectStatus } from "@/types/projects.types";
 import type { AdminPermission } from "@/types/users.types";
-import type { RateType } from "@/types/rates.types";
+import type { TranslationRateType } from "@/types/rates.types";
 
 export const ACTION_VARIANT: Record<
   string,
@@ -77,8 +77,27 @@ export const ADMIN_EMPTY_CLIENT_FORM = {
 
 export const ADMIN_EMPTY_RATE_FORM = {
   name: "",
-  type: "HOURLY" as RateType,
+  type: "HOURLY" as TranslationRateType,
   amount: "",
   currency: "EUR",
   description: "",
 };
+
+export const RESOURCE_LINKS: {
+  to: string;
+  label: string;
+  permission?: AdminPermission;
+}[] = [
+  { to: "/admin/users", label: "Users", permission: "MANAGE_USERS" },
+  { to: "/admin/clients", label: "Clients", permission: "MANAGE_CLIENTS" },
+  { to: "/admin/projects", label: "Projects", permission: "MANAGE_PROJECTS" },
+  { to: "/admin/invoices", label: "Invoices", permission: "MANAGE_INVOICES" },
+  { to: "/admin/time", label: "Time Entries", permission: "MANAGE_TIME" },
+  { to: "/admin/rates", label: "Rates", permission: "MANAGE_RATES" },
+];
+
+export const SYSTEM_LINKS = [
+  { to: "/admin/audit", label: "Audit Log" },
+  { to: "/admin/hubspot", label: "HubSpot" },
+  { to: "/admin/activity", label: "Activity Log" },
+];

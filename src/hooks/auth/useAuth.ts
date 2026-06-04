@@ -16,6 +16,8 @@ import {
   REGENERATE_BACKUP_CODES_MUTATION,
   ADMIN_DISABLE_TWO_FACTOR_MUTATION,
   BACKUP_CODE_COUNT_QUERY,
+  CHANGE_PASSWORD_MUTATION,
+  DELETE_ACCOUNT_MUTATION,
 } from "../../graphql/auth.operations";
 import { USERS_QUERY } from "../../graphql/users.operations";
 
@@ -142,8 +144,20 @@ export function useUpdateMe() {
     refetchQueries: [ME_QUERY],
   });
   return {
-    updateMe: (input: { name?: string; email?: string; logoUrl?: string }) =>
-      mutate({ variables: { input } }),
+    updateMe: (input: {
+      name?: string;
+      email?: string;
+      logoUrl?: string;
+      defaultCurrency?: string;
+      firstName?: string | null;
+      lastName?: string | null;
+      mobilePhone?: string | null;
+      jobTitle?: string | null;
+      interfaceLanguage?: string | null;
+      dateFormat?: string | null;
+      hourFormat?: string | null;
+      numberFormat?: string | null;
+    }) => mutate({ variables: { input } }),
     loading,
     error,
   };
@@ -194,4 +208,27 @@ export function useBackupCodeCount(skip = false) {
     fetchPolicy: "cache-and-network",
   });
   return { count: data?.backupCodeCount ?? null, loading };
+}
+
+export function useChangePassword() {
+  const [mutate, { loading, error }] = useMutation(CHANGE_PASSWORD_MUTATION);
+  return {
+    changePassword: (currentPassword: string, newPassword: string) =>
+      mutate({ variables: { currentPassword, newPassword } }),
+    loading,
+    error,
+  };
+}
+
+export function useDeleteAccount() {
+  const client = useApolloClient();
+  const [mutate, { loading }] = useMutation(DELETE_ACCOUNT_MUTATION);
+
+  const deleteAccount = async () => {
+    await mutate();
+    await client.clearStore();
+    localStorage.setItem("ttc_logout", Date.now().toString());
+  };
+
+  return { deleteAccount, loading };
 }

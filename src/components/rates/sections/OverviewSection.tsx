@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { OverviewSectionProps } from "@/types/rates.types";
-import { TYPE_LABELS, TYPE_UNIT } from "@/constants/rates";
+import { TYPE_LABELS, TYPE_UNIT, CURRENCY_SYMBOLS } from "@/constants/rates";
 import { useRateCrud } from "@/hooks/rates/useRateCrud";
 import { RateForm } from "../forms/RateForm";
 
@@ -67,17 +67,26 @@ export function OverviewSection({
                 key={rate.id}
                 className="flex items-center justify-between text-sm px-3 py-1.5 rounded bg-muted/40"
               >
-                <span className="truncate">
-                  {rate.name}
+                <span className="flex items-center gap-2 truncate">
+                  <span className="truncate">{rate.name}</span>
+                  {rate.sourceLanguage && rate.targetLanguage && (
+                    <Badge
+                      variant="outline"
+                      className="text-xs font-mono shrink-0"
+                    >
+                      {rate.sourceLanguage} → {rate.targetLanguage}
+                    </Badge>
+                  )}
                   {rate.description && (
-                    <span className="text-muted-foreground ml-1">
+                    <span className="text-muted-foreground truncate hidden sm:inline">
                       — {rate.description}
                     </span>
                   )}
                 </span>
                 <div className="flex items-center gap-2 ml-4 shrink-0">
                   <span className="font-mono font-semibold">
-                    {rate.amount.toFixed(type === "PER_WORD" ? 4 : 2)}{" "}
+                    {rate.amount.toFixed(type === "PER_WORD" ? 4 : 2)}
+                    {CURRENCY_SYMBOLS[rate.currency] ?? rate.currency}{" "}
                     <span className="font-normal text-muted-foreground text-xs">
                       {rate.currency} {unit}
                     </span>

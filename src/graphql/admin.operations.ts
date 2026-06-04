@@ -11,7 +11,7 @@ import type {
 } from "@/types/admin.types";
 import type { ProjectStatus } from "@/types/projects.types";
 import type { InvoiceStatus } from "@/types/invoices.types";
-import type { RateType } from "@/types/rates.types";
+import type { TranslationRateType } from "@/types/rates.types";
 
 // ── Stats ────────────────────────────────────────────────────────────────────
 
@@ -269,9 +269,9 @@ const ADMIN_RATE_FIELDS = `
 
 export const ADMIN_RATES_QUERY: TypedDocumentNode<
   { adminRates: AdminConnection<AdminRate> },
-  { type?: RateType }
+  { type?: TranslationRateType }
 > = gql`
-  query AdminRates($type: RateType) {
+  query AdminRates($type: TranslationRateType) {
     adminRates(type: $type) {
       items { ${ADMIN_RATE_FIELDS} }
       nextCursor
@@ -285,7 +285,7 @@ export const ADMIN_CREATE_RATE_MUTATION: TypedDocumentNode<
   {
     input: {
       userId: number;
-      type: RateType;
+      type: TranslationRateType;
       name: string;
       amount: number;
       currency: string;

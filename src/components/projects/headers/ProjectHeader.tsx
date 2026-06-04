@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ProjectStatus, ProjectHeaderProps } from "@/types/projects.types";
-import type { Rate } from "@/types/rates.types";
+import type { TranslationRate } from "@/types/rates.types";
 import type { ClientRate } from "@/types/client-rates.types";
 import { useRates } from "@/hooks/rates/useRates";
 import { useClientRates } from "@/hooks/clients/useClientRates";
@@ -27,7 +27,7 @@ const STATUSES: ProjectStatus[] = [
   "INVOICE_PAID",
 ];
 
-type RateOption = Rate | ClientRate;
+type RateOption = TranslationRate | ClientRate;
 
 function RatePicker({
   allRates,

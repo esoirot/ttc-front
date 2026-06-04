@@ -1,4 +1,5 @@
 import type { InvoiceStatus } from "@/types/invoices.types";
+import type { TranslationRateType } from "@/types/rates.types";
 
 export const STATUS_TABS: { value: InvoiceStatus | "ALL"; label: string }[] = [
   { value: "ALL", label: "All" },
@@ -27,3 +28,10 @@ export const STATUS_TRANSITIONS: Record<InvoiceStatus, InvoiceStatus[]> = {
 };
 
 export const CURRENCIES = ["EUR", "USD", "GBP", "CHF", "CAD", "AUD", "JPY"];
+
+export const QTY_LABEL: Record<TranslationRateType, string> = {
+  HOURLY: "Hours",
+  PER_WORD: "Words",
+  FIXED: "Qty",
+  DAY: "Day",
+};

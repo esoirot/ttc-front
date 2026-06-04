@@ -5,8 +5,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const HUBSPOT_AUTH_URL = `${(import.meta.env.VITE_API_URL as string | undefined)?.replace("/graphql", "") ?? "http://localhost:3000"}/hubspot/auth`;
+import { HUBSPOT_AUTH_URL } from "@/constants/hubspot";
 
 export function HubspotTab() {
   const { data: status, isLoading } = useHubspotStatus();

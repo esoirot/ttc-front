@@ -8,7 +8,16 @@ export interface AuthUser {
   role: string;
   twoFactorEnabled: boolean;
   logoUrl: string | null;
+  defaultCurrency: string;
   adminPermissions?: AdminPermission[];
+  firstName?: string | null;
+  lastName?: string | null;
+  mobilePhone?: string | null;
+  jobTitle?: string | null;
+  interfaceLanguage?: string | null;
+  dateFormat?: string | null;
+  hourFormat?: string | null;
+  numberFormat?: string | null;
 }
 
 export type AuthLayoutProps = { title: string; children: ReactNode };

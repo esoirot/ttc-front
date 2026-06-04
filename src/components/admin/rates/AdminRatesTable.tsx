@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAdminRates, useAdminCrudRates } from "@/hooks/admin/useAdminRates";
 import type { AdminRate } from "@/types/admin.types";
-import type { RateType } from "@/types/rates.types";
+import type { TranslationRateType } from "@/types/rates.types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,12 +40,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RateForm } from "./RateForm";
 import { exportCsv } from "@/lib/csv";
-import { RATE_TYPES } from "@/constants/rates";
+import { TRANSLATION_RATE_TYPES as RATE_TYPES } from "@/constants/rates";
 import { ADMIN_EMPTY_RATE_FORM } from "@/constants/admin";
 import { ResourceAuditHistory } from "../audits/ResourceAuditHistory";
 
 export function AdminRatesTable() {
-  const [typeFilter, setTypeFilter] = useState<RateType | "ALL">("ALL");
+  const [typeFilter, setTypeFilter] = useState<TranslationRateType | "ALL">(
+    "ALL",
+  );
   const { rates, loading, total } = useAdminRates(
     typeFilter !== "ALL" ? typeFilter : undefined,
   );
@@ -102,7 +104,7 @@ export function AdminRatesTable() {
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         <Select
           value={typeFilter}
-          onValueChange={(v) => setTypeFilter(v as RateType | "ALL")}
+          onValueChange={(v) => setTypeFilter(v as TranslationRateType | "ALL")}
         >
           <SelectTrigger className="w-36 h-8 text-sm">
             <SelectValue />

@@ -1,29 +1,31 @@
 import { useQuery, useMutation } from "@apollo/client/react";
 import {
-  RATES_QUERY,
-  CREATE_RATE_MUTATION,
-  UPDATE_RATE_MUTATION,
-  DELETE_RATE_MUTATION,
-  type RateType,
+  TRANSLATION_RATES_QUERY,
+  CREATE_TRANSLATION_RATE_MUTATION,
+  UPDATE_TRANSLATION_RATE_MUTATION,
+  DELETE_TRANSLATION_RATE_MUTATION,
+  type TranslationRateType,
 } from "../../graphql/rates.operations";
 
-export function useRates(type?: RateType) {
-  const { data, loading } = useQuery(RATES_QUERY, {
+export function useRates(type?: TranslationRateType) {
+  const { data, loading } = useQuery(TRANSLATION_RATES_QUERY, {
     variables: type ? { type } : {},
   });
-  return { rates: data?.rates ?? [], loading };
+  return { rates: data?.translationRates ?? [], loading };
 }
 
-export function useCreateRate(type?: RateType) {
-  const [mutate, { loading }] = useMutation(CREATE_RATE_MUTATION, {
+export function useCreateRate(type?: TranslationRateType) {
+  const [mutate, { loading }] = useMutation(CREATE_TRANSLATION_RATE_MUTATION, {
     refetchQueries: [
-      { query: RATES_QUERY, variables: {} },
-      ...(type ? [{ query: RATES_QUERY, variables: { type } }] : []),
+      { query: TRANSLATION_RATES_QUERY, variables: {} },
+      ...(type
+        ? [{ query: TRANSLATION_RATES_QUERY, variables: { type } }]
+        : []),
     ],
   });
   return {
     createRate: (input: {
-      type: RateType;
+      type: TranslationRateType;
       name: string;
       amount: number;
       currency: string;
@@ -33,17 +35,19 @@ export function useCreateRate(type?: RateType) {
   };
 }
 
-export function useUpdateRate(type?: RateType) {
-  const [mutate, { loading }] = useMutation(UPDATE_RATE_MUTATION, {
+export function useUpdateRate(type?: TranslationRateType) {
+  const [mutate, { loading }] = useMutation(UPDATE_TRANSLATION_RATE_MUTATION, {
     refetchQueries: [
-      { query: RATES_QUERY, variables: {} },
-      ...(type ? [{ query: RATES_QUERY, variables: { type } }] : []),
+      { query: TRANSLATION_RATES_QUERY, variables: {} },
+      ...(type
+        ? [{ query: TRANSLATION_RATES_QUERY, variables: { type } }]
+        : []),
     ],
   });
   return {
     updateRate: (input: {
       id: number;
-      type?: RateType;
+      type?: TranslationRateType;
       name?: string;
       amount?: number;
       currency?: string;
@@ -53,11 +57,13 @@ export function useUpdateRate(type?: RateType) {
   };
 }
 
-export function useDeleteRate(type?: RateType) {
-  const [mutate] = useMutation(DELETE_RATE_MUTATION, {
+export function useDeleteRate(type?: TranslationRateType) {
+  const [mutate] = useMutation(DELETE_TRANSLATION_RATE_MUTATION, {
     refetchQueries: [
-      { query: RATES_QUERY, variables: {} },
-      ...(type ? [{ query: RATES_QUERY, variables: { type } }] : []),
+      { query: TRANSLATION_RATES_QUERY, variables: {} },
+      ...(type
+        ? [{ query: TRANSLATION_RATES_QUERY, variables: { type } }]
+        : []),
     ],
   });
   return { deleteRate: (id: number) => mutate({ variables: { id } }) };

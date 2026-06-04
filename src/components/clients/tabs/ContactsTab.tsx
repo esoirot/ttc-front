@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ContactsTabProps } from "@/types/clients.types";
 import { ContactRow } from "../rows/ContactRow";
-
-const EMPTY_CONTACT = { firstName: "", lastName: "", email: "", phone: "" };
+import { EMPTY_CONTACT } from "@/constants/clients";
 
 export function ContactsTab({
   contacts,

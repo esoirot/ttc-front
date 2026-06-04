@@ -23,8 +23,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-import { CURRENCIES, TYPE_LABELS, TYPE_UNIT } from "@/constants/rates";
-import type { RateType } from "@/types/rates.types";
+import {
+  CURRENCIES,
+  TRANSLATION_RATE_TYPES as RATE_TYPES,
+  TYPE_LABELS,
+  TYPE_UNIT,
+} from "@/constants/rates";
+import type { TranslationRateType } from "@/types/rates.types";
 import type { ClientRate } from "@/types/client-rates.types";
 import {
   useClientRates,
@@ -33,10 +38,8 @@ import {
   useUpdateClientRate,
 } from "@/hooks/clients/useClientRates";
 
-const RATE_TYPES: RateType[] = ["HOURLY", "PER_WORD", "FIXED"];
-
 interface FormData {
-  type: RateType;
+  type: TranslationRateType;
   name: string;
   amount: string;
   currency: string;
@@ -56,7 +59,9 @@ function ClientRateForm({
   onCancel: () => void;
   saving: boolean;
 }) {
-  const [type, setType] = useState<RateType>(initial?.type ?? "HOURLY");
+  const [type, setType] = useState<TranslationRateType>(
+    initial?.type ?? "HOURLY",
+  );
   const [name, setName] = useState(initial?.name ?? "");
   const [amount, setAmount] = useState(String(initial?.amount ?? ""));
   const [currency, setCurrency] = useState(initial?.currency ?? "EUR");
@@ -85,7 +90,10 @@ function ClientRateForm({
           <Label htmlFor={`cr-type-${clientId}`} className="text-xs">
             Type
           </Label>
-          <Select value={type} onValueChange={(v) => setType(v as RateType)}>
+          <Select
+            value={type}
+            onValueChange={(v) => setType(v as TranslationRateType)}
+          >
             <SelectTrigger id={`cr-type-${clientId}`} className="h-8 text-sm">
               <SelectValue />
             </SelectTrigger>

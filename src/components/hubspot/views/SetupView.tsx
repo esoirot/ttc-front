@@ -1,10 +1,5 @@
 import { Button } from "@/components/ui/button";
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(
-    "/graphql",
-    "",
-  ) ?? "http://localhost:3000";
+import { API_BASE } from "@/constants/hubspot";
 
 export function SetupView() {
   return (

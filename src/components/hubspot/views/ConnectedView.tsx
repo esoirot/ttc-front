@@ -1,35 +1,11 @@
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useDisconnectHubspot } from "@/hooks/integrations/useHubspot";
 import { CompaniesTab } from "../tabs/CompaniesTab";
 import { ContactsTab } from "../tabs/ContactsTab";
 import { DealsTab } from "../tabs/DealsTab";
 
-export function ConnectedView({ portalId }: { portalId: string | null }) {
-  const disconnect = useDisconnectHubspot();
-
+export function ConnectedView() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium">HubSpot connected</span>
-          {portalId && (
-            <span className="text-xs text-muted-foreground">
-              Portal {portalId}
-            </span>
-          )}
-        </div>
-        <Button
-          type="button"
-          variant="destructive"
-          size="sm"
-          onClick={() => void disconnect.mutateAsync()}
-          disabled={disconnect.isPending}
-        >
-          {disconnect.isPending ? "Disconnecting…" : "Disconnect"}
-        </Button>
-      </div>
-
       <Tabs defaultValue="contacts">
         <TabsList>
           <TabsTrigger value="contacts">Contacts</TabsTrigger>

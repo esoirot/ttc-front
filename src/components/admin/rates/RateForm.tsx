@@ -7,8 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CURRENCIES, RATE_TYPES } from "@/constants/rates";
-import type { RateType } from "@/types/rates.types";
+import { CURRENCIES, TRANSLATION_RATE_TYPES } from "@/constants/rates";
+import type { TranslationRateType } from "@/types/rates.types";
 
 export function RateForm({
   form,
@@ -16,7 +16,7 @@ export function RateForm({
 }: {
   form: {
     name: string;
-    type: RateType;
+    type: TranslationRateType;
     amount: string;
     currency: string;
     description: string;
@@ -37,13 +37,15 @@ export function RateForm({
         <Label>Type</Label>
         <Select
           value={form.type}
-          onValueChange={(v) => onChange({ ...form, type: v as RateType })}
+          onValueChange={(v) =>
+            onChange({ ...form, type: v as TranslationRateType })
+          }
         >
           <SelectTrigger className="mt-1">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {RATE_TYPES.map((t) => (
+            {TRANSLATION_RATE_TYPES.map((t) => (
               <SelectItem key={t} value={t}>
                 {t}
               </SelectItem>

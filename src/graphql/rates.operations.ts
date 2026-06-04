@@ -1,60 +1,66 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
-import type { RateType, Rate } from "@/types/rates.types";
+import type { TranslationRateType, TranslationRate } from "@/types/rates.types";
 
-export type { RateType, Rate };
+export type { TranslationRateType, TranslationRate };
 
-const RATE_FIELDS = `id userId type name amount currency description createdAt updatedAt`;
+const TRANSLATION_RATE_FIELDS = `id userId clientId type name amount currency description sourceLanguage targetLanguage createdAt updatedAt`;
 
-export const RATES_QUERY: TypedDocumentNode<
-  { rates: Rate[] },
-  { type?: RateType }
+export const TRANSLATION_RATES_QUERY: TypedDocumentNode<
+  { translationRates: TranslationRate[] },
+  { type?: TranslationRateType }
 > = gql`
-  query Rates($type: RateType) {
-    rates(type: $type) { ${RATE_FIELDS} }
+  query TranslationRates($type: TranslationRateType) {
+    translationRates(type: $type) { ${TRANSLATION_RATE_FIELDS} }
   }
 `;
 
-export const CREATE_RATE_MUTATION: TypedDocumentNode<
-  { createRate: Rate },
+export const CREATE_TRANSLATION_RATE_MUTATION: TypedDocumentNode<
+  { createTranslationRate: TranslationRate },
   {
     input: {
-      type: RateType;
+      type: TranslationRateType;
       name: string;
       amount: number;
       currency: string;
       description?: string;
+      clientId?: number | null;
+      sourceLanguage?: string;
+      targetLanguage?: string;
     };
   }
 > = gql`
-  mutation CreateRate($input: CreateRateInput!) {
-    createRate(input: $input) { ${RATE_FIELDS} }
+  mutation CreateTranslationRate($input: CreateTranslationRateInput!) {
+    createTranslationRate(input: $input) { ${TRANSLATION_RATE_FIELDS} }
   }
 `;
 
-export const UPDATE_RATE_MUTATION: TypedDocumentNode<
-  { updateRate: Rate },
+export const UPDATE_TRANSLATION_RATE_MUTATION: TypedDocumentNode<
+  { updateTranslationRate: TranslationRate },
   {
     input: {
       id: number;
-      type?: RateType;
+      type?: TranslationRateType;
       name?: string;
       amount?: number;
       currency?: string;
       description?: string;
+      clientId?: number | null;
+      sourceLanguage?: string;
+      targetLanguage?: string;
     };
   }
 > = gql`
-  mutation UpdateRate($input: UpdateRateInput!) {
-    updateRate(input: $input) { ${RATE_FIELDS} }
+  mutation UpdateTranslationRate($input: UpdateTranslationRateInput!) {
+    updateTranslationRate(input: $input) { ${TRANSLATION_RATE_FIELDS} }
   }
 `;
 
-export const DELETE_RATE_MUTATION: TypedDocumentNode<
-  { deleteRate: boolean },
+export const DELETE_TRANSLATION_RATE_MUTATION: TypedDocumentNode<
+  { deleteTranslationRate: boolean },
   { id: number }
 > = gql`
-  mutation DeleteRate($id: Int!) {
-    deleteRate(id: $id)
+  mutation DeleteTranslationRate($id: Int!) {
+    deleteTranslationRate(id: $id)
   }
 `;

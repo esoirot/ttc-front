@@ -1,44 +1,50 @@
-export type RateType = "HOURLY" | "PER_WORD" | "FIXED";
+export type TranslationRateType = "HOURLY" | "DAY" | "PER_WORD" | "FIXED";
 
-export interface Rate {
+export interface TranslationRate {
   id: number;
   userId: number;
-  type: RateType;
+  clientId?: number | null;
+  type: TranslationRateType;
   name: string;
   amount: number;
   currency: string;
   description: string | null;
+  sourceLanguage?: string | null;
+  targetLanguage?: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
-export type RateFormData = {
+export type TranslationRateFormData = {
   name: string;
   amount: number;
   currency: string;
   description?: string;
+  clientId?: number | null;
+  sourceLanguage?: string;
+  targetLanguage?: string;
 };
 
 export interface OverviewSectionProps {
-  type: RateType;
-  rates: Rate[];
+  type: TranslationRateType;
+  rates: TranslationRate[];
   loading: boolean;
 }
 
-export interface RateFormProps {
-  type: RateType;
-  initial?: Rate;
-  onSave: (data: RateFormData) => void;
+export interface TranslationRateFormProps {
+  type: TranslationRateType;
+  initial?: TranslationRate;
+  onSave: (data: TranslationRateFormData) => void;
   onCancel: () => void;
   saving: boolean;
 }
 
-export interface RateListProps {
-  type: RateType;
+export interface TranslationRateListProps {
+  type: TranslationRateType;
 }
 
-export interface RateRowProps {
-  rate: Rate;
+export interface TranslationRateRowProps {
+  rate: TranslationRate;
   onEdit: () => void;
   onDelete: () => void;
 }

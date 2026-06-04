@@ -14,7 +14,16 @@ export const ME_QUERY: TypedDocumentNode<
       role
       twoFactorEnabled
       logoUrl
+      defaultCurrency
       adminPermissions
+      firstName
+      lastName
+      mobilePhone
+      jobTitle
+      interfaceLanguage
+      dateFormat
+      hourFormat
+      numberFormat
     }
   }
 `;
@@ -144,7 +153,22 @@ export const DISABLE_TWO_FACTOR_MUTATION: TypedDocumentNode<
 
 export const UPDATE_ME_MUTATION: TypedDocumentNode<
   { updateMe: AuthUser },
-  { input: { name?: string; email?: string; logoUrl?: string } }
+  {
+    input: {
+      name?: string;
+      email?: string;
+      logoUrl?: string;
+      defaultCurrency?: string;
+      firstName?: string | null;
+      lastName?: string | null;
+      mobilePhone?: string | null;
+      jobTitle?: string | null;
+      interfaceLanguage?: string | null;
+      dateFormat?: string | null;
+      hourFormat?: string | null;
+      numberFormat?: string | null;
+    };
+  }
 > = gql`
   mutation UpdateMe($input: UpdateMeInput!) {
     updateMe(input: $input) {
@@ -154,7 +178,34 @@ export const UPDATE_ME_MUTATION: TypedDocumentNode<
       role
       twoFactorEnabled
       logoUrl
+      defaultCurrency
+      firstName
+      lastName
+      mobilePhone
+      jobTitle
+      interfaceLanguage
+      dateFormat
+      hourFormat
+      numberFormat
     }
+  }
+`;
+
+export const CHANGE_PASSWORD_MUTATION: TypedDocumentNode<
+  { changePassword: boolean },
+  { currentPassword: string; newPassword: string }
+> = gql`
+  mutation ChangePassword($currentPassword: String!, $newPassword: String!) {
+    changePassword(currentPassword: $currentPassword, newPassword: $newPassword)
+  }
+`;
+
+export const DELETE_ACCOUNT_MUTATION: TypedDocumentNode<
+  { deleteAccount: boolean },
+  Record<string, never>
+> = gql`
+  mutation DeleteAccount {
+    deleteAccount
   }
 `;
 

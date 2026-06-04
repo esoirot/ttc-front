@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useCreateRate, useUpdateRate, useDeleteRate } from "./useRates";
-import type { RateFormData, RateType } from "@/types/rates.types";
+import type {
+  TranslationRateFormData,
+  TranslationRateType,
+} from "@/types/rates.types";
 
-export type { RateFormData };
+export type { TranslationRateFormData };
 
-export function useRateCrud(type: RateType) {
+export function useRateCrud(type: TranslationRateType) {
   const { createRate, loading: creating } = useCreateRate(type);
   const { updateRate, loading: updating } = useUpdateRate(type);
   const { deleteRate } = useDeleteRate(type);
@@ -12,12 +15,12 @@ export function useRateCrud(type: RateType) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  async function handleCreate(data: RateFormData) {
+  async function handleCreate(data: TranslationRateFormData) {
     await createRate({ type, ...data });
     setShowForm(false);
   }
 
-  async function handleUpdate(id: number, data: RateFormData) {
+  async function handleUpdate(id: number, data: TranslationRateFormData) {
     await updateRate({ id, ...data });
     setEditingId(null);
   }

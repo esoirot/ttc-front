@@ -2,25 +2,7 @@ import { NavLink, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
 import type { AdminPermission } from "@/types/admin.types";
-
-const RESOURCE_LINKS: {
-  to: string;
-  label: string;
-  permission?: AdminPermission;
-}[] = [
-  { to: "/admin/users", label: "Users", permission: "MANAGE_USERS" },
-  { to: "/admin/clients", label: "Clients", permission: "MANAGE_CLIENTS" },
-  { to: "/admin/projects", label: "Projects", permission: "MANAGE_PROJECTS" },
-  { to: "/admin/invoices", label: "Invoices", permission: "MANAGE_INVOICES" },
-  { to: "/admin/time", label: "Time Entries", permission: "MANAGE_TIME" },
-  { to: "/admin/rates", label: "Rates", permission: "MANAGE_RATES" },
-];
-
-const SYSTEM_LINKS = [
-  { to: "/admin/audit", label: "Audit Log" },
-  { to: "/admin/hubspot", label: "HubSpot" },
-  { to: "/admin/activity", label: "Activity Log" },
-];
+import { RESOURCE_LINKS, SYSTEM_LINKS } from "@/constants/admin";
 
 function NavGroup({
   label,
