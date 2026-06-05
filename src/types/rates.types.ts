@@ -3,6 +3,7 @@ export type TranslationRateType = "HOURLY" | "DAY" | "PER_WORD" | "FIXED";
 export interface TranslationRate {
   id: number;
   userId: number;
+  activityId?: number | null;
   clientId?: number | null;
   type: TranslationRateType;
   name: string;
@@ -20,6 +21,7 @@ export type TranslationRateFormData = {
   amount: number;
   currency: string;
   description?: string;
+  activityId?: number | null;
   clientId?: number | null;
   sourceLanguage?: string;
   targetLanguage?: string;
@@ -48,3 +50,5 @@ export interface TranslationRateRowProps {
   onEdit: () => void;
   onDelete: () => void;
 }
+
+export type Rate = TranslationRate;

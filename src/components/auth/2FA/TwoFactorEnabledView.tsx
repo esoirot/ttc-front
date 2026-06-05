@@ -24,7 +24,7 @@ export function TwoFactorEnabledView({
   async function handleRegen(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const result = await regenerateBackupCodes(regenCode);
-    const codes = result.data?.regenerateBackupCodes?.backupCodes;
+    const codes = result?.backupCodes;
     if (codes?.length) {
       onCodesRegenerated(codes);
       setShowRegen(false);

@@ -1,46 +1,71 @@
-import { useQuery, useMutation, useApolloClient } from "@apollo/client/react";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import {
   ADMIN_TIME_ENTRIES_QUERY,
   ADMIN_DELETE_TIME_ENTRY_MUTATION,
 } from "../../graphql/admin.operations";
+import type { AdminTimeEntry, AdminConnection } from "@/types/admin.types";
+import { gqlRequest } from "@/lib/api";
 
 const LIMIT = 20;
 
 export function useAdminTimeEntries(userId?: number) {
-  const { data, loading, fetchMore } = useQuery(ADMIN_TIME_ENTRIES_QUERY, {
-    variables: { userId, pagination: { limit: LIMIT } },
-    fetchPolicy: "cache-and-network",
-  });
-  const conn = data?.adminTimeEntries;
-  return {
-    entries: conn?.items ?? [],
-    loading,
-    total: conn?.total ?? 0,
-    hasMore: conn?.nextCursor !== null && conn?.nextCursor !== undefined,
-    loadMore: () =>
-      fetchMore({
-        variables: {
+  const { data, fetchNextPage, hasNextPage, isLoading } = useInfiniteQuery<
+    AdminConnection<AdminTimeEntry>
+  >({
+    queryKey: ["adminTimeEntries", { userId: userId ?? null }],
+    queryFn: ({ pageParam }) =>
+      gqlRequest<{ adminTimeEntries: AdminConnection<AdminTimeEntry> }>(
+        ADMIN_TIME_ENTRIES_QUERY,
+        {
           userId,
-          pagination: { limit: LIMIT, cursor: conn?.nextCursor ?? undefined },
-        },
-        updateQuery: (prev, { fetchMoreResult }) => ({
-          adminTimeEntries: {
-            ...fetchMoreResult.adminTimeEntries,
-            items: [
-              ...prev.adminTimeEntries.items,
-              ...fetchMoreResult.adminTimeEntries.items,
-            ],
+          pagination: {
+            limit: LIMIT,
+            ...(pageParam != null ? { cursor: pageParam as number } : {}),
           },
-        }),
-      }),
+        },
+      ).then((d) => d.adminTimeEntries),
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
+
+  return {
+    entries: data?.pages.flatMap((p) => p.items) ?? [],
+    loading: isLoading,
+    total: data?.pages[0]?.total ?? 0,
+    hasMore: !!hasNextPage,
+    loadMore: () => void fetchNextPage(),
   };
 }
 
 export function useAdminDeleteTimeEntry() {
-  const client = useApolloClient();
-  const [remove] = useMutation(ADMIN_DELETE_TIME_ENTRY_MUTATION, {
-    onCompleted: () =>
-      void client.refetchQueries({ include: [ADMIN_TIME_ENTRIES_QUERY] }),
+  const queryClient = useQueryClient();
+  const { mutateAsync } = useMutation({
+    mutationFn: (id: number) =>
+      gqlRequest<{ adminDeleteTimeEntry: { id: number } }>(
+        ADMIN_DELETE_TIME_ENTRY_MUTATION,
+        { id },
+      ).then((d) => d.adminDeleteTimeEntry),
+    onSuccess: (_data, id) => {
+      queryClient.setQueriesData<InfiniteData<AdminConnection<AdminTimeEntry>>>(
+        { queryKey: ["adminTimeEntries"] },
+        (old) =>
+          old
+            ? {
+                ...old,
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  items: page.items.filter((e) => e.id !== id),
+                  total: page.total - 1,
+                })),
+              }
+            : old,
+      );
+    },
   });
-  return { deleteEntry: (id: number) => remove({ variables: { id } }) };
+  return { deleteEntry: (id: number) => mutateAsync(id) };
 }

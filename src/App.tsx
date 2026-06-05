@@ -6,7 +6,7 @@ import {
   Outlet,
   useNavigate,
 } from "react-router-dom";
-import { useApolloClient } from "@apollo/client/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { AppLayout } from "./components/layout/AppLayout";
 import { LoginPage } from "./pages/auth/LoginPage";
@@ -42,19 +42,19 @@ import { ActivityDetailPage } from "./pages/activities/ActivityDetailPage";
 import { AdminLayout } from "./components/admin/layout/AdminLayout";
 
 function RootLayout() {
-  const client = useApolloClient();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   useEffect(() => {
     function handleStorage(e: StorageEvent) {
       if (e.key === "ttc_logout") {
-        void client.clearStore();
+        queryClient.clear();
         navigate("/login", { replace: true });
       }
     }
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
-  }, [client, navigate]);
+  }, [queryClient, navigate]);
 
   return <Outlet />;
 }

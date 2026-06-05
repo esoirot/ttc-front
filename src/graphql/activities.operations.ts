@@ -29,6 +29,16 @@ const ACTIVITY_FIELDS = gql`
       amount
       type
     }
+    translationRates {
+      id
+      activityId
+      clientId
+      type
+      name
+      amount
+      currency
+      description
+    }
     createdAt
     updatedAt
     ... on TranslatorActivity {

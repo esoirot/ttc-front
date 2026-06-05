@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { useApolloClient } from "@apollo/client/react";
-import { ACTIVE_TIMER_QUERY } from "@/graphql/time-entries.operations";
+import { useQueryClient } from "@tanstack/react-query";
 import type { TimeEntry } from "@/types/time-entries.types";
 import { useCurrentUser } from "../auth/useAuth";
 
@@ -9,14 +8,12 @@ const BASE_URL = (import.meta.env.VITE_API_URL as string).replace(
   "",
 );
 
-// Max reconnect attempts before giving up (prevents hammering on persistent errors like 429).
 const MAX_RETRIES = 4;
-// Base delay for exponential backoff (ms).
 const RETRY_BASE_MS = 2_000;
 
 export function useTimerSSE() {
   const { user } = useCurrentUser();
-  const client = useApolloClient();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!user?.id) return;
@@ -41,10 +38,7 @@ export function useTimerSSE() {
         if (parsed !== null && typeof parsed === "object" && "type" in parsed) {
           return;
         }
-        client.writeQuery({
-          query: ACTIVE_TIMER_QUERY,
-          data: { activeTimer: parsed as TimeEntry | null },
-        });
+        queryClient.setQueryData(["activeTimer"], parsed as TimeEntry | null);
       };
 
       es.onerror = () => {
@@ -68,5 +62,5 @@ export function useTimerSSE() {
       clearTimeout(retryTimer);
       es?.close();
     };
-  }, [user?.id, client]);
+  }, [user?.id, queryClient]);
 }

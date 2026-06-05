@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@apollo/client/react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   MY_ACTIVITIES_QUERY,
   ACTIVITY_QUERY,
@@ -9,42 +9,62 @@ import {
   UPDATE_CHARGE_MUTATION,
   DELETE_CHARGE_MUTATION,
 } from "@/graphql/activities.operations";
-import type { ActivityType } from "@/types/activities.types";
+import type { AnyActivity, ActivityType } from "@/types/activities.types";
+import { gqlRequest } from "@/lib/api";
 
 export function useMyActivities() {
-  const { data, loading } = useQuery(MY_ACTIVITIES_QUERY);
-  return { activities: data?.myActivities ?? [], loading };
+  const { data, isLoading } = useQuery({
+    queryKey: ["activities"],
+    queryFn: () =>
+      gqlRequest<{ myActivities: AnyActivity[] }>(MY_ACTIVITIES_QUERY).then(
+        (d) => d.myActivities,
+      ),
+  });
+  return { activities: data ?? [], loading: isLoading };
 }
 
 export function useActivity(id: number) {
-  const { data, loading } = useQuery(ACTIVITY_QUERY, {
-    variables: { id },
-    skip: !id,
+  const { data, isLoading } = useQuery({
+    queryKey: ["activity", id],
+    queryFn: () =>
+      gqlRequest<{ activity: AnyActivity }>(ACTIVITY_QUERY, { id }).then(
+        (d) => d.activity,
+      ),
+    enabled: !!id,
   });
-  return { activity: data?.activity ?? null, loading };
+  return { activity: data ?? null, loading: isLoading };
 }
 
 export function useCreateActivity() {
-  const [mutate, { loading }] = useMutation(CREATE_ACTIVITY_MUTATION, {
-    refetchQueries: [MY_ACTIVITIES_QUERY],
-  });
-  return {
-    createActivity: (input: {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (input: {
       name: string;
       activityType?: ActivityType | null;
       languagePairs?: { fromLanguage: string; toLanguage: string }[] | null;
       customFields?: { key: string; value: string }[] | null;
-    }) => mutate({ variables: { input } }),
-    loading,
+    }) =>
+      gqlRequest<{ createActivity: AnyActivity }>(CREATE_ACTIVITY_MUTATION, {
+        input,
+      }).then((d) => d.createActivity),
+    onSuccess: (newActivity) => {
+      queryClient.setQueryData<AnyActivity[]>(["activities"], (old) => [
+        ...(old ?? []),
+        newActivity,
+      ]);
+    },
+  });
+  return {
+    createActivity: (input: Parameters<typeof mutateAsync>[0]) =>
+      mutateAsync(input),
+    loading: isPending,
   };
 }
 
 export function useUpdateActivity() {
-  const [mutate, { loading, error }] = useMutation(UPDATE_ACTIVITY_MUTATION, {
-    refetchQueries: [MY_ACTIVITIES_QUERY],
-  });
-  return {
-    updateActivity: (input: {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: (input: {
       id: number;
       name?: string | null;
       companyName?: string | null;
@@ -58,50 +78,101 @@ export function useUpdateActivity() {
       objectiveQ3?: number | null;
       objectiveQ4?: number | null;
       languagePairs?: { fromLanguage: string; toLanguage: string }[] | null;
-    }) => mutate({ variables: { input } }),
-    loading,
+    }) =>
+      gqlRequest<{ updateActivity: AnyActivity }>(UPDATE_ACTIVITY_MUTATION, {
+        input,
+      }).then((d) => d.updateActivity),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<AnyActivity[]>(
+        ["activities"],
+        (old) => old?.map((a) => (a.id === updated.id ? updated : a)) ?? [],
+      );
+      queryClient.setQueryData(["activity", updated.id], updated);
+    },
+  });
+  return {
+    updateActivity: (input: Parameters<typeof mutateAsync>[0]) =>
+      mutateAsync(input),
+    loading: isPending,
     error,
   };
 }
 
 export function useDeleteActivity() {
-  const [mutate] = useMutation(DELETE_ACTIVITY_MUTATION, {
-    refetchQueries: [MY_ACTIVITIES_QUERY],
+  const queryClient = useQueryClient();
+  const { mutateAsync } = useMutation({
+    mutationFn: (id: number) =>
+      gqlRequest<{ deleteActivity: boolean }>(DELETE_ACTIVITY_MUTATION, {
+        id,
+      }).then((d) => d.deleteActivity),
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<AnyActivity[]>(
+        ["activities"],
+        (old) => old?.filter((a) => a.id !== id) ?? [],
+      );
+      queryClient.removeQueries({ queryKey: ["activity", id] });
+    },
   });
-  return { deleteActivity: (id: number) => mutate({ variables: { id } }) };
+  return { deleteActivity: (id: number) => mutateAsync(id) };
 }
 
 export function useCreateCharge(activityId: number) {
-  const [mutate, { loading }] = useMutation(CREATE_CHARGE_MUTATION, {
-    refetchQueries: [{ query: ACTIVITY_QUERY, variables: { id: activityId } }],
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (input: { name: string; amount: number; type: string }) =>
+      gqlRequest<{ createCharge: { id: number } }>(CREATE_CHARGE_MUTATION, {
+        input: { ...input, activityId },
+      }).then((d) => d.createCharge),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["activity", activityId],
+      });
+    },
   });
   return {
     createCharge: (input: { name: string; amount: number; type: string }) =>
-      mutate({
-        variables: { input: { ...input, activityId } },
-      }),
-    loading,
+      mutateAsync(input),
+    loading: isPending,
   };
 }
 
 export function useUpdateCharge(activityId: number) {
-  const [mutate, { loading }] = useMutation(UPDATE_CHARGE_MUTATION, {
-    refetchQueries: [{ query: ACTIVITY_QUERY, variables: { id: activityId } }],
-  });
-  return {
-    updateCharge: (input: {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (input: {
       id: number;
       name?: string | null;
       amount?: number | null;
       type?: string | null;
-    }) => mutate({ variables: { input } }),
-    loading,
+    }) =>
+      gqlRequest<{ updateCharge: { id: number } }>(UPDATE_CHARGE_MUTATION, {
+        input,
+      }).then((d) => d.updateCharge),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["activity", activityId],
+      });
+    },
+  });
+  return {
+    updateCharge: (input: Parameters<typeof mutateAsync>[0]) =>
+      mutateAsync(input),
+    loading: isPending,
   };
 }
 
 export function useDeleteCharge(activityId: number) {
-  const [mutate] = useMutation(DELETE_CHARGE_MUTATION, {
-    refetchQueries: [{ query: ACTIVITY_QUERY, variables: { id: activityId } }],
+  const queryClient = useQueryClient();
+  const { mutateAsync } = useMutation({
+    mutationFn: (id: number) =>
+      gqlRequest<{ deleteCharge: boolean }>(DELETE_CHARGE_MUTATION, {
+        id,
+      }).then((d) => d.deleteCharge),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["activity", activityId],
+      });
+    },
   });
-  return { deleteCharge: (id: number) => mutate({ variables: { id } }) };
+  return { deleteCharge: (id: number) => mutateAsync(id) };
 }

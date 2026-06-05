@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { CURRENCIES, TRANSLATION_RATE_TYPES } from "@/constants/rates";
 import type { TranslationRateType } from "@/types/rates.types";
+import { useMyActivities } from "@/hooks/activities/useActivities";
 
 export function RateForm({
   form,
@@ -20,9 +21,12 @@ export function RateForm({
     amount: string;
     currency: string;
     description: string;
+    activityId: string;
   };
   onChange: (f: typeof form) => void;
 }) {
+  const { activities } = useMyActivities();
+
   return (
     <div className="flex flex-col gap-3">
       <div>
@@ -32,6 +36,24 @@ export function RateForm({
           value={form.name}
           onChange={(e) => onChange({ ...form, name: e.target.value })}
         />
+      </div>
+      <div>
+        <Label>Activity *</Label>
+        <Select
+          value={form.activityId}
+          onValueChange={(v) => onChange({ ...form, activityId: v })}
+        >
+          <SelectTrigger className="mt-1">
+            <SelectValue placeholder="Select activity…" />
+          </SelectTrigger>
+          <SelectContent>
+            {activities.map((a) => (
+              <SelectItem key={a.id} value={String(a.id)}>
+                {a.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label>Type</Label>

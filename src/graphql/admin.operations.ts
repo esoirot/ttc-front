@@ -263,7 +263,7 @@ export const ADMIN_DELETE_TIME_ENTRY_MUTATION: TypedDocumentNode<
 // ── Rates ────────────────────────────────────────────────────────────────────
 
 const ADMIN_RATE_FIELDS = `
-  id userId type name amount currency description createdAt updatedAt
+  id userId activityId type name amount currency description createdAt updatedAt
   ${ADMIN_OWNER_FIELDS}
 `;
 
@@ -290,6 +290,7 @@ export const ADMIN_CREATE_RATE_MUTATION: TypedDocumentNode<
       amount: number;
       currency: string;
       description?: string;
+      activityId?: number | null;
     };
   }
 > = gql`
@@ -307,6 +308,7 @@ export const ADMIN_UPDATE_RATE_MUTATION: TypedDocumentNode<
       amount?: number;
       currency?: string;
       description?: string;
+      activityId?: number | null;
     };
   }
 > = gql`

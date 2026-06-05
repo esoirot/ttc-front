@@ -25,7 +25,7 @@ export function CreateInvoiceForm({ clients, onClose, onCreated }: Props) {
       dueDate: dueDate || undefined,
     });
     onClose();
-    if (result.data?.createInvoice.id) onCreated(result.data.createInvoice.id);
+    if (result.id) onCreated(result.id);
   }
 
   return (

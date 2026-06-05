@@ -61,7 +61,7 @@ export function SecurityTab() {
       return;
     }
     const result = await changePassword(currentPassword, newPassword);
-    if (result.data?.changePassword) {
+    if (result) {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -100,7 +100,7 @@ export function SecurityTab() {
                   onSubmit={async (e) => {
                     e.preventDefault();
                     const result = await disableTwoFactor(disableCode);
-                    if (result.data?.disableTwoFactor) {
+                    if (result) {
                       setShowDisableForm(false);
                       setDisableCode("");
                     }

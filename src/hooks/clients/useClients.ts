@@ -1,4 +1,10 @@
-import { useQuery, useMutation } from "@apollo/client/react";
+import {
+  useQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import {
   CLIENTS_QUERY,
   CLIENT_QUERY,
@@ -9,136 +15,245 @@ import {
   UPDATE_COMPANY_CONTACT_MUTATION,
   DELETE_COMPANY_CONTACT_MUTATION,
 } from "../../graphql/clients.operations";
-import type { ClientType } from "@/types/clients.types";
+import type {
+  Client,
+  ClientConnection,
+  ClientType,
+  ClientIndustry,
+  CompanyContact,
+} from "@/types/clients.types";
+import { gqlRequest } from "@/lib/api";
+
+const LIMIT = 20;
 
 export function useClients(search?: string, clientType?: ClientType) {
   const baseVars = {
     ...(search ? { search } : {}),
     ...(clientType ? { clientType } : {}),
-    pagination: { limit: 20 },
   };
 
-  const { data, fetchMore, loading, error } = useQuery(CLIENTS_QUERY, {
-    variables: baseVars,
-  });
-
-  const nextCursor = data?.clients.nextCursor ?? null;
-
-  function loadMore() {
-    void fetchMore({
-      variables: {
-        ...baseVars,
-        pagination: { limit: 20, cursor: nextCursor ?? undefined },
-      },
-      updateQuery(prev, { fetchMoreResult }) {
-        if (!fetchMoreResult) return prev;
-        return {
-          clients: {
-            ...fetchMoreResult.clients,
-            items: [...prev.clients.items, ...fetchMoreResult.clients.items],
+  const { data, fetchNextPage, hasNextPage, isLoading, error } =
+    useInfiniteQuery<ClientConnection>({
+      queryKey: [
+        "clients",
+        { search: search ?? null, clientType: clientType ?? null },
+      ],
+      queryFn: ({ pageParam }) =>
+        gqlRequest<{ clients: ClientConnection }>(CLIENTS_QUERY, {
+          ...baseVars,
+          pagination: {
+            limit: LIMIT,
+            ...(pageParam != null ? { cursor: pageParam as number } : {}),
           },
-        };
-      },
+        }).then((d) => d.clients),
+      initialPageParam: undefined,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     });
-  }
 
   return {
-    clients: data?.clients.items ?? [],
-    total: data?.clients.total ?? 0,
-    hasMore: nextCursor !== null,
-    loadMore,
-    loading,
+    clients: data?.pages.flatMap((p) => p.items) ?? [],
+    total: data?.pages[0]?.total ?? 0,
+    hasMore: !!hasNextPage,
+    loadMore: () => void fetchNextPage(),
+    loading: isLoading,
     error,
   };
 }
 
 export function useClient(id: number) {
-  const { data, loading, error } = useQuery(CLIENT_QUERY, {
-    variables: { id },
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["client", id],
+    queryFn: () =>
+      gqlRequest<{ client: Client }>(CLIENT_QUERY, { id }).then(
+        (d) => d.client,
+      ),
+    enabled: !!id,
   });
-  return { client: data?.client ?? null, loading, error };
+  return { client: data ?? null, loading: isLoading, error };
 }
 
+type ClientInput = {
+  name: string;
+  legalName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  postalCode?: string;
+  vatNumber?: string;
+  notes?: string;
+  hubspotId?: string;
+  clientType?: ClientType;
+  firstName?: string;
+  lastName?: string;
+  paymentDelayDays?: number;
+  taxRate?: number;
+  billingEndOfMonth?: boolean;
+  website?: string;
+  industry?: ClientIndustry | null;
+  tagIds?: number[];
+};
+
 export function useCreateClient() {
-  const [mutate, { loading, error }] = useMutation(CREATE_CLIENT_MUTATION, {
-    refetchQueries: [
-      { query: CLIENTS_QUERY, variables: { pagination: { limit: 20 } } },
-    ],
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: (input: ClientInput) =>
+      gqlRequest<{ createClient: Client }>(CREATE_CLIENT_MUTATION, {
+        input,
+      }).then((d) => d.createClient),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
   });
   return {
-    createClient: (input: Parameters<typeof mutate>[0]["variables"]["input"]) =>
-      mutate({ variables: { input } }),
-    loading,
+    createClient: (input: ClientInput) => mutateAsync(input),
+    loading: isPending,
     error,
   };
 }
 
 export function useUpdateClient() {
-  const [mutate, { loading, error }] = useMutation(UPDATE_CLIENT_MUTATION, {
-    refetchQueries: [
-      { query: CLIENTS_QUERY, variables: { pagination: { limit: 20 } } },
-    ],
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: (input: Partial<ClientInput> & { id: number }) =>
+      gqlRequest<{ updateClient: Client }>(UPDATE_CLIENT_MUTATION, {
+        input,
+      }).then((d) => d.updateClient),
+    onSuccess: (updated) => {
+      queryClient.setQueriesData<InfiniteData<ClientConnection>>(
+        { queryKey: ["clients"] },
+        (old) =>
+          old
+            ? {
+                ...old,
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  items: page.items.map((c) =>
+                    c.id === updated.id ? updated : c,
+                  ),
+                })),
+              }
+            : old,
+      );
+      queryClient.setQueryData(["client", updated.id], updated);
+    },
   });
   return {
-    updateClient: (input: Parameters<typeof mutate>[0]["variables"]["input"]) =>
-      mutate({ variables: { input } }),
-    loading,
+    updateClient: (input: Partial<ClientInput> & { id: number }) =>
+      mutateAsync(input),
+    loading: isPending,
     error,
   };
 }
 
 export function useDeleteClient() {
-  const [mutate, { loading, error }] = useMutation(DELETE_CLIENT_MUTATION, {
-    refetchQueries: [
-      { query: CLIENTS_QUERY, variables: { pagination: { limit: 20 } } },
-    ],
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: (id: number) =>
+      gqlRequest<{ deleteClient: boolean }>(DELETE_CLIENT_MUTATION, {
+        id,
+      }).then((d) => d.deleteClient),
+    onSuccess: (_data, id) => {
+      queryClient.setQueriesData<InfiniteData<ClientConnection>>(
+        { queryKey: ["clients"] },
+        (old) =>
+          old
+            ? {
+                ...old,
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  items: page.items.filter((c) => c.id !== id),
+                  total: page.total - 1,
+                })),
+              }
+            : old,
+      );
+      queryClient.removeQueries({ queryKey: ["client", id] });
+    },
   });
   return {
-    deleteClient: (id: number) => mutate({ variables: { id } }),
-    loading,
+    deleteClient: (id: number) => mutateAsync(id),
+    loading: isPending,
     error,
   };
 }
 
+type ContactInput = {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+};
+
 export function useCreateCompanyContact(clientId: number) {
-  const [mutate, { loading, error }] = useMutation(
-    CREATE_COMPANY_CONTACT_MUTATION,
-    { refetchQueries: [{ query: CLIENT_QUERY, variables: { id: clientId } }] },
-  );
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: (input: ContactInput) =>
+      gqlRequest<{ createCompanyContact: CompanyContact }>(
+        CREATE_COMPANY_CONTACT_MUTATION,
+        { input: { ...input, clientId } },
+      ).then((d) => d.createCompanyContact),
+    onSuccess: (newContact) => {
+      queryClient.setQueryData<Client>(["client", clientId], (old) =>
+        old ? { ...old, contacts: [...old.contacts, newContact] } : old,
+      );
+    },
+  });
   return {
-    createContact: (
-      input: Omit<
-        Parameters<typeof mutate>[0]["variables"]["input"],
-        "clientId"
-      >,
-    ) => mutate({ variables: { input: { ...input, clientId } } }),
-    loading,
+    createContact: (input: ContactInput) => mutateAsync(input),
+    loading: isPending,
     error,
   };
 }
 
 export function useUpdateCompanyContact(clientId: number) {
-  const [mutate, { loading, error }] = useMutation(
-    UPDATE_COMPANY_CONTACT_MUTATION,
-    { refetchQueries: [{ query: CLIENT_QUERY, variables: { id: clientId } }] },
-  );
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: (input: Partial<ContactInput> & { id: number }) =>
+      gqlRequest<{ updateCompanyContact: CompanyContact }>(
+        UPDATE_COMPANY_CONTACT_MUTATION,
+        { input },
+      ).then((d) => d.updateCompanyContact),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Client>(["client", clientId], (old) =>
+        old
+          ? {
+              ...old,
+              contacts: old.contacts.map((c) =>
+                c.id === updated.id ? updated : c,
+              ),
+            }
+          : old,
+      );
+    },
+  });
   return {
-    updateContact: (
-      input: Parameters<typeof mutate>[0]["variables"]["input"],
-    ) => mutate({ variables: { input } }),
-    loading,
+    updateContact: (input: Partial<ContactInput> & { id: number }) =>
+      mutateAsync(input),
+    loading: isPending,
     error,
   };
 }
 
 export function useDeleteCompanyContact(clientId: number) {
-  const [mutate, { loading, error }] = useMutation(
-    DELETE_COMPANY_CONTACT_MUTATION,
-    { refetchQueries: [{ query: CLIENT_QUERY, variables: { id: clientId } }] },
-  );
+  const queryClient = useQueryClient();
+  const { mutateAsync, error } = useMutation({
+    mutationFn: (id: number) =>
+      gqlRequest<{ deleteCompanyContact: boolean }>(
+        DELETE_COMPANY_CONTACT_MUTATION,
+        { id },
+      ).then((d) => d.deleteCompanyContact),
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<Client>(["client", clientId], (old) =>
+        old
+          ? { ...old, contacts: old.contacts.filter((c) => c.id !== id) }
+          : old,
+      );
+    },
+  });
   return {
-    deleteContact: (id: number) => mutate({ variables: { id } }),
-    loading,
+    deleteContact: (id: number) => mutateAsync(id),
     error,
   };
 }

@@ -81,6 +81,7 @@ export const ADMIN_EMPTY_RATE_FORM = {
   amount: "",
   currency: "EUR",
   description: "",
+  activityId: "",
 };
 
 export const RESOURCE_LINKS: {

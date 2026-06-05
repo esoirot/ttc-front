@@ -1,3 +1,7 @@
+import type { TranslationRate } from "./rates.types";
+
+export type { TranslationRate };
+
 export type ChargeType = "FIXED" | "VARIABLE";
 
 export type ActivityType = "TRANSLATOR" | "CORRECTOR" | "CUSTOM";
@@ -40,6 +44,7 @@ export interface Activity {
   objectiveQ3?: number | null;
   objectiveQ4?: number | null;
   charges: Charge[];
+  translationRates: TranslationRate[];
   createdAt: string;
   updatedAt: string;
 }

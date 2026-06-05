@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@apollo/client/react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ClientRate } from "@/types/client-rates.types";
 import {
   CLIENT_RATES_QUERY,
@@ -6,68 +6,92 @@ import {
   UPDATE_CLIENT_RATE_MUTATION,
   DELETE_CLIENT_RATE_MUTATION,
 } from "@/graphql/client-rates.operations";
+import { gqlRequest } from "@/lib/api";
 
 export function useClientRates(clientId: number | null) {
-  const { data, loading } = useQuery(CLIENT_RATES_QUERY, {
-    variables: { clientId: clientId ?? 0 },
-    skip: clientId == null,
+  const { data, isLoading } = useQuery({
+    queryKey: ["clientRates", clientId],
+    queryFn: () =>
+      gqlRequest<{ clientRates: ClientRate[] }>(CLIENT_RATES_QUERY, {
+        clientId: clientId!,
+      }).then((d) => d.clientRates),
+    enabled: clientId != null,
   });
-  return { clientRates: data?.clientRates ?? [], loading };
+  return { clientRates: data ?? [], loading: isLoading };
 }
+
+type CreateClientRateInput = Omit<
+  ClientRate,
+  "id" | "clientId" | "userId" | "createdAt" | "updatedAt"
+>;
 
 export function useCreateClientRate(clientId: number) {
-  const [mutate, { loading }] = useMutation(CREATE_CLIENT_RATE_MUTATION, {
-    refetchQueries: [{ query: CLIENT_RATES_QUERY, variables: { clientId } }],
-  });
-
-  async function createClientRate(
-    input: Omit<
-      ClientRate,
-      "id" | "clientId" | "userId" | "createdAt" | "updatedAt"
-    >,
-  ) {
-    return mutate({
-      variables: {
-        input: {
-          ...input,
-          clientId,
-          description: input.description ?? undefined,
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (input: CreateClientRateInput) =>
+      gqlRequest<{ createClientRate: ClientRate }>(
+        CREATE_CLIENT_RATE_MUTATION,
+        {
+          input: {
+            ...input,
+            clientId,
+            description: input.description ?? undefined,
+          },
         },
-      },
-    });
-  }
-
-  return { createClientRate, loading };
+      ).then((d) => d.createClientRate),
+    onSuccess: (created) => {
+      queryClient.setQueryData<ClientRate[]>(
+        ["clientRates", clientId],
+        (old) => [...(old ?? []), created],
+      );
+    },
+  });
+  return {
+    createClientRate: (input: CreateClientRateInput) => mutateAsync(input),
+    loading: isPending,
+  };
 }
 
+type UpdateClientRateInput = Partial<
+  Omit<ClientRate, "clientId" | "userId" | "createdAt" | "updatedAt">
+> & { id: number };
+
 export function useUpdateClientRate(clientId: number) {
-  const [mutate, { loading }] = useMutation(UPDATE_CLIENT_RATE_MUTATION, {
-    refetchQueries: [{ query: CLIENT_RATES_QUERY, variables: { clientId } }],
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (input: UpdateClientRateInput) =>
+      gqlRequest<{ updateClientRate: ClientRate }>(
+        UPDATE_CLIENT_RATE_MUTATION,
+        {
+          input: { ...input, description: input.description ?? undefined },
+        },
+      ).then((d) => d.updateClientRate),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<ClientRate[]>(
+        ["clientRates", clientId],
+        (old) => old?.map((r) => (r.id === updated.id ? updated : r)) ?? [],
+      );
+    },
   });
-
-  async function updateClientRate(
-    input: Partial<
-      Omit<ClientRate, "clientId" | "userId" | "createdAt" | "updatedAt">
-    > & { id: number },
-  ) {
-    return mutate({
-      variables: {
-        input: { ...input, description: input.description ?? undefined },
-      },
-    });
-  }
-
-  return { updateClientRate, loading };
+  return {
+    updateClientRate: (input: UpdateClientRateInput) => mutateAsync(input),
+    loading: isPending,
+  };
 }
 
 export function useDeleteClientRate(clientId: number) {
-  const [mutate] = useMutation(DELETE_CLIENT_RATE_MUTATION, {
-    refetchQueries: [{ query: CLIENT_RATES_QUERY, variables: { clientId } }],
+  const queryClient = useQueryClient();
+  const { mutateAsync } = useMutation({
+    mutationFn: (id: number) =>
+      gqlRequest<{ deleteClientRate: boolean }>(DELETE_CLIENT_RATE_MUTATION, {
+        id,
+      }).then((d) => d.deleteClientRate),
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<ClientRate[]>(
+        ["clientRates", clientId],
+        (old) => old?.filter((r) => r.id !== id) ?? [],
+      );
+    },
   });
-
-  async function deleteClientRate(id: number) {
-    return mutate({ variables: { id } });
-  }
-
-  return { deleteClientRate };
+  return { deleteClientRate: (id: number) => mutateAsync(id) };
 }

@@ -1,3 +1,6 @@
+import { print } from "graphql";
+import type { DocumentNode } from "graphql";
+
 const GRAPHQL_URL = import.meta.env.VITE_API_URL as string;
 const BASE = GRAPHQL_URL.replace("/graphql", "");
 
@@ -84,6 +87,44 @@ export function apiPatch<T>(path: string, body?: unknown): Promise<T> {
 
 export function apiDelete(path: string): Promise<void> {
   return request<void>(path, { method: "DELETE" });
+}
+
+export async function gqlRequest<TData, TVars = Record<string, never>>(
+  document: DocumentNode,
+  variables?: TVars,
+  isRetry = false,
+): Promise<TData> {
+  const query = print(document);
+  const res = await fetch(GRAPHQL_URL, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, variables }),
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (res.status === 401 && !isRetry) {
+    const refreshed = await tryRefresh();
+    if (refreshed) return gqlRequest<TData, TVars>(document, variables, true);
+    throw new ApiError(401, "Unauthorized");
+  }
+  if (!res.ok) throw new ApiError(res.status, res.statusText);
+
+  const json = (await res.json()) as {
+    data?: TData;
+    errors?: { message: string; extensions?: { code?: string } }[];
+  };
+
+  if (
+    json.errors?.some((e) => e.extensions?.code === "UNAUTHENTICATED") &&
+    !isRetry
+  ) {
+    const refreshed = await tryRefresh();
+    if (refreshed) return gqlRequest<TData, TVars>(document, variables, true);
+    throw new ApiError(401, "Unauthorized");
+  }
+  if (json.errors?.length) throw new Error(json.errors[0].message);
+  return json.data!;
 }
 
 export { ApiError, tryRefresh };

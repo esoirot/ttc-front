@@ -8,9 +8,9 @@ import type {
 export type { TranslationRateFormData };
 
 export function useRateCrud(type: TranslationRateType) {
-  const { createRate, loading: creating } = useCreateRate(type);
-  const { updateRate, loading: updating } = useUpdateRate(type);
-  const { deleteRate } = useDeleteRate(type);
+  const { createRate, loading: creating } = useCreateRate();
+  const { updateRate, loading: updating } = useUpdateRate();
+  const { deleteRate } = useDeleteRate();
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);

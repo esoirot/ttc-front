@@ -1,7 +1,20 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useActivity } from "@/hooks/activities/useActivities";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { ChargeRow } from "./ChargeRow";
 import { AddChargeForm } from "./AddChargeForm";
 import { ObjectivesForm } from "./ObjectivesForm";
@@ -9,12 +22,50 @@ import { ActivityInfoForm } from "./ActivityInfoForm";
 import { TagsSection } from "./TagsSection";
 import { LanguagePairsSection } from "./LanguagePairsSection";
 import { isTranslatorActivity } from "@/types/activities.types";
+import { RateForm } from "@/components/rates/forms/RateForm";
+import { useCreateRate, useDeleteRate } from "@/hooks/rates/useRates";
+import {
+  useRateSheets,
+  useDeleteRateSheet,
+} from "@/hooks/rate-sheets/useRateSheets";
+import type {
+  TranslationRateFormData,
+  TranslationRateType,
+  TranslationRate,
+} from "@/types/rates.types";
+
+const RATE_TYPE_LABELS: Record<TranslationRateType, string> = {
+  HOURLY: "Hourly",
+  DAY: "Day",
+  PER_WORD: "Per Word",
+  FIXED: "Fixed",
+};
+const RATE_TYPES: TranslationRateType[] = [
+  "HOURLY",
+  "DAY",
+  "PER_WORD",
+  "FIXED",
+];
 
 export function ActivityDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const activityId = Number(id);
   const { activity, loading } = useActivity(activityId);
+  const [showRateForm, setShowRateForm] = useState(false);
+  const [newRateType, setNewRateType] = useState<TranslationRateType>("HOURLY");
+  const { createRate, loading: creatingRate } = useCreateRate(activityId);
+  const { deleteRate } = useDeleteRate(activityId);
+  const { rateSheets } = useRateSheets();
+  const { deleteRateSheet } = useDeleteRateSheet();
+  const activityRateSheets = rateSheets.filter(
+    (rs) => rs.activityId === activityId,
+  );
+
+  async function handleCreateRate(data: TranslationRateFormData) {
+    await createRate({ type: newRateType, ...data });
+    setShowRateForm(false);
+  }
 
   if (!loading && !activity) {
     return (
@@ -116,6 +167,203 @@ export function ActivityDetail() {
                 )}
                 <AddChargeForm activityId={activityId} type="VARIABLE" />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Rates</CardTitle>
+              {!showRateForm && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowRateForm(true)}
+                >
+                  + Add Rate
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              {showRateForm && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2 items-center">
+                    <span className="text-sm text-muted-foreground">Type:</span>
+                    {(
+                      [
+                        "HOURLY",
+                        "DAY",
+                        "PER_WORD",
+                        "FIXED",
+                      ] as TranslationRateType[]
+                    ).map((t) => (
+                      <Button
+                        key={t}
+                        size="sm"
+                        variant={newRateType === t ? "default" : "outline"}
+                        onClick={() => setNewRateType(t)}
+                      >
+                        {t}
+                      </Button>
+                    ))}
+                  </div>
+                  <RateForm
+                    type={newRateType}
+                    onSave={handleCreateRate}
+                    onCancel={() => setShowRateForm(false)}
+                    saving={creatingRate}
+                  />
+                </div>
+              )}
+              {activity.translationRates.length === 0 && !showRateForm ? (
+                <p className="text-sm text-muted-foreground">No rates yet.</p>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {RATE_TYPES.map((rateType) => {
+                    const group = activity.translationRates.filter(
+                      (r: TranslationRate) => r.type === rateType,
+                    );
+                    if (group.length === 0) return null;
+                    return (
+                      <div key={rateType}>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                          {RATE_TYPE_LABELS[rateType]}
+                        </p>
+                        <div className="divide-y divide-border">
+                          {group.map((rate) => (
+                            <div
+                              key={rate.id}
+                              className="flex items-center justify-between py-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">
+                                  {rate.name}
+                                </span>
+                                {rate.description && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {rate.description}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm font-mono">
+                                  {rate.amount.toFixed(
+                                    rate.type === "PER_WORD" ? 4 : 2,
+                                  )}{" "}
+                                  <Badge variant="outline" className="text-xs">
+                                    {rate.currency}
+                                  </Badge>
+                                </span>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="text-destructive hover:text-destructive"
+                                    >
+                                      ✕
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>
+                                        Delete rate?
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Delete &quot;{rate.name}&quot;? This
+                                        cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>
+                                        Cancel
+                                      </AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => deleteRate(rate.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {isTranslatorActivity(activity) &&
+                activityRateSheets.length > 0 && (
+                  <div className="flex flex-col gap-1 pt-3 border-t border-border">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                      Rate Sheets
+                    </p>
+                    <div className="divide-y divide-border">
+                      {activityRateSheets.map((rs) => (
+                        <div
+                          key={rs.id}
+                          className="flex items-center justify-between py-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">
+                              {rs.name}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {rs.sourceLanguage} → {rs.targetLanguage}
+                            </span>
+                            {rs.description && (
+                              <span className="text-xs text-muted-foreground">
+                                {rs.description}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-mono">
+                              {rs.pricePerWord.toFixed(4)}{" "}
+                              <Badge variant="outline" className="text-xs">
+                                {rs.currency}
+                              </Badge>
+                            </span>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  ✕
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Delete rate sheet?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Delete &quot;{rs.name}&quot;? This cannot be
+                                    undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteRateSheet(rs.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
             </CardContent>
           </Card>
 

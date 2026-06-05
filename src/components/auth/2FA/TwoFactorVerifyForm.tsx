@@ -34,7 +34,7 @@ export function TwoFactorVerifyForm() {
   async function handleTotpSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const result = await verifyTwoFactor(tempToken!, code);
-    if (result.data?.verifyTwoFactor?.user) {
+    if (result.user) {
       navigate(from, { replace: true });
     }
   }
@@ -42,7 +42,7 @@ export function TwoFactorVerifyForm() {
   async function handleBackupSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const result = await verifyBackup(tempToken!, backupCode.trim());
-    if (result.data?.verifyTwoFactorBackup?.user) {
+    if (result.user) {
       navigate(from, { replace: true });
     }
   }

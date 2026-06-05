@@ -4,7 +4,7 @@ import type { TranslationRateType, TranslationRate } from "@/types/rates.types";
 
 export type { TranslationRateType, TranslationRate };
 
-const TRANSLATION_RATE_FIELDS = `id userId clientId type name amount currency description sourceLanguage targetLanguage createdAt updatedAt`;
+const TRANSLATION_RATE_FIELDS = `id userId activityId clientId type name amount currency description sourceLanguage targetLanguage createdAt updatedAt`;
 
 export const TRANSLATION_RATES_QUERY: TypedDocumentNode<
   { translationRates: TranslationRate[] },
@@ -20,6 +20,7 @@ export const CREATE_TRANSLATION_RATE_MUTATION: TypedDocumentNode<
   {
     input: {
       type: TranslationRateType;
+      activityId?: number | null;
       name: string;
       amount: number;
       currency: string;
@@ -41,6 +42,7 @@ export const UPDATE_TRANSLATION_RATE_MUTATION: TypedDocumentNode<
     input: {
       id: number;
       type?: TranslationRateType;
+      activityId?: number;
       name?: string;
       amount?: number;
       currency?: string;

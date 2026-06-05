@@ -1,60 +1,112 @@
-import { useQuery, useMutation, useApolloClient } from "@apollo/client/react";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import type { InvoiceStatus } from "@/types/invoices.types";
 import {
   ADMIN_INVOICES_QUERY,
   ADMIN_UPDATE_INVOICE_MUTATION,
   ADMIN_DELETE_INVOICE_MUTATION,
 } from "../../graphql/admin.operations";
+import type { AdminInvoice, AdminConnection } from "@/types/admin.types";
+import { gqlRequest } from "@/lib/api";
 
 const LIMIT = 20;
 
 export function useAdminInvoices(status?: InvoiceStatus, search?: string) {
-  const { data, loading, fetchMore } = useQuery(ADMIN_INVOICES_QUERY, {
-    variables: { status, search, pagination: { limit: LIMIT } },
-    fetchPolicy: "cache-and-network",
-  });
-  const conn = data?.adminInvoices;
-  return {
-    invoices: conn?.items ?? [],
-    loading,
-    total: conn?.total ?? 0,
-    hasMore: conn?.nextCursor !== null && conn?.nextCursor !== undefined,
-    loadMore: () =>
-      fetchMore({
-        variables: {
+  const { data, fetchNextPage, hasNextPage, isLoading } = useInfiniteQuery<
+    AdminConnection<AdminInvoice>
+  >({
+    queryKey: [
+      "adminInvoices",
+      { status: status ?? null, search: search ?? null },
+    ],
+    queryFn: ({ pageParam }) =>
+      gqlRequest<{ adminInvoices: AdminConnection<AdminInvoice> }>(
+        ADMIN_INVOICES_QUERY,
+        {
           status,
           search,
-          pagination: { limit: LIMIT, cursor: conn?.nextCursor ?? undefined },
-        },
-        updateQuery: (prev, { fetchMoreResult }) => ({
-          adminInvoices: {
-            ...fetchMoreResult.adminInvoices,
-            items: [
-              ...prev.adminInvoices.items,
-              ...fetchMoreResult.adminInvoices.items,
-            ],
+          pagination: {
+            limit: LIMIT,
+            ...(pageParam != null ? { cursor: pageParam as number } : {}),
           },
-        }),
-      }),
+        },
+      ).then((d) => d.adminInvoices),
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
+
+  return {
+    invoices: data?.pages.flatMap((p) => p.items) ?? [],
+    loading: isLoading,
+    total: data?.pages[0]?.total ?? 0,
+    hasMore: !!hasNextPage,
+    loadMore: () => void fetchNextPage(),
   };
 }
 
 export function useAdminCrudInvoices() {
-  const client = useApolloClient();
-  const refetch = () =>
-    client.refetchQueries({ include: [ADMIN_INVOICES_QUERY] });
+  const queryClient = useQueryClient();
 
-  const [update] = useMutation(ADMIN_UPDATE_INVOICE_MUTATION, {
-    onCompleted: () => void refetch(),
+  const { mutateAsync: update } = useMutation({
+    mutationFn: (input: {
+      id: number;
+      status?: InvoiceStatus;
+      notes?: string;
+      dueDate?: string;
+    }) =>
+      gqlRequest<{ adminUpdateInvoice: AdminInvoice }>(
+        ADMIN_UPDATE_INVOICE_MUTATION,
+        { input },
+      ).then((d) => d.adminUpdateInvoice),
+    onSuccess: (updated) => {
+      queryClient.setQueriesData<InfiniteData<AdminConnection<AdminInvoice>>>(
+        { queryKey: ["adminInvoices"] },
+        (old) =>
+          old
+            ? {
+                ...old,
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  items: page.items.map((inv) =>
+                    inv.id === updated.id ? updated : inv,
+                  ),
+                })),
+              }
+            : old,
+      );
+    },
   });
-  const [remove] = useMutation(ADMIN_DELETE_INVOICE_MUTATION, {
-    onCompleted: () => void refetch(),
+
+  const { mutateAsync: remove } = useMutation({
+    mutationFn: (id: number) =>
+      gqlRequest<{ adminDeleteInvoice: { id: number } }>(
+        ADMIN_DELETE_INVOICE_MUTATION,
+        { id },
+      ).then((d) => d.adminDeleteInvoice),
+    onSuccess: (_data, id) => {
+      queryClient.setQueriesData<InfiniteData<AdminConnection<AdminInvoice>>>(
+        { queryKey: ["adminInvoices"] },
+        (old) =>
+          old
+            ? {
+                ...old,
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  items: page.items.filter((inv) => inv.id !== id),
+                  total: page.total - 1,
+                })),
+              }
+            : old,
+      );
+    },
   });
 
   return {
-    updateInvoice: (
-      input: Parameters<typeof update>[0]["variables"]["input"],
-    ) => update({ variables: { input } }),
-    deleteInvoice: (id: number) => remove({ variables: { id } }),
+    updateInvoice: (input: Parameters<typeof update>[0]) => update(input),
+    deleteInvoice: (id: number) => remove(id),
   };
 }

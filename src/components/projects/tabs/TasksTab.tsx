@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useApolloClient } from "@apollo/client/react";
+import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import {
   DndContext,
   PointerSensor,
@@ -17,7 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Task, TaskStatus } from "@/types/tasks.types";
+import type { Task, TaskStatus, TaskConnection } from "@/types/tasks.types";
 import type { TasksTabProps } from "@/types/projects.types";
 import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
 import { useDeleteTask, useUpdateTask } from "@/hooks/tasks/useTasks";
@@ -48,7 +48,7 @@ export function TasksTab({
   memberMap,
 }: TasksTabProps) {
   const navigate = useNavigate();
-  const apolloClient = useApolloClient();
+  const queryClient = useQueryClient();
   const { updateTask } = useUpdateTask(projectId);
   const { deleteTask } = useDeleteTask(projectId);
   const sensors = useSensors(
@@ -78,10 +78,21 @@ export function TasksTab({
       : tasks.find((t) => t.id === Number(over.id))?.status;
 
     if (targetStatus && task.status !== targetStatus) {
-      apolloClient.cache.modify({
-        id: apolloClient.cache.identify({ __typename: "Task", id: task.id }),
-        fields: { status: () => targetStatus },
-      });
+      queryClient.setQueryData<InfiniteData<TaskConnection>>(
+        ["tasks", projectId],
+        (old) =>
+          old
+            ? {
+                ...old,
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  items: page.items.map((t) =>
+                    t.id === task.id ? { ...t, status: targetStatus } : t,
+                  ),
+                })),
+              }
+            : old,
+      );
       void updateTask({ id: task.id, status: targetStatus });
     }
   }

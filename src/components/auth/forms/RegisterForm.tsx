@@ -29,7 +29,7 @@ export function RegisterForm() {
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const result = await register(email, password, name || undefined);
-    if (result.data?.register?.id) {
+    if (result?.id) {
       navigate("/");
     }
   }

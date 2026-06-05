@@ -32,8 +32,8 @@ export function useTwoFactor() {
 
   async function handleEnableTfa(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    const result = await enableTwoFactor(tfaCode);
-    if (result.data?.enableTwoFactor) setTfaDone(true);
+    await enableTwoFactor(tfaCode);
+    setTfaDone(true);
   }
 
   return {

@@ -33,8 +33,7 @@ export function GenerateInvoiceForm({
       dueDate: dueDate || undefined,
     });
     onClose();
-    if (result.data?.generateInvoice.id)
-      onGenerated(result.data.generateInvoice.id);
+    if (result.id) onGenerated(result.id);
   }
 
   return (

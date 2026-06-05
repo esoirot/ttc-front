@@ -56,8 +56,8 @@ export function CreateActivityForm({ onCancel }: CreateActivityFormProps) {
           ? customFields
           : null,
     });
-    if (result.data?.createActivity) {
-      navigate(`/activities/${result.data.createActivity.id}`);
+    if (result) {
+      navigate(`/activities/${result.id}`);
     }
   }
 

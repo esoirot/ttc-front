@@ -44,10 +44,9 @@ export function LoginForm() {
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const result = await login(email, password);
-    const data = result.data?.login;
-    if (data?.requiresTwoFactor) {
-      navigate("/2fa/verify", { state: { tempToken: data.tempToken, from } });
-    } else if (data?.user) {
+    if (result.requiresTwoFactor) {
+      navigate("/2fa/verify", { state: { tempToken: result.tempToken, from } });
+    } else if (result.user) {
       navigate(from, { replace: true });
     }
   }

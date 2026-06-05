@@ -80,6 +80,7 @@ export function AdminRatesTable() {
       amount: r.amount.toString(),
       currency: r.currency,
       description: r.description ?? "",
+      activityId: r.activityId?.toString() ?? "",
     });
     setEditTarget(r);
   }
@@ -330,10 +331,11 @@ export function AdminRatesTable() {
                   amount: Number(form.amount),
                   currency: form.currency,
                   description: form.description || undefined,
+                  activityId: Number(form.activityId),
                 });
                 setCreateOpen(false);
               }}
-              disabled={!form.name || !form.amount}
+              disabled={!form.name || !form.amount || !form.activityId}
             >
               Create
             </Button>
@@ -368,6 +370,9 @@ export function AdminRatesTable() {
                     amount: Number(form.amount),
                     currency: form.currency,
                     description: form.description || undefined,
+                    activityId: form.activityId
+                      ? Number(form.activityId)
+                      : undefined,
                   });
                 setEditTarget(null);
               }}

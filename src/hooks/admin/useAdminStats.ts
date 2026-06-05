@@ -1,9 +1,15 @@
-import { useQuery } from "@apollo/client/react";
+import { useQuery } from "@tanstack/react-query";
 import { ADMIN_STATS_QUERY } from "../../graphql/admin.operations";
+import type { AdminStats } from "@/types/admin.types";
+import { gqlRequest } from "@/lib/api";
 
 export function useAdminStats() {
-  const { data, loading } = useQuery(ADMIN_STATS_QUERY, {
-    fetchPolicy: "cache-and-network",
+  const { data, isLoading } = useQuery({
+    queryKey: ["adminStats"],
+    queryFn: () =>
+      gqlRequest<{ adminStats: AdminStats }>(ADMIN_STATS_QUERY).then(
+        (d) => d.adminStats,
+      ),
   });
-  return { stats: data?.adminStats ?? null, loading };
+  return { stats: data ?? null, loading: isLoading };
 }

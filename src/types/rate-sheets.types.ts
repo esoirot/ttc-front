@@ -5,6 +5,7 @@ export type { MatchRates };
 export interface RateSheet {
   id: number;
   userId: number;
+  activityId?: number | null;
   clientId: number | null;
   name: string;
   description: string | null;
@@ -18,6 +19,7 @@ export interface RateSheet {
 }
 
 export interface CreateRateSheetInput {
+  activityId?: number | null;
   clientId?: number | null;
   name: string;
   description?: string;
@@ -30,6 +32,7 @@ export interface CreateRateSheetInput {
 
 export interface UpdateRateSheetInput {
   id: number;
+  activityId?: number | null;
   clientId?: number | null;
   name?: string;
   description?: string;

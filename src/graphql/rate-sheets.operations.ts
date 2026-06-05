@@ -24,6 +24,7 @@ const MATCH_RATE_FIELDS = `
 const RATE_SHEET_FIELDS = `
   id
   userId
+  activityId
   clientId
   name
   description

@@ -1,4 +1,10 @@
-import { useQuery, useMutation } from "@apollo/client/react";
+import {
+  useQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import {
   TIME_ENTRIES_QUERY,
   ACTIVE_TIMER_QUERY,
@@ -8,16 +14,22 @@ import {
   UPDATE_TIME_ENTRY_MUTATION,
   DELETE_TIME_ENTRY_MUTATION,
 } from "../../graphql/time-entries.operations";
+import type {
+  TimeEntry,
+  TimeEntryConnection,
+} from "@/types/time-entries.types";
+import { gqlRequest } from "@/lib/api";
 
 const LIMIT = 20;
-const FIRST_PAGE = { limit: LIMIT };
 
-export function useTimeEntries(filters?: {
+type TimeEntryFilters = {
   projectId?: number;
   projectIds?: number[];
   start?: string;
   end?: string;
-}) {
+};
+
+export function useTimeEntries(filters?: TimeEntryFilters) {
   const baseVars = {
     projectId: filters?.projectId,
     ...(filters?.projectIds !== undefined
@@ -25,112 +37,196 @@ export function useTimeEntries(filters?: {
       : {}),
     start: filters?.start,
     end: filters?.end,
-    pagination: FIRST_PAGE,
   };
 
-  const { data, fetchMore, loading, error, refetch } = useQuery(
-    TIME_ENTRIES_QUERY,
-    { variables: baseVars },
-  );
+  const queryKey = [
+    "timeEntries",
+    {
+      projectId: filters?.projectId ?? null,
+      projectIds: filters?.projectIds ?? null,
+      start: filters?.start ?? null,
+      end: filters?.end ?? null,
+    },
+  ] as const;
 
-  const nextCursor = data?.timeEntries.nextCursor ?? null;
-
-  function loadMore() {
-    void fetchMore({
-      variables: {
-        ...baseVars,
-        pagination: { limit: LIMIT, cursor: nextCursor ?? undefined },
-      },
-      updateQuery(prev, { fetchMoreResult }) {
-        if (!fetchMoreResult) return prev;
-        return {
-          timeEntries: {
-            ...fetchMoreResult.timeEntries,
-            items: [
-              ...prev.timeEntries.items,
-              ...fetchMoreResult.timeEntries.items,
-            ],
+  const { data, fetchNextPage, hasNextPage, isLoading, error, refetch } =
+    useInfiniteQuery<TimeEntryConnection>({
+      queryKey,
+      queryFn: ({ pageParam }) =>
+        gqlRequest<{ timeEntries: TimeEntryConnection }>(TIME_ENTRIES_QUERY, {
+          ...baseVars,
+          pagination: {
+            limit: LIMIT,
+            ...(pageParam != null ? { cursor: pageParam as number } : {}),
           },
-        };
-      },
+        }).then((d) => d.timeEntries),
+      initialPageParam: undefined,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     });
-  }
 
   return {
-    entries: data?.timeEntries.items ?? [],
-    total: data?.timeEntries.total ?? 0,
-    hasMore: nextCursor !== null,
-    loadMore,
-    loading,
+    entries: data?.pages.flatMap((p) => p.items) ?? [],
+    total: data?.pages[0]?.total ?? 0,
+    hasMore: !!hasNextPage,
+    loadMore: () => void fetchNextPage(),
+    loading: isLoading,
     error,
     refetch,
   };
 }
 
 export function useActiveTimer() {
-  const { data, loading, refetch } = useQuery(ACTIVE_TIMER_QUERY);
-  return { activeTimer: data?.activeTimer ?? null, loading, refetch };
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["activeTimer"],
+    queryFn: () =>
+      gqlRequest<{ activeTimer: TimeEntry | null }>(ACTIVE_TIMER_QUERY).then(
+        (d) => d.activeTimer,
+      ),
+  });
+  return { activeTimer: data ?? null, loading: isLoading, refetch };
 }
 
+type CreateTimeEntryInput = {
+  projectId?: number;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  billable?: boolean;
+  clockifyEntryId?: string;
+  tagIds?: number[];
+};
+
 export function useCreateTimeEntry() {
-  const [mutate, { loading, error }] = useMutation(CREATE_TIME_ENTRY_MUTATION, {
-    refetchQueries: ["TimeEntries"],
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: (input: CreateTimeEntryInput) =>
+      gqlRequest<{ createTimeEntry: TimeEntry }>(CREATE_TIME_ENTRY_MUTATION, {
+        input,
+      }).then((d) => d.createTimeEntry),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
+    },
   });
   return {
-    createTimeEntry: (
-      input: Parameters<typeof mutate>[0]["variables"]["input"],
-    ) => mutate({ variables: { input } }),
-    loading,
+    createTimeEntry: (input: CreateTimeEntryInput) => mutateAsync(input),
+    loading: isPending,
     error,
   };
 }
 
+type StartTimerInput = {
+  projectId?: number;
+  description?: string;
+  billable?: boolean;
+  tagIds?: number[];
+};
+
 export function useStartTimer() {
-  const [mutate, { loading, error }] = useMutation(START_TIMER_MUTATION, {
-    refetchQueries: [{ query: ACTIVE_TIMER_QUERY }],
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: (input: StartTimerInput) =>
+      gqlRequest<{ startTimer: TimeEntry }>(START_TIMER_MUTATION, {
+        input,
+      }).then((d) => d.startTimer),
+    onSuccess: (started) => {
+      queryClient.setQueryData(["activeTimer"], started);
+    },
   });
   return {
-    startTimer: (input: Parameters<typeof mutate>[0]["variables"]["input"]) =>
-      mutate({ variables: { input } }),
-    loading,
+    startTimer: (input: StartTimerInput) => mutateAsync(input),
+    loading: isPending,
     error,
   };
 }
 
 export function useStopTimer() {
-  const [mutate, { loading, error }] = useMutation(STOP_TIMER_MUTATION, {
-    // "TimeEntries" string refetches all active TimeEntries watchers regardless
-    // of their variables — the page query includes start/end filters that the
-    // fixed { query, variables } form would miss (different cache key).
-    refetchQueries: [{ query: ACTIVE_TIMER_QUERY }, "TimeEntries"],
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: () =>
+      gqlRequest<{ stopTimer: TimeEntry }>(STOP_TIMER_MUTATION).then(
+        (d) => d.stopTimer,
+      ),
+    onSuccess: () => {
+      queryClient.setQueryData(["activeTimer"], null);
+      void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
+    },
   });
   return {
-    stopTimer: () => mutate(),
-    loading,
+    stopTimer: () => mutateAsync(),
+    loading: isPending,
     error,
   };
 }
 
+type UpdateTimeEntryInput = {
+  id: number;
+  projectId?: number | null;
+  description?: string;
+  startTime?: string;
+  endTime?: string;
+  billable?: boolean;
+  tagIds?: number[];
+};
+
 export function useUpdateTimeEntry() {
-  const [mutate, { loading, error }] = useMutation(UPDATE_TIME_ENTRY_MUTATION, {
-    refetchQueries: ["TimeEntries"],
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: (input: UpdateTimeEntryInput) =>
+      gqlRequest<{ updateTimeEntry: TimeEntry }>(UPDATE_TIME_ENTRY_MUTATION, {
+        input,
+      }).then((d) => d.updateTimeEntry),
+    onSuccess: (updated) => {
+      queryClient.setQueriesData<InfiniteData<TimeEntryConnection>>(
+        { queryKey: ["timeEntries"] },
+        (old) =>
+          old
+            ? {
+                ...old,
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  items: page.items.map((e) =>
+                    e.id === updated.id ? updated : e,
+                  ),
+                })),
+              }
+            : old,
+      );
+    },
   });
   return {
-    updateTimeEntry: (
-      input: Parameters<typeof mutate>[0]["variables"]["input"],
-    ) => mutate({ variables: { input } }),
-    loading,
+    updateTimeEntry: (input: UpdateTimeEntryInput) => mutateAsync(input),
+    loading: isPending,
     error,
   };
 }
 
 export function useDeleteTimeEntry() {
-  const [mutate, { loading, error }] = useMutation(DELETE_TIME_ENTRY_MUTATION, {
-    refetchQueries: ["TimeEntries"],
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: (id: number) =>
+      gqlRequest<{ deleteTimeEntry: boolean }>(DELETE_TIME_ENTRY_MUTATION, {
+        id,
+      }).then((d) => d.deleteTimeEntry),
+    onSuccess: (_data, id) => {
+      queryClient.setQueriesData<InfiniteData<TimeEntryConnection>>(
+        { queryKey: ["timeEntries"] },
+        (old) =>
+          old
+            ? {
+                ...old,
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  items: page.items.filter((e) => e.id !== id),
+                  total: page.total - 1,
+                })),
+              }
+            : old,
+      );
+    },
   });
   return {
-    deleteTimeEntry: (id: number) => mutate({ variables: { id } }),
-    loading,
+    deleteTimeEntry: (id: number) => mutateAsync(id),
+    loading: isPending,
     error,
   };
 }

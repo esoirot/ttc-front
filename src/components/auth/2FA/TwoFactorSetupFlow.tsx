@@ -22,7 +22,7 @@ export function TwoFactorSetupFlow({ onEnabled }: TwoFactorSetupFlowProps) {
   async function handleEnable(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const result = await enableTwoFactor(code);
-    const codes = result.data?.enableTwoFactor?.backupCodes;
+    const codes = result?.backupCodes;
     if (codes?.length) onEnabled(codes);
   }
 

@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useApolloClient } from "@apollo/client/react";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import type { ProjectStatus } from "@/types/projects.types";
 import {
   ADMIN_PROJECTS_QUERY,
@@ -6,62 +11,124 @@ import {
   ADMIN_UPDATE_PROJECT_MUTATION,
   ADMIN_DELETE_PROJECT_MUTATION,
 } from "../../graphql/admin.operations";
+import type { AdminProject, AdminConnection } from "@/types/admin.types";
+import { gqlRequest } from "@/lib/api";
 
 const LIMIT = 20;
 
 export function useAdminProjects(status?: ProjectStatus, search?: string) {
-  const { data, loading, fetchMore } = useQuery(ADMIN_PROJECTS_QUERY, {
-    variables: { status, search, pagination: { limit: LIMIT } },
-    fetchPolicy: "cache-and-network",
-  });
-  const conn = data?.adminProjects;
-  return {
-    projects: conn?.items ?? [],
-    loading,
-    total: conn?.total ?? 0,
-    hasMore: conn?.nextCursor !== null && conn?.nextCursor !== undefined,
-    loadMore: () =>
-      fetchMore({
-        variables: {
+  const { data, fetchNextPage, hasNextPage, isLoading } = useInfiniteQuery<
+    AdminConnection<AdminProject>
+  >({
+    queryKey: [
+      "adminProjects",
+      { status: status ?? null, search: search ?? null },
+    ],
+    queryFn: ({ pageParam }) =>
+      gqlRequest<{ adminProjects: AdminConnection<AdminProject> }>(
+        ADMIN_PROJECTS_QUERY,
+        {
           status,
           search,
-          pagination: { limit: LIMIT, cursor: conn?.nextCursor ?? undefined },
-        },
-        updateQuery: (prev, { fetchMoreResult }) => ({
-          adminProjects: {
-            ...fetchMoreResult.adminProjects,
-            items: [
-              ...prev.adminProjects.items,
-              ...fetchMoreResult.adminProjects.items,
-            ],
+          pagination: {
+            limit: LIMIT,
+            ...(pageParam != null ? { cursor: pageParam as number } : {}),
           },
-        }),
-      }),
+        },
+      ).then((d) => d.adminProjects),
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
+
+  return {
+    projects: data?.pages.flatMap((p) => p.items) ?? [],
+    loading: isLoading,
+    total: data?.pages[0]?.total ?? 0,
+    hasMore: !!hasNextPage,
+    loadMore: () => void fetchNextPage(),
   };
 }
 
 export function useAdminCrudProjects() {
-  const client = useApolloClient();
-  const refetch = () =>
-    client.refetchQueries({ include: [ADMIN_PROJECTS_QUERY] });
+  const queryClient = useQueryClient();
+  const invalidate = () =>
+    void queryClient.invalidateQueries({ queryKey: ["adminProjects"] });
 
-  const [create] = useMutation(ADMIN_CREATE_PROJECT_MUTATION, {
-    onCompleted: () => void refetch(),
+  const { mutateAsync: create } = useMutation({
+    mutationFn: (input: {
+      userId: number;
+      title: string;
+      status?: ProjectStatus;
+      clientId?: number;
+      currency?: string;
+    }) =>
+      gqlRequest<{ adminCreateProject: AdminProject }>(
+        ADMIN_CREATE_PROJECT_MUTATION,
+        { input },
+      ).then((d) => d.adminCreateProject),
+    onSuccess: invalidate,
   });
-  const [update] = useMutation(ADMIN_UPDATE_PROJECT_MUTATION, {
-    onCompleted: () => void refetch(),
+
+  const { mutateAsync: update } = useMutation({
+    mutationFn: (input: {
+      id: number;
+      title?: string;
+      status?: ProjectStatus;
+      description?: string;
+      wordCount?: number;
+      unitPrice?: number;
+      deadline?: string;
+    }) =>
+      gqlRequest<{ adminUpdateProject: AdminProject }>(
+        ADMIN_UPDATE_PROJECT_MUTATION,
+        { input },
+      ).then((d) => d.adminUpdateProject),
+    onSuccess: (updated) => {
+      queryClient.setQueriesData<InfiniteData<AdminConnection<AdminProject>>>(
+        { queryKey: ["adminProjects"] },
+        (old) =>
+          old
+            ? {
+                ...old,
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  items: page.items.map((p) =>
+                    p.id === updated.id ? updated : p,
+                  ),
+                })),
+              }
+            : old,
+      );
+    },
   });
-  const [remove] = useMutation(ADMIN_DELETE_PROJECT_MUTATION, {
-    onCompleted: () => void refetch(),
+
+  const { mutateAsync: remove } = useMutation({
+    mutationFn: (id: number) =>
+      gqlRequest<{ adminDeleteProject: { id: number } }>(
+        ADMIN_DELETE_PROJECT_MUTATION,
+        { id },
+      ).then((d) => d.adminDeleteProject),
+    onSuccess: (_data, id) => {
+      queryClient.setQueriesData<InfiniteData<AdminConnection<AdminProject>>>(
+        { queryKey: ["adminProjects"] },
+        (old) =>
+          old
+            ? {
+                ...old,
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  items: page.items.filter((p) => p.id !== id),
+                  total: page.total - 1,
+                })),
+              }
+            : old,
+      );
+    },
   });
 
   return {
-    createProject: (
-      input: Parameters<typeof create>[0]["variables"]["input"],
-    ) => create({ variables: { input } }),
-    updateProject: (
-      input: Parameters<typeof update>[0]["variables"]["input"],
-    ) => update({ variables: { input } }),
-    deleteProject: (id: number) => remove({ variables: { id } }),
+    createProject: (input: Parameters<typeof create>[0]) => create(input),
+    updateProject: (input: Parameters<typeof update>[0]) => update(input),
+    deleteProject: (id: number) => remove(id),
   };
 }

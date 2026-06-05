@@ -16,6 +16,7 @@ import { CURRENCIES, CURRENCY_SYMBOLS, TYPE_UNIT } from "@/constants/rates";
 import { LANGUAGES } from "@/constants/languages";
 import { useClients } from "@/hooks/clients/useClients";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
+import { useMyActivities } from "@/hooks/activities/useActivities";
 
 export function RateForm({
   type,
@@ -25,10 +26,14 @@ export function RateForm({
   saving,
 }: TranslationRateFormProps) {
   const { clients } = useClients();
+  const { activities } = useMyActivities();
   const { user } = useCurrentUser();
   const userCurrency = user?.defaultCurrency ?? "EUR";
 
   const [name, setName] = useState(initial?.name ?? "");
+  const [activityId, setActivityId] = useState<string>(
+    initial?.activityId != null ? String(initial.activityId) : "__none__",
+  );
   const [clientId, setClientId] = useState<string>(
     initial?.clientId != null ? String(initial.clientId) : "__none__",
   );
@@ -51,6 +56,11 @@ export function RateForm({
   const activeCurrency = useOtherCurrency ? currency : userCurrency;
   const sym = CURRENCY_SYMBOLS[activeCurrency] ?? activeCurrency;
   const maxDp = type === "PER_WORD" ? 4 : 2;
+  const selectedActivity =
+    activityId !== "__none__"
+      ? activities.find((a) => String(a.id) === activityId)
+      : undefined;
+  const showLanguageFields = selectedActivity?.activityType === "TRANSLATOR";
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -58,11 +68,11 @@ export function RateForm({
       setError("Name is required.");
       return;
     }
-    if (type === "PER_WORD" && !sourceLanguage) {
+    if (showLanguageFields && !sourceLanguage) {
       setError("Source language is required.");
       return;
     }
-    if (type === "PER_WORD" && !targetLanguage) {
+    if (showLanguageFields && !targetLanguage) {
       setError("Target language is required.");
       return;
     }
@@ -77,6 +87,7 @@ export function RateForm({
       amount: parsed,
       currency: activeCurrency,
       description: description.trim() || undefined,
+      activityId: activityId === "__none__" ? null : Number(activityId),
       clientId: clientId === "__none__" ? null : Number(clientId),
       sourceLanguage: sourceLanguage || undefined,
       targetLanguage: targetLanguage || undefined,
@@ -101,6 +112,23 @@ export function RateForm({
             }
             required
           />
+        </div>
+
+        <div className="col-span-2 flex flex-col gap-1.5">
+          <Label htmlFor="rate-activity">Activity (optional)</Label>
+          <Select value={activityId} onValueChange={setActivityId}>
+            <SelectTrigger id="rate-activity">
+              <SelectValue placeholder="No activity" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">No activity</SelectItem>
+              {activities.map((a) => (
+                <SelectItem key={a.id} value={String(a.id)}>
+                  {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="col-span-2 flex flex-col gap-1.5">
@@ -131,37 +159,41 @@ export function RateForm({
           />
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Label>Source language</Label>
-          <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select…" />
-            </SelectTrigger>
-            <SelectContent>
-              {LANGUAGES.map((l) => (
-                <SelectItem key={l.code} value={l.code}>
-                  {l.code} — {l.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {showLanguageFields && (
+          <div className="flex flex-col gap-1.5">
+            <Label>Source language</Label>
+            <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select…" />
+              </SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map((l) => (
+                  <SelectItem key={l.code} value={l.code}>
+                    {l.code} — {l.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
-        <div className="flex flex-col gap-1.5">
-          <Label>Target language</Label>
-          <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select…" />
-            </SelectTrigger>
-            <SelectContent>
-              {LANGUAGES.map((l) => (
-                <SelectItem key={l.code} value={l.code}>
-                  {l.code} — {l.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {showLanguageFields && (
+          <div className="flex flex-col gap-1.5">
+            <Label>Target language</Label>
+            <Select value={targetLanguage} onValueChange={setTargetLanguage}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select…" />
+              </SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map((l) => (
+                  <SelectItem key={l.code} value={l.code}>
+                    {l.code} — {l.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="rate-amount">Amount ({TYPE_UNIT[type]})</Label>
