@@ -46,6 +46,7 @@ export function TasksTab({
   taskLoadMore,
   members,
   memberMap,
+  onOpenModal,
 }: TasksTabProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -143,13 +144,7 @@ export function TasksTab({
                             void updateTask({ id: tid, status: s })
                           }
                           onDelete={(tid) => void deleteTask(tid)}
-                          onUpdate={(tid, aId, d) =>
-                            void updateTask({
-                              id: tid,
-                              assigneeId: aId,
-                              dueDate: d,
-                            })
-                          }
+                          onOpenModal={onOpenModal}
                           memberMap={memberMap}
                           members={members}
                         />

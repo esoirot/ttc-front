@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,12 +7,14 @@ import { useClients } from "@/hooks/clients/useClients";
 import { useTasks } from "@/hooks/tasks/useTasks";
 import { useProjectTimeTab } from "@/hooks/projects/useProjectTimeTab";
 import { useMembers } from "@/hooks/account/useUsers";
+import { useCurrentUser } from "@/hooks/auth/useAuth";
 import type { Member } from "@/types/users.types";
 import { ProjectHeader } from "./headers/ProjectHeader";
 import { OverviewTab } from "./tabs/OverviewTab";
 import { ProjectTaskList } from "./lists/ProjectTaskList";
 import { TasksTab } from "./tabs/TasksTab";
 import { TimeTab } from "./tabs/TimeTab";
+import { TaskDetailModal } from "./modals/TaskDetailModal";
 
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +30,9 @@ export function ProjectDetail() {
   const timeTab = useProjectTimeTab(projectId);
   const { members } = useMembers();
   const { clients } = useClients();
+  const { user: currentUser } = useCurrentUser();
+
+  const [openTaskId, setOpenTaskId] = useState<number | null>(null);
 
   const memberMap = Object.fromEntries(
     members.map((m: Member) => [m.id, m.name ?? m.email]),
@@ -70,7 +76,11 @@ export function ProjectDetail() {
         </TabsList>
 
         <TabsContent value="tasks" className="mt-4">
-          <ProjectTaskList projectId={projectId} members={members} />
+          <ProjectTaskList
+            projectId={projectId}
+            members={members}
+            onOpenModal={setOpenTaskId}
+          />
         </TabsContent>
 
         <TabsContent value="kanban" className="mt-4">
@@ -82,6 +92,7 @@ export function ProjectDetail() {
             taskLoadMore={taskLoadMore}
             members={members}
             memberMap={memberMap}
+            onOpenModal={setOpenTaskId}
           />
         </TabsContent>
 
@@ -105,6 +116,16 @@ export function ProjectDetail() {
           />
         </TabsContent>
       </Tabs>
+
+      {openTaskId !== null && (
+        <TaskDetailModal
+          taskId={openTaskId}
+          projectId={projectId}
+          open={openTaskId !== null}
+          onClose={() => setOpenTaskId(null)}
+          currentUserId={currentUser?.id}
+        />
+      )}
     </div>
   );
 }

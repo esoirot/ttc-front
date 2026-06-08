@@ -9,20 +9,7 @@ import {
   useDeleteTask,
 } from "@/hooks/tasks/useTasks";
 import type { Task, TaskStatus } from "@/types/tasks.types";
-import type {
-  TaskEditForm,
-  ProjectTaskListProps,
-} from "@/types/projects.types";
-
-function defaultForm(task: Task): TaskEditForm {
-  return {
-    title: task.title,
-    description: task.description ?? "",
-    status: task.status,
-    dueDate: task.dueDate?.slice(0, 10) ?? "",
-    assigneeId: task.assigneeId ? String(task.assigneeId) : "",
-  };
-}
+import type { ProjectTaskListProps } from "@/types/projects.types";
 
 export function useProjectTaskList({
   projectId,
@@ -30,18 +17,10 @@ export function useProjectTaskList({
 }: ProjectTaskListProps) {
   const { tasks, loading, hasMore, loadMore } = useTasks(projectId);
   const { createTask, loading: createLoading } = useCreateTask(projectId);
-  const { updateTask, loading: saving } = useUpdateTask(projectId);
+  const { updateTask } = useUpdateTask(projectId);
   const { deleteTask } = useDeleteTask(projectId);
 
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "ALL">("ALL");
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState<TaskEditForm>({
-    title: "",
-    description: "",
-    status: "TODO",
-    dueDate: "",
-    assigneeId: "",
-  });
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<TaskStatus>("TODO");
   const [localOrder, setLocalOrder] = useState<number[] | null>(null);
@@ -69,23 +48,6 @@ export function useProjectTaskList({
     await createTask({ projectId, title: newTitle.trim() });
     setNewTitle("");
     setShowCreate(false);
-  }
-
-  function handleStartEdit(task: Task) {
-    setForm(defaultForm(task));
-    setEditingId(task.id);
-  }
-
-  async function handleSave(taskId: number) {
-    await updateTask({
-      id: taskId,
-      title: form.title || undefined,
-      description: form.description || undefined,
-      status: form.status,
-      dueDate: form.dueDate || undefined,
-      assigneeId: form.assigneeId ? Number(form.assigneeId) : undefined,
-    });
-    setEditingId(null);
   }
 
   function handleSelect(id: number, checked: boolean) {
@@ -139,18 +101,12 @@ export function useProjectTaskList({
     hasMore,
     loadMore,
     createLoading,
-    saving,
     deleteTask,
     statusFilter,
     setStatusFilter,
-    editingId,
-    setEditingId,
-    form,
-    setForm,
     selected,
     bulkStatus,
     setBulkStatus,
-    localOrder,
     showCreate,
     setShowCreate,
     newTitle,
@@ -160,8 +116,6 @@ export function useProjectTaskList({
     allSelected,
     members,
     handleCreate,
-    handleStartEdit,
-    handleSave,
     handleSelect,
     handleSelectAll,
     handleBulkDelete,

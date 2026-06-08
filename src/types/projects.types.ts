@@ -90,16 +90,9 @@ export interface TaskEditForm {
 export interface SortableRowProps {
   task: Task;
   selected: boolean;
-  editingId: number | null;
-  form: TaskEditForm;
-  saving: boolean;
-  members: Member[];
   onSelect: (id: number, checked: boolean) => void;
-  onStartEdit: (task: Task) => void;
-  onSave: (id: number) => void;
-  onCancelEdit: () => void;
+  onOpenModal: (taskId: number) => void;
   onDelete: (id: number) => void;
-  setForm: React.Dispatch<React.SetStateAction<TaskEditForm>>;
 }
 
 export interface ProjectTaskListProps {
@@ -111,7 +104,7 @@ export interface SortableTaskProps {
   task: Task;
   onStatusChange: (id: number, status: TaskStatus) => void;
   onDelete: (id: number) => void;
-  onUpdate: (id: number, assigneeId?: number, dueDate?: string) => void;
+  onOpenModal: (taskId: number) => void;
   memberMap: Record<number, string>;
   members: Member[];
 }
@@ -124,6 +117,7 @@ export interface TasksTabProps {
   taskLoadMore: () => void;
   members: Member[];
   memberMap: Record<number, string>;
+  onOpenModal: (taskId: number) => void;
 }
 
 export interface TimeTabProps {

@@ -368,6 +368,8 @@ export function ProjectHeader({
     );
   }
 
+  const client = clients.find((c) => c.id === project.clientId);
+
   const pricing = [
     project.fixedFee != null && `Fixed ${project.fixedFee} ${project.currency}`,
     project.hourlyRate != null &&
@@ -381,7 +383,12 @@ export function ProjectHeader({
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{project.title}</h1>
+            <h1 className="text-2xl font-bold">
+              {client && (
+                <span className="text-muted-foreground">{client.name} — </span>
+              )}
+              {project.title}
+            </h1>
             <Badge
               variant={project.status === "ACTIVE" ? "default" : "secondary"}
             >

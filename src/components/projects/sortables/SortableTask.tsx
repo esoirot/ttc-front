@@ -1,13 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,36 +11,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { TaskStatus } from "@/types/tasks.types";
-import type { Member } from "@/types/users.types";
 import type { SortableTaskProps } from "@/types/projects.types";
-import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
 import { renderAssigneeDisplay } from "@/hooks/tasks/useTaskDisplay";
 import { useSortableItem } from "@/hooks/projects/useSortableItem";
-import { useSortableTaskEdit } from "@/hooks/projects/useSortableTaskEdit";
 
 export function SortableTask({
   task,
-  onStatusChange,
   onDelete,
-  onUpdate,
+  onOpenModal,
   memberMap,
-  members,
 }: SortableTaskProps) {
   const { setNodeRef, style, attributes, listeners } = useSortableItem(
     task.id,
     0,
   );
-  const {
-    editing,
-    setEditing,
-    editAssigneeId,
-    setEditAssigneeId,
-    editDueDate,
-    setEditDueDate,
-    handleStartEdit,
-    handleSave,
-  } = useSortableTaskEdit(task, onUpdate);
 
   const isOverdue = task.dueDate ? new Date(task.dueDate) < new Date() : false;
 
@@ -85,7 +61,10 @@ export function SortableTask({
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card>
+      <Card
+        className="cursor-pointer hover:bg-accent/30 transition-colors"
+        onClick={() => onOpenModal(task.id)}
+      >
         <CardContent className="py-2 px-3 pr-6">
           <div className="flex items-center gap-2">
             <Button
@@ -96,109 +75,24 @@ export function SortableTask({
               {...listeners}
               aria-label="Drag to reorder"
               tabIndex={0}
+              onClick={(e) => e.stopPropagation()}
             >
               ⠿
             </Button>
             <div className="flex-1 min-w-0">
               <p className="text-sm truncate">{task.title}</p>
-              {!editing && (
-                <div className="flex items-center gap-2 mt-0.5">
-                  {renderAssigneeDisplay(task.assigneeId, memberMap)}
-                  {task.dueDate && (
-                    <span
-                      className={`text-xs ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}
-                    >
-                      {task.dueDate.slice(0, 10)}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-            {!editing && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-1 text-muted-foreground hover:text-foreground shrink-0"
-                onClick={handleStartEdit}
-                aria-label="Edit task"
-              >
-                ✎
-              </Button>
-            )}
-          </div>
-
-          {editing && (
-            <div className="mt-2 flex flex-col gap-2">
-              <div className="hidden">
-                <Select
-                  value={editAssigneeId || "__none__"}
-                  onValueChange={(val) =>
-                    setEditAssigneeId(val === "__none__" ? "" : val)
-                  }
-                >
-                  <SelectTrigger
-                    size="sm"
-                    className="w-full h-7 text-xs"
-                    aria-label="Assignee"
+              <div className="flex items-center gap-2 mt-0.5">
+                {renderAssigneeDisplay(task.assigneeId, memberMap)}
+                {task.dueDate && (
+                  <span
+                    className={`text-xs ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}
                   >
-                    <SelectValue placeholder="Assignee" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">No assignee</SelectItem>
-                    {members.map((m: Member) => (
-                      <SelectItem key={m.id} value={String(m.id)}>
-                        {m.name ?? m.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Select
-                value={task.status}
-                onValueChange={(val) =>
-                  onStatusChange(task.id, val as TaskStatus)
-                }
-              >
-                <SelectTrigger size="sm" className="w-full h-7 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TASK_STATUSES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {STATUS_LABELS[s]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Input
-                aria-label="Due date"
-                type="date"
-                value={editDueDate}
-                onChange={(e) => setEditDueDate(e.target.value)}
-                className="h-7 text-xs"
-              />
-
-              <div className="flex gap-1">
-                <Button
-                  size="sm"
-                  className="h-7 text-xs flex-1"
-                  onClick={handleSave}
-                >
-                  Save
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 text-xs"
-                  onClick={() => setEditing(false)}
-                >
-                  Cancel
-                </Button>
+                    {task.dueDate.slice(0, 10)}
+                  </span>
+                )}
               </div>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
     </div>

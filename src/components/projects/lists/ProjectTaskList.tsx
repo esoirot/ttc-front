@@ -32,20 +32,19 @@ import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
 import { useProjectTaskList } from "@/hooks/projects/useProjectTaskList";
 import { SortableRow } from "../rows/SortableRow";
 
-export function ProjectTaskList({ projectId, members }: ProjectTaskListProps) {
+interface Props extends ProjectTaskListProps {
+  onOpenModal: (taskId: number) => void;
+}
+
+export function ProjectTaskList({ projectId, members, onOpenModal }: Props) {
   const {
     loading,
     hasMore,
     loadMore,
     createLoading,
-    saving,
     deleteTask,
     statusFilter,
     setStatusFilter,
-    editingId,
-    setEditingId,
-    form,
-    setForm,
     selected,
     bulkStatus,
     setBulkStatus,
@@ -57,8 +56,6 @@ export function ProjectTaskList({ projectId, members }: ProjectTaskListProps) {
     filtered,
     allSelected,
     handleCreate,
-    handleStartEdit,
-    handleSave,
     handleSelect,
     handleSelectAll,
     handleBulkDelete,
@@ -233,16 +230,9 @@ export function ProjectTaskList({ projectId, members }: ProjectTaskListProps) {
                   key={task.id}
                   task={task}
                   selected={selected.has(task.id)}
-                  editingId={editingId}
-                  form={form}
-                  saving={saving}
-                  members={members}
                   onSelect={handleSelect}
-                  onStartEdit={handleStartEdit}
-                  onSave={(id) => void handleSave(id)}
-                  onCancelEdit={() => setEditingId(null)}
+                  onOpenModal={onOpenModal}
                   onDelete={(id) => void deleteTask(id)}
-                  setForm={setForm}
                 />
               ))}
             </SortableContext>

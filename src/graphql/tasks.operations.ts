@@ -4,6 +4,7 @@ import type {
   TaskStatus,
   Subtask,
   TaskComment,
+  TaskLabel,
   Task,
   TaskDetail,
   TaskConnection,
@@ -91,22 +92,36 @@ export const TASK_QUERY: TypedDocumentNode<
   query Task($id: Int!) {
     task(id: $id) {
       ${TASK_FIELDS}
-      subtasks { id taskId title done createdAt updatedAt }
+      subtasks { id taskId checklistTitle title done dueDate createdAt updatedAt }
       comments { id taskId authorId body createdAt updatedAt }
+      labels { id taskId name color createdAt }
+      activities {
+        id taskId userId type payload createdAt
+        user { id name }
+      }
     }
   }
 `;
 
 export const CREATE_SUBTASK_MUTATION: TypedDocumentNode<
   { createSubtask: Subtask },
-  { input: { taskId: number; title: string } }
+  {
+    input: {
+      taskId: number;
+      checklistTitle?: string;
+      title: string;
+      dueDate?: string;
+    };
+  }
 > = gql`
   mutation CreateSubtask($input: CreateSubtaskInput!) {
     createSubtask(input: $input) {
       id
       taskId
+      checklistTitle
       title
       done
+      dueDate
       createdAt
       updatedAt
     }
@@ -115,14 +130,24 @@ export const CREATE_SUBTASK_MUTATION: TypedDocumentNode<
 
 export const UPDATE_SUBTASK_MUTATION: TypedDocumentNode<
   { updateSubtask: Subtask },
-  { input: { id: number; title?: string; done?: boolean } }
+  {
+    input: {
+      id: number;
+      checklistTitle?: string;
+      title?: string;
+      done?: boolean;
+      dueDate?: string | null;
+    };
+  }
 > = gql`
   mutation UpdateSubtask($input: UpdateSubtaskInput!) {
     updateSubtask(input: $input) {
       id
       taskId
+      checklistTitle
       title
       done
+      dueDate
       createdAt
       updatedAt
     }
@@ -135,6 +160,19 @@ export const DELETE_SUBTASK_MUTATION: TypedDocumentNode<
 > = gql`
   mutation DeleteSubtask($id: Int!) {
     deleteSubtask(id: $id)
+  }
+`;
+
+export const RENAME_CHECKLIST_MUTATION: TypedDocumentNode<
+  { renameChecklist: boolean },
+  { taskId: number; oldTitle: string; newTitle: string }
+> = gql`
+  mutation RenameChecklist(
+    $taskId: Int!
+    $oldTitle: String!
+    $newTitle: String!
+  ) {
+    renameChecklist(taskId: $taskId, oldTitle: $oldTitle, newTitle: $newTitle)
   }
 `;
 
@@ -176,5 +214,29 @@ export const DELETE_COMMENT_MUTATION: TypedDocumentNode<
 > = gql`
   mutation DeleteTaskComment($id: Int!) {
     deleteTaskComment(id: $id)
+  }
+`;
+
+export const CREATE_TASK_LABEL_MUTATION: TypedDocumentNode<
+  { createTaskLabel: TaskLabel },
+  { input: { taskId: number; name: string; color?: string } }
+> = gql`
+  mutation CreateTaskLabel($input: CreateTaskLabelInput!) {
+    createTaskLabel(input: $input) {
+      id
+      taskId
+      name
+      color
+      createdAt
+    }
+  }
+`;
+
+export const DELETE_TASK_LABEL_MUTATION: TypedDocumentNode<
+  { deleteTaskLabel: boolean },
+  { id: number }
+> = gql`
+  mutation DeleteTaskLabel($id: Int!) {
+    deleteTaskLabel(id: $id)
   }
 `;

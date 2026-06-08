@@ -15,9 +15,12 @@ import {
   CREATE_SUBTASK_MUTATION,
   UPDATE_SUBTASK_MUTATION,
   DELETE_SUBTASK_MUTATION,
+  RENAME_CHECKLIST_MUTATION,
   CREATE_COMMENT_MUTATION,
   UPDATE_COMMENT_MUTATION,
   DELETE_COMMENT_MUTATION,
+  CREATE_TASK_LABEL_MUTATION,
+  DELETE_TASK_LABEL_MUTATION,
 } from "../../graphql/tasks.operations";
 import type {
   Task,
@@ -26,6 +29,7 @@ import type {
   TaskStatus,
   Subtask,
   TaskComment,
+  TaskLabel,
 } from "@/types/tasks.types";
 import { gqlRequest } from "@/lib/api";
 
@@ -156,6 +160,7 @@ export function useUpdateTask(projectId: number) {
       queryClient.setQueryData<TaskDetail>(["task", updated.id], (old) =>
         old ? { ...old, ...updated } : old,
       );
+      void queryClient.invalidateQueries({ queryKey: ["task", updated.id] });
     },
   });
   return {
@@ -232,18 +237,27 @@ export function useUpdateMyTask() {
 export function useCreateSubtask(taskId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (title: string) =>
+    mutationFn: (input: {
+      checklistTitle?: string;
+      title: string;
+      dueDate?: string;
+    }) =>
       gqlRequest<{ createSubtask: Subtask }>(CREATE_SUBTASK_MUTATION, {
-        input: { taskId, title },
+        input: { taskId, ...input },
       }).then((d) => d.createSubtask),
     onSuccess: (newSubtask) => {
       queryClient.setQueryData<TaskDetail>(["task", taskId], (old) =>
         old ? { ...old, subtasks: [...old.subtasks, newSubtask] } : old,
       );
+      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });
   return {
-    createSubtask: (title: string) => mutateAsync(title),
+    createSubtask: (input: {
+      checklistTitle?: string;
+      title: string;
+      dueDate?: string;
+    }) => mutateAsync(input),
     loading: isPending,
   };
 }
@@ -251,7 +265,13 @@ export function useCreateSubtask(taskId: number) {
 export function useUpdateSubtask(taskId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (input: { id: number; title?: string; done?: boolean }) =>
+    mutationFn: (input: {
+      id: number;
+      checklistTitle?: string;
+      title?: string;
+      done?: boolean;
+      dueDate?: string | null;
+    }) =>
       gqlRequest<{ updateSubtask: Subtask }>(UPDATE_SUBTASK_MUTATION, {
         input,
       }).then((d) => d.updateSubtask),
@@ -266,11 +286,17 @@ export function useUpdateSubtask(taskId: number) {
             }
           : old,
       );
+      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });
   return {
-    updateSubtask: (input: { id: number; title?: string; done?: boolean }) =>
-      mutateAsync(input),
+    updateSubtask: (input: {
+      id: number;
+      checklistTitle?: string;
+      title?: string;
+      done?: boolean;
+      dueDate?: string | null;
+    }) => mutateAsync(input),
     loading: isPending,
   };
 }
@@ -288,9 +314,36 @@ export function useDeleteSubtask(taskId: number) {
           ? { ...old, subtasks: old.subtasks.filter((s) => s.id !== id) }
           : old,
       );
+      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });
   return { deleteSubtask: (id: number) => mutateAsync(id) };
+}
+
+export function useRenameChecklist(taskId: number) {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({
+      oldTitle,
+      newTitle,
+    }: {
+      oldTitle: string;
+      newTitle: string;
+    }) =>
+      gqlRequest<{ renameChecklist: boolean }>(RENAME_CHECKLIST_MUTATION, {
+        taskId,
+        oldTitle,
+        newTitle,
+      }).then((d) => d.renameChecklist),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+    },
+  });
+  return {
+    renameChecklist: (oldTitle: string, newTitle: string) =>
+      mutateAsync({ oldTitle, newTitle }),
+    loading: isPending,
+  };
 }
 
 export function useCreateComment(taskId: number) {
@@ -304,6 +357,7 @@ export function useCreateComment(taskId: number) {
       queryClient.setQueryData<TaskDetail>(["task", taskId], (old) =>
         old ? { ...old, comments: [...old.comments, newComment] } : old,
       );
+      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });
   return {
@@ -330,6 +384,7 @@ export function useUpdateComment(taskId: number) {
             }
           : old,
       );
+      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });
   return {
@@ -351,7 +406,44 @@ export function useDeleteComment(taskId: number) {
           ? { ...old, comments: old.comments.filter((c) => c.id !== id) }
           : old,
       );
+      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });
   return { deleteComment: (id: number) => mutateAsync(id) };
+}
+
+export function useCreateTaskLabel(taskId: number) {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (input: { name: string; color?: string }) =>
+      gqlRequest<{ createTaskLabel: TaskLabel }>(CREATE_TASK_LABEL_MUTATION, {
+        input: { taskId, ...input },
+      }).then((d) => d.createTaskLabel),
+    onSuccess: (newLabel) => {
+      queryClient.setQueryData<TaskDetail>(["task", taskId], (old) =>
+        old ? { ...old, labels: [...old.labels, newLabel] } : old,
+      );
+    },
+  });
+  return {
+    createLabel: (input: { name: string; color?: string }) =>
+      mutateAsync(input),
+    loading: isPending,
+  };
+}
+
+export function useDeleteTaskLabel(taskId: number) {
+  const queryClient = useQueryClient();
+  const { mutateAsync } = useMutation({
+    mutationFn: (id: number) =>
+      gqlRequest<{ deleteTaskLabel: boolean }>(DELETE_TASK_LABEL_MUTATION, {
+        id,
+      }).then((d) => d.deleteTaskLabel),
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<TaskDetail>(["task", taskId], (old) =>
+        old ? { ...old, labels: old.labels.filter((l) => l.id !== id) } : old,
+      );
+    },
+  });
+  return { deleteLabel: (id: number) => mutateAsync(id) };
 }
