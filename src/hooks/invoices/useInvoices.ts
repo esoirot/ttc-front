@@ -22,7 +22,7 @@ import type {
   InvoiceConnection,
   InvoiceStatus,
 } from "@/types/invoices.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 const LIMIT = 20;
 
@@ -48,7 +48,7 @@ export function useInvoices(
         },
       ],
       queryFn: ({ pageParam }) =>
-        gqlRequest<{ invoices: InvoiceConnection }>(INVOICES_QUERY, {
+        gqlFetch<{ invoices: InvoiceConnection }>(INVOICES_QUERY, {
           ...baseVars,
           pagination: {
             limit: LIMIT,
@@ -73,7 +73,7 @@ export function useInvoice(id: number) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["invoice", id],
     queryFn: () =>
-      gqlRequest<{ invoice: Invoice }>(INVOICE_QUERY, { id }).then(
+      gqlFetch<{ invoice: Invoice }>(INVOICE_QUERY, { id }).then(
         (d) => d.invoice,
       ),
     enabled: !!id,
@@ -90,7 +90,7 @@ export function useCreateInvoice() {
       dueDate?: string;
       notes?: string;
     }) =>
-      gqlRequest<{ createInvoice: Invoice }>(CREATE_INVOICE_MUTATION, {
+      gqlMutate<{ createInvoice: Invoice }>(CREATE_INVOICE_MUTATION, {
         input,
       }).then((d) => d.createInvoice),
     onSuccess: () => {
@@ -115,7 +115,7 @@ export function useGenerateInvoice() {
       dueDate?: string;
       hourlyRate?: number;
     }) =>
-      gqlRequest<{ generateInvoice: Invoice }>(GENERATE_INVOICE_MUTATION, {
+      gqlMutate<{ generateInvoice: Invoice }>(GENERATE_INVOICE_MUTATION, {
         input,
       }).then((d) => d.generateInvoice),
     onSuccess: () => {
@@ -142,7 +142,7 @@ export function useUpdateInvoice(id: number) {
       notes?: string;
       clientId?: number;
     }) =>
-      gqlRequest<{ updateInvoice: Invoice }>(UPDATE_INVOICE_MUTATION, {
+      gqlMutate<{ updateInvoice: Invoice }>(UPDATE_INVOICE_MUTATION, {
         input,
       }).then((d) => d.updateInvoice),
     onSuccess: (updated) => {
@@ -176,7 +176,7 @@ export function useDeleteInvoice() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (invoiceId: number) =>
-      gqlRequest<{ deleteInvoice: boolean }>(DELETE_INVOICE_MUTATION, {
+      gqlMutate<{ deleteInvoice: boolean }>(DELETE_INVOICE_MUTATION, {
         id: invoiceId,
       }).then((d) => d.deleteInvoice),
     onSuccess: (_data, invoiceId) => {
@@ -215,7 +215,7 @@ export function useAddInvoiceItem(invoiceId: number) {
       projectId?: number;
       timeEntryId?: number;
     }) =>
-      gqlRequest<{ addInvoiceItem: InvoiceItem }>(ADD_INVOICE_ITEM_MUTATION, {
+      gqlMutate<{ addInvoiceItem: InvoiceItem }>(ADD_INVOICE_ITEM_MUTATION, {
         input,
       }).then((d) => d.addInvoiceItem),
     onSuccess: (newItem) => {
@@ -240,7 +240,7 @@ export function useUpdateInvoiceItem(invoiceId: number) {
       quantity?: number;
       unitPrice?: number;
     }) =>
-      gqlRequest<{ updateInvoiceItem: InvoiceItem }>(
+      gqlMutate<{ updateInvoiceItem: InvoiceItem }>(
         UPDATE_INVOICE_ITEM_MUTATION,
         { input },
       ).then((d) => d.updateInvoiceItem),
@@ -271,7 +271,7 @@ export function useRemoveInvoiceItem(invoiceId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (itemId: number) =>
-      gqlRequest<{ removeInvoiceItem: boolean }>(REMOVE_INVOICE_ITEM_MUTATION, {
+      gqlMutate<{ removeInvoiceItem: boolean }>(REMOVE_INVOICE_ITEM_MUTATION, {
         id: itemId,
       }).then((d) => d.removeInvoiceItem),
     onSuccess: (_data, itemId) => {

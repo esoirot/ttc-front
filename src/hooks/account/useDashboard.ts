@@ -3,7 +3,7 @@ import {
   DASHBOARD_QUERY,
   type DashboardData,
 } from "../../graphql/dashboard.operations";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch } from "@/lib/apollo";
 
 export function useDashboard(): {
   dashboard: DashboardData | null;
@@ -12,7 +12,7 @@ export function useDashboard(): {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: () =>
-      gqlRequest<{ dashboard: DashboardData }>(DASHBOARD_QUERY).then(
+      gqlFetch<{ dashboard: DashboardData }>(DASHBOARD_QUERY).then(
         (d) => d.dashboard,
       ),
   });

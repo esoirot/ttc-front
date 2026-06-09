@@ -10,13 +10,13 @@ import type {
   CreateRateSheetInput,
   UpdateRateSheetInput,
 } from "@/types/rate-sheets.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 export function useRateSheets() {
   const { data, isLoading } = useQuery({
     queryKey: ["rateSheets"],
     queryFn: () =>
-      gqlRequest<{ rateSheets: RateSheet[] }>(RATE_SHEETS_QUERY).then(
+      gqlFetch<{ rateSheets: RateSheet[] }>(RATE_SHEETS_QUERY).then(
         (d) => d.rateSheets,
       ),
   });
@@ -27,7 +27,7 @@ export function useCreateRateSheet() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (input: CreateRateSheetInput) =>
-      gqlRequest<{ createRateSheet: RateSheet }>(CREATE_RATE_SHEET_MUTATION, {
+      gqlMutate<{ createRateSheet: RateSheet }>(CREATE_RATE_SHEET_MUTATION, {
         input,
       }).then((d) => d.createRateSheet),
     onSuccess: (created) => {
@@ -47,7 +47,7 @@ export function useUpdateRateSheet() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (input: UpdateRateSheetInput) =>
-      gqlRequest<{ updateRateSheet: RateSheet }>(UPDATE_RATE_SHEET_MUTATION, {
+      gqlMutate<{ updateRateSheet: RateSheet }>(UPDATE_RATE_SHEET_MUTATION, {
         input,
       }).then((d) => d.updateRateSheet),
     onSuccess: (updated) => {
@@ -67,7 +67,7 @@ export function useDeleteRateSheet() {
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteRateSheet: boolean }>(DELETE_RATE_SHEET_MUTATION, {
+      gqlMutate<{ deleteRateSheet: boolean }>(DELETE_RATE_SHEET_MUTATION, {
         id,
       }).then((d) => d.deleteRateSheet),
     onSuccess: (_data, id) => {

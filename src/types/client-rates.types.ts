@@ -1,12 +1,12 @@
-import type { RateType } from "./rates.types";
+import type { TranslationRateType } from "./rates.types";
 
-export type { RateType };
+export type { TranslationRateType as RateType };
 
 export interface ClientRate {
   id: number;
   clientId: number;
   userId: number;
-  type: RateType;
+  type: TranslationRateType;
   name: string;
   amount: number;
   currency: string;

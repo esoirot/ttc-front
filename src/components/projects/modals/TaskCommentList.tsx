@@ -7,19 +7,7 @@ import {
   useDeleteComment,
 } from "@/hooks/tasks/useTasks";
 import type { TaskComment } from "@/types/tasks.types";
-
-function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return new Date(iso).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
-}
+import { timeAgo } from "@/lib/time";
 
 export function TaskCommentList({
   taskId,
@@ -80,7 +68,7 @@ export function TaskCommentList({
                 <Textarea
                   value={editBody}
                   onChange={(e) => setEditBody(e.target.value)}
-                  className="text-sm min-h-[60px]"
+                  className="text-sm min-h-15"
                   autoFocus
                 />
                 <div className="flex gap-2">
@@ -116,7 +104,7 @@ export function TaskCommentList({
           placeholder="Write a comment…"
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          className="text-sm min-h-[60px]"
+          className="text-sm min-h-15"
         />
         <Button
           size="sm"

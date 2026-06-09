@@ -1,4 +1,6 @@
+import type { TranslationRateType } from "@/graphql/rates.operations";
 import type { Invoice } from "./invoices.types";
+import type { ClientRate } from "./client-rates.types";
 
 export type ClientType = "COMPANY" | "INDIVIDUAL";
 
@@ -191,3 +193,39 @@ export interface AddressFieldsProps {
   ) => void;
   idPrefix?: string;
 }
+
+export interface FormData {
+  type: TranslationRateType;
+  name: string;
+  amount: string;
+  currency: string;
+  description: string;
+}
+
+export type ClientInput = {
+  name: string;
+  legalName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  postalCode?: string;
+  vatNumber?: string;
+  notes?: string;
+  hubspotId?: string;
+  clientType?: ClientType;
+  firstName?: string;
+  lastName?: string;
+  paymentDelayDays?: number;
+  taxRate?: number;
+  billingEndOfMonth?: boolean;
+  website?: string;
+  industry?: ClientIndustry | null;
+  tagIds?: number[];
+};
+
+export type CreateClientRateInput = Omit<
+  ClientRate,
+  "id" | "clientId" | "userId" | "createdAt" | "updatedAt"
+>;

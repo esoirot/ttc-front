@@ -7,10 +7,7 @@ import type { ManualEntryFormProps } from "@/types/time-entries.types";
 import { useCreateTimeEntry } from "@/hooks/time/useTimeEntries";
 import { DescriptionCombobox } from "../form-inputs/DescriptionCombobox";
 import { TtcTagChips } from "../tags/TtcTagChips";
-
-function toLocalIso(date: string, time: string): string {
-  return `${date}T${time}:00`;
-}
+import { toLocalIso } from "@/lib/time";
 
 export function ManualEntryForm({
   onClose,

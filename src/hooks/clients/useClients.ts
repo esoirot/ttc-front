@@ -19,10 +19,10 @@ import type {
   Client,
   ClientConnection,
   ClientType,
-  ClientIndustry,
-  CompanyContact,
+  ContactInput,
+  ClientInput,
 } from "@/types/clients.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 const LIMIT = 20;
 
@@ -39,7 +39,7 @@ export function useClients(search?: string, clientType?: ClientType) {
         { search: search ?? null, clientType: clientType ?? null },
       ],
       queryFn: ({ pageParam }) =>
-        gqlRequest<{ clients: ClientConnection }>(CLIENTS_QUERY, {
+        gqlFetch<{ clients: ClientConnection }>(CLIENTS_QUERY, {
           ...baseVars,
           pagination: {
             limit: LIMIT,
@@ -64,42 +64,17 @@ export function useClient(id: number) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["client", id],
     queryFn: () =>
-      gqlRequest<{ client: Client }>(CLIENT_QUERY, { id }).then(
-        (d) => d.client,
-      ),
+      gqlFetch<{ client: Client }>(CLIENT_QUERY, { id }).then((d) => d.client),
     enabled: !!id,
   });
   return { client: data ?? null, loading: isLoading, error };
 }
 
-type ClientInput = {
-  name: string;
-  legalName?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  postalCode?: string;
-  vatNumber?: string;
-  notes?: string;
-  hubspotId?: string;
-  clientType?: ClientType;
-  firstName?: string;
-  lastName?: string;
-  paymentDelayDays?: number;
-  taxRate?: number;
-  billingEndOfMonth?: boolean;
-  website?: string;
-  industry?: ClientIndustry | null;
-  tagIds?: number[];
-};
-
 export function useCreateClient() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: ClientInput) =>
-      gqlRequest<{ createClient: Client }>(CREATE_CLIENT_MUTATION, {
+      gqlMutate<{ createClient: Client }>(CREATE_CLIENT_MUTATION, {
         input,
       }).then((d) => d.createClient),
     onSuccess: () => {
@@ -117,7 +92,7 @@ export function useUpdateClient() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: Partial<ClientInput> & { id: number }) =>
-      gqlRequest<{ updateClient: Client }>(UPDATE_CLIENT_MUTATION, {
+      gqlMutate<{ updateClient: Client }>(UPDATE_CLIENT_MUTATION, {
         input,
       }).then((d) => d.updateClient),
     onSuccess: (updated) => {
@@ -151,7 +126,7 @@ export function useDeleteClient() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteClient: boolean }>(DELETE_CLIENT_MUTATION, {
+      gqlMutate<{ deleteClient: boolean }>(DELETE_CLIENT_MUTATION, {
         id,
       }).then((d) => d.deleteClient),
     onSuccess: (_data, id) => {
@@ -179,18 +154,11 @@ export function useDeleteClient() {
   };
 }
 
-type ContactInput = {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-};
-
 export function useCreateCompanyContact(clientId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: ContactInput) =>
-      gqlRequest<{ createCompanyContact: CompanyContact }>(
+    mutationFn: (input: Omit<ContactInput, "clientId">) =>
+      gqlMutate<{ createCompanyContact: Client["contacts"][number] }>(
         CREATE_COMPANY_CONTACT_MUTATION,
         { input: { ...input, clientId } },
       ).then((d) => d.createCompanyContact),
@@ -201,7 +169,8 @@ export function useCreateCompanyContact(clientId: number) {
     },
   });
   return {
-    createContact: (input: ContactInput) => mutateAsync(input),
+    createContact: (input: Omit<ContactInput, "clientId">) =>
+      mutateAsync(input),
     loading: isPending,
     error,
   };
@@ -210,8 +179,10 @@ export function useCreateCompanyContact(clientId: number) {
 export function useUpdateCompanyContact(clientId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: Partial<ContactInput> & { id: number }) =>
-      gqlRequest<{ updateCompanyContact: CompanyContact }>(
+    mutationFn: (
+      input: Partial<Omit<ContactInput, "clientId">> & { id: number },
+    ) =>
+      gqlMutate<{ updateCompanyContact: Client["contacts"][number] }>(
         UPDATE_COMPANY_CONTACT_MUTATION,
         { input },
       ).then((d) => d.updateCompanyContact),
@@ -229,8 +200,9 @@ export function useUpdateCompanyContact(clientId: number) {
     },
   });
   return {
-    updateContact: (input: Partial<ContactInput> & { id: number }) =>
-      mutateAsync(input),
+    updateContact: (
+      input: Partial<Omit<ContactInput, "clientId">> & { id: number },
+    ) => mutateAsync(input),
     loading: isPending,
     error,
   };
@@ -240,7 +212,7 @@ export function useDeleteCompanyContact(clientId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, error } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteCompanyContact: boolean }>(
+      gqlMutate<{ deleteCompanyContact: boolean }>(
         DELETE_COMPANY_CONTACT_MUTATION,
         { id },
       ).then((d) => d.deleteCompanyContact),

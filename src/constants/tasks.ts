@@ -16,3 +16,14 @@ export const STATUS_COLORS: Record<
   IN_PROGRESS: "default",
   DONE: "outline",
 };
+
+export const PRESET_COLORS = [
+  "#EF4444",
+  "#F97316",
+  "#EAB308",
+  "#22C55E",
+  "#3B82F6",
+  "#8B5CF6",
+  "#EC4899",
+  "#6B7280",
+];

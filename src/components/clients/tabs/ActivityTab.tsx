@@ -1,12 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ActivityTabProps } from "@/types/clients.types";
 import { InvoiceRow } from "../rows/InvoiceRow";
-
-function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  return `${h}h ${String(m).padStart(2, "0")}m`;
-}
+import { formatDurationWithoutSeconds } from "@/lib/time";
 
 export function ActivityTab({
   invoices,
@@ -43,7 +38,9 @@ export function ActivityTab({
         ) : totalSeconds === 0 ? (
           <p className="text-muted-foreground text-sm">No time logged.</p>
         ) : (
-          <p className="font-mono text-sm">{formatDuration(totalSeconds)}</p>
+          <p className="font-mono text-sm">
+            {formatDurationWithoutSeconds(totalSeconds)}
+          </p>
         )}
       </div>
     </>

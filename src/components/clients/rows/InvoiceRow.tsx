@@ -1,17 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import type { Invoice } from "@/types/invoices.types";
-
-const INVOICE_STATUS_COLORS: Record<
-  string,
-  "default" | "secondary" | "outline" | "destructive"
-> = {
-  DRAFT: "secondary",
-  SENT: "default",
-  PAID: "outline",
-  OVERDUE: "destructive",
-  CANCELLED: "secondary",
-};
+import { INVOICE_STATUS_COLORS } from "@/constants/invoices";
 
 export function InvoiceRow({ inv }: { inv: Invoice }) {
   const navigate = useNavigate();

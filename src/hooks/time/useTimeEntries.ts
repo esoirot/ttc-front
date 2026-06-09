@@ -17,17 +17,12 @@ import {
 import type {
   TimeEntry,
   TimeEntryConnection,
+  TimeEntryFilters,
+  UpdateTimeEntryInput,
 } from "@/types/time-entries.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 const LIMIT = 20;
-
-type TimeEntryFilters = {
-  projectId?: number;
-  projectIds?: number[];
-  start?: string;
-  end?: string;
-};
 
 export function useTimeEntries(filters?: TimeEntryFilters) {
   const baseVars = {
@@ -53,7 +48,7 @@ export function useTimeEntries(filters?: TimeEntryFilters) {
     useInfiniteQuery<TimeEntryConnection>({
       queryKey,
       queryFn: ({ pageParam }) =>
-        gqlRequest<{ timeEntries: TimeEntryConnection }>(TIME_ENTRIES_QUERY, {
+        gqlFetch<{ timeEntries: TimeEntryConnection }>(TIME_ENTRIES_QUERY, {
           ...baseVars,
           pagination: {
             limit: LIMIT,
@@ -79,7 +74,7 @@ export function useActiveTimer() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["activeTimer"],
     queryFn: () =>
-      gqlRequest<{ activeTimer: TimeEntry | null }>(ACTIVE_TIMER_QUERY).then(
+      gqlFetch<{ activeTimer: TimeEntry | null }>(ACTIVE_TIMER_QUERY).then(
         (d) => d.activeTimer,
       ),
   });
@@ -100,7 +95,7 @@ export function useCreateTimeEntry() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: CreateTimeEntryInput) =>
-      gqlRequest<{ createTimeEntry: TimeEntry }>(CREATE_TIME_ENTRY_MUTATION, {
+      gqlMutate<{ createTimeEntry: TimeEntry }>(CREATE_TIME_ENTRY_MUTATION, {
         input,
       }).then((d) => d.createTimeEntry),
     onSuccess: () => {
@@ -125,7 +120,7 @@ export function useStartTimer() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: StartTimerInput) =>
-      gqlRequest<{ startTimer: TimeEntry }>(START_TIMER_MUTATION, {
+      gqlMutate<{ startTimer: TimeEntry }>(START_TIMER_MUTATION, {
         input,
       }).then((d) => d.startTimer),
     onSuccess: (started) => {
@@ -143,7 +138,7 @@ export function useStopTimer() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: () =>
-      gqlRequest<{ stopTimer: TimeEntry }>(STOP_TIMER_MUTATION).then(
+      gqlMutate<{ stopTimer: TimeEntry }>(STOP_TIMER_MUTATION).then(
         (d) => d.stopTimer,
       ),
     onSuccess: () => {
@@ -158,21 +153,11 @@ export function useStopTimer() {
   };
 }
 
-type UpdateTimeEntryInput = {
-  id: number;
-  projectId?: number | null;
-  description?: string;
-  startTime?: string;
-  endTime?: string;
-  billable?: boolean;
-  tagIds?: number[];
-};
-
 export function useUpdateTimeEntry() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: UpdateTimeEntryInput) =>
-      gqlRequest<{ updateTimeEntry: TimeEntry }>(UPDATE_TIME_ENTRY_MUTATION, {
+      gqlMutate<{ updateTimeEntry: TimeEntry }>(UPDATE_TIME_ENTRY_MUTATION, {
         input,
       }).then((d) => d.updateTimeEntry),
     onSuccess: (updated) => {
@@ -204,7 +189,7 @@ export function useDeleteTimeEntry() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteTimeEntry: boolean }>(DELETE_TIME_ENTRY_MUTATION, {
+      gqlMutate<{ deleteTimeEntry: boolean }>(DELETE_TIME_ENTRY_MUTATION, {
         id,
       }).then((d) => d.deleteTimeEntry),
     onSuccess: (_data, id) => {

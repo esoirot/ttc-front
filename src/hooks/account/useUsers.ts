@@ -11,13 +11,13 @@ import type {
   UserRole,
   AdminPermission,
 } from "@/types/users.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 export function useUsers() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["users"],
     queryFn: () =>
-      gqlRequest<{ users: User[] }>(USERS_QUERY).then((d) => d.users),
+      gqlFetch<{ users: User[] }>(USERS_QUERY).then((d) => d.users),
   });
   return { users: data ?? [], loading: isLoading, error };
 }
@@ -26,7 +26,7 @@ export function useMembers() {
   const { data, isLoading } = useQuery({
     queryKey: ["members"],
     queryFn: () =>
-      gqlRequest<{ members: Member[] }>(MEMBERS_QUERY).then((d) => d.members),
+      gqlFetch<{ members: Member[] }>(MEMBERS_QUERY).then((d) => d.members),
   });
   return { members: data ?? [], loading: isLoading };
 }
@@ -41,7 +41,7 @@ export function useUpdateUser() {
       email?: string;
       adminPermissions?: AdminPermission[];
     }) =>
-      gqlRequest<{
+      gqlMutate<{
         updateUser: Pick<User, "id" | "role" | "adminPermissions">;
       }>(UPDATE_USER_MUTATION, { updateUserInput }).then((d) => d.updateUser),
     onSuccess: (updated) => {
@@ -65,7 +65,7 @@ export function useDeleteUser() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ removeUser: { id: number } }>(DELETE_USER_MUTATION, {
+      gqlMutate<{ removeUser: { id: number } }>(DELETE_USER_MUTATION, {
         id,
       }).then((d) => d.removeUser),
     onSuccess: (_data, id) => {

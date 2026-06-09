@@ -19,13 +19,13 @@ import {
   DELETE_ACCOUNT_MUTATION,
 } from "../../graphql/auth.operations";
 import type { AuthUser } from "@/types/auth.types";
-import { gqlRequest } from "@/lib/api";
+import { apolloClient, gqlFetch, gqlMutate } from "@/lib/apollo";
 
 export function useCurrentUser() {
   const { data, isLoading } = useQuery({
     queryKey: ["me"],
     queryFn: () =>
-      gqlRequest<{ me: AuthUser | null }>(ME_QUERY)
+      gqlFetch<{ me: AuthUser | null }>(ME_QUERY)
         .then((d) => d.me)
         .catch(() => null),
     staleTime: 30_000,
@@ -43,7 +43,7 @@ export function useLogin() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: { email: string; password: string }) =>
-      gqlRequest<{
+      gqlMutate<{
         login: {
           user: AuthUser;
           requiresTwoFactor: boolean;
@@ -68,7 +68,7 @@ export function useRegister() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: { email: string; password: string; name?: string }) =>
-      gqlRequest<{ register: AuthUser }>(REGISTER_MUTATION, { input }).then(
+      gqlMutate<{ register: AuthUser }>(REGISTER_MUTATION, { input }).then(
         (d) => d.register,
       ),
     onSuccess: (user) => {
@@ -87,12 +87,13 @@ export function useLogout() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: () =>
-      gqlRequest<{ logout: boolean }>(LOGOUT_MUTATION).then((d) => d.logout),
+      gqlMutate<{ logout: boolean }>(LOGOUT_MUTATION).then((d) => d.logout),
   });
   return {
     logout: async () => {
       await mutateAsync();
       queryClient.clear();
+      await apolloClient.clearStore();
       localStorage.setItem("ttc_logout", Date.now().toString());
     },
     loading: isPending,
@@ -102,7 +103,7 @@ export function useLogout() {
 export function useSetupTwoFactor() {
   const { mutate, isPending, data } = useMutation({
     mutationFn: () =>
-      gqlRequest<{ setupTwoFactor: { qrCodeUrl: string; secret: string } }>(
+      gqlMutate<{ setupTwoFactor: { qrCodeUrl: string; secret: string } }>(
         SETUP_TWO_FACTOR_MUTATION,
       ).then((d) => d.setupTwoFactor),
   });
@@ -118,7 +119,7 @@ export function useEnableTwoFactor() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error, data } = useMutation({
     mutationFn: (code: string) =>
-      gqlRequest<{ enableTwoFactor: { backupCodes: string[] } }>(
+      gqlMutate<{ enableTwoFactor: { backupCodes: string[] } }>(
         ENABLE_TWO_FACTOR_MUTATION,
         { code },
       ).then((d) => d.enableTwoFactor),
@@ -138,7 +139,7 @@ export function useVerifyTwoFactorBackup() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: { tempToken: string; backupCode: string }) =>
-      gqlRequest<{ verifyTwoFactorBackup: { user: AuthUser } }>(
+      gqlMutate<{ verifyTwoFactorBackup: { user: AuthUser } }>(
         VERIFY_TWO_FACTOR_BACKUP_MUTATION,
         { input },
       ).then((d) => d.verifyTwoFactorBackup),
@@ -158,7 +159,7 @@ export function useVerifyTwoFactor() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: { tempToken: string; code: string }) =>
-      gqlRequest<{ verifyTwoFactor: { user: AuthUser } }>(
+      gqlMutate<{ verifyTwoFactor: { user: AuthUser } }>(
         VERIFY_TWO_FACTOR_MUTATION,
         { input },
       ).then((d) => d.verifyTwoFactor),
@@ -178,7 +179,7 @@ export function useDisableTwoFactor() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (code: string) =>
-      gqlRequest<{ disableTwoFactor: boolean }>(DISABLE_TWO_FACTOR_MUTATION, {
+      gqlMutate<{ disableTwoFactor: boolean }>(DISABLE_TWO_FACTOR_MUTATION, {
         code,
       }).then((d) => d.disableTwoFactor),
     onSuccess: () => {
@@ -209,7 +210,7 @@ export function useUpdateMe() {
       hourFormat?: string | null;
       numberFormat?: string | null;
     }) =>
-      gqlRequest<{ updateMe: AuthUser }>(UPDATE_ME_MUTATION, { input }).then(
+      gqlMutate<{ updateMe: AuthUser }>(UPDATE_ME_MUTATION, { input }).then(
         (d) => d.updateMe,
       ),
     onSuccess: (updated) => {
@@ -226,7 +227,7 @@ export function useUpdateMe() {
 export function useRequestPasswordReset() {
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (email: string) =>
-      gqlRequest<{ requestPasswordReset: boolean }>(
+      gqlMutate<{ requestPasswordReset: boolean }>(
         REQUEST_PASSWORD_RESET_MUTATION,
         { email },
       ).then((d) => d.requestPasswordReset),
@@ -240,10 +241,9 @@ export function useRequestPasswordReset() {
 export function useResetPassword() {
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (vars: { token: string; newPassword: string }) =>
-      gqlRequest<{ resetPassword: boolean }>(
-        RESET_PASSWORD_MUTATION,
-        vars,
-      ).then((d) => d.resetPassword),
+      gqlMutate<{ resetPassword: boolean }>(RESET_PASSWORD_MUTATION, vars).then(
+        (d) => d.resetPassword,
+      ),
   });
   return {
     resetPassword: (token: string, newPassword: string) =>
@@ -255,7 +255,7 @@ export function useResetPassword() {
 export function useRegenerateBackupCodes() {
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (code: string) =>
-      gqlRequest<{ regenerateBackupCodes: { backupCodes: string[] } }>(
+      gqlMutate<{ regenerateBackupCodes: { backupCodes: string[] } }>(
         REGENERATE_BACKUP_CODES_MUTATION,
         { code },
       ).then((d) => d.regenerateBackupCodes),
@@ -271,7 +271,7 @@ export function useAdminDisableTwoFactor() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (userId: number) =>
-      gqlRequest<{ adminDisableTwoFactor: boolean }>(
+      gqlMutate<{ adminDisableTwoFactor: boolean }>(
         ADMIN_DISABLE_TWO_FACTOR_MUTATION,
         { userId },
       ).then((d) => d.adminDisableTwoFactor),
@@ -289,7 +289,7 @@ export function useBackupCodeCount(skip = false) {
   const { data, isLoading } = useQuery({
     queryKey: ["backupCodeCount"],
     queryFn: () =>
-      gqlRequest<{ backupCodeCount: number }>(BACKUP_CODE_COUNT_QUERY).then(
+      gqlFetch<{ backupCodeCount: number }>(BACKUP_CODE_COUNT_QUERY).then(
         (d) => d.backupCodeCount,
       ),
     enabled: !skip,
@@ -301,7 +301,7 @@ export function useBackupCodeCount(skip = false) {
 export function useChangePassword() {
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (vars: { currentPassword: string; newPassword: string }) =>
-      gqlRequest<{ changePassword: boolean }>(
+      gqlMutate<{ changePassword: boolean }>(
         CHANGE_PASSWORD_MUTATION,
         vars,
       ).then((d) => d.changePassword),
@@ -318,7 +318,7 @@ export function useDeleteAccount() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: () =>
-      gqlRequest<{ deleteAccount: boolean }>(DELETE_ACCOUNT_MUTATION).then(
+      gqlMutate<{ deleteAccount: boolean }>(DELETE_ACCOUNT_MUTATION).then(
         (d) => d.deleteAccount,
       ),
   });
@@ -326,6 +326,7 @@ export function useDeleteAccount() {
     deleteAccount: async () => {
       await mutateAsync();
       queryClient.clear();
+      await apolloClient.clearStore();
       localStorage.setItem("ttc_logout", Date.now().toString());
     },
     loading: isPending,

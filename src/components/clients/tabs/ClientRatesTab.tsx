@@ -37,14 +37,7 @@ import {
   useDeleteClientRate,
   useUpdateClientRate,
 } from "@/hooks/clients/useClientRates";
-
-interface FormData {
-  type: TranslationRateType;
-  name: string;
-  amount: string;
-  currency: string;
-  description: string;
-}
+import type { FormData } from "@/types/clients.types";
 
 function ClientRateForm({
   clientId,

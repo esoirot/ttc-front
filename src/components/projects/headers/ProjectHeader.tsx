@@ -16,16 +16,7 @@ import type { TranslationRate } from "@/types/rates.types";
 import type { ClientRate } from "@/types/client-rates.types";
 import { useRates } from "@/hooks/rates/useRates";
 import { useClientRates } from "@/hooks/clients/useClientRates";
-
-const STATUSES: ProjectStatus[] = [
-  "DRAFT",
-  "ACTIVE",
-  "COMPLETED",
-  "CANCELLED",
-  "ARCHIVED",
-  "INVOICE_SENT",
-  "INVOICE_PAID",
-];
+import { STATUSES } from "@/constants/projects";
 
 type RateOption = TranslationRate | ClientRate;
 

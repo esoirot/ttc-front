@@ -15,6 +15,8 @@ import {
   CREATE_SUBTASK_MUTATION,
   UPDATE_SUBTASK_MUTATION,
   DELETE_SUBTASK_MUTATION,
+  CREATE_CHECKLIST_MUTATION,
+  DELETE_CHECKLIST_MUTATION,
   RENAME_CHECKLIST_MUTATION,
   CREATE_COMMENT_MUTATION,
   UPDATE_COMMENT_MUTATION,
@@ -26,12 +28,14 @@ import type {
   Task,
   TaskDetail,
   TaskConnection,
-  TaskStatus,
   Subtask,
   TaskComment,
   TaskLabel,
+  CreateTaskInput,
+  UpdateTaskInput,
+  UpdateSubtaskInput,
 } from "@/types/tasks.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 const LIMIT = 50;
 
@@ -40,7 +44,7 @@ export function useTasks(projectId: number) {
     useInfiniteQuery<TaskConnection>({
       queryKey: ["tasks", projectId],
       queryFn: ({ pageParam }) =>
-        gqlRequest<{ tasks: TaskConnection }>(TASKS_QUERY, {
+        gqlFetch<{ tasks: TaskConnection }>(TASKS_QUERY, {
           projectId,
           pagination: {
             limit: LIMIT,
@@ -66,7 +70,7 @@ export function useMyTasks() {
     useInfiniteQuery<TaskConnection>({
       queryKey: ["myTasks"],
       queryFn: ({ pageParam }) =>
-        gqlRequest<{ myTasks: TaskConnection }>(MY_TASKS_QUERY, {
+        gqlFetch<{ myTasks: TaskConnection }>(MY_TASKS_QUERY, {
           pagination: {
             limit: LIMIT,
             ...(pageParam != null ? { cursor: pageParam as number } : {}),
@@ -90,28 +94,19 @@ export function useTask(id: number) {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["task", id],
     queryFn: () =>
-      gqlRequest<{ task: TaskDetail }>(TASK_QUERY, { id }).then((d) => d.task),
+      gqlFetch<{ task: TaskDetail }>(TASK_QUERY, { id }).then((d) => d.task),
     enabled: !!id,
   });
   return { task: data ?? null, loading: isLoading, error, refetch };
 }
 
-type CreateTaskInput = {
-  projectId: number;
-  title: string;
-  description?: string;
-  assigneeId?: number;
-  status?: TaskStatus;
-  dueDate?: string;
-};
-
 export function useCreateTask(projectId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: CreateTaskInput) =>
-      gqlRequest<{ createTask: Task }>(CREATE_TASK_MUTATION, {
-        input,
-      }).then((d) => d.createTask),
+      gqlMutate<{ createTask: Task }>(CREATE_TASK_MUTATION, { input }).then(
+        (d) => d.createTask,
+      ),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
     },
@@ -123,24 +118,13 @@ export function useCreateTask(projectId: number) {
   };
 }
 
-type UpdateTaskInput = {
-  id: number;
-  title?: string;
-  description?: string;
-  status?: TaskStatus;
-  sortOrder?: number;
-  dueDate?: string;
-  assigneeId?: number;
-  projectId?: number;
-};
-
 export function useUpdateTask(projectId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: UpdateTaskInput) =>
-      gqlRequest<{ updateTask: Task }>(UPDATE_TASK_MUTATION, {
-        input,
-      }).then((d) => d.updateTask),
+      gqlMutate<{ updateTask: Task }>(UPDATE_TASK_MUTATION, { input }).then(
+        (d) => d.updateTask,
+      ),
     onSuccess: (updated) => {
       queryClient.setQueryData<InfiniteData<TaskConnection>>(
         ["tasks", projectId],
@@ -174,7 +158,7 @@ export function useDeleteTask(projectId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteTask: boolean }>(DELETE_TASK_MUTATION, {
+      gqlMutate<{ deleteTask: boolean }>(DELETE_TASK_MUTATION, {
         id,
       }).then((d) => d.deleteTask),
     onSuccess: (_data, id) => {
@@ -206,9 +190,9 @@ export function useUpdateMyTask() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: UpdateTaskInput) =>
-      gqlRequest<{ updateTask: Task }>(UPDATE_TASK_MUTATION, {
-        input,
-      }).then((d) => d.updateTask),
+      gqlMutate<{ updateTask: Task }>(UPDATE_TASK_MUTATION, { input }).then(
+        (d) => d.updateTask,
+      ),
     onSuccess: (updated) => {
       queryClient.setQueryData<InfiniteData<TaskConnection>>(
         ["myTasks"],
@@ -242,14 +226,11 @@ export function useCreateSubtask(taskId: number) {
       title: string;
       dueDate?: string;
     }) =>
-      gqlRequest<{ createSubtask: Subtask }>(CREATE_SUBTASK_MUTATION, {
+      gqlMutate<{ createSubtask: Subtask }>(CREATE_SUBTASK_MUTATION, {
         input: { taskId, ...input },
       }).then((d) => d.createSubtask),
-    onSuccess: (newSubtask) => {
-      queryClient.setQueryData<TaskDetail>(["task", taskId], (old) =>
-        old ? { ...old, subtasks: [...old.subtasks, newSubtask] } : old,
-      );
-      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+    onSuccess: () => {
+      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
     },
   });
   return {
@@ -265,38 +246,16 @@ export function useCreateSubtask(taskId: number) {
 export function useUpdateSubtask(taskId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (input: {
-      id: number;
-      checklistTitle?: string;
-      title?: string;
-      done?: boolean;
-      dueDate?: string | null;
-    }) =>
-      gqlRequest<{ updateSubtask: Subtask }>(UPDATE_SUBTASK_MUTATION, {
+    mutationFn: (input: UpdateSubtaskInput) =>
+      gqlMutate<{ updateSubtask: Subtask }>(UPDATE_SUBTASK_MUTATION, {
         input,
       }).then((d) => d.updateSubtask),
-    onSuccess: (updated) => {
-      queryClient.setQueryData<TaskDetail>(["task", taskId], (old) =>
-        old
-          ? {
-              ...old,
-              subtasks: old.subtasks.map((s) =>
-                s.id === updated.id ? updated : s,
-              ),
-            }
-          : old,
-      );
-      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+    onSuccess: () => {
+      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
     },
   });
   return {
-    updateSubtask: (input: {
-      id: number;
-      checklistTitle?: string;
-      title?: string;
-      done?: boolean;
-      dueDate?: string | null;
-    }) => mutateAsync(input),
+    updateSubtask: (input: UpdateSubtaskInput) => mutateAsync(input),
     loading: isPending,
   };
 }
@@ -305,19 +264,50 @@ export function useDeleteSubtask(taskId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteSubtask: boolean }>(DELETE_SUBTASK_MUTATION, {
+      gqlMutate<{ deleteSubtask: boolean }>(DELETE_SUBTASK_MUTATION, {
         id,
       }).then((d) => d.deleteSubtask),
-    onSuccess: (_data, id) => {
-      queryClient.setQueryData<TaskDetail>(["task", taskId], (old) =>
-        old
-          ? { ...old, subtasks: old.subtasks.filter((s) => s.id !== id) }
-          : old,
-      );
-      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+    onSuccess: () => {
+      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
     },
   });
   return { deleteSubtask: (id: number) => mutateAsync(id) };
+}
+
+export function useCreateChecklist(taskId: number) {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (title: string) =>
+      gqlMutate<{ createChecklist: boolean }>(CREATE_CHECKLIST_MUTATION, {
+        taskId,
+        title,
+      }).then((d) => d.createChecklist),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+    },
+  });
+  return {
+    createChecklist: (title: string) => mutateAsync(title),
+    loading: isPending,
+  };
+}
+
+export function useDeleteChecklist(taskId: number) {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (title: string) =>
+      gqlMutate<{ deleteChecklist: boolean }>(DELETE_CHECKLIST_MUTATION, {
+        taskId,
+        title,
+      }).then((d) => d.deleteChecklist),
+    onSuccess: () => {
+      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
+    },
+  });
+  return {
+    deleteChecklist: (title: string) => mutateAsync(title),
+    loading: isPending,
+  };
 }
 
 export function useRenameChecklist(taskId: number) {
@@ -330,7 +320,7 @@ export function useRenameChecklist(taskId: number) {
       oldTitle: string;
       newTitle: string;
     }) =>
-      gqlRequest<{ renameChecklist: boolean }>(RENAME_CHECKLIST_MUTATION, {
+      gqlMutate<{ renameChecklist: boolean }>(RENAME_CHECKLIST_MUTATION, {
         taskId,
         oldTitle,
         newTitle,
@@ -350,7 +340,7 @@ export function useCreateComment(taskId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (body: string) =>
-      gqlRequest<{ createTaskComment: TaskComment }>(CREATE_COMMENT_MUTATION, {
+      gqlMutate<{ createTaskComment: TaskComment }>(CREATE_COMMENT_MUTATION, {
         input: { taskId, body },
       }).then((d) => d.createTaskComment),
     onSuccess: (newComment) => {
@@ -370,7 +360,7 @@ export function useUpdateComment(taskId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (input: { id: number; body: string }) =>
-      gqlRequest<{ updateTaskComment: TaskComment }>(UPDATE_COMMENT_MUTATION, {
+      gqlMutate<{ updateTaskComment: TaskComment }>(UPDATE_COMMENT_MUTATION, {
         input,
       }).then((d) => d.updateTaskComment),
     onSuccess: (updated) => {
@@ -397,7 +387,7 @@ export function useDeleteComment(taskId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteTaskComment: boolean }>(DELETE_COMMENT_MUTATION, {
+      gqlMutate<{ deleteTaskComment: boolean }>(DELETE_COMMENT_MUTATION, {
         id,
       }).then((d) => d.deleteTaskComment),
     onSuccess: (_data, id) => {
@@ -416,7 +406,7 @@ export function useCreateTaskLabel(taskId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (input: { name: string; color?: string }) =>
-      gqlRequest<{ createTaskLabel: TaskLabel }>(CREATE_TASK_LABEL_MUTATION, {
+      gqlMutate<{ createTaskLabel: TaskLabel }>(CREATE_TASK_LABEL_MUTATION, {
         input: { taskId, ...input },
       }).then((d) => d.createTaskLabel),
     onSuccess: (newLabel) => {
@@ -436,7 +426,7 @@ export function useDeleteTaskLabel(taskId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteTaskLabel: boolean }>(DELETE_TASK_LABEL_MUTATION, {
+      gqlMutate<{ deleteTaskLabel: boolean }>(DELETE_TASK_LABEL_MUTATION, {
         id,
       }).then((d) => d.deleteTaskLabel),
     onSuccess: (_data, id) => {

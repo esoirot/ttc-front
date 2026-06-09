@@ -15,28 +15,13 @@ import {
 import type {
   Project,
   ProjectConnection,
+  ProjectInput,
   ProjectStatus,
+  UpdateProjectInput,
 } from "@/types/projects.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 const LIMIT = 20;
-
-type ProjectInput = {
-  title: string;
-  description?: string;
-  clientId?: number | null;
-  status?: ProjectStatus;
-  sourceLanguage?: string;
-  targetLanguage?: string;
-  wordCount?: number;
-  unitPrice?: number;
-  fixedFee?: number | null;
-  hourlyRate?: number | null;
-  perWordRate?: number | null;
-  currency?: string;
-  deadline?: string;
-  startDate?: string;
-};
 
 export function useProjects(status?: ProjectStatus, search?: string) {
   const baseVars = {
@@ -51,7 +36,7 @@ export function useProjects(status?: ProjectStatus, search?: string) {
         { status: status ?? null, search: search ?? null },
       ],
       queryFn: ({ pageParam }) =>
-        gqlRequest<{ projects: ProjectConnection }>(PROJECTS_QUERY, {
+        gqlFetch<{ projects: ProjectConnection }>(PROJECTS_QUERY, {
           ...baseVars,
           pagination: {
             limit: LIMIT,
@@ -76,9 +61,9 @@ export function useProject(id: number) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["project", id],
     queryFn: () =>
-      gqlRequest<{ project: Project | null }>(PROJECT_QUERY, { id }).then(
-        (d) => d.project,
-      ),
+      gqlFetch<{ project: Project | null }>(PROJECT_QUERY, {
+        id,
+      }).then((d) => d.project),
     enabled: !!id,
   });
   return { project: data ?? null, loading: isLoading, error };
@@ -88,7 +73,7 @@ export function useCreateProject() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (input: ProjectInput) =>
-      gqlRequest<{ createProject: Project }>(CREATE_PROJECT_MUTATION, {
+      gqlMutate<{ createProject: Project }>(CREATE_PROJECT_MUTATION, {
         input,
       }).then((d) => d.createProject),
     onSuccess: () => {
@@ -105,8 +90,8 @@ export function useCreateProject() {
 export function useUpdateProject() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: Partial<ProjectInput> & { id: number }) =>
-      gqlRequest<{ updateProject: Project }>(UPDATE_PROJECT_MUTATION, {
+    mutationFn: (input: UpdateProjectInput) =>
+      gqlMutate<{ updateProject: Project }>(UPDATE_PROJECT_MUTATION, {
         input,
       }).then((d) => d.updateProject),
     onSuccess: (updated) => {
@@ -129,8 +114,7 @@ export function useUpdateProject() {
     },
   });
   return {
-    updateProject: (input: Partial<ProjectInput> & { id: number }) =>
-      mutateAsync(input),
+    updateProject: (input: UpdateProjectInput) => mutateAsync(input),
     loading: isPending,
     error,
   };
@@ -140,7 +124,7 @@ export function useDeleteProject() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteProject: boolean }>(DELETE_PROJECT_MUTATION, {
+      gqlMutate<{ deleteProject: boolean }>(DELETE_PROJECT_MUTATION, {
         id,
       }).then((d) => d.deleteProject),
     onSuccess: (_data, id) => {

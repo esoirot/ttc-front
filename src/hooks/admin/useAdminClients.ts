@@ -11,7 +11,7 @@ import {
   ADMIN_DELETE_CLIENT_MUTATION,
 } from "../../graphql/admin.operations";
 import type { AdminClient, AdminConnection } from "@/types/admin.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 const LIMIT = 20;
 
@@ -20,7 +20,7 @@ export function useAdminClients(search?: string) {
     useInfiniteQuery<AdminConnection<AdminClient>>({
       queryKey: ["adminClients", { search: search ?? null }],
       queryFn: ({ pageParam }) =>
-        gqlRequest<{ adminClients: AdminConnection<AdminClient> }>(
+        gqlFetch<{ adminClients: AdminConnection<AdminClient> }>(
           ADMIN_CLIENTS_QUERY,
           {
             search,
@@ -58,7 +58,7 @@ export function useAdminCrudClients() {
       city?: string;
       country?: string;
     }) =>
-      gqlRequest<{ adminCreateClient: AdminClient }>(
+      gqlMutate<{ adminCreateClient: AdminClient }>(
         ADMIN_CREATE_CLIENT_MUTATION,
         { input },
       ).then((d) => d.adminCreateClient),
@@ -78,7 +78,7 @@ export function useAdminCrudClients() {
       vatNumber?: string;
       address?: string;
     }) =>
-      gqlRequest<{ adminUpdateClient: AdminClient }>(
+      gqlMutate<{ adminUpdateClient: AdminClient }>(
         ADMIN_UPDATE_CLIENT_MUTATION,
         { input },
       ).then((d) => d.adminUpdateClient),
@@ -103,7 +103,7 @@ export function useAdminCrudClients() {
 
   const { mutateAsync: remove } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ adminDeleteClient: { id: number } }>(
+      gqlMutate<{ adminDeleteClient: { id: number } }>(
         ADMIN_DELETE_CLIENT_MUTATION,
         { id },
       ).then((d) => d.adminDeleteClient),

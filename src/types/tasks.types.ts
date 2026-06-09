@@ -56,11 +56,23 @@ export interface Task {
   updatedAt: string;
 }
 
+export interface TaskAttachment {
+  id: number;
+  taskId: number;
+  type: string;
+  fileName: string | null;
+  url: string;
+  displayText: string | null;
+  createdAt: string;
+}
+
 export interface TaskDetail extends Task {
+  checklistTitles: string[];
   subtasks: Subtask[];
   comments: TaskComment[];
   labels: TaskLabel[];
   activities: TaskActivity[];
+  attachments: TaskAttachment[];
 }
 
 export interface TaskConnection {
@@ -68,3 +80,38 @@ export interface TaskConnection {
   nextCursor: number | null;
   total: number;
 }
+
+export type CreateTaskInput = {
+  projectId: number;
+  title: string;
+  description?: string;
+  assigneeId?: number;
+  status?: TaskStatus;
+  dueDate?: string;
+};
+
+export type UpdateTaskInput = {
+  id: number;
+  title?: string;
+  description?: string;
+  status?: TaskStatus;
+  sortOrder?: number;
+  dueDate?: string | null;
+  assigneeId?: number;
+  projectId?: number;
+};
+
+export type CreateSubtaskInput = {
+  taskId: number;
+  checklistTitle?: string;
+  title: string;
+  dueDate?: string;
+};
+
+export type UpdateSubtaskInput = {
+  id: number;
+  checklistTitle?: string;
+  title?: string;
+  done?: boolean;
+  dueDate?: string | null;
+};

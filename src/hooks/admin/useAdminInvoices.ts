@@ -11,7 +11,7 @@ import {
   ADMIN_DELETE_INVOICE_MUTATION,
 } from "../../graphql/admin.operations";
 import type { AdminInvoice, AdminConnection } from "@/types/admin.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 const LIMIT = 20;
 
@@ -24,7 +24,7 @@ export function useAdminInvoices(status?: InvoiceStatus, search?: string) {
       { status: status ?? null, search: search ?? null },
     ],
     queryFn: ({ pageParam }) =>
-      gqlRequest<{ adminInvoices: AdminConnection<AdminInvoice> }>(
+      gqlFetch<{ adminInvoices: AdminConnection<AdminInvoice> }>(
         ADMIN_INVOICES_QUERY,
         {
           status,
@@ -58,7 +58,7 @@ export function useAdminCrudInvoices() {
       notes?: string;
       dueDate?: string;
     }) =>
-      gqlRequest<{ adminUpdateInvoice: AdminInvoice }>(
+      gqlMutate<{ adminUpdateInvoice: AdminInvoice }>(
         ADMIN_UPDATE_INVOICE_MUTATION,
         { input },
       ).then((d) => d.adminUpdateInvoice),
@@ -83,7 +83,7 @@ export function useAdminCrudInvoices() {
 
   const { mutateAsync: remove } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ adminDeleteInvoice: { id: number } }>(
+      gqlMutate<{ adminDeleteInvoice: { id: number } }>(
         ADMIN_DELETE_INVOICE_MUTATION,
         { id },
       ).then((d) => d.adminDeleteInvoice),

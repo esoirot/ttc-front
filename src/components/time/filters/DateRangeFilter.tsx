@@ -1,13 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatDuration } from "@/lib/time";
 import type { DateRangeFilterProps } from "@/types/time-entries.types";
-
-function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
 
 export function DateRangeFilter({
   startDate,

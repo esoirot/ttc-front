@@ -11,24 +11,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { RateSheet } from "@/types/rate-sheets.types";
-
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  EUR: "€",
-  USD: "$",
-  GBP: "£",
-  CHF: "Fr",
-  CAD: "CA$",
-  AUD: "A$",
-  JPY: "¥",
-};
-
-interface RateSheetRowProps {
-  sheet: RateSheet;
-  clientName?: string;
-  onEdit: () => void;
-  onDelete: () => void;
-}
+import type { RateSheetRowProps } from "@/types/rate-sheets.types";
+import { CURRENCY_SYMBOLS } from "@/constants/rates";
 
 export function RateSheetRow({
   sheet,

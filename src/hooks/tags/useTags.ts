@@ -5,12 +5,12 @@ import {
   DELETE_TAG_MUTATION,
 } from "../../graphql/tags.operations";
 import type { Tag } from "@/types/tags.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 export function useTags() {
   const { data, isLoading } = useQuery({
     queryKey: ["tags"],
-    queryFn: () => gqlRequest<{ tags: Tag[] }>(TAGS_QUERY).then((d) => d.tags),
+    queryFn: () => gqlFetch<{ tags: Tag[] }>(TAGS_QUERY).then((d) => d.tags),
   });
   return { tags: data ?? [], loading: isLoading };
 }
@@ -19,7 +19,7 @@ export function useCreateTag() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (name: string) =>
-      gqlRequest<{ createTag: Tag }>(CREATE_TAG_MUTATION, {
+      gqlMutate<{ createTag: Tag }>(CREATE_TAG_MUTATION, {
         input: { name },
       }).then((d) => d.createTag),
     onSuccess: (newTag) => {
@@ -39,9 +39,9 @@ export function useDeleteTag() {
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteTag: boolean }>(DELETE_TAG_MUTATION, { id }).then(
-        (d) => d.deleteTag,
-      ),
+      gqlMutate<{ deleteTag: boolean }>(DELETE_TAG_MUTATION, {
+        id,
+      }).then((d) => d.deleteTag),
     onSuccess: (_data, id) => {
       queryClient.setQueryData<Tag[]>(
         ["tags"],

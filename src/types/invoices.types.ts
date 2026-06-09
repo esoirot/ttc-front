@@ -137,3 +137,10 @@ export type CustomLineTabProps = {
   onAdd: (input: CustomLineAddItemInput) => Promise<unknown>;
   adding: boolean;
 };
+
+export type FormState = {
+  clientId: string;
+  currency: string;
+  dueDate: string;
+  notes: string;
+};

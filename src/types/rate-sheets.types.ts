@@ -42,3 +42,17 @@ export interface UpdateRateSheetInput {
   pricePerWord?: number;
   matchRates?: MatchRates;
 }
+
+export interface RateSheetFormProps {
+  initial?: RateSheet;
+  onSave: (data: CreateRateSheetInput) => void;
+  onCancel: () => void;
+  saving: boolean;
+}
+
+export interface RateSheetRowProps {
+  sheet: RateSheet;
+  clientName?: string;
+  onEdit: () => void;
+  onDelete: () => void;
+}

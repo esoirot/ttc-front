@@ -1,3 +1,4 @@
+import { formatTimestamp } from "@/lib/time";
 import type { TaskActivity } from "@/types/tasks.types";
 
 function describe(activity: TaskActivity): string {
@@ -20,6 +21,8 @@ function describe(activity: TaskActivity): string {
           : "cleared due date";
       case "ASSIGNED":
         return p?.to ? `changed assignee` : "unassigned task";
+      case "CHECKLIST_CREATED":
+        return `created checklist "${String(p?.title ?? "")}"`;
       case "CHECKLIST_ADDED":
         return `added checklist item "${String(p?.title ?? "")}"`;
       case "CHECKLIST_RENAMED":
@@ -32,6 +35,10 @@ function describe(activity: TaskActivity): string {
         return `updated checklist item "${String(p?.title ?? "")}"`;
       case "CHECKLIST_DELETED":
         return `removed checklist item "${String(p?.title ?? "")}"`;
+      case "CHECKLIST_REMOVED":
+        return `deleted checklist "${String(p?.title ?? "")}"`;
+      case "ATTACHMENT_ADDED":
+        return `attached "${String(p?.name ?? p?.url ?? "file")}"`;
       case "COMMENT_ADDED":
         return "added a comment";
       case "COMMENT_EDITED":
@@ -48,20 +55,6 @@ function describe(activity: TaskActivity): string {
   } catch {
     return activity.type;
   }
-}
-
-function formatTimestamp(iso: string) {
-  const d = new Date(iso);
-  const date = d.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  const time = d.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  return `${date} at ${time}`;
 }
 
 export function TaskActivityFeed({

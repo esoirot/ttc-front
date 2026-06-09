@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, startTransition } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -74,8 +74,10 @@ export function RateSheetList() {
                 sheet={sheet}
                 clientName={clientName(sheet.clientId)}
                 onEdit={() => {
-                  setShowForm(false);
-                  setEditingId(sheet.id);
+                  startTransition(() => {
+                    setShowForm(false);
+                    setEditingId(sheet.id);
+                  });
                 }}
                 onDelete={() => void deleteRateSheet(sheet.id)}
               />
@@ -98,8 +100,10 @@ export function RateSheetList() {
           size="sm"
           className="mt-4"
           onClick={() => {
-            setEditingId(null);
-            setShowForm(true);
+            startTransition(() => {
+              setEditingId(null);
+              setShowForm(true);
+            });
           }}
         >
           + New Rate Sheet

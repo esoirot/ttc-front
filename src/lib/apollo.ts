@@ -4,6 +4,7 @@ import {
   ApolloLink,
   HttpLink,
 } from "@apollo/client/core";
+import type { DocumentNode } from "@apollo/client/core";
 import { ErrorLink } from "@apollo/client/link/error";
 import { CombinedGraphQLErrors, ServerError } from "@apollo/client/errors";
 import { Observable } from "@apollo/client/utilities";
@@ -52,3 +53,19 @@ export const apolloClient = new ApolloClient({
     query: { fetchPolicy: "no-cache" },
   },
 });
+
+export function gqlFetch<TData>(
+  query: DocumentNode,
+  variables?: Record<string, unknown>,
+): Promise<TData> {
+  return apolloClient.query<TData>({ query, variables }).then((r) => r.data);
+}
+
+export function gqlMutate<TData>(
+  mutation: DocumentNode,
+  variables?: Record<string, unknown>,
+): Promise<TData> {
+  return apolloClient
+    .mutate<TData>({ mutation, variables })
+    .then((r) => r.data!);
+}

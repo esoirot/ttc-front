@@ -7,8 +7,8 @@ import {
   useSensor,
   useSensors,
   closestCenter,
-  useDroppable,
   DragOverlay,
+  useDroppable,
 } from "@dnd-kit/core";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import {
@@ -23,7 +23,7 @@ import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
 import { useDeleteTask, useUpdateTask } from "@/hooks/tasks/useTasks";
 import { SortableTask } from "../sortables/SortableTask";
 
-function DroppableColumn({
+export function DroppableColumn({
   id,
   children,
 }: {
@@ -32,7 +32,7 @@ function DroppableColumn({
 }) {
   const { setNodeRef } = useDroppable({ id });
   return (
-    <div ref={setNodeRef} className="min-h-[60px]">
+    <div ref={setNodeRef} className="min-h-15">
       {children}
     </div>
   );

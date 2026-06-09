@@ -7,18 +7,15 @@ import {
   ADMIN_DELETE_RATE_MUTATION,
 } from "../../graphql/admin.operations";
 import type { AdminRate, AdminConnection } from "@/types/admin.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 export function useAdminRates(type?: TranslationRateType) {
   const { data, isLoading } = useQuery({
     queryKey: ["adminRates", { type: type ?? null }],
     queryFn: () =>
-      gqlRequest<{ adminRates: AdminConnection<AdminRate> }>(
-        ADMIN_RATES_QUERY,
-        {
-          type,
-        },
-      ).then((d) => d.adminRates),
+      gqlFetch<{ adminRates: AdminConnection<AdminRate> }>(ADMIN_RATES_QUERY, {
+        type,
+      }).then((d) => d.adminRates),
   });
   const conn = data;
   return {
@@ -43,7 +40,7 @@ export function useAdminCrudRates() {
       description?: string;
       activityId?: number | null;
     }) =>
-      gqlRequest<{ adminCreateRate: AdminRate }>(ADMIN_CREATE_RATE_MUTATION, {
+      gqlMutate<{ adminCreateRate: AdminRate }>(ADMIN_CREATE_RATE_MUTATION, {
         input,
       }).then((d) => d.adminCreateRate),
     onSuccess: invalidate,
@@ -58,7 +55,7 @@ export function useAdminCrudRates() {
       description?: string;
       activityId?: number | null;
     }) =>
-      gqlRequest<{ adminUpdateRate: AdminRate }>(ADMIN_UPDATE_RATE_MUTATION, {
+      gqlMutate<{ adminUpdateRate: AdminRate }>(ADMIN_UPDATE_RATE_MUTATION, {
         input,
       }).then((d) => d.adminUpdateRate),
     onSuccess: (updated) => {
@@ -79,7 +76,7 @@ export function useAdminCrudRates() {
 
   const { mutateAsync: remove } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ adminDeleteRate: { id: number } }>(
+      gqlMutate<{ adminDeleteRate: { id: number } }>(
         ADMIN_DELETE_RATE_MUTATION,
         {
           id,

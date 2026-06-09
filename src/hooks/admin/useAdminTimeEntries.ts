@@ -9,7 +9,7 @@ import {
   ADMIN_DELETE_TIME_ENTRY_MUTATION,
 } from "../../graphql/admin.operations";
 import type { AdminTimeEntry, AdminConnection } from "@/types/admin.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 const LIMIT = 20;
 
@@ -19,7 +19,7 @@ export function useAdminTimeEntries(userId?: number) {
   >({
     queryKey: ["adminTimeEntries", { userId: userId ?? null }],
     queryFn: ({ pageParam }) =>
-      gqlRequest<{ adminTimeEntries: AdminConnection<AdminTimeEntry> }>(
+      gqlFetch<{ adminTimeEntries: AdminConnection<AdminTimeEntry> }>(
         ADMIN_TIME_ENTRIES_QUERY,
         {
           userId,
@@ -46,7 +46,7 @@ export function useAdminDeleteTimeEntry() {
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ adminDeleteTimeEntry: { id: number } }>(
+      gqlMutate<{ adminDeleteTimeEntry: { id: number } }>(
         ADMIN_DELETE_TIME_ENTRY_MUTATION,
         { id },
       ).then((d) => d.adminDeleteTimeEntry),

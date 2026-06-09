@@ -36,3 +36,5 @@ export const EMPTY_CONTACT = {
   email: "",
   phone: "",
 };
+
+export const EMPTY_EDIT = { firstName: "", lastName: "", email: "", phone: "" };

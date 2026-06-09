@@ -7,7 +7,8 @@ import {
   type TranslationRateType,
   type TranslationRate,
 } from "../../graphql/rates.operations";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import type { CreateRateInput, UpdateRateInput } from "@/types/rates.types";
 
 export type { TranslationRateType, TranslationRate };
 
@@ -15,7 +16,7 @@ export function useRates(type?: TranslationRateType) {
   const { data, isLoading } = useQuery({
     queryKey: ["translationRates", type ?? null],
     queryFn: () =>
-      gqlRequest<{ translationRates: TranslationRate[] }>(
+      gqlFetch<{ translationRates: TranslationRate[] }>(
         TRANSLATION_RATES_QUERY,
         type ? { type } : {},
       ).then((d) => d.translationRates),
@@ -26,18 +27,8 @@ export function useRates(type?: TranslationRateType) {
 export function useCreateRate(activityId?: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (input: {
-      type: TranslationRateType;
-      activityId?: number | null;
-      name: string;
-      amount: number;
-      currency: string;
-      description?: string;
-      clientId?: number | null;
-      sourceLanguage?: string;
-      targetLanguage?: string;
-    }) =>
-      gqlRequest<{ createTranslationRate: TranslationRate }>(
+    mutationFn: (input: CreateRateInput) =>
+      gqlMutate<{ createTranslationRate: TranslationRate }>(
         CREATE_TRANSLATION_RATE_MUTATION,
         { input },
       ).then((d) => d.createTranslationRate),
@@ -59,8 +50,7 @@ export function useCreateRate(activityId?: number) {
     },
   });
   return {
-    createRate: (input: Parameters<typeof mutateAsync>[0]) =>
-      mutateAsync(input),
+    createRate: (input: CreateRateInput) => mutateAsync(input),
     loading: isPending,
   };
 }
@@ -68,19 +58,8 @@ export function useCreateRate(activityId?: number) {
 export function useUpdateRate() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (input: {
-      id: number;
-      type?: TranslationRateType;
-      activityId?: number | null;
-      name?: string;
-      amount?: number;
-      currency?: string;
-      description?: string;
-      clientId?: number | null;
-      sourceLanguage?: string;
-      targetLanguage?: string;
-    }) =>
-      gqlRequest<{ updateTranslationRate: TranslationRate }>(
+    mutationFn: (input: UpdateRateInput) =>
+      gqlMutate<{ updateTranslationRate: TranslationRate }>(
         UPDATE_TRANSLATION_RATE_MUTATION,
         { input },
       ).then((d) => d.updateTranslationRate),
@@ -98,8 +77,7 @@ export function useUpdateRate() {
     },
   });
   return {
-    updateRate: (input: Parameters<typeof mutateAsync>[0]) =>
-      mutateAsync(input),
+    updateRate: (input: UpdateRateInput) => mutateAsync(input),
     loading: isPending,
   };
 }
@@ -108,7 +86,7 @@ export function useDeleteRate(activityId?: number) {
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteTranslationRate: boolean }>(
+      gqlMutate<{ deleteTranslationRate: boolean }>(
         DELETE_TRANSLATION_RATE_MUTATION,
         { id },
       ).then((d) => d.deleteTranslationRate),

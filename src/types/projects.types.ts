@@ -137,3 +137,28 @@ export interface TimeTabProps {
   recentDescriptions: string[];
   handleResume: (entry: TimeEntry) => void;
 }
+
+export type ProjectInput = {
+  title: string;
+  description?: string;
+  clientId?: number | null;
+  status?: ProjectStatus;
+  sourceLanguage?: string;
+  targetLanguage?: string;
+  wordCount?: number;
+  unitPrice?: number;
+  fixedFee?: number | null;
+  hourlyRate?: number | null;
+  perWordRate?: number | null;
+  currency?: string;
+  deadline?: string;
+  startDate?: string;
+};
+
+export type ProjectsVars = {
+  status?: ProjectStatus;
+  search?: string;
+  pagination?: { limit?: number; cursor?: number };
+};
+
+export type UpdateProjectInput = Partial<ProjectInput> & { id: number };

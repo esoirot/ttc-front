@@ -73,3 +73,20 @@ export type TtcTagChipsProps = {
   onAdd: (id: number) => void;
   onRemove: (id: number) => void;
 };
+
+export type TimeEntryFilters = {
+  projectId?: number;
+  projectIds?: number[];
+  start?: string;
+  end?: string;
+};
+
+export type UpdateTimeEntryInput = {
+  id: number;
+  projectId?: number | null;
+  description?: string;
+  startTime?: string;
+  endTime?: string;
+  billable?: boolean;
+  tagIds?: number[];
+};

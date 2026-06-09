@@ -13,16 +13,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { ProjectCardProps } from "@/types/projects.types";
-
-const STATUS_COLORS: Record<string, string> = {
-  DRAFT: "secondary",
-  ACTIVE: "default",
-  COMPLETED: "outline",
-  CANCELLED: "destructive",
-  ARCHIVED: "secondary",
-  INVOICE_SENT: "outline",
-  INVOICE_PAID: "outline",
-};
+import { STATUS_COLORS } from "@/constants/projects";
 
 export function ProjectCard({
   project,

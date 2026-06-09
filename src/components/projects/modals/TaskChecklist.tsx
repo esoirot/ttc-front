@@ -5,6 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -15,6 +26,8 @@ import {
   useCreateSubtask,
   useUpdateSubtask,
   useDeleteSubtask,
+  useCreateChecklist,
+  useDeleteChecklist,
   useRenameChecklist,
 } from "@/hooks/tasks/useTasks";
 import type { Subtask } from "@/types/tasks.types";
@@ -207,6 +220,7 @@ function ChecklistGroup({
   const [titleVal, setTitleVal] = useState(checklistTitle);
   const { updateSubtask } = useUpdateSubtask(taskId);
   const { renameChecklist } = useRenameChecklist(taskId);
+  const { deleteChecklist } = useDeleteChecklist(taskId);
 
   const done = items.filter((s) => s.done).length;
 
@@ -256,9 +270,40 @@ function ChecklistGroup({
             {checklistTitle}
           </span>
         )}
-        <span className="text-muted-foreground text-xs shrink-0">
-          {done}/{items.length}
-        </span>
+        <div className="flex items-center gap-1 shrink-0">
+          <span className="text-muted-foreground text-xs">
+            {done}/{items.length}
+          </span>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
+              >
+                ✕
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete checklist</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Delete &ldquo;{checklistTitle}&rdquo; and all its items? This
+                  cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => void deleteChecklist(checklistTitle)}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
       {items.length > 0 && (
@@ -352,12 +397,18 @@ function ChecklistGroup({
 export function TaskChecklist({
   taskId,
   subtasks,
+  checklistTitles,
+  addingChecklist,
+  onAddingChecklistChange,
 }: {
   taskId: number;
   subtasks: Subtask[];
+  checklistTitles: string[];
+  addingChecklist: boolean;
+  onAddingChecklistChange: (v: boolean) => void;
 }) {
   const [newChecklistTitle, setNewChecklistTitle] = useState("");
-  const [addingChecklist, setAddingChecklist] = useState(false);
+  const { createChecklist } = useCreateChecklist(taskId);
 
   const groups = subtasks.reduce<Record<string, Subtask[]>>((acc, s) => {
     const key = s.checklistTitle ?? "__ungrouped__";
@@ -366,7 +417,7 @@ export function TaskChecklist({
     return acc;
   }, {});
 
-  const checklistTitles = Object.keys(groups).filter(
+  const groupedTitles = Object.keys(groups).filter(
     (k) => k !== "__ungrouped__",
   );
   const ungrouped = groups["__ungrouped__"] ?? [];
@@ -375,7 +426,8 @@ export function TaskChecklist({
     const t = newChecklistTitle.trim();
     if (!t) return;
     setNewChecklistTitle("");
-    setAddingChecklist(false);
+    onAddingChecklistChange(false);
+    void createChecklist(t);
   }
 
   return (
@@ -388,7 +440,7 @@ export function TaskChecklist({
         />
       )}
 
-      {checklistTitles.map((title) => (
+      {groupedTitles.map((title) => (
         <ChecklistGroup
           key={title}
           checklistTitle={title}
@@ -397,7 +449,7 @@ export function TaskChecklist({
         />
       ))}
 
-      {addingChecklist ? (
+      {addingChecklist && (
         <div className="flex gap-2">
           <Input
             autoFocus
@@ -407,7 +459,7 @@ export function TaskChecklist({
             onKeyDown={(e) => {
               if (e.key === "Enter") confirmNewChecklist();
               if (e.key === "Escape") {
-                setAddingChecklist(false);
+                onAddingChecklistChange(false);
                 setNewChecklistTitle("");
               }
             }}
@@ -426,31 +478,25 @@ export function TaskChecklist({
             variant="ghost"
             className="h-7 text-xs"
             onClick={() => {
-              setAddingChecklist(false);
+              onAddingChecklistChange(false);
               setNewChecklistTitle("");
             }}
           >
             Cancel
           </Button>
         </div>
-      ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-7 text-xs self-start"
-          onClick={() => setAddingChecklist(true)}
-        >
-          + New checklist
-        </Button>
       )}
 
-      {newChecklistTitle && !addingChecklist && (
-        <ChecklistGroup
-          checklistTitle={newChecklistTitle}
-          items={[]}
-          taskId={taskId}
-        />
-      )}
+      {checklistTitles
+        .filter((t) => !groups[t])
+        .map((t) => (
+          <ChecklistGroup
+            key={t}
+            checklistTitle={t}
+            items={[]}
+            taskId={taskId}
+          />
+        ))}
     </div>
   );
 }

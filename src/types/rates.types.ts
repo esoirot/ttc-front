@@ -52,3 +52,28 @@ export interface TranslationRateRowProps {
 }
 
 export type Rate = TranslationRate;
+
+export type CreateRateInput = {
+  type: TranslationRateType;
+  activityId?: number | null;
+  name: string;
+  amount: number;
+  currency: string;
+  description?: string;
+  clientId?: number | null;
+  sourceLanguage?: string;
+  targetLanguage?: string;
+};
+
+export type UpdateRateInput = {
+  id: number;
+  type?: TranslationRateType;
+  activityId?: number | null;
+  name?: string;
+  amount?: number;
+  currency?: string;
+  description?: string;
+  clientId?: number | null;
+  sourceLanguage?: string;
+  targetLanguage?: string;
+};

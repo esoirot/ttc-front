@@ -1,3 +1,4 @@
+import { startTransition } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { TYPE_LABELS } from "@/constants/rates";
@@ -55,8 +56,10 @@ export function RateList({ type }: TranslationRateListProps) {
                 key={rate.id}
                 rate={rate}
                 onEdit={() => {
-                  setShowForm(false);
-                  setEditingId(rate.id);
+                  startTransition(() => {
+                    setShowForm(false);
+                    setEditingId(rate.id);
+                  });
                 }}
                 onDelete={() => void deleteRate(rate.id)}
               />
@@ -78,8 +81,10 @@ export function RateList({ type }: TranslationRateListProps) {
           size="sm"
           className="mt-0"
           onClick={() => {
-            setEditingId(null);
-            setShowForm(true);
+            startTransition(() => {
+              setEditingId(null);
+              setShowForm(true);
+            });
           }}
         >
           + Add {TYPE_LABELS[type]} Rate

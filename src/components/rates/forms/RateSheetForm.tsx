@@ -21,31 +21,8 @@ import {
   defaultMatchRates,
   type MatchRates,
 } from "@/constants/matchRateItems";
-import type {
-  RateSheet,
-  CreateRateSheetInput,
-} from "@/types/rate-sheets.types";
-
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  EUR: "€",
-  USD: "$",
-  GBP: "£",
-  CHF: "Fr",
-  CAD: "CA$",
-  AUD: "A$",
-  JPY: "¥",
-};
-
-function currencySymbol(code: string): string {
-  return CURRENCY_SYMBOLS[code] ?? code;
-}
-
-interface RateSheetFormProps {
-  initial?: RateSheet;
-  onSave: (data: CreateRateSheetInput) => void;
-  onCancel: () => void;
-  saving: boolean;
-}
+import type { RateSheetFormProps } from "@/types/rate-sheets.types";
+import { currencySymbol } from "@/lib/currency";
 
 export function RateSheetForm({
   initial,

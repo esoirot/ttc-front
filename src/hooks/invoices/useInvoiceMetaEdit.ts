@@ -1,12 +1,5 @@
 import { useState } from "react";
-import type { InvoiceMetaUpdateInput } from "@/types/invoices.types";
-
-type FormState = {
-  clientId: string;
-  currency: string;
-  dueDate: string;
-  notes: string;
-};
+import type { FormState, InvoiceMetaUpdateInput } from "@/types/invoices.types";
 
 export function useInvoiceMetaEdit({
   clientId,

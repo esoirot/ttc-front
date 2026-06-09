@@ -6,13 +6,14 @@ import {
   UPDATE_CLIENT_RATE_MUTATION,
   DELETE_CLIENT_RATE_MUTATION,
 } from "@/graphql/client-rates.operations";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import type { CreateClientRateInput } from "@/types/clients.types";
 
 export function useClientRates(clientId: number | null) {
   const { data, isLoading } = useQuery({
     queryKey: ["clientRates", clientId],
     queryFn: () =>
-      gqlRequest<{ clientRates: ClientRate[] }>(CLIENT_RATES_QUERY, {
+      gqlFetch<{ clientRates: ClientRate[] }>(CLIENT_RATES_QUERY, {
         clientId: clientId!,
       }).then((d) => d.clientRates),
     enabled: clientId != null,
@@ -20,25 +21,17 @@ export function useClientRates(clientId: number | null) {
   return { clientRates: data ?? [], loading: isLoading };
 }
 
-type CreateClientRateInput = Omit<
-  ClientRate,
-  "id" | "clientId" | "userId" | "createdAt" | "updatedAt"
->;
-
 export function useCreateClientRate(clientId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (input: CreateClientRateInput) =>
-      gqlRequest<{ createClientRate: ClientRate }>(
-        CREATE_CLIENT_RATE_MUTATION,
-        {
-          input: {
-            ...input,
-            clientId,
-            description: input.description ?? undefined,
-          },
+      gqlMutate<{ createClientRate: ClientRate }>(CREATE_CLIENT_RATE_MUTATION, {
+        input: {
+          ...input,
+          clientId,
+          description: input.description ?? undefined,
         },
-      ).then((d) => d.createClientRate),
+      }).then((d) => d.createClientRate),
     onSuccess: (created) => {
       queryClient.setQueryData<ClientRate[]>(
         ["clientRates", clientId],
@@ -60,12 +53,9 @@ export function useUpdateClientRate(clientId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (input: UpdateClientRateInput) =>
-      gqlRequest<{ updateClientRate: ClientRate }>(
-        UPDATE_CLIENT_RATE_MUTATION,
-        {
-          input: { ...input, description: input.description ?? undefined },
-        },
-      ).then((d) => d.updateClientRate),
+      gqlMutate<{ updateClientRate: ClientRate }>(UPDATE_CLIENT_RATE_MUTATION, {
+        input: { ...input, description: input.description ?? undefined },
+      }).then((d) => d.updateClientRate),
     onSuccess: (updated) => {
       queryClient.setQueryData<ClientRate[]>(
         ["clientRates", clientId],
@@ -83,7 +73,7 @@ export function useDeleteClientRate(clientId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteClientRate: boolean }>(DELETE_CLIENT_RATE_MUTATION, {
+      gqlMutate<{ deleteClientRate: boolean }>(DELETE_CLIENT_RATE_MUTATION, {
         id,
       }).then((d) => d.deleteClientRate),
     onSuccess: (_data, id) => {

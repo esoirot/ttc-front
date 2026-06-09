@@ -10,13 +10,13 @@ import {
   DELETE_CHARGE_MUTATION,
 } from "@/graphql/activities.operations";
 import type { AnyActivity, ActivityType } from "@/types/activities.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 export function useMyActivities() {
   const { data, isLoading } = useQuery({
     queryKey: ["activities"],
     queryFn: () =>
-      gqlRequest<{ myActivities: AnyActivity[] }>(MY_ACTIVITIES_QUERY).then(
+      gqlFetch<{ myActivities: AnyActivity[] }>(MY_ACTIVITIES_QUERY).then(
         (d) => d.myActivities,
       ),
   });
@@ -27,7 +27,7 @@ export function useActivity(id: number) {
   const { data, isLoading } = useQuery({
     queryKey: ["activity", id],
     queryFn: () =>
-      gqlRequest<{ activity: AnyActivity }>(ACTIVITY_QUERY, { id }).then(
+      gqlFetch<{ activity: AnyActivity }>(ACTIVITY_QUERY, { id }).then(
         (d) => d.activity,
       ),
     enabled: !!id,
@@ -44,7 +44,7 @@ export function useCreateActivity() {
       languagePairs?: { fromLanguage: string; toLanguage: string }[] | null;
       customFields?: { key: string; value: string }[] | null;
     }) =>
-      gqlRequest<{ createActivity: AnyActivity }>(CREATE_ACTIVITY_MUTATION, {
+      gqlMutate<{ createActivity: AnyActivity }>(CREATE_ACTIVITY_MUTATION, {
         input,
       }).then((d) => d.createActivity),
     onSuccess: (newActivity) => {
@@ -79,7 +79,7 @@ export function useUpdateActivity() {
       objectiveQ4?: number | null;
       languagePairs?: { fromLanguage: string; toLanguage: string }[] | null;
     }) =>
-      gqlRequest<{ updateActivity: AnyActivity }>(UPDATE_ACTIVITY_MUTATION, {
+      gqlMutate<{ updateActivity: AnyActivity }>(UPDATE_ACTIVITY_MUTATION, {
         input,
       }).then((d) => d.updateActivity),
     onSuccess: (updated) => {
@@ -102,7 +102,7 @@ export function useDeleteActivity() {
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteActivity: boolean }>(DELETE_ACTIVITY_MUTATION, {
+      gqlMutate<{ deleteActivity: boolean }>(DELETE_ACTIVITY_MUTATION, {
         id,
       }).then((d) => d.deleteActivity),
     onSuccess: (_data, id) => {
@@ -120,7 +120,7 @@ export function useCreateCharge(activityId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (input: { name: string; amount: number; type: string }) =>
-      gqlRequest<{ createCharge: { id: number } }>(CREATE_CHARGE_MUTATION, {
+      gqlMutate<{ createCharge: { id: number } }>(CREATE_CHARGE_MUTATION, {
         input: { ...input, activityId },
       }).then((d) => d.createCharge),
     onSuccess: () => {
@@ -145,7 +145,7 @@ export function useUpdateCharge(activityId: number) {
       amount?: number | null;
       type?: string | null;
     }) =>
-      gqlRequest<{ updateCharge: { id: number } }>(UPDATE_CHARGE_MUTATION, {
+      gqlMutate<{ updateCharge: { id: number } }>(UPDATE_CHARGE_MUTATION, {
         input,
       }).then((d) => d.updateCharge),
     onSuccess: () => {
@@ -165,7 +165,7 @@ export function useDeleteCharge(activityId: number) {
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ deleteCharge: boolean }>(DELETE_CHARGE_MUTATION, {
+      gqlMutate<{ deleteCharge: boolean }>(DELETE_CHARGE_MUTATION, {
         id,
       }).then((d) => d.deleteCharge),
     onSuccess: () => {

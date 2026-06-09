@@ -35,3 +35,14 @@ export const QTY_LABEL: Record<TranslationRateType, string> = {
   FIXED: "Qty",
   DAY: "Day",
 };
+
+export const INVOICE_STATUS_COLORS: Record<
+  string,
+  "default" | "secondary" | "outline" | "destructive"
+> = {
+  DRAFT: "secondary",
+  SENT: "default",
+  PAID: "outline",
+  OVERDUE: "destructive",
+  CANCELLED: "secondary",
+};

@@ -1,3 +1,4 @@
+import { startTransition } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,8 +37,10 @@ export function OverviewSection({
           size="sm"
           className="ml-auto h-6 px-2 text-xs"
           onClick={() => {
-            setEditingId(null);
-            setShowForm((v) => !v);
+            startTransition(() => {
+              setEditingId(null);
+              setShowForm((v) => !v);
+            });
           }}
         >
           {showForm ? "Cancel" : "+ Add"}
@@ -96,8 +99,10 @@ export function OverviewSection({
                     size="sm"
                     className="h-6 px-2 text-xs"
                     onClick={() => {
-                      setShowForm(false);
-                      setEditingId(rate.id);
+                      startTransition(() => {
+                        setShowForm(false);
+                        setEditingId(rate.id);
+                      });
                     }}
                   >
                     Edit

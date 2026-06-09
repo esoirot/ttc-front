@@ -12,7 +12,7 @@ import {
   ADMIN_DELETE_PROJECT_MUTATION,
 } from "../../graphql/admin.operations";
 import type { AdminProject, AdminConnection } from "@/types/admin.types";
-import { gqlRequest } from "@/lib/api";
+import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 const LIMIT = 20;
 
@@ -25,7 +25,7 @@ export function useAdminProjects(status?: ProjectStatus, search?: string) {
       { status: status ?? null, search: search ?? null },
     ],
     queryFn: ({ pageParam }) =>
-      gqlRequest<{ adminProjects: AdminConnection<AdminProject> }>(
+      gqlFetch<{ adminProjects: AdminConnection<AdminProject> }>(
         ADMIN_PROJECTS_QUERY,
         {
           status,
@@ -62,7 +62,7 @@ export function useAdminCrudProjects() {
       clientId?: number;
       currency?: string;
     }) =>
-      gqlRequest<{ adminCreateProject: AdminProject }>(
+      gqlMutate<{ adminCreateProject: AdminProject }>(
         ADMIN_CREATE_PROJECT_MUTATION,
         { input },
       ).then((d) => d.adminCreateProject),
@@ -79,7 +79,7 @@ export function useAdminCrudProjects() {
       unitPrice?: number;
       deadline?: string;
     }) =>
-      gqlRequest<{ adminUpdateProject: AdminProject }>(
+      gqlMutate<{ adminUpdateProject: AdminProject }>(
         ADMIN_UPDATE_PROJECT_MUTATION,
         { input },
       ).then((d) => d.adminUpdateProject),
@@ -104,7 +104,7 @@ export function useAdminCrudProjects() {
 
   const { mutateAsync: remove } = useMutation({
     mutationFn: (id: number) =>
-      gqlRequest<{ adminDeleteProject: { id: number } }>(
+      gqlMutate<{ adminDeleteProject: { id: number } }>(
         ADMIN_DELETE_PROJECT_MUTATION,
         { id },
       ).then((d) => d.adminDeleteProject),

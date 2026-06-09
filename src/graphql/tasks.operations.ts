@@ -5,6 +5,7 @@ import type {
   Subtask,
   TaskComment,
   TaskLabel,
+  TaskAttachment,
   Task,
   TaskDetail,
   TaskConnection,
@@ -65,7 +66,7 @@ export const UPDATE_TASK_MUTATION: TypedDocumentNode<
       description?: string;
       status?: TaskStatus;
       sortOrder?: number;
-      dueDate?: string;
+      dueDate?: string | null;
       assigneeId?: number;
       projectId?: number;
     };
@@ -92,6 +93,7 @@ export const TASK_QUERY: TypedDocumentNode<
   query Task($id: Int!) {
     task(id: $id) {
       ${TASK_FIELDS}
+      checklistTitles
       subtasks { id taskId checklistTitle title done dueDate createdAt updatedAt }
       comments { id taskId authorId body createdAt updatedAt }
       labels { id taskId name color createdAt }
@@ -99,6 +101,7 @@ export const TASK_QUERY: TypedDocumentNode<
         id taskId userId type payload createdAt
         user { id name }
       }
+      attachments { id taskId type fileName url displayText createdAt }
     }
   }
 `;
@@ -160,6 +163,24 @@ export const DELETE_SUBTASK_MUTATION: TypedDocumentNode<
 > = gql`
   mutation DeleteSubtask($id: Int!) {
     deleteSubtask(id: $id)
+  }
+`;
+
+export const CREATE_CHECKLIST_MUTATION: TypedDocumentNode<
+  { createChecklist: boolean },
+  { taskId: number; title: string }
+> = gql`
+  mutation CreateChecklist($taskId: Int!, $title: String!) {
+    createChecklist(taskId: $taskId, title: $title)
+  }
+`;
+
+export const DELETE_CHECKLIST_MUTATION: TypedDocumentNode<
+  { deleteChecklist: boolean },
+  { taskId: number; title: string }
+> = gql`
+  mutation DeleteChecklist($taskId: Int!, $title: String!) {
+    deleteChecklist(taskId: $taskId, title: $title)
   }
 `;
 

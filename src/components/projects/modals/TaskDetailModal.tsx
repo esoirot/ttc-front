@@ -1,5 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,10 +23,13 @@ import { useTask, useUpdateTask } from "@/hooks/tasks/useTasks";
 import type { TaskStatus } from "@/types/tasks.types";
 import { STATUS_LABELS, STATUS_COLORS, TASK_STATUSES } from "@/constants/tasks";
 import { TaskChecklist } from "./TaskChecklist";
-import { TaskLabelPicker, TaskLabelBadges } from "./TaskLabelPicker";
+import { TaskLabelPicker } from "./TaskLabelPicker";
 import { TaskDatePicker } from "./TaskDatePicker";
 import { TaskCommentList } from "./TaskCommentList";
 import { TaskActivityFeed } from "./TaskActivityFeed";
+import { TaskAttachmentModal } from "./TaskAttachmentModal";
+import { useDeleteAttachment } from "@/hooks/tasks/useAttachments";
+import { TaskLabelBadges } from "./TaskLabelBadges";
 
 const STATUSES: TaskStatus[] = TASK_STATUSES;
 
@@ -39,7 +49,12 @@ export function TaskDetailModal({
   const { task, loading } = useTask(taskId);
   const { updateTask } = useUpdateTask(projectId);
 
-  const [showChecklist, setShowChecklist] = useState(false);
+  const [addingChecklist, setAddingChecklist] = useState(false);
+  const [checklistSectionOpen, setChecklistSectionOpen] = useState(false);
+  const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
+  const checklistTriggerRef = useRef<HTMLButtonElement>(null);
+  const labelTriggerRef = useRef<HTMLButtonElement>(null);
+  const dateTriggerRef = useRef<HTMLButtonElement>(null);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleVal, setTitleVal] = useState("");
 
@@ -65,7 +80,9 @@ export function TaskDetailModal({
   }
 
   const showChecklistSection =
-    showChecklist || (task?.subtasks?.length ?? 0) > 0;
+    checklistSectionOpen ||
+    (task?.subtasks?.length ?? 0) > 0 ||
+    (task?.checklistTitles?.length ?? 0) > 0;
 
   return (
     <Dialog
@@ -123,7 +140,7 @@ export function TaskDetailModal({
                   void updateTask({ id: task.id, status: v as TaskStatus })
                 }
               >
-                <SelectTrigger className="h-7 text-xs w-[130px] shrink-0">
+                <SelectTrigger className="h-7 text-xs w-32.5 shrink-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -158,7 +175,7 @@ export function TaskDetailModal({
                   <Textarea
                     defaultValue={task.description ?? ""}
                     placeholder="Add a description…"
-                    className="min-h-[80px] text-sm resize-none"
+                    className="min-h-20 text-sm resize-none"
                     onBlur={(e) => void handleDescriptionBlur(e.target.value)}
                   />
                 </div>
@@ -168,26 +185,95 @@ export function TaskDetailModal({
 
                 {/* Action buttons */}
                 <div className="flex flex-wrap gap-2 items-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                      >
+                        + Add
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-44">
+                      <DropdownMenuItem
+                        onSelect={() =>
+                          setTimeout(
+                            () => checklistTriggerRef.current?.click(),
+                            80,
+                          )
+                        }
+                      >
+                        Checklist
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() =>
+                          setTimeout(() => labelTriggerRef.current?.click(), 80)
+                        }
+                      >
+                        Label
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() =>
+                          setTimeout(() => dateTriggerRef.current?.click(), 80)
+                        }
+                      >
+                        Date
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onSelect={() =>
+                          setTimeout(() => setAttachmentModalOpen(true), 80)
+                        }
+                      >
+                        Attachment
+                      </DropdownMenuItem>
+                      <DropdownMenuItem disabled>Custom Field</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button
+                    ref={checklistTriggerRef}
                     variant="outline"
                     size="sm"
                     className="h-7 text-xs"
-                    onClick={() => setShowChecklist(true)}
+                    onClick={() => {
+                      setChecklistSectionOpen(true);
+                      setAddingChecklist(true);
+                    }}
                   >
-                    ☑ Checklist
+                    + New checklist
                   </Button>
-                  <TaskLabelPicker taskId={task.id} />
+                  <TaskLabelPicker
+                    taskId={task.id}
+                    triggerRef={labelTriggerRef}
+                  />
                   <TaskDatePicker
+                    key={task.id}
                     dueDate={task.dueDate}
+                    triggerRef={dateTriggerRef}
                     onUpdate={(d) =>
-                      void updateTask({ id: task.id, dueDate: d ?? undefined })
+                      void updateTask({ id: task.id, dueDate: d })
                     }
                   />
                 </div>
 
                 {/* Checklist */}
                 {showChecklistSection && (
-                  <TaskChecklist taskId={task.id} subtasks={task.subtasks} />
+                  <TaskChecklist
+                    taskId={task.id}
+                    subtasks={task.subtasks}
+                    checklistTitles={task.checklistTitles}
+                    addingChecklist={addingChecklist}
+                    onAddingChecklistChange={setAddingChecklist}
+                  />
+                )}
+
+                {/* Attachments */}
+                {task.attachments.length > 0 && (
+                  <AttachmentList
+                    taskId={task.id}
+                    attachments={task.attachments}
+                  />
                 )}
               </div>
 
@@ -214,6 +300,65 @@ export function TaskDetailModal({
           </>
         )}
       </DialogContent>
+
+      {task && (
+        <TaskAttachmentModal
+          taskId={task.id}
+          open={attachmentModalOpen}
+          onClose={() => setAttachmentModalOpen(false)}
+        />
+      )}
     </Dialog>
+  );
+}
+
+const API_BASE = (import.meta.env.VITE_API_URL as string).replace(
+  "/graphql",
+  "",
+);
+
+function AttachmentList({
+  taskId,
+  attachments,
+}: {
+  taskId: number;
+  attachments: import("@/types/tasks.types").TaskAttachment[];
+}) {
+  const { deleteAttachment } = useDeleteAttachment(taskId);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+        Attachments
+      </span>
+      <div className="flex flex-col gap-1">
+        {attachments.map((a) => {
+          const href = a.type === "FILE" ? `${API_BASE}${a.url}` : a.url;
+          const label =
+            a.type === "FILE" ? (a.fileName ?? a.url) : a.displayText || a.url;
+          return (
+            <div key={a.id} className="flex items-center gap-2 text-xs group">
+              <span className="shrink-0">
+                {a.type === "FILE" ? "📎" : "🔗"}
+              </span>
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 min-w-0 truncate text-primary hover:underline"
+              >
+                {label}
+              </a>
+              <button
+                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity shrink-0"
+                onClick={() => void deleteAttachment(a.id)}
+              >
+                ✕
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

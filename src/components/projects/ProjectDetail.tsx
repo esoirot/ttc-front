@@ -123,7 +123,7 @@ export function ProjectDetail() {
           projectId={projectId}
           open={openTaskId !== null}
           onClose={() => setOpenTaskId(null)}
-          currentUserId={currentUser?.id}
+          currentUserId={currentUser?.id ? Number(currentUser.id) : undefined}
         />
       )}
     </div>
