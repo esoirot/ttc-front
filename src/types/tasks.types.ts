@@ -51,6 +51,9 @@ export interface Task {
   description: string | null;
   status: TaskStatus;
   dueDate: string | null;
+  startDate: string | null;
+  recurring: string | null;
+  reminderOffset: string | null;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -97,6 +100,9 @@ export type UpdateTaskInput = {
   status?: TaskStatus;
   sortOrder?: number;
   dueDate?: string | null;
+  startDate?: string | null;
+  recurring?: string | null;
+  reminderOffset?: string | null;
   assigneeId?: number;
   projectId?: number;
 };

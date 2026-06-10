@@ -28,7 +28,23 @@ import { TaskDatePicker } from "./TaskDatePicker";
 import { TaskCommentList } from "./TaskCommentList";
 import { TaskActivityFeed } from "./TaskActivityFeed";
 import { TaskAttachmentModal } from "./TaskAttachmentModal";
-import { useDeleteAttachment } from "@/hooks/tasks/useAttachments";
+import {
+  useDeleteAttachment,
+  useUpdateAttachment,
+} from "@/hooks/tasks/useAttachments";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { TaskLabelBadges } from "./TaskLabelBadges";
 
 const STATUSES: TaskStatus[] = TASK_STATUSES;
@@ -249,10 +265,13 @@ export function TaskDetailModal({
                   />
                   <TaskDatePicker
                     key={task.id}
+                    startDate={task.startDate}
                     dueDate={task.dueDate}
+                    recurring={task.recurring}
+                    reminderOffset={task.reminderOffset}
                     triggerRef={dateTriggerRef}
-                    onUpdate={(d) =>
-                      void updateTask({ id: task.id, dueDate: d })
+                    onUpdate={(data) =>
+                      void updateTask({ id: task.id, ...data })
                     }
                   />
                 </div>
@@ -273,6 +292,7 @@ export function TaskDetailModal({
                   <AttachmentList
                     taskId={task.id}
                     attachments={task.attachments}
+                    onAdd={() => setAttachmentModalOpen(true)}
                   />
                 )}
               </div>
@@ -320,22 +340,101 @@ const API_BASE = (import.meta.env.VITE_API_URL as string).replace(
 function AttachmentList({
   taskId,
   attachments,
+  onAdd,
 }: {
   taskId: number;
   attachments: import("@/types/tasks.types").TaskAttachment[];
+  onAdd: () => void;
 }) {
   const { deleteAttachment } = useDeleteAttachment(taskId);
+  const { updateAttachment } = useUpdateAttachment(taskId);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editUrl, setEditUrl] = useState("");
+  const [editDisplayText, setEditDisplayText] = useState("");
+
+  function startEdit(a: import("@/types/tasks.types").TaskAttachment) {
+    setEditingId(a.id);
+    setEditUrl(a.url);
+    setEditDisplayText(a.displayText ?? "");
+  }
+
+  async function saveEdit() {
+    if (editingId == null) return;
+    await updateAttachment(editingId, editUrl, editDisplayText || undefined);
+    setEditingId(null);
+  }
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-        Attachments
-      </span>
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+          Attachments
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 px-2 text-xs"
+          onClick={onAdd}
+        >
+          + Add
+        </Button>
+      </div>
       <div className="flex flex-col gap-1">
         {attachments.map((a) => {
-          const href = a.type === "FILE" ? `${API_BASE}${a.url}` : a.url;
+          const href =
+            a.type === "FILE"
+              ? a.url.startsWith("http")
+                ? a.url
+                : `${API_BASE}${a.url}`
+              : a.url.startsWith("http")
+                ? a.url
+                : `https://${a.url}`;
           const label =
             a.type === "FILE" ? (a.fileName ?? a.url) : a.displayText || a.url;
+
+          if (editingId === a.id) {
+            return (
+              <div key={a.id} className="flex flex-col gap-1.5 py-1">
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">URL</Label>
+                  <Input
+                    value={editUrl}
+                    onChange={(e) => setEditUrl(e.target.value)}
+                    placeholder="URL"
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">Display text</Label>
+                  <Input
+                    value={editDisplayText}
+                    onChange={(e) => setEditDisplayText(e.target.value)}
+                    placeholder="Display text (optional)"
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="flex gap-1.5">
+                  <Button
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => void saveEdit()}
+                    disabled={!editUrl.trim()}
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => setEditingId(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            );
+          }
+
           return (
             <div key={a.id} className="flex items-center gap-2 text-xs group">
               <span className="shrink-0">
@@ -349,12 +448,44 @@ function AttachmentList({
               >
                 {label}
               </a>
-              <button
-                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity shrink-0"
-                onClick={() => void deleteAttachment(a.id)}
-              >
-                ✕
-              </button>
+              <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 transition-opacity">
+                {a.type === "URL" && (
+                  <button
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => startEdit(a)}
+                    title="Edit"
+                  >
+                    ✎
+                  </button>
+                )}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      className="text-muted-foreground hover:text-destructive"
+                      title="Delete"
+                    >
+                      ✕
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete attachment?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        &ldquo;{label}&rdquo; will be permanently removed.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => void deleteAttachment(a.id)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           );
         })}

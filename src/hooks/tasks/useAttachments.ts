@@ -49,6 +49,41 @@ export function useCreateAttachment(taskId: number) {
   };
 }
 
+export function useUpdateAttachment(taskId: number) {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync } = useMutation({
+    mutationFn: async (input: {
+      id: number;
+      url: string;
+      displayText?: string;
+    }) => {
+      const res = await fetch(
+        `${API_BASE}/tasks/${taskId}/attachments/${input.id}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: input.url,
+            displayText: input.displayText,
+          }),
+        },
+      );
+      if (!res.ok) throw new Error("Update failed");
+      return res.json() as Promise<unknown>;
+    },
+    onSuccess: () => {
+      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
+    },
+  });
+
+  return {
+    updateAttachment: (id: number, url: string, displayText?: string) =>
+      mutateAsync({ id, url, displayText }),
+  };
+}
+
 export function useDeleteAttachment(taskId: number) {
   const queryClient = useQueryClient();
 

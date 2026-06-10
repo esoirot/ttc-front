@@ -5,13 +5,12 @@ import type {
   Subtask,
   TaskComment,
   TaskLabel,
-  TaskAttachment,
   Task,
   TaskDetail,
   TaskConnection,
 } from "@/types/tasks.types";
 
-const TASK_FIELDS = `id projectId assigneeId title description status dueDate sortOrder createdAt updatedAt`;
+const TASK_FIELDS = `id projectId assigneeId title description status dueDate startDate recurring reminderOffset sortOrder createdAt updatedAt`;
 
 export const TASKS_QUERY: TypedDocumentNode<
   { tasks: TaskConnection },
@@ -67,6 +66,9 @@ export const UPDATE_TASK_MUTATION: TypedDocumentNode<
       status?: TaskStatus;
       sortOrder?: number;
       dueDate?: string | null;
+      startDate?: string | null;
+      recurring?: string | null;
+      reminderOffset?: string | null;
       assigneeId?: number;
       projectId?: number;
     };

@@ -39,6 +39,10 @@ function describe(activity: TaskActivity): string {
         return `deleted checklist "${String(p?.title ?? "")}"`;
       case "ATTACHMENT_ADDED":
         return `attached "${String(p?.name ?? p?.url ?? "file")}"`;
+      case "ATTACHMENT_UPDATED":
+        return `updated attachment "${String(p?.name ?? p?.url ?? "file")}"`;
+      case "ATTACHMENT_DELETED":
+        return `removed attachment "${String(p?.name ?? p?.url ?? "file")}"`;
       case "COMMENT_ADDED":
         return "added a comment";
       case "COMMENT_EDITED":
