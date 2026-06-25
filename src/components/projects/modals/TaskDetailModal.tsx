@@ -21,7 +21,12 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTask, useUpdateTask } from "@/hooks/tasks/useTasks";
 import type { TaskStatus } from "@/types/tasks.types";
-import { STATUS_LABELS, STATUS_COLORS, TASK_STATUSES } from "@/constants/tasks";
+import {
+  STATUS_LABELS,
+  STATUS_VARIANTS,
+  STATUS_BADGE_CLASSES,
+  TASK_STATUSES,
+} from "@/constants/tasks";
 import { TaskChecklist } from "./TaskChecklist";
 import { TaskLabelPicker } from "./TaskLabelPicker";
 import { TaskDatePicker } from "./TaskDatePicker";
@@ -162,7 +167,10 @@ export function TaskDetailModal({
                 <SelectContent>
                   {STATUSES.map((s) => (
                     <SelectItem key={s} value={s} className="text-xs">
-                      <Badge variant={STATUS_COLORS[s]}>
+                      <Badge
+                        variant={STATUS_VARIANTS[s]}
+                        className={STATUS_BADGE_CLASSES[s]}
+                      >
                         {STATUS_LABELS[s]}
                       </Badge>
                     </SelectItem>

@@ -14,7 +14,7 @@ export function TaskLabelPicker({
   triggerRef,
 }: {
   taskId: number;
-  triggerRef?: RefObject<HTMLButtonElement>;
+  triggerRef?: RefObject<HTMLButtonElement | null>;
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");

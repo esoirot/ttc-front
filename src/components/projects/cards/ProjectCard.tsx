@@ -13,7 +13,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { ProjectCardProps } from "@/types/projects.types";
-import { STATUS_COLORS } from "@/constants/projects";
+import { STATUS_VARIANTS, STATUS_BADGE_CLASSES } from "@/constants/projects";
 
 export function ProjectCard({
   project,
@@ -39,13 +39,8 @@ export function ProjectCard({
         </div>
         <div className="flex items-center gap-3">
           <Badge
-            variant={
-              (STATUS_COLORS[project.status] as
-                | "default"
-                | "secondary"
-                | "outline"
-                | "destructive") ?? "secondary"
-            }
+            variant={STATUS_VARIANTS[project.status] ?? "outline"}
+            className={STATUS_BADGE_CLASSES[project.status]}
           >
             {project.status}
           </Badge>

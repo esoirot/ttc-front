@@ -12,11 +12,12 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClientHeaderForm } from "@/hooks/clients/useClientHeaderForm";
 import { hasBilling } from "@/hooks/clients/clientUtils";
-import { INDUSTRY_LABELS } from "@/types/clients.types";
+import { INDUSTRY_LABELS, STATUS_LABELS } from "@/types/clients.types";
 import type {
   ClientHeaderProps,
   ClientType,
   ClientIndustry,
+  ClientStatus,
 } from "@/types/clients.types";
 import { BillingFields } from "../form-fields/BillingFields";
 import { AddressFields } from "../form-fields/AddressFields";
@@ -197,6 +198,48 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
             idPrefix="cl"
           />
 
+          <div className="pt-4 border-t border-border">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+              Status
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="cl-status">Status</Label>
+                <Select
+                  value={form.status}
+                  onValueChange={(v) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      status: v as ClientStatus,
+                    }))
+                  }
+                >
+                  <SelectTrigger id="cl-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(
+                      Object.entries(STATUS_LABELS) as [ClientStatus, string][]
+                    ).map(([val, label]) => (
+                      <SelectItem key={val} value={val}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="cl-contactedAt">Contacted At</Label>
+                <Input
+                  id="cl-contactedAt"
+                  type="date"
+                  value={form.contactedAt}
+                  onChange={set("contactedAt")}
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="pt-4 border-t border-border flex flex-col gap-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               Tags
@@ -257,10 +300,17 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
             >
               {client.clientType === "COMPANY" ? "Company" : "Individual"}
             </Badge>
+            <Badge variant="outline">{STATUS_LABELS[client.status]}</Badge>
             {client.hubspotId && (
               <Badge variant="secondary">HubSpot linked</Badge>
             )}
           </div>
+          {client.contactedAt && (
+            <p className="text-muted-foreground text-xs mt-1">
+              Last contacted:{" "}
+              {new Date(client.contactedAt).toLocaleDateString()}
+            </p>
+          )}
         </div>
         <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
           Edit

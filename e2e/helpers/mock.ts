@@ -68,6 +68,10 @@ export async function mockClockifyWorkspaces(page: Page) {
 }
 
 export async function mockClockifyTracker(page: Page, workspaceId = "ws1") {
+  // TrackerView also fetches the plain workspace list (for the plan badge /
+  // billability-lock check) independent of the workspace-scoped routes below.
+  await mockClockifyWorkspaces(page);
+
   await page.route(
     new RegExp(`/clockify/workspaces/${workspaceId}/projects$`),
     async (route) => {
@@ -99,7 +103,7 @@ export async function mockClockifyTracker(page: Page, workspaceId = "ws1") {
   );
 
   await page.route(
-    new RegExp(`/clockify/workspaces/${workspaceId}/entries$`),
+    new RegExp(`/clockify/workspaces/${workspaceId}/entries(\\?.*)?$`),
     async (route) => {
       if (route.request().method() !== "GET") {
         await route.continue();

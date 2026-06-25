@@ -27,12 +27,16 @@ export function ClockifyImportForm({
   async function handleImport(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setImportResult(null);
-    const result = await importMutation.mutateAsync({
-      start: `${importFrom}T00:00:00Z`,
-      end: `${importTo}T23:59:59.999Z`,
-    });
-    setImportResult(result);
-    void refetch();
+    try {
+      const result = await importMutation.mutateAsync({
+        start: `${importFrom}T00:00:00Z`,
+        end: `${importTo}T23:59:59.999Z`,
+      });
+      setImportResult(result);
+      void refetch();
+    } catch {
+      /* error state is surfaced via importMutation.error */
+    }
   }
 
   return (

@@ -43,11 +43,17 @@ export function LoginForm() {
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    const result = await login(email, password);
-    if (result.requiresTwoFactor) {
-      navigate("/2fa/verify", { state: { tempToken: result.tempToken, from } });
-    } else if (result.user) {
-      navigate(from, { replace: true });
+    try {
+      const result = await login(email, password);
+      if (result.requiresTwoFactor) {
+        navigate("/2fa/verify", {
+          state: { tempToken: result.tempToken, from },
+        });
+      } else if (result.user) {
+        navigate(from, { replace: true });
+      }
+    } catch {
+      /* error state is surfaced via useLogin's error */
     }
   }
 

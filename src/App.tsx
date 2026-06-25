@@ -31,6 +31,7 @@ import { AdminHubspotPage } from "./pages/admin/AdminHubspotPage";
 import { AdminActivityLogPage } from "./pages/admin/AdminActivityLogPage";
 import { ClientsPage } from "./pages/clients/ClientsPage";
 import { ClientDetailPage } from "./pages/clients/ClientDetailPage";
+import { ProspectsPage } from "./pages/clients/ProspectsPage";
 import { ProjectsPage } from "./pages/projects/ProjectsPage";
 import { ProjectDetailPage } from "./pages/projects/ProjectDetailPage";
 import { TimeEntriesPage } from "./pages/time/TimeEntriesPage";
@@ -96,6 +97,7 @@ const router = createBrowserRouter([
               { path: "/hubspot", element: <HubspotPage /> },
               { path: "/clients", element: <ClientsPage /> },
               { path: "/clients/:id", element: <ClientDetailPage /> },
+              { path: "/prospects", element: <ProspectsPage /> },
               { path: "/projects", element: <ProjectsPage /> },
               { path: "/projects/:id", element: <ProjectDetailPage /> },
               { path: "/time", element: <TimeEntriesPage /> },

@@ -28,9 +28,13 @@ export function RegisterForm() {
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    const result = await register(email, password, name || undefined);
-    if (result?.id) {
-      navigate("/");
+    try {
+      const result = await register(email, password, name || undefined);
+      if (result?.id) {
+        navigate("/");
+      }
+    } catch {
+      /* error state is surfaced via useRegister's error */
     }
   }
 

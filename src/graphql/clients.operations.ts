@@ -5,6 +5,7 @@ import type {
   ClientConnection,
   ClientType,
   ClientIndustry,
+  ClientStatus,
   CompanyContact,
 } from "@/types/clients.types";
 
@@ -15,7 +16,7 @@ const CLIENT_FIELDS = `
   city country postalCode vatNumber
   notes hubspotId
   clientType firstName lastName paymentDelayDays taxRate billingEndOfMonth
-  website industry tags { id name }
+  website industry status contactedAt tags { id name }
   createdAt updatedAt
   contacts { ${CONTACT_FIELDS} }
 `;
@@ -25,11 +26,13 @@ export const CLIENTS_QUERY: TypedDocumentNode<
   {
     search?: string;
     clientType?: ClientType;
+    excludeStatus?: ClientStatus;
+    status?: ClientStatus;
     pagination?: { limit?: number; cursor?: number };
   }
 > = gql`
-  query Clients($search: String, $clientType: ClientType, $pagination: PaginationInput) {
-    clients(search: $search, clientType: $clientType, pagination: $pagination) {
+  query Clients($search: String, $clientType: ClientType, $excludeStatus: ClientStatus, $status: ClientStatus, $pagination: PaginationInput) {
+    clients(search: $search, clientType: $clientType, excludeStatus: $excludeStatus, status: $status, pagination: $pagination) {
       items { ${CLIENT_FIELDS} }
       nextCursor
       total
@@ -66,6 +69,8 @@ type ClientInput = {
   billingEndOfMonth?: boolean;
   website?: string;
   industry?: ClientIndustry | null;
+  status?: ClientStatus;
+  contactedAt?: string | null;
   tagIds?: number[];
 };
 

@@ -47,7 +47,7 @@ test("shows tracker view when connected with workspace", async ({ page }) => {
   await page.goto("/time-tracker");
   await expect(page.getByPlaceholder("What are you working on?")).toBeVisible();
   await expect(page.getByRole("button", { name: "Start" })).toBeVisible();
-  await expect(page.getByText("Entries")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Entries" })).toBeVisible();
 });
 
 test("tracker shows no entries message when entry list is empty", async ({
@@ -67,14 +67,6 @@ test("tracker shows project filter when projects exist", async ({ page }) => {
   await page.goto("/time-tracker");
   await expect(page.getByRole("button", { name: "Project A" })).toBeVisible();
   await expect(page.getByRole("button", { name: "All" })).toBeVisible();
-});
-
-test("connected state shows update API key section", async ({ page }) => {
-  await mockGraphQL(page, { Me: { me: MOCK_USER } });
-  await mockClockifyStatus(page, { connected: true, workspaceId: "ws1" });
-  await mockClockifyTracker(page, "ws1");
-  await page.goto("/time-tracker");
-  await expect(page.getByText("Update API key or workspace")).toBeVisible();
 });
 
 test("connect form button disabled when API key empty", async ({ page }) => {

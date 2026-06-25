@@ -21,6 +21,52 @@ export type ClientIndustry =
   | "REAL_ESTATE"
   | "OTHER";
 
+export type ClientStatus =
+  | "TO_CONTACT"
+  | "CONTACTED"
+  | "FOLLOW_UP_1"
+  | "FOLLOW_UP_2"
+  | "FOLLOW_UP_3"
+  | "RECONTACT_LATER"
+  | "TALKING"
+  | "CLIENT";
+
+export const STATUS_LABELS: Record<ClientStatus, string> = {
+  TO_CONTACT: "Prospect",
+  CONTACTED: "1st Contact",
+  FOLLOW_UP_1: "Follow up 1",
+  FOLLOW_UP_2: "Follow up 2",
+  FOLLOW_UP_3: "Follow up 3",
+  RECONTACT_LATER: "Recontact Later",
+  TALKING: "Talking",
+  CLIENT: "Client",
+};
+
+export const STATUS_ORDER: ClientStatus[] = [
+  "TO_CONTACT",
+  "CONTACTED",
+  "FOLLOW_UP_1",
+  "FOLLOW_UP_2",
+  "FOLLOW_UP_3",
+  "RECONTACT_LATER",
+  "TALKING",
+  "CLIENT",
+];
+
+// Board columns on the Prospect page — every status except the terminal CLIENT state.
+export const PROSPECT_COLUMNS: ClientStatus[] = STATUS_ORDER.filter(
+  (s) => s !== "CLIENT",
+);
+
+// Dropping a card into one of these columns means an active contact just happened.
+export const ACTIVE_CONTACT_STATUSES = new Set<ClientStatus>([
+  "CONTACTED",
+  "FOLLOW_UP_1",
+  "FOLLOW_UP_2",
+  "FOLLOW_UP_3",
+  "TALKING",
+]);
+
 export const INDUSTRY_LABELS: Record<ClientIndustry, string> = {
   HEALTHCARE: "Healthcare",
   EDUCATION: "Education",
@@ -73,6 +119,8 @@ export interface Client {
   billingEndOfMonth: boolean;
   website: string | null;
   industry: ClientIndustry | null;
+  status: ClientStatus;
+  contactedAt: string | null;
   tags: { id: number; name: string }[];
   contacts: CompanyContact[];
   createdAt: string;
@@ -106,6 +154,8 @@ export interface ClientHeaderProps {
     billingEndOfMonth?: boolean;
     website?: string;
     industry?: ClientIndustry | null;
+    status?: ClientStatus;
+    contactedAt?: string | null;
     tagIds?: number[];
   }) => Promise<unknown>;
   saving: boolean;
@@ -143,7 +193,11 @@ export type ContactsTabProps = {
   adding?: boolean;
 };
 
-export type NewClientFormProps = { onClose: () => void };
+export type NewClientFormProps = {
+  onClose: () => void;
+  defaultStatus?: ClientStatus;
+  title?: string;
+};
 
 export type ClientHeaderFormState = {
   clientType: ClientType;
@@ -163,6 +217,8 @@ export type ClientHeaderFormState = {
   billingEndOfMonth: boolean;
   website: string;
   industry: ClientIndustry | null;
+  status: ClientStatus;
+  contactedAt: string;
   tagIds: number[];
 };
 
@@ -222,6 +278,8 @@ export type ClientInput = {
   billingEndOfMonth?: boolean;
   website?: string;
   industry?: ClientIndustry | null;
+  status?: ClientStatus;
+  contactedAt?: string | null;
   tagIds?: number[];
 };
 

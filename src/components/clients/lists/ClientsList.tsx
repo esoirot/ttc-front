@@ -23,6 +23,8 @@ export function ClientsList() {
   const { clients, loading, hasMore, loadMore, total } = useClients(
     debouncedSearch || undefined,
     typeFilter === "ALL" ? undefined : typeFilter,
+    undefined,
+    "CLIENT",
   );
   const { deleteClient } = useDeleteClient();
 

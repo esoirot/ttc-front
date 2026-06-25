@@ -2,11 +2,18 @@ import { useState } from "react";
 import { useCreateClient } from "@/hooks/clients/useClients";
 import { useTags } from "@/hooks/tags/useTags";
 import { EMPTY_CLIENT_FORM } from "@/constants/clients";
-import type { ClientType, ClientIndustry } from "@/types/clients.types";
+import type {
+  ClientType,
+  ClientIndustry,
+  ClientStatus,
+} from "@/types/clients.types";
 
 type FormState = typeof EMPTY_CLIENT_FORM;
 
-export function useNewClientForm(onClose: () => void) {
+export function useNewClientForm(
+  onClose: () => void,
+  defaultStatus?: ClientStatus,
+) {
   const { createClient, loading } = useCreateClient();
   const { tags } = useTags();
   const [form, setForm] = useState<FormState>(EMPTY_CLIENT_FORM);
@@ -76,6 +83,7 @@ export function useNewClientForm(onClose: () => void) {
       billingEndOfMonth: form.billingEndOfMonth || undefined,
       website: form.website || undefined,
       industry: form.industry || undefined,
+      status: defaultStatus,
       tagIds,
     });
     setForm(EMPTY_CLIENT_FORM);

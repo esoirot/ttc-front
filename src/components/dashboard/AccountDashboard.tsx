@@ -5,6 +5,7 @@ import { TwoFactorPromptCard } from "./2FA/TwoFactorPromptCard";
 import { UpcomingDeadlines } from "./deadlines/UpcomingDeadlines";
 import { RecentTimeEntries } from "./recentTimeEntries/RecentTimeEntries";
 import { StatsGrid } from "./statsGrid/StatsGrid";
+import { ProspectsToContact } from "./prospectsToContact/ProspectsToContact";
 
 export function AccountDashboard() {
   const { user, loading: userLoading } = useCurrentUser();
@@ -29,9 +30,19 @@ export function AccountDashboard() {
     );
   }
 
+  const today = new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight mb-1">Dashboard</h1>
+      <div className="flex items-start justify-between mb-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <p className="text-sm text-muted-foreground">{today}</p>
+      </div>
       <p className="text-muted-foreground mb-6">
         Welcome back, {user?.name ?? user?.email}.
       </p>
@@ -45,6 +56,10 @@ export function AccountDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <UpcomingDeadlines deadlines={dashboard.upcomingDeadlines} />
             <RecentTimeEntries entries={dashboard.recentTimeEntries} />
+          </div>
+
+          <div className="mt-6">
+            <ProspectsToContact prospects={dashboard.prospectsToContact} />
           </div>
         </>
       )}

@@ -30,22 +30,27 @@ export function useProfileForm() {
     e.preventDefault();
     const first = firstName.trim() || null;
     const last = lastName.trim() || null;
-    await updateMe({
-      name: first || last ? [first, last].filter(Boolean).join(" ") : undefined,
-      email: email.trim(),
-      logoUrl: logoUrl.trim() || undefined,
-      defaultCurrency: defaultCurrency || undefined,
-      firstName: first,
-      lastName: last,
-      mobilePhone: mobilePhone.trim() || null,
-      jobTitle: jobTitle.trim() || null,
-      interfaceLanguage: interfaceLanguage || null,
-      dateFormat: dateFormat || null,
-      hourFormat: hourFormat || null,
-      numberFormat: numberFormat || null,
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    try {
+      await updateMe({
+        name:
+          first || last ? [first, last].filter(Boolean).join(" ") : undefined,
+        email: email.trim(),
+        logoUrl: logoUrl.trim() || undefined,
+        defaultCurrency: defaultCurrency || undefined,
+        firstName: first,
+        lastName: last,
+        mobilePhone: mobilePhone.trim() || null,
+        jobTitle: jobTitle.trim() || null,
+        interfaceLanguage: interfaceLanguage || null,
+        dateFormat: dateFormat || null,
+        hourFormat: hourFormat || null,
+        numberFormat: numberFormat || null,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch {
+      /* error state is surfaced via useUpdateMe's error */
+    }
   }
 
   return {

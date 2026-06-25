@@ -21,9 +21,13 @@ export function TwoFactorSetupFlow({ onEnabled }: TwoFactorSetupFlowProps) {
 
   async function handleEnable(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    const result = await enableTwoFactor(code);
-    const codes = result?.backupCodes;
-    if (codes?.length) onEnabled(codes);
+    try {
+      const result = await enableTwoFactor(code);
+      const codes = result?.backupCodes;
+      if (codes?.length) onEnabled(codes);
+    } catch {
+      /* error state is surfaced via useEnableTwoFactor's error */
+    }
   }
 
   if (!qrCodeUrl) {

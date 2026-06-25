@@ -19,6 +19,7 @@ import type {
   Client,
   ClientConnection,
   ClientType,
+  ClientStatus,
   ContactInput,
   ClientInput,
 } from "@/types/clients.types";
@@ -26,23 +27,36 @@ import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 const LIMIT = 20;
 
-export function useClients(search?: string, clientType?: ClientType) {
+export function useClients(
+  search?: string,
+  clientType?: ClientType,
+  excludeStatus?: ClientStatus,
+  status?: ClientStatus,
+  limit: number = LIMIT,
+) {
   const baseVars = {
     ...(search ? { search } : {}),
     ...(clientType ? { clientType } : {}),
+    ...(excludeStatus ? { excludeStatus } : {}),
+    ...(status ? { status } : {}),
   };
 
   const { data, fetchNextPage, hasNextPage, isLoading, error } =
     useInfiniteQuery<ClientConnection>({
       queryKey: [
         "clients",
-        { search: search ?? null, clientType: clientType ?? null },
+        {
+          search: search ?? null,
+          clientType: clientType ?? null,
+          excludeStatus: excludeStatus ?? null,
+          status: status ?? null,
+        },
       ],
       queryFn: ({ pageParam }) =>
         gqlFetch<{ clients: ClientConnection }>(CLIENTS_QUERY, {
           ...baseVars,
           pagination: {
-            limit: LIMIT,
+            limit,
             ...(pageParam != null ? { cursor: pageParam as number } : {}),
           },
         }).then((d) => d.clients),
@@ -96,21 +110,44 @@ export function useUpdateClient() {
         input,
       }).then((d) => d.updateClient),
     onSuccess: (updated) => {
-      queryClient.setQueriesData<InfiniteData<ClientConnection>>(
-        { queryKey: ["clients"] },
-        (old) =>
-          old
-            ? {
-                ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  items: page.items.map((c) =>
-                    c.id === updated.id ? updated : c,
-                  ),
-                })),
+      queryClient
+        .getQueryCache()
+        .findAll({ queryKey: ["clients"] })
+        .forEach((query) => {
+          const key = query.queryKey[1] as
+            | {
+                excludeStatus?: ClientStatus | null;
+                status?: ClientStatus | null;
               }
-            : old,
-      );
+            | undefined;
+          const stillMatches =
+            (!key?.excludeStatus || updated.status !== key.excludeStatus) &&
+            (!key?.status || updated.status === key.status);
+          queryClient.setQueryData<InfiniteData<ClientConnection>>(
+            query.queryKey,
+            (old) =>
+              old
+                ? {
+                    ...old,
+                    pages: old.pages.map((page) =>
+                      stillMatches
+                        ? {
+                            ...page,
+                            items: page.items.map((c) =>
+                              c.id === updated.id ? updated : c,
+                            ),
+                          }
+                        : {
+                            ...page,
+                            items: page.items.filter(
+                              (c) => c.id !== updated.id,
+                            ),
+                          },
+                    ),
+                  }
+                : old,
+          );
+        });
       queryClient.setQueryData(["client", updated.id], updated);
     },
   });

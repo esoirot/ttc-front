@@ -20,15 +20,19 @@ export function ObjectivesForm({ activityId, initial }: ObjectivesFormProps) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    await updateActivity({
-      id: activityId,
-      objectiveQ1: eurosToCents(q1),
-      objectiveQ2: eurosToCents(q2),
-      objectiveQ3: eurosToCents(q3),
-      objectiveQ4: eurosToCents(q4),
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    try {
+      await updateActivity({
+        id: activityId,
+        objectiveQ1: eurosToCents(q1),
+        objectiveQ2: eurosToCents(q2),
+        objectiveQ3: eurosToCents(q3),
+        objectiveQ4: eurosToCents(q4),
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch {
+      /* error state is surfaced via useUpdateActivity's error */
+    }
   }
 
   return (

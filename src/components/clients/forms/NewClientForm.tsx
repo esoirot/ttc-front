@@ -22,7 +22,7 @@ import { AddressFields } from "../form-fields/AddressFields";
 import { BillingFields } from "../form-fields/BillingFields";
 import { TtcTagChips } from "@/components/time/tags/TtcTagChips";
 
-export function NewClientForm({ onClose }: Props) {
+export function NewClientForm({ onClose, defaultStatus, title }: Props) {
   const {
     form,
     setField,
@@ -35,12 +35,12 @@ export function NewClientForm({ onClose }: Props) {
     handleBillingChange,
     handleSubmit,
     isCompany,
-  } = useNewClientForm(onClose);
+  } = useNewClientForm(onClose, defaultStatus);
 
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="text-base">New client</CardTitle>
+        <CardTitle className="text-base">{title ?? "New client"}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

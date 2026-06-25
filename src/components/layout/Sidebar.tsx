@@ -90,6 +90,34 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
           </svg>
         ),
       },
+      {
+        to: "/prospects",
+        end: false,
+        label: "Prospects",
+        icon: (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+          >
+            <circle
+              cx="6.5"
+              cy="6.5"
+              r="4"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M9.5 9.5L14 14"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        ),
+      },
     ],
   },
   {
@@ -400,7 +428,7 @@ export function Sidebar() {
         <span className="text-primary text-base" aria-hidden="true">
           ⟡
         </span>
-        Translator Assistant
+        Freelance Assistant
       </div>
 
       <nav

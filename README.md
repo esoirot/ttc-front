@@ -1,6 +1,6 @@
-# Translator Companion — Frontend
+# Freelance Companion — Frontend
 
-React 19 SPA for the TranslatorAssistant platform. Handles authentication, 2FA setup, core business management (clients, projects, tasks, time entries, invoices), Clockify time tracking, and HubSpot CRM. Communicates with the backend via GraphQL (Apollo) for all core entities and REST (TanStack Query) for integrations.
+React 19 SPA for the FreelanceCompanion platform. Handles authentication, 2FA setup, core business management (clients, projects, tasks, time entries, invoices), Clockify time tracking, and HubSpot CRM. Communicates with the backend via GraphQL (Apollo) for all core entities and REST (TanStack Query) for integrations.
 
 ## Stack
 
@@ -90,7 +90,7 @@ pnpm run check          # all of the above in sequence
 
 ### Clients (`/clients`, `/clients/:id`)
 
-List and manage translation clients. Table view with inline create form (name, email, phone, company). Detail page has two tabs:
+List and manage clients. Table view with inline create form (name, email, phone, company). Detail page has two tabs:
 
 - **Projects** — lists all projects linked to this client
 - **Activity** — placeholder for future audit/activity feed

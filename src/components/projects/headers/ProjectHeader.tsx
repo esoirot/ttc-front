@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ProjectStatus, ProjectHeaderProps } from "@/types/projects.types";
+import { STATUS_VARIANTS, STATUS_BADGE_CLASSES } from "@/constants/projects";
 import type { TranslationRate } from "@/types/rates.types";
 import type { ClientRate } from "@/types/client-rates.types";
 import { useRates } from "@/hooks/rates/useRates";
@@ -381,7 +382,8 @@ export function ProjectHeader({
               {project.title}
             </h1>
             <Badge
-              variant={project.status === "ACTIVE" ? "default" : "secondary"}
+              variant={STATUS_VARIANTS[project.status] ?? "outline"}
+              className={STATUS_BADGE_CLASSES[project.status]}
             >
               {project.status}
             </Badge>

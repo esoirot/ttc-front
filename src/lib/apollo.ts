@@ -58,7 +58,10 @@ export function gqlFetch<TData>(
   query: DocumentNode,
   variables?: Record<string, unknown>,
 ): Promise<TData> {
-  return apolloClient.query<TData>({ query, variables }).then((r) => r.data);
+  return apolloClient.query<TData>({ query, variables }).then((r) => {
+    if (!r.data) throw new Error("No data returned from query");
+    return r.data;
+  });
 }
 
 export function gqlMutate<TData>(

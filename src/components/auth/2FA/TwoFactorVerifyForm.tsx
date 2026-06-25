@@ -33,17 +33,25 @@ export function TwoFactorVerifyForm() {
 
   async function handleTotpSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    const result = await verifyTwoFactor(tempToken!, code);
-    if (result.user) {
-      navigate(from, { replace: true });
+    try {
+      const result = await verifyTwoFactor(tempToken!, code);
+      if (result.user) {
+        navigate(from, { replace: true });
+      }
+    } catch {
+      /* error state is surfaced via useVerifyTwoFactor's error */
     }
   }
 
   async function handleBackupSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    const result = await verifyBackup(tempToken!, backupCode.trim());
-    if (result.user) {
-      navigate(from, { replace: true });
+    try {
+      const result = await verifyBackup(tempToken!, backupCode.trim());
+      if (result.user) {
+        navigate(from, { replace: true });
+      }
+    } catch {
+      /* error state is surfaced via useVerifyTwoFactorBackup's error */
     }
   }
 

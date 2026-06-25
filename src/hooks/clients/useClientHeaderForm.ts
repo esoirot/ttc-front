@@ -25,6 +25,8 @@ function formFromClient(client: Client): ClientHeaderFormState {
     billingEndOfMonth: client.billingEndOfMonth,
     website: client.website ?? "",
     industry: client.industry ?? null,
+    status: client.status,
+    contactedAt: client.contactedAt ? client.contactedAt.slice(0, 10) : "",
     tagIds: client.tags.map((t) => t.id),
   };
 }
@@ -95,6 +97,8 @@ export function useClientHeaderForm(
       billingEndOfMonth: form.billingEndOfMonth,
       website: form.website || undefined,
       industry: form.industry || undefined,
+      status: form.status,
+      contactedAt: form.contactedAt ? `${form.contactedAt}T00:00:00` : null,
       tagIds: form.tagIds,
     });
     setEditing(false);

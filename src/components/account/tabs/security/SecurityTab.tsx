@@ -60,13 +60,17 @@ export function SecurityTab() {
       setPwError("New passwords do not match.");
       return;
     }
-    const result = await changePassword(currentPassword, newPassword);
-    if (result) {
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setPwSaved(true);
-      setTimeout(() => setPwSaved(false), 3000);
+    try {
+      const result = await changePassword(currentPassword, newPassword);
+      if (result) {
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setPwSaved(true);
+        setTimeout(() => setPwSaved(false), 3000);
+      }
+    } catch {
+      /* error state is surfaced via useChangePassword's error */
     }
   }
 
@@ -99,10 +103,14 @@ export function SecurityTab() {
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
-                    const result = await disableTwoFactor(disableCode);
-                    if (result) {
-                      setShowDisableForm(false);
-                      setDisableCode("");
+                    try {
+                      const result = await disableTwoFactor(disableCode);
+                      if (result) {
+                        setShowDisableForm(false);
+                        setDisableCode("");
+                      }
+                    } catch {
+                      /* error state is surfaced via useDisableTwoFactor's error */
                     }
                   }}
                   className="flex flex-col gap-3 pt-3 border-t"

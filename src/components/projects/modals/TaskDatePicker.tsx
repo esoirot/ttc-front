@@ -74,7 +74,7 @@ export function TaskDatePicker({
     recurring: string | null;
     reminderOffset: string | null;
   }) => void;
-  triggerRef?: RefObject<HTMLButtonElement>;
+  triggerRef?: RefObject<HTMLButtonElement | null>;
 }) {
   const [open, setOpen] = useState(false);
 

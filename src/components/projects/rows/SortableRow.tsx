@@ -14,7 +14,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { TaskStatus } from "@/types/tasks.types";
 import type { SortableRowProps } from "@/types/projects.types";
-import { STATUS_LABELS, STATUS_COLORS } from "@/constants/tasks";
+import {
+  STATUS_LABELS,
+  STATUS_VARIANTS,
+  STATUS_BADGE_CLASSES,
+} from "@/constants/tasks";
 import { useSortableItem } from "@/hooks/projects/useSortableItem";
 
 export function SortableRow({
@@ -58,7 +62,10 @@ export function SortableRow({
           </p>
         )}
       </div>
-      <Badge variant={STATUS_COLORS[task.status as TaskStatus] ?? "secondary"}>
+      <Badge
+        variant={STATUS_VARIANTS[task.status as TaskStatus] ?? "outline"}
+        className={STATUS_BADGE_CLASSES[task.status as TaskStatus]}
+      >
         {STATUS_LABELS[task.status as TaskStatus] ?? task.status}
       </Badge>
       <AlertDialog>
