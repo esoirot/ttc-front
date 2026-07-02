@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { secsToHms } from "@/lib/time";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -62,6 +63,9 @@ export function SortableRow({
           </p>
         )}
       </div>
+      <span className="text-xs font-mono text-muted-foreground shrink-0">
+        ⏱ {secsToHms(task.totalTimeSeconds ?? 0)}
+      </span>
       <Badge
         variant={STATUS_VARIANTS[task.status as TaskStatus] ?? "outline"}
         className={STATUS_BADGE_CLASSES[task.status as TaskStatus]}

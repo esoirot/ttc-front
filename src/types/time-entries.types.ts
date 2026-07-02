@@ -4,6 +4,10 @@ export interface TimeEntry {
   id: number;
   userId: number;
   projectId: number | null;
+  taskId?: number | null;
+  task?: { id: number; title: string } | null;
+  subtaskId?: number | null;
+  subtask?: { id: number; title: string; checklistTitle: string | null } | null;
   description: string | null;
   startTime: string;
   endTime: string | null;
@@ -26,6 +30,8 @@ export type TtcUpdateInput = {
   description?: string;
   billable?: boolean;
   projectId?: number | null;
+  taskId?: number | null;
+  subtaskId?: number | null;
   tagIds?: number[];
 };
 
@@ -77,6 +83,7 @@ export type TtcTagChipsProps = {
 export type TimeEntryFilters = {
   projectId?: number;
   projectIds?: number[];
+  taskId?: number;
   start?: string;
   end?: string;
 };
@@ -84,6 +91,8 @@ export type TimeEntryFilters = {
 export type UpdateTimeEntryInput = {
   id: number;
   projectId?: number | null;
+  taskId?: number | null;
+  subtaskId?: number | null;
   description?: string;
   startTime?: string;
   endTime?: string;

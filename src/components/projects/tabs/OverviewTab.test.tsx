@@ -29,12 +29,14 @@ function makeProject(overrides: Partial<Project> = {}): Project {
 
 describe("OverviewTab", () => {
   it("always shows time logged, formatted", () => {
-    render(<OverviewTab project={makeProject()} totalSeconds={3661} />);
+    render(
+      <OverviewTab project={makeProject()} totalSeconds={3661} tasks={[]} />,
+    );
     expect(screen.getByText("1:01:01")).toBeInTheDocument();
   });
 
   it("hides word count, unit price, and revenue cards when unset", () => {
-    render(<OverviewTab project={makeProject()} totalSeconds={0} />);
+    render(<OverviewTab project={makeProject()} totalSeconds={0} tasks={[]} />);
     expect(screen.queryByText("Word count")).not.toBeInTheDocument();
     expect(screen.queryByText("Unit price")).not.toBeInTheDocument();
     expect(screen.queryByText("Est. revenue")).not.toBeInTheDocument();
@@ -49,6 +51,7 @@ describe("OverviewTab", () => {
           currency: "USD",
         })}
         totalSeconds={0}
+        tasks={[]}
       />,
     );
     expect(screen.getByText("1,000")).toBeInTheDocument();

@@ -65,7 +65,11 @@ export function ProjectDetail() {
       />
 
       <div className="mb-6">
-        <OverviewTab project={project} totalSeconds={timeTab.totalSeconds} />
+        <OverviewTab
+          project={project}
+          totalSeconds={timeTab.totalSeconds}
+          tasks={tasks}
+        />
       </div>
 
       <Tabs defaultValue="tasks">

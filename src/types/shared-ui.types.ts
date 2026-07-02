@@ -8,6 +8,8 @@ export type TimerStartInputProps = {
   tags: Tag[];
   recentDescriptions: string[];
   initialProjectId?: number | null;
+  initialTaskId?: number | null;
+  initialTaskTitle?: string | null;
 };
 
 export interface EntryListProps {

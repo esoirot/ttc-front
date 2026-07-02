@@ -5,7 +5,10 @@ export function secsToH(s: number) {
 export function secsToHms(s: number) {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  const sec = s % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m`;
+  return `${sec}s`;
 }
 
 export function formatDuration(seconds: number): string {

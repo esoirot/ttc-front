@@ -12,6 +12,7 @@ import {
   START_TIMER_MUTATION,
   STOP_TIMER_MUTATION,
   UPDATE_TIME_ENTRY_MUTATION,
+  RESUME_TIME_ENTRY_MUTATION,
   DELETE_TIME_ENTRY_MUTATION,
 } from "../../graphql/time-entries.operations";
 import type {
@@ -30,6 +31,7 @@ export function useTimeEntries(filters?: TimeEntryFilters) {
     ...(filters?.projectIds !== undefined
       ? { projectIds: filters.projectIds }
       : {}),
+    taskId: filters?.taskId,
     start: filters?.start,
     end: filters?.end,
   };
@@ -39,6 +41,7 @@ export function useTimeEntries(filters?: TimeEntryFilters) {
     {
       projectId: filters?.projectId ?? null,
       projectIds: filters?.projectIds ?? null,
+      taskId: filters?.taskId ?? null,
       start: filters?.start ?? null,
       end: filters?.end ?? null,
     },
@@ -56,11 +59,11 @@ export function useTimeEntries(filters?: TimeEntryFilters) {
           },
         }).then((d) => d.timeEntries),
       initialPageParam: undefined,
-      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
     });
 
   return {
-    entries: data?.pages.flatMap((p) => p.items) ?? [],
+    entries: data?.pages.flatMap((p) => p?.items ?? []) ?? [],
     total: data?.pages[0]?.total ?? 0,
     hasMore: !!hasNextPage,
     loadMore: () => void fetchNextPage(),
@@ -83,6 +86,8 @@ export function useActiveTimer() {
 
 type CreateTimeEntryInput = {
   projectId?: number;
+  taskId?: number;
+  subtaskId?: number;
   description?: string;
   startTime: string;
   endTime: string;
@@ -100,6 +105,7 @@ export function useCreateTimeEntry() {
       }).then((d) => d.createTimeEntry),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
+      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
   return {
@@ -111,6 +117,8 @@ export function useCreateTimeEntry() {
 
 type StartTimerInput = {
   projectId?: number;
+  taskId?: number;
+  subtaskId?: number;
   description?: string;
   billable?: boolean;
   tagIds?: number[];
@@ -144,6 +152,7 @@ export function useStopTimer() {
     onSuccess: () => {
       queryClient.setQueryData(["activeTimer"], null);
       void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
+      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
   return {
@@ -176,10 +185,31 @@ export function useUpdateTimeEntry() {
               }
             : old,
       );
+      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
   return {
     updateTimeEntry: (input: UpdateTimeEntryInput) => mutateAsync(input),
+    loading: isPending,
+    error,
+  };
+}
+
+export function useResumeTimeEntry() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: (id: number) =>
+      gqlMutate<{ resumeTimeEntry: TimeEntry }>(RESUME_TIME_ENTRY_MUTATION, {
+        id,
+      }).then((d) => d.resumeTimeEntry),
+    onSuccess: (resumed) => {
+      queryClient.setQueryData(["activeTimer"], resumed);
+      void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
+      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+  return {
+    resumeTimeEntry: (id: number) => mutateAsync(id),
     loading: isPending,
     error,
   };
@@ -207,6 +237,7 @@ export function useDeleteTimeEntry() {
               }
             : old,
       );
+      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
   return {

@@ -53,7 +53,7 @@ function basePageState(overrides: Record<string, unknown> = {}) {
     stopping: false,
     deleteTimeEntry: vi.fn(),
     updateTimeEntry: vi.fn(),
-    startTimer: vi.fn(),
+    resumeTimeEntry: vi.fn(),
     projects: [],
     tags: [],
     workspaceId: null,
@@ -123,46 +123,21 @@ describe("TimeEntriesView", () => {
     expect(screen.getByTestId("manual-form")).toBeInTheDocument();
   });
 
-  it("wires onResume to startTimer with derived fields", () => {
-    const startTimer = vi.fn();
-    useTimeEntriesPageMock.mockReturnValue(basePageState({ startTimer }));
+  it("wires onResume to resumeTimeEntry with the entry id", () => {
+    const resumeTimeEntry = vi.fn();
+    useTimeEntriesPageMock.mockReturnValue(basePageState({ resumeTimeEntry }));
     render(<TimeEntriesView />);
 
     const onResume = entryListProps.onResume as (entry: unknown) => void;
     onResume({
+      id: 7,
       description: "Translate",
       projectId: 3,
       billable: true,
       tags: [{ id: 1, name: "Urgent" }],
     });
 
-    expect(startTimer).toHaveBeenCalledWith({
-      description: "Translate",
-      projectId: 3,
-      billable: true,
-      tagIds: [1],
-    });
-  });
-
-  it("wires onResume to omit tagIds when the entry has no tags", () => {
-    const startTimer = vi.fn();
-    useTimeEntriesPageMock.mockReturnValue(basePageState({ startTimer }));
-    render(<TimeEntriesView />);
-
-    const onResume = entryListProps.onResume as (entry: unknown) => void;
-    onResume({
-      description: null,
-      projectId: null,
-      billable: false,
-      tags: [],
-    });
-
-    expect(startTimer).toHaveBeenCalledWith({
-      description: undefined,
-      projectId: undefined,
-      billable: false,
-      tagIds: undefined,
-    });
+    expect(resumeTimeEntry).toHaveBeenCalledWith(7);
   });
 
   it("wires onUpdate to updateTimeEntry", () => {

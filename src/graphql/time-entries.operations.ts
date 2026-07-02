@@ -5,20 +5,21 @@ import type {
   TimeEntryConnection,
 } from "@/types/time-entries.types";
 
-const TE_FIELDS = `id userId projectId description startTime endTime durationSeconds billable clockifyEntryId tags { id name } createdAt updatedAt`;
+const TE_FIELDS = `id userId projectId taskId task { id title } subtaskId subtask { id title checklistTitle } description startTime endTime durationSeconds billable clockifyEntryId tags { id name } createdAt updatedAt`;
 
 export const TIME_ENTRIES_QUERY: TypedDocumentNode<
   { timeEntries: TimeEntryConnection },
   {
     projectId?: number;
     projectIds?: number[];
+    taskId?: number;
     start?: string;
     end?: string;
     pagination?: { limit?: number; cursor?: number };
   }
 > = gql`
-  query TimeEntries($projectId: Int, $projectIds: [Int!], $start: DateTime, $end: DateTime, $pagination: PaginationInput) {
-    timeEntries(projectId: $projectId, projectIds: $projectIds, start: $start, end: $end, pagination: $pagination) {
+  query TimeEntries($projectId: Int, $projectIds: [Int!], $taskId: Int, $start: DateTime, $end: DateTime, $pagination: PaginationInput) {
+    timeEntries(projectId: $projectId, projectIds: $projectIds, taskId: $taskId, start: $start, end: $end, pagination: $pagination) {
       items { ${TE_FIELDS} }
       nextCursor
       total
@@ -40,6 +41,8 @@ export const CREATE_TIME_ENTRY_MUTATION: TypedDocumentNode<
   {
     input: {
       projectId?: number;
+      taskId?: number;
+      subtaskId?: number;
       description?: string;
       startTime: string;
       endTime: string;
@@ -59,6 +62,8 @@ export const START_TIMER_MUTATION: TypedDocumentNode<
   {
     input: {
       projectId?: number;
+      taskId?: number;
+      subtaskId?: number;
       description?: string;
       billable?: boolean;
       tagIds?: number[];
@@ -85,6 +90,8 @@ export const UPDATE_TIME_ENTRY_MUTATION: TypedDocumentNode<
     input: {
       id: number;
       projectId?: number | null;
+      taskId?: number | null;
+      subtaskId?: number | null;
       description?: string;
       startTime?: string;
       endTime?: string;
@@ -95,6 +102,15 @@ export const UPDATE_TIME_ENTRY_MUTATION: TypedDocumentNode<
 > = gql`
   mutation UpdateTimeEntry($input: UpdateTimeEntryInput!) {
     updateTimeEntry(input: $input) { ${TE_FIELDS} }
+  }
+`;
+
+export const RESUME_TIME_ENTRY_MUTATION: TypedDocumentNode<
+  { resumeTimeEntry: TimeEntry },
+  { id: number }
+> = gql`
+  mutation ResumeTimeEntry($id: Int!) {
+    resumeTimeEntry(id: $id) { ${TE_FIELDS} }
   }
 `;
 

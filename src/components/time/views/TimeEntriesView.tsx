@@ -23,7 +23,7 @@ export function TimeEntriesView() {
     stopping,
     deleteTimeEntry,
     updateTimeEntry,
-    startTimer,
+    resumeTimeEntry,
     projects,
     tags,
     workspaceId,
@@ -89,14 +89,7 @@ export function TimeEntriesView() {
         deleteTimeEntry={deleteTimeEntry}
         projects={projects}
         tags={tags}
-        onResume={(entry) =>
-          void startTimer({
-            description: entry.description ?? undefined,
-            projectId: entry.projectId ?? undefined,
-            billable: entry.billable,
-            tagIds: entry.tags.length ? entry.tags.map((t) => t.id) : undefined,
-          })
-        }
+        onResume={(entry) => void resumeTimeEntry(entry.id)}
         onUpdate={(input) => void updateTimeEntry(input)}
       />
     </div>

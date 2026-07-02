@@ -6,6 +6,7 @@ import {
   useDeleteTimeEntry,
   useUpdateTimeEntry,
   useStartTimer,
+  useResumeTimeEntry,
 } from "./useTimeEntries";
 import { useDateRangeFilter } from "./useDateRangeFilter";
 import { useClockifyStatus } from "../integrations/useClockify";
@@ -23,6 +24,7 @@ export function useTimeEntriesPage() {
   const { deleteTimeEntry } = useDeleteTimeEntry();
   const { updateTimeEntry } = useUpdateTimeEntry();
   const { startTimer } = useStartTimer();
+  const { resumeTimeEntry } = useResumeTimeEntry();
   const { projects } = useProjects();
   const { tags } = useTags();
 
@@ -64,6 +66,7 @@ export function useTimeEntriesPage() {
     deleteTimeEntry,
     updateTimeEntry,
     startTimer,
+    resumeTimeEntry,
     projects,
     tags,
     workspaceId,

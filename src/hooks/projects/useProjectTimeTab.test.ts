@@ -79,8 +79,9 @@ describe("useProjectTimeTab", () => {
     expect(result.current.recentDescriptions).toEqual(["Translate"]);
   });
 
-  it("handleResume starts a timer pre-filled from the entry", async () => {
+  it("handleResume calls resumeTimeEntry with the entry id", async () => {
     const entry = makeEntry({
+      id: 9,
       description: "Resume me",
       projectId: 3,
       billable: false,
@@ -90,7 +91,7 @@ describe("useProjectTimeTab", () => {
       (_doc: unknown, vars?: Record<string, unknown>) =>
         routeGqlFetch(vars, [entry]),
     );
-    gqlMutate.mockResolvedValueOnce({ startTimer: entry });
+    gqlMutate.mockResolvedValueOnce({ resumeTimeEntry: entry });
 
     const { result } = renderHook(() => useProjectTimeTab(1), {
       wrapper: createQueryWrapper(),
@@ -102,12 +103,7 @@ describe("useProjectTimeTab", () => {
 
     await waitFor(() =>
       expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
-        input: {
-          description: "Resume me",
-          projectId: 3,
-          billable: false,
-          tagIds: [5],
-        },
+        id: 9,
       }),
     );
   });

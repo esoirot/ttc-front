@@ -30,6 +30,7 @@ export interface Project {
   currency: string;
   deadline: string | null;
   startDate: string | null;
+  totalTimeSeconds?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -48,6 +49,7 @@ export interface CreateProjectFormProps {
 export interface OverviewTabProps {
   project: Project;
   totalSeconds: number;
+  tasks: import("./tasks.types").Task[];
 }
 
 export interface ProjectCardProps {

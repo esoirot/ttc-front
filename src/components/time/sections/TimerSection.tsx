@@ -13,6 +13,8 @@ export function TimerSection({
   tags,
   recentDescriptions,
   initialProjectId,
+  initialTaskId,
+  initialTaskTitle,
 }: {
   activeTimer: TimeEntry | null | undefined;
   stopTimer: () => Promise<unknown>;
@@ -22,6 +24,8 @@ export function TimerSection({
   tags: Tag[];
   recentDescriptions: string[];
   initialProjectId?: number | null;
+  initialTaskId?: number | null;
+  initialTaskTitle?: string | null;
 }) {
   if (activeTimer) {
     return (
@@ -40,6 +44,8 @@ export function TimerSection({
       tags={tags}
       recentDescriptions={recentDescriptions}
       initialProjectId={initialProjectId}
+      initialTaskId={initialTaskId}
+      initialTaskTitle={initialTaskTitle}
     />
   );
 }

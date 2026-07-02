@@ -9,7 +9,7 @@ import type {
 const PROJECT_FIELDS = `
   id userId clientId title description status
   sourceLanguage targetLanguage wordCount unitPrice fixedFee hourlyRate perWordRate currency
-  deadline startDate createdAt updatedAt
+  deadline startDate totalTimeSeconds createdAt updatedAt
 `;
 
 export const PROJECTS_QUERY: TypedDocumentNode<

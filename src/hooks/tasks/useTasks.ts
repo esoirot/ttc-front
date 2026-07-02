@@ -39,7 +39,8 @@ import { gqlFetch, gqlMutate } from "@/lib/apollo";
 
 const LIMIT = 50;
 
-export function useTasks(projectId: number) {
+export function useTasks(projectId: number, options?: { enabled?: boolean }) {
+  const enabled = (options?.enabled ?? true) && projectId > 0;
   const { data, fetchNextPage, hasNextPage, isLoading, error } =
     useInfiniteQuery<TaskConnection>({
       queryKey: ["tasks", projectId],
@@ -53,6 +54,7 @@ export function useTasks(projectId: number) {
         }).then((d) => d.tasks),
       initialPageParam: undefined,
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      enabled,
     });
 
   return {
@@ -90,12 +92,13 @@ export function useMyTasks() {
   };
 }
 
-export function useTask(id: number) {
+export function useTask(id: number, options?: { enabled?: boolean }) {
+  const enabled = (options?.enabled ?? true) && !!id;
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["task", id],
     queryFn: () =>
       gqlFetch<{ task: TaskDetail }>(TASK_QUERY, { id }).then((d) => d.task),
-    enabled: !!id,
+    enabled,
   });
   return { task: data ?? null, loading: isLoading, error, refetch };
 }

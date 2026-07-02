@@ -55,6 +55,7 @@ export interface Task {
   recurring: string | null;
   reminderOffset: string | null;
   sortOrder: number;
+  totalTimeSeconds?: number | null;
   createdAt: string;
   updatedAt: string;
 }

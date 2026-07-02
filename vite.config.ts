@@ -21,9 +21,17 @@ export default defineConfig({
       output: {
         manualChunks(id: string) {
           if (!id.includes("node_modules")) return;
-          if (id.includes("@apollo") || id.includes("/graphql/")) return "apollo";
-          if (id.includes("react-dom") || id.includes("react-router")) return "react";
-          if (id.includes("@radix-ui") || id.includes("cmdk") || id.includes("vaul") || id.includes("sonner")) return "ui";
+          if (id.includes("@apollo") || id.includes("/graphql/"))
+            return "apollo";
+          if (id.includes("react-dom") || id.includes("react-router"))
+            return "react";
+          if (
+            id.includes("@radix-ui") ||
+            id.includes("cmdk") ||
+            id.includes("vaul") ||
+            id.includes("sonner")
+          )
+            return "ui";
           if (id.includes("@tanstack")) return "query";
           if (id.includes("@dnd-kit")) return "dnd";
           return "vendor";

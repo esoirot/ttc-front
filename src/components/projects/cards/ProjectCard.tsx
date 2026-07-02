@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { secsToHms } from "@/lib/time";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,9 @@ export function ProjectCard({
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <span className="text-xs font-mono text-muted-foreground">
+            ⏱ {secsToHms(project.totalTimeSeconds ?? 0)}
+          </span>
           <Badge
             variant={STATUS_VARIANTS[project.status] ?? "outline"}
             className={STATUS_BADGE_CLASSES[project.status]}

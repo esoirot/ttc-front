@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -18,6 +19,8 @@ export function TimerStartInput({
   tags,
   recentDescriptions,
   initialProjectId,
+  initialTaskId,
+  initialTaskTitle,
 }: Props) {
   const { startTimer, loading: starting } = useStartTimer();
   const [desc, setDesc] = useState("");
@@ -31,6 +34,7 @@ export function TimerStartInput({
     void startTimer({
       description: desc.trim() || undefined,
       projectId: projectId != null ? Number(projectId) : undefined,
+      taskId: initialTaskId ?? undefined,
       billable,
       tagIds: tagIds.length ? tagIds : undefined,
     });
@@ -53,6 +57,11 @@ export function TimerStartInput({
         </Button>
       </div>
       <div className="flex items-center gap-3 flex-wrap">
+        {initialTaskId != null && initialTaskTitle && (
+          <Badge variant="secondary" className="text-xs font-normal">
+            Task: {initialTaskTitle}
+          </Badge>
+        )}
         <Select
           value={projectId ?? "__none__"}
           onValueChange={(v) => setProjectId(v === "__none__" ? null : v)}

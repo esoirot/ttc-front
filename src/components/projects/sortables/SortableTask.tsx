@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { secsToHms } from "@/lib/time";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -90,6 +91,9 @@ export function SortableTask({
                     {task.dueDate.slice(0, 10)}
                   </span>
                 )}
+                <span className="text-xs font-mono text-muted-foreground">
+                  ⏱ {secsToHms(task.totalTimeSeconds ?? 0)}
+                </span>
               </div>
             </div>
           </div>

@@ -1,10 +1,10 @@
 import {
   useTimeEntries,
   useActiveTimer,
-  useStartTimer,
   useStopTimer,
   useDeleteTimeEntry,
   useUpdateTimeEntry,
+  useResumeTimeEntry,
 } from "../time/useTimeEntries";
 import { useProjects } from "./useProjects";
 import { useTags } from "../tags/useTags";
@@ -15,10 +15,10 @@ export function useProjectTimeTab(projectId: number) {
     projectId,
   });
   const { activeTimer } = useActiveTimer();
-  const { startTimer } = useStartTimer();
   const { stopTimer, loading: stopping } = useStopTimer();
   const { deleteTimeEntry } = useDeleteTimeEntry();
   const { updateTimeEntry } = useUpdateTimeEntry();
+  const { resumeTimeEntry } = useResumeTimeEntry();
   const { projects } = useProjects();
   const { tags } = useTags();
 
@@ -35,12 +35,7 @@ export function useProjectTimeTab(projectId: number) {
   ];
 
   function handleResume(entry: TimeEntry) {
-    void startTimer({
-      description: entry.description ?? undefined,
-      projectId: entry.projectId ?? undefined,
-      billable: entry.billable,
-      tagIds: entry.tags.map((t) => t.id),
-    });
+    void resumeTimeEntry(entry.id);
   }
 
   return {

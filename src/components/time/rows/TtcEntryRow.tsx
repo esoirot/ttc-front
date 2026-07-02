@@ -3,6 +3,7 @@ import type { TimeEntry } from "@/types/time-entries.types";
 import type { Project } from "@/types/projects.types";
 import type { Tag } from "@/types/tags.types";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,6 +17,7 @@ import { cn } from "@/lib/utils";
 import type { TtcUpdateInput } from "@/types/time-entries.types";
 import { TtcTagChips } from "../tags/TtcTagChips";
 import { formatTime, secsToHms } from "../ttcHelpers";
+import { useTasks, useTask } from "@/hooks/tasks/useTasks";
 
 export function TtcEntryRow({
   entry,
@@ -29,15 +31,24 @@ export function TtcEntryRow({
   projects: Project[];
   tags: Tag[];
   onDelete: (id: number) => void;
-  onResume: (entry: TimeEntry) => void;
+  onResume?: (entry: TimeEntry) => void;
   onUpdate: (input: TtcUpdateInput) => void;
 }) {
   const [editingDesc, setEditingDesc] = useState(false);
   const [descValue, setDescValue] = useState(entry.description ?? "");
   const [editingProject, setEditingProject] = useState(false);
+  const [editingTask, setEditingTask] = useState(false);
+  const [editingSubtask, setEditingSubtask] = useState(false);
   const descInputRef = useRef<HTMLInputElement>(null);
 
   const project = projects.find((p) => p.id === entry.projectId) ?? null;
+  const { tasks } = useTasks(entry.projectId ?? 0, {
+    enabled: editingTask && entry.projectId != null,
+  });
+  const { task: taskDetail } = useTask(entry.taskId ?? 0, {
+    enabled: editingSubtask && entry.taskId != null,
+  });
+  const subtasks = taskDetail?.subtasks ?? [];
 
   function startEditDesc() {
     setDescValue(entry.description ?? "");
@@ -102,6 +113,8 @@ export function TtcEntryRow({
                 onUpdate({
                   id: entry.id,
                   projectId: v === "__none__" ? null : Number(v),
+                  taskId: null,
+                  subtaskId: null,
                 });
                 setEditingProject(false);
               }}
@@ -128,13 +141,151 @@ export function TtcEntryRow({
               }}
               className={cn(
                 "h-5 px-1.5 text-xs font-normal",
-                !project && "text-muted-foreground border-dashed",
+                project
+                  ? "bg-orange-600 text-white border-orange-600 hover:bg-orange-700 hover:border-orange-700"
+                  : "text-muted-foreground border-dashed",
               )}
               title="Edit project"
             >
               {project?.title ?? "No project"}
             </Button>
           )}
+          {entry.projectId != null &&
+            (editingTask ? (
+              <Select
+                open
+                onOpenChange={(o) => !o && setEditingTask(false)}
+                value={entry.taskId != null ? String(entry.taskId) : "__none__"}
+                onValueChange={(v) => {
+                  if (v === "__none__") {
+                    onUpdate({ id: entry.id, taskId: null, subtaskId: null });
+                  } else {
+                    const selected = tasks.find((t) => t.id === Number(v));
+                    const needsDesc = !entry.description?.trim();
+                    const autoDesc =
+                      selected && needsDesc
+                        ? project
+                          ? `Task ${selected.title} of project ${project.title}`
+                          : selected.title
+                        : null;
+                    onUpdate({
+                      id: entry.id,
+                      taskId: Number(v),
+                      ...(autoDesc ? { description: autoDesc } : {}),
+                    });
+                  }
+                  setEditingTask(false);
+                }}
+              >
+                <SelectTrigger className="h-6 text-xs w-[160px]">
+                  <SelectValue placeholder="No task" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">No task</SelectItem>
+                  {tasks.map((t) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : entry.task ? (
+              <Badge
+                variant="secondary"
+                className="h-5 px-1.5 text-xs font-normal cursor-pointer bg-yellow-400 text-yellow-900 border-yellow-400 hover:bg-yellow-500"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingTask(true);
+                }}
+                title="Edit task"
+              >
+                {entry.task.title}
+              </Badge>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingTask(true);
+                }}
+                className="h-5 px-1.5 text-xs font-normal text-muted-foreground border-dashed"
+                title="Link task"
+              >
+                No task
+              </Button>
+            ))}
+          {entry.taskId != null &&
+            (editingSubtask ? (
+              <Select
+                open
+                onOpenChange={(o) => !o && setEditingSubtask(false)}
+                value={
+                  entry.subtaskId != null ? String(entry.subtaskId) : "__none__"
+                }
+                onValueChange={(v) => {
+                  if (v === "__none__") {
+                    onUpdate({ id: entry.id, subtaskId: null });
+                  } else {
+                    const selected = subtasks.find((s) => s.id === Number(v));
+                    const needsDesc = !entry.description?.trim();
+                    const autoDesc =
+                      selected && needsDesc
+                        ? project && entry.task
+                          ? `Task ${entry.task.title} › ${selected.title} of project ${project.title}`
+                          : selected.title
+                        : null;
+                    onUpdate({
+                      id: entry.id,
+                      subtaskId: Number(v),
+                      ...(autoDesc ? { description: autoDesc } : {}),
+                    });
+                  }
+                  setEditingSubtask(false);
+                }}
+              >
+                <SelectTrigger className="h-6 text-xs w-[180px]">
+                  <SelectValue placeholder="No subtask" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">No subtask</SelectItem>
+                  {subtasks.map((s) => (
+                    <SelectItem key={s.id} value={String(s.id)}>
+                      {s.checklistTitle
+                        ? `${s.checklistTitle} › ${s.title}`
+                        : s.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : entry.subtask ? (
+              <Badge
+                variant="secondary"
+                className="h-5 px-1.5 text-xs font-normal cursor-pointer bg-yellow-200 text-yellow-800 border-yellow-200 hover:bg-yellow-300"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingSubtask(true);
+                }}
+                title="Edit subtask"
+              >
+                {entry.subtask.checklistTitle
+                  ? `${entry.subtask.checklistTitle} › ${entry.subtask.title}`
+                  : entry.subtask.title}
+              </Badge>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingSubtask(true);
+                }}
+                className="h-5 px-1.5 text-xs font-normal text-muted-foreground border-dashed"
+                title="Link subtask"
+              >
+                No subtask
+              </Button>
+            ))}
           <TtcTagChips
             tagIds={entry.tags.map((t) => t.id)}
             tags={tags}
@@ -186,18 +337,20 @@ export function TtcEntryRow({
         </div>
       </div>
       <div className="flex items-center gap-1 shrink-0 pt-1">
-        <Button
-          size="icon-xs"
-          variant="ghost"
-          onClick={(e) => {
-            e.stopPropagation();
-            onResume(entry);
-          }}
-          aria-label="Resume entry"
-          className="text-muted-foreground hover:text-emerald-600"
-        >
-          ▶
-        </Button>
+        {onResume && (
+          <Button
+            size="icon-xs"
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              onResume(entry);
+            }}
+            aria-label="Resume entry"
+            className="text-muted-foreground hover:text-emerald-600"
+          >
+            ▶
+          </Button>
+        )}
         <Button
           size="icon-xs"
           variant="ghost"

@@ -44,11 +44,11 @@ export function useProjects(status?: ProjectStatus, search?: string) {
           },
         }).then((d) => d.projects),
       initialPageParam: undefined,
-      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
     });
 
   return {
-    projects: data?.pages.flatMap((p) => p.items) ?? [],
+    projects: data?.pages.flatMap((p) => p?.items ?? []) ?? [],
     total: data?.pages[0]?.total ?? 0,
     hasMore: !!hasNextPage,
     loadMore: () => void fetchNextPage(),
