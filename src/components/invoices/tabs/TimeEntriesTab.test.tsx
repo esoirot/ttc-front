@@ -200,6 +200,47 @@ describe("TimeEntriesTab", () => {
     ).toBeInTheDocument();
   });
 
+  it("calls handleUnitPriceChange when the unit price input changes", () => {
+    const handleUnitPriceChange = vi.fn();
+    renderTab({ handleUnitPriceChange });
+    fireEvent.change(screen.getByPlaceholderText("Unit price"), {
+      target: { value: "12.5" },
+    });
+    expect(handleUnitPriceChange).toHaveBeenCalledWith("12.5");
+  });
+
+  it("calls toggleEntry when the checkbox itself is clicked, without double-firing from the row", () => {
+    const toggleEntry = vi.fn();
+    renderTab({
+      billableEntries: [makeEntry({ id: 9, description: "Work" })],
+      toggleEntry,
+    });
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect(toggleEntry).toHaveBeenCalledWith(9);
+    expect(toggleEntry).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call toggleEntry when the checkbox for an already-added entry is clicked", () => {
+    const toggleEntry = vi.fn();
+    renderTab(
+      { billableEntries: [makeEntry({ id: 9 })], toggleEntry },
+      new Set([9]),
+    );
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect(toggleEntry).not.toHaveBeenCalled();
+  });
+
+  it("calls handleBulkAdd when the Add button is clicked", () => {
+    const handleBulkAdd = vi.fn().mockResolvedValue(undefined);
+    renderTab({
+      selectedEntryIds: new Set([1]),
+      unitPrice: "10",
+      handleBulkAdd,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add 1 item" }));
+    expect(handleBulkAdd).toHaveBeenCalled();
+  });
+
   it("shows Adding… when adding=true", () => {
     useTimeEntriesTabMock.mockReturnValue(defaultState());
     render(

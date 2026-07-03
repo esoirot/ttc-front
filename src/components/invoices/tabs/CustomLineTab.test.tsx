@@ -133,6 +133,34 @@ describe("CustomLineTab", () => {
     expect(handleAdd).toHaveBeenCalled();
   });
 
+  it("calls setDesc, setQty, and setPrice as the inputs change", () => {
+    const setDesc = vi.fn();
+    const setQty = vi.fn();
+    const setPrice = vi.fn();
+    renderTab({ setDesc, setQty, setPrice });
+
+    fireEvent.change(screen.getByLabelText("Description"), {
+      target: { value: "New desc" },
+    });
+    fireEvent.change(screen.getByLabelText("Qty"), {
+      target: { value: "5" },
+    });
+    fireEvent.change(screen.getByLabelText("Unit price"), {
+      target: { value: "9.99" },
+    });
+
+    expect(setDesc).toHaveBeenCalledWith("New desc");
+    expect(setQty).toHaveBeenCalledWith("5");
+    expect(setPrice).toHaveBeenCalledWith("9.99");
+  });
+
+  it("calls handleAdd when the Add line button is clicked", () => {
+    const handleAdd = vi.fn().mockResolvedValue(undefined);
+    renderTab({ desc: "Work", handleAdd });
+    fireEvent.click(screen.getByRole("button", { name: "Add line" }));
+    expect(handleAdd).toHaveBeenCalled();
+  });
+
   it("passes invoiceId and onAdd args to useCustomLineTab", () => {
     const onAdd = vi.fn();
     useCustomLineTabMock.mockReturnValue(defaultState());

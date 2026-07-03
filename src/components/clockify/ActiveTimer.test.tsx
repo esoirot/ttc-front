@@ -34,7 +34,18 @@ vi.mock("../time/form-inputs/DescriptionCombobox", () => ({
 }));
 
 vi.mock("./tags/TagChips", () => ({
-  TagChips: () => <div data-testid="tag-chips" />,
+  TagChips: ({
+    onAdd,
+    onRemove,
+  }: {
+    onAdd: (id: string) => void;
+    onRemove: (id: string) => void;
+  }) => (
+    <div data-testid="tag-chips">
+      <button onClick={() => onAdd("t1")}>add-tag</button>
+      <button onClick={() => onRemove("t1")}>remove-tag</button>
+    </div>
+  ),
 }));
 
 vi.mock("./forms-inputs/ProjectSelect", () => ({
@@ -220,5 +231,36 @@ describe("ActiveTimer", () => {
     expect(start).toHaveBeenCalledWith(
       expect.objectContaining({ projectId: "p1" }),
     );
+  });
+
+  it("adds and removes tag ids via TagChips, reflected in start()", () => {
+    const start = vi.fn();
+    useStartEntryMock.mockReturnValue({ mutate: start, isPending: false });
+    render(<ActiveTimer {...baseProps} />);
+
+    fireEvent.click(screen.getByText("add-tag"));
+    fireEvent.click(screen.getByRole("button", { name: "Start" }));
+    expect(start).toHaveBeenCalledWith(
+      expect.objectContaining({ tagIds: ["t1"] }),
+    );
+
+    fireEvent.click(screen.getByText("remove-tag"));
+    fireEvent.click(screen.getByRole("button", { name: "Start" }));
+    expect(start).toHaveBeenLastCalledWith(
+      expect.objectContaining({ tagIds: [] }),
+    );
+  });
+
+  it("updates the elapsed clock display on each tick while a timer runs", () => {
+    vi.useFakeTimers();
+    useClockifyActiveEntryMock.mockReturnValue({ data: makeActive() });
+    render(<ActiveTimer {...baseProps} />);
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(screen.getByText(/\d\d:\d\d:\d\d/)).toBeInTheDocument();
+    vi.useRealTimers();
   });
 });

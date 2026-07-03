@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
 import { createQueryClient } from "@/test/queryClientWrapper";
 
@@ -11,6 +11,9 @@ vi.mock("../tags/TtcTagChips", () => ({
     return <div data-testid="tag-chips" />;
   },
 }));
+
+const { gqlFetch } = vi.hoisted(() => ({ gqlFetch: vi.fn() }));
+vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate: vi.fn() }));
 
 import { formatTime } from "@/components/clockify/helpers";
 import type { TimeEntry } from "@/types/time-entries.types";
@@ -78,6 +81,32 @@ function baseProps(overrides: Partial<Parameters<typeof TtcEntryRow>[0]> = {}) {
 }
 
 describe("TtcEntryRow", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+    gqlFetch.mockImplementation(
+      (_query: unknown, vars: Record<string, unknown>) => {
+        if ("projectId" in vars) {
+          return Promise.resolve({
+            tasks: {
+              items: [{ id: 9, title: "Draft chapter" }],
+              nextCursor: null,
+              total: 1,
+            },
+          });
+        }
+        return Promise.resolve({
+          task: {
+            id: vars.id,
+            subtasks: [
+              { id: 21, title: "Proofread", checklistTitle: null },
+              { id: 22, title: "Format", checklistTitle: "Wrap-up" },
+            ],
+          },
+        });
+      },
+    );
+  });
+
   it("shows the description, or 'No description' fallback", () => {
     const { rerender } = render(wrap(<TtcEntryRow {...baseProps()} />));
     expect(screen.getByText("Translate")).toBeInTheDocument();
@@ -279,5 +308,243 @@ describe("TtcEntryRow", () => {
 
     fireEvent.click(screen.getByLabelText("Delete entry"));
     expect(onDelete).toHaveBeenCalledWith(1);
+  });
+
+  it("does not show a task/subtask control when the entry has no project", () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({ entry: makeEntry({ projectId: null }) })}
+        />,
+      ),
+    );
+    expect(screen.queryByText("No task")).not.toBeInTheDocument();
+  });
+
+  it("shows the linked task as a badge, and clicking it opens the task picker", async () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              projectId: 1,
+              taskId: 9,
+              task: { id: 9, title: "Draft chapter" },
+            }),
+            projects: [makeProject({ id: 1, title: "Website copy" })],
+          })}
+        />,
+      ),
+    );
+
+    expect(screen.getByTitle("Edit task")).toHaveTextContent("Draft chapter");
+    fireEvent.click(screen.getByTitle("Edit task"));
+    await screen.findByText("No task");
+  });
+
+  it("linking a task with no description auto-fills 'Task X of project Y'", async () => {
+    const onUpdate = vi.fn();
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({ projectId: 1, description: null }),
+            projects: [makeProject({ id: 1, title: "Website copy" })],
+            onUpdate,
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Link task"));
+    fireEvent.click(await screen.findByText("Draft chapter"));
+
+    expect(onUpdate).toHaveBeenCalledWith({
+      id: 1,
+      taskId: 9,
+      description: "Task Draft chapter of project Website copy",
+    });
+  });
+
+  it("linking a task leaves an existing description untouched", async () => {
+    const onUpdate = vi.fn();
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({ projectId: 1, description: "Already set" }),
+            projects: [makeProject({ id: 1, title: "Website copy" })],
+            onUpdate,
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Link task"));
+    fireEvent.click(await screen.findByText("Draft chapter"));
+
+    expect(onUpdate).toHaveBeenCalledWith({ id: 1, taskId: 9 });
+  });
+
+  it("clearing the task via 'No task' in the picker clears task and subtask", async () => {
+    const onUpdate = vi.fn();
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              projectId: 1,
+              taskId: 9,
+              task: { id: 9, title: "Draft chapter" },
+            }),
+            projects: [makeProject({ id: 1, title: "Website copy" })],
+            onUpdate,
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Edit task"));
+    const options = await screen.findAllByText("No task");
+    fireEvent.click(options[options.length - 1]);
+
+    expect(onUpdate).toHaveBeenCalledWith({
+      id: 1,
+      taskId: null,
+      subtaskId: null,
+    });
+  });
+
+  it("does not show a subtask control until a task is linked", () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({ entry: makeEntry({ projectId: 1, taskId: null }) })}
+        />,
+      ),
+    );
+    expect(screen.queryByText("No subtask")).not.toBeInTheDocument();
+  });
+
+  it("shows the linked subtask as a badge with checklist title, and opens the picker on click", () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              projectId: 1,
+              taskId: 9,
+              task: { id: 9, title: "Draft chapter" },
+              subtaskId: 22,
+              subtask: { id: 22, title: "Format", checklistTitle: "Wrap-up" },
+            }),
+          })}
+        />,
+      ),
+    );
+
+    expect(screen.getByTitle("Edit subtask")).toHaveTextContent(
+      "Wrap-up › Format",
+    );
+    fireEvent.click(screen.getByTitle("Edit subtask"));
+    expect(screen.getByText("No subtask")).toBeInTheDocument();
+  });
+
+  it("shows the linked subtask badge without a checklist prefix when unset", () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              projectId: 1,
+              taskId: 9,
+              task: { id: 9, title: "Draft chapter" },
+              subtaskId: 21,
+              subtask: { id: 21, title: "Proofread", checklistTitle: null },
+            }),
+          })}
+        />,
+      ),
+    );
+    expect(screen.getByTitle("Edit subtask")).toHaveTextContent("Proofread");
+  });
+
+  it("linking a subtask with no description auto-fills 'Task X › Y of project Z'", async () => {
+    const onUpdate = vi.fn();
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              projectId: 1,
+              taskId: 9,
+              task: { id: 9, title: "Draft chapter" },
+              description: null,
+            }),
+            projects: [makeProject({ id: 1, title: "Website copy" })],
+            onUpdate,
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Link subtask"));
+    fireEvent.click(await screen.findByText("Wrap-up › Format"));
+
+    expect(onUpdate).toHaveBeenCalledWith({
+      id: 1,
+      subtaskId: 22,
+      description: "Task Draft chapter › Format of project Website copy",
+    });
+  });
+
+  it("linking a subtask leaves an existing description untouched", async () => {
+    const onUpdate = vi.fn();
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              projectId: 1,
+              taskId: 9,
+              task: { id: 9, title: "Draft chapter" },
+              description: "Already set",
+            }),
+            onUpdate,
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Link subtask"));
+    fireEvent.click(await screen.findByText("Proofread"));
+
+    expect(onUpdate).toHaveBeenCalledWith({ id: 1, subtaskId: 21 });
+  });
+
+  it("clearing the subtask via 'No subtask' in the picker clears just the subtask", async () => {
+    const onUpdate = vi.fn();
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              projectId: 1,
+              taskId: 9,
+              task: { id: 9, title: "Draft chapter" },
+              subtaskId: 21,
+              subtask: { id: 21, title: "Proofread", checklistTitle: null },
+            }),
+            onUpdate,
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Edit subtask"));
+    const options = await screen.findAllByText("No subtask");
+    fireEvent.click(options[options.length - 1]);
+
+    expect(onUpdate).toHaveBeenCalledWith({ id: 1, subtaskId: null });
   });
 });

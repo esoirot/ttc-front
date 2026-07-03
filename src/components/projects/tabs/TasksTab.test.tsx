@@ -1,12 +1,14 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
   waitFor,
   within,
 } from "@testing-library/react";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { createQueryClient } from "@/test/queryClientWrapper";
 import type { Task } from "@/types/tasks.types";
 
@@ -16,6 +18,26 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
+
+const { dndHandlers } = vi.hoisted(() => ({
+  dndHandlers: {} as {
+    onDragStart?: (e: DragStartEvent) => void;
+    onDragEnd?: (e: DragEndEvent) => void;
+  },
+}));
+
+vi.mock("@dnd-kit/core", async () => {
+  const actual =
+    await vi.importActual<typeof import("@dnd-kit/core")>("@dnd-kit/core");
+  return {
+    ...actual,
+    DndContext: (props: React.ComponentProps<typeof actual.DndContext>) => {
+      dndHandlers.onDragStart = props.onDragStart;
+      dndHandlers.onDragEnd = props.onDragEnd;
+      return <actual.DndContext {...props} />;
+    },
+  };
+});
 
 const navigateMock = vi.fn();
 vi.mock("react-router-dom", async () => {
@@ -47,16 +69,18 @@ function makeTask(overrides: Partial<Task> = {}): Task {
   } as Task;
 }
 
-function renderTab(props: Partial<Parameters<typeof TasksTab>[0]> = {}) {
+function renderTab(
+  props: Partial<Parameters<typeof TasksTab>[0]> = {},
+  client: QueryClient = createQueryClient(),
+) {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
+    <QueryClientProvider client={client}>
       <TasksTab
         projectId={1}
         tasks={[]}
         tasksLoading={false}
         taskHasMore={false}
         taskLoadMore={vi.fn()}
-        members={[]}
         memberMap={{}}
         onOpenModal={vi.fn()}
         {...props}
@@ -69,6 +93,7 @@ describe("TasksTab", () => {
   beforeEach(() => {
     gqlFetch.mockReset();
     gqlMutate.mockReset();
+    gqlMutate.mockResolvedValue({ updateTask: {} });
     navigateMock.mockReset();
   });
 
@@ -174,6 +199,152 @@ describe("TasksTab", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Delete task" }));
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("tracks the dragged task as active without throwing when a drag starts", () => {
+    renderTab({
+      tasks: [makeTask({ id: 4, title: "Being dragged" })],
+    });
+
+    expect(() => {
+      act(() => {
+        dndHandlers.onDragStart?.({ active: { id: 4 } } as DragStartEvent);
+      });
+    }).not.toThrow();
+
+    expect(screen.getByText("Being dragged")).toBeInTheDocument();
+  });
+
+  it("does nothing when a drag ends outside any droppable target", () => {
+    renderTab({
+      tasks: [makeTask({ id: 4, title: "Task A", status: "TODO" })],
+    });
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: null,
+      } as unknown as DragEndEvent);
+    });
+
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when a drag ends on its own position", () => {
+    renderTab({
+      tasks: [makeTask({ id: 4, title: "Task A", status: "TODO" })],
+    });
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: 4 },
+      } as unknown as DragEndEvent);
+    });
+
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("updates the task status when dropped on a different status column", async () => {
+    renderTab({
+      tasks: [makeTask({ id: 4, title: "Task A", status: "TODO" })],
+    });
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: "DONE" },
+      } as unknown as DragEndEvent);
+    });
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
+        input: expect.objectContaining({ id: 4, status: "DONE" }),
+      }),
+    );
+  });
+
+  it("updates the task status when dropped onto a task in a different column", async () => {
+    renderTab({
+      tasks: [
+        makeTask({ id: 4, title: "Task A", status: "TODO" }),
+        makeTask({ id: 5, title: "Task B", status: "DONE" }),
+      ],
+    });
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: 5 },
+      } as unknown as DragEndEvent);
+    });
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
+        input: expect.objectContaining({ id: 4, status: "DONE" }),
+      }),
+    );
+  });
+
+  it("does not call updateTask when reordering within the same status column", () => {
+    renderTab({
+      tasks: [
+        makeTask({ id: 4, title: "Task A", status: "TODO" }),
+        makeTask({ id: 5, title: "Task B", status: "TODO" }),
+      ],
+    });
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: 5 },
+      } as unknown as DragEndEvent);
+    });
+
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("optimistically updates the cached task list on a status-changing drop", async () => {
+    const client = createQueryClient();
+    const task = makeTask({ id: 4, title: "Task A", status: "TODO" });
+    client.setQueryData(["tasks", 1], {
+      pages: [{ items: [task], nextCursor: null, total: 1 }],
+      pageParams: [undefined],
+    });
+    renderTab({ tasks: [task] }, client);
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: "DONE" },
+      } as unknown as DragEndEvent);
+    });
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
+        input: expect.objectContaining({ id: 4, status: "DONE" }),
+      }),
+    );
+
+    const cached = client.getQueryData<{
+      pages: { items: Task[] }[];
+    }>(["tasks", 1]);
+    expect(cached?.pages[0].items[0].status).toBe("DONE");
+  });
+
+  it("does nothing when the dragged task can no longer be found", () => {
+    renderTab({
+      tasks: [makeTask({ id: 4, title: "Task A", status: "TODO" })],
+    });
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 999 },
+        over: { id: "DONE" },
+      } as unknown as DragEndEvent);
+    });
 
     expect(gqlMutate).not.toHaveBeenCalled();
   });

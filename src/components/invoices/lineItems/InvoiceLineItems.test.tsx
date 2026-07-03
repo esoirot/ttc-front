@@ -1,16 +1,49 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { InvoiceItem, InvoiceAddItemInput } from "@/types/invoices.types";
+import type { InvoiceItemRowProps } from "@/types/invoices.types";
 
 vi.mock("@/components/invoices/itemRows/InvoiceItemRow", () => ({
-  InvoiceItemRow: ({ item }: { item: InvoiceItem }) => (
-    <div data-testid="item-row">{item.description}</div>
+  InvoiceItemRow: (props: InvoiceItemRowProps) => (
+    <div data-testid="item-row">
+      <span>{props.item.description}</span>
+      <span data-testid={`editing-${props.item.id}`}>
+        {String(props.editing)}
+      </span>
+      <button onClick={props.onStartEdit}>{`start-${props.item.id}`}</button>
+      <button onClick={props.onSave}>{`save-${props.item.id}`}</button>
+      <button onClick={props.onCancel}>{`cancel-${props.item.id}`}</button>
+      <button onClick={props.onRemove}>{`remove-${props.item.id}`}</button>
+      <input
+        aria-label={`desc-${props.item.id}`}
+        value={props.editState.desc}
+        onChange={(e) => props.onChangeDesc(e.target.value)}
+      />
+      <input
+        aria-label={`qty-${props.item.id}`}
+        value={props.editState.qty}
+        onChange={(e) => props.onChangeQty(e.target.value)}
+      />
+      <input
+        aria-label={`price-${props.item.id}`}
+        value={props.editState.price}
+        onChange={(e) => props.onChangePrice(e.target.value)}
+      />
+    </div>
   ),
 }));
 
 vi.mock("@/components/invoices/dialogs/AddItemDialog", () => ({
-  AddItemDialog: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="add-dialog" /> : null,
+  AddItemDialog: ({
+    open,
+    alreadyAddedEntryIds,
+  }: {
+    open: boolean;
+    alreadyAddedEntryIds: Set<number>;
+  }) =>
+    open ? (
+      <div data-testid="add-dialog">{[...alreadyAddedEntryIds].join(",")}</div>
+    ) : null,
 }));
 
 import { InvoiceLineItems } from "./InvoiceLineItems";
@@ -96,5 +129,84 @@ describe("InvoiceLineItems", () => {
     renderLineItems();
     fireEvent.click(screen.getByRole("button", { name: "+ Add item" }));
     expect(screen.getByTestId("add-dialog")).toBeInTheDocument();
+  });
+
+  it("passes already-added time entry ids to AddItemDialog", () => {
+    renderLineItems([
+      makeItem({ id: 1, timeEntryId: 10 }),
+      makeItem({ id: 2, timeEntryId: null }),
+      makeItem({ id: 3, timeEntryId: 12 }),
+    ]);
+    fireEvent.click(screen.getByRole("button", { name: "+ Add item" }));
+    expect(screen.getByTestId("add-dialog")).toHaveTextContent("10,12");
+  });
+
+  it("starts editing an item on onStartEdit and cancels on onCancel", () => {
+    renderLineItems([makeItem({ id: 1 })]);
+    expect(screen.getByTestId("editing-1")).toHaveTextContent("false");
+    fireEvent.click(screen.getByText("start-1"));
+    expect(screen.getByTestId("editing-1")).toHaveTextContent("true");
+    fireEvent.click(screen.getByText("cancel-1"));
+    expect(screen.getByTestId("editing-1")).toHaveTextContent("false");
+  });
+
+  it("only one item is editing at a time", () => {
+    renderLineItems([makeItem({ id: 1 }), makeItem({ id: 2 })]);
+    fireEvent.click(screen.getByText("start-1"));
+    expect(screen.getByTestId("editing-1")).toHaveTextContent("true");
+    expect(screen.getByTestId("editing-2")).toHaveTextContent("false");
+    fireEvent.click(screen.getByText("start-2"));
+    expect(screen.getByTestId("editing-1")).toHaveTextContent("false");
+    expect(screen.getByTestId("editing-2")).toHaveTextContent("true");
+  });
+
+  it("calls onUpdateItem with parsed qty/price and cancels edit on save", async () => {
+    const onUpdateItem = vi.fn().mockResolvedValue({});
+    renderLineItems([makeItem({ id: 1, description: "Translation" })], {
+      onUpdateItem,
+    });
+    fireEvent.click(screen.getByText("start-1"));
+    fireEvent.change(screen.getByLabelText("desc-1"), {
+      target: { value: "Updated" },
+    });
+    fireEvent.change(screen.getByLabelText("qty-1"), {
+      target: { value: "3" },
+    });
+    fireEvent.change(screen.getByLabelText("price-1"), {
+      target: { value: "12.5" },
+    });
+    fireEvent.click(screen.getByText("save-1"));
+
+    await vi.waitFor(() =>
+      expect(onUpdateItem).toHaveBeenCalledWith({
+        id: 1,
+        description: "Updated",
+        quantity: 3,
+        unitPrice: 12.5,
+      }),
+    );
+    await vi.waitFor(() =>
+      expect(screen.getByTestId("editing-1")).toHaveTextContent("false"),
+    );
+  });
+
+  it("does not call onUpdateItem when qty or price is not a valid number", async () => {
+    const onUpdateItem = vi.fn().mockResolvedValue({});
+    renderLineItems([makeItem({ id: 1 })], { onUpdateItem });
+    fireEvent.click(screen.getByText("start-1"));
+    fireEvent.change(screen.getByLabelText("qty-1"), {
+      target: { value: "abc" },
+    });
+    fireEvent.click(screen.getByText("save-1"));
+
+    await new Promise((r) => setTimeout(r, 0));
+    expect(onUpdateItem).not.toHaveBeenCalled();
+  });
+
+  it("calls onRemoveItem with the item id", () => {
+    const onRemoveItem = vi.fn();
+    renderLineItems([makeItem({ id: 7 })], { onRemoveItem });
+    fireEvent.click(screen.getByText("remove-7"));
+    expect(onRemoveItem).toHaveBeenCalledWith(7);
   });
 });

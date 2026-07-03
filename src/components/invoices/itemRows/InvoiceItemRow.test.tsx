@@ -160,4 +160,86 @@ describe("InvoiceItemRow", () => {
     fireEvent.keyDown(screen.getByLabelText("Description"), { key: "Escape" });
     expect(onCancel).toHaveBeenCalled();
   });
+
+  it("cancels on Escape in the Quantity field", () => {
+    const onCancel = vi.fn();
+    render(
+      <InvoiceItemRow
+        item={makeItem()}
+        editing={true}
+        editState={{ desc: "", qty: "", price: "" }}
+        onStartEdit={vi.fn()}
+        onChangeDesc={vi.fn()}
+        onChangeQty={vi.fn()}
+        onChangePrice={vi.fn()}
+        onSave={vi.fn()}
+        onCancel={onCancel}
+        onRemove={vi.fn()}
+      />,
+    );
+    fireEvent.keyDown(screen.getByLabelText("Quantity"), { key: "Escape" });
+    expect(onCancel).toHaveBeenCalled();
+  });
+
+  it("calls onSave/onCancel when the ✓/✕ buttons are clicked in edit mode", () => {
+    const onSave = vi.fn();
+    const onCancel = vi.fn();
+    render(
+      <InvoiceItemRow
+        item={makeItem()}
+        editing={true}
+        editState={{ desc: "", qty: "", price: "" }}
+        onStartEdit={vi.fn()}
+        onChangeDesc={vi.fn()}
+        onChangeQty={vi.fn()}
+        onChangePrice={vi.fn()}
+        onSave={onSave}
+        onCancel={onCancel}
+        onRemove={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByText("✓"));
+    expect(onSave).toHaveBeenCalled();
+    fireEvent.click(screen.getByText("✕"));
+    expect(onCancel).toHaveBeenCalled();
+  });
+
+  it("calls onStartEdit when the quantity or unit price value is clicked", () => {
+    const onStartEdit = vi.fn();
+    render(
+      <InvoiceItemRow
+        item={makeItem()}
+        editing={false}
+        editState={{ desc: "", qty: "", price: "" }}
+        onStartEdit={onStartEdit}
+        onChangeDesc={vi.fn()}
+        onChangeQty={vi.fn()}
+        onChangePrice={vi.fn()}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByText("2.00"));
+    fireEvent.click(screen.getByText("25.00"));
+    expect(onStartEdit).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows a clock icon when the item is linked to a time entry", () => {
+    const { container } = render(
+      <InvoiceItemRow
+        item={makeItem({ timeEntryId: 5 })}
+        editing={false}
+        editState={{ desc: "", qty: "", price: "" }}
+        onStartEdit={vi.fn()}
+        onChangeDesc={vi.fn()}
+        onChangeQty={vi.fn()}
+        onChangePrice={vi.fn()}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+    expect(container.querySelector("svg")).toBeInTheDocument();
+  });
 });

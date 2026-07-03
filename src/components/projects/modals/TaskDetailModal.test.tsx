@@ -38,11 +38,55 @@ function makeTaskDetail(overrides: Partial<TaskDetail> = {}): TaskDetail {
   } as TaskDetail;
 }
 
+type TimeEntryLike = import("@/types/time-entries.types").TimeEntry;
+
+function setupGqlFetch(
+  task: TaskDetail | null,
+  overrides: {
+    activeTimer?: TimeEntryLike | null;
+    timeEntries?: TimeEntryLike[];
+  } = {},
+) {
+  gqlFetch.mockImplementation((query: unknown) => {
+    const opName =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (query as any)?.definitions?.[0]?.name?.value ?? String(query);
+    switch (opName) {
+      case "Task":
+        return Promise.resolve({ task });
+      case "ActiveTimer":
+        return Promise.resolve({ activeTimer: overrides.activeTimer ?? null });
+      case "TimeEntries":
+        return Promise.resolve({
+          timeEntries: {
+            items: overrides.timeEntries ?? [],
+            nextCursor: null,
+            total: (overrides.timeEntries ?? []).length,
+          },
+        });
+      case "Project":
+        return Promise.resolve({ project: null });
+      case "Projects":
+        return Promise.resolve({
+          projects: { items: [], nextCursor: null, total: 0 },
+        });
+      case "Tags":
+        return Promise.resolve({ tags: [] });
+      default:
+        return Promise.resolve({});
+    }
+  });
+}
+
 function renderModal(
   task: TaskDetail | null,
   props: Partial<Parameters<typeof TaskDetailModal>[0]> = {},
+  overrides: {
+    activeTimer?: TimeEntryLike | null;
+    timeEntries?: TimeEntryLike[];
+  } = {},
 ) {
-  gqlFetch.mockResolvedValue({ task });
+  setupGqlFetch(task, overrides);
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <TaskDetailModal
@@ -203,6 +247,136 @@ describe("TaskDetailModal", () => {
     fireEvent.keyDown(input, { key: "Enter" });
 
     expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("New checklist button opens the checklist section in adding mode", async () => {
+    renderModal(makeTaskDetail());
+    await screen.findByText("Translate doc");
+
+    fireEvent.click(screen.getByText("+ New checklist"));
+
+    expect(screen.getByPlaceholderText("Checklist title…")).toBeInTheDocument();
+  });
+
+  it("shows a 'Time' toggle that reveals 'No time logged yet.' when opened", async () => {
+    renderModal(makeTaskDetail());
+    await screen.findByText("Translate doc");
+
+    expect(screen.queryByText("No time logged yet.")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("show ▼"));
+
+    expect(await screen.findByText("No time logged yet.")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("hide ▲"));
+    expect(screen.queryByText("No time logged yet.")).not.toBeInTheDocument();
+  });
+
+  it("clicking Start timer calls startTimer with a description derived from the task", async () => {
+    gqlMutate.mockResolvedValueOnce({
+      startTimer: {
+        id: 1,
+        userId: 1,
+        projectId: 1,
+        taskId: 4,
+        description: "Task Translate doc of project Website copy",
+        startTime: "2026-01-01T00:00:00.000Z",
+        endTime: null,
+        durationSeconds: null,
+        billable: true,
+        clockifyEntryId: null,
+        tags: [],
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    });
+    renderModal(makeTaskDetail());
+    await screen.findByText("Translate doc");
+
+    fireEvent.click(screen.getByText("▶ Start timer"));
+
+    await waitFor(() =>
+      expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+        input: expect.objectContaining({ taskId: 4, projectId: 1 }),
+      }),
+    );
+  });
+
+  it("shows the running timer and stops it on click", async () => {
+    gqlMutate.mockResolvedValueOnce({
+      stopTimer: {
+        id: 1,
+        userId: 1,
+        projectId: 1,
+        taskId: 4,
+        description: "work",
+        startTime: "2026-01-01T00:00:00.000Z",
+        endTime: "2026-01-01T01:00:00.000Z",
+        durationSeconds: 3600,
+        billable: true,
+        clockifyEntryId: null,
+        tags: [],
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    });
+    renderModal(
+      makeTaskDetail(),
+      {},
+      {
+        activeTimer: {
+          id: 1,
+          userId: 1,
+          projectId: 1,
+          taskId: 4,
+          description: "work",
+          startTime: "2026-01-01T00:00:00.000Z",
+          endTime: null,
+          durationSeconds: null,
+          billable: true,
+          clockifyEntryId: null,
+          tags: [],
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      },
+    );
+    await screen.findByText("Translate doc");
+
+    const stopButton = await screen.findByRole("button", { name: /Stop/ });
+    fireEvent.click(stopButton);
+
+    await waitFor(() => expect(gqlMutate).toHaveBeenCalled());
+  });
+
+  it("shows entry count in the Time label and renders entries once toggled open", async () => {
+    renderModal(
+      makeTaskDetail(),
+      {},
+      {
+        timeEntries: [
+          {
+            id: 1,
+            userId: 1,
+            projectId: 1,
+            taskId: 4,
+            description: "Translated pages",
+            startTime: "2026-01-01T00:00:00.000Z",
+            endTime: "2026-01-01T01:00:00.000Z",
+            durationSeconds: 3600,
+            billable: true,
+            clockifyEntryId: null,
+            tags: [],
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+          },
+        ],
+      },
+    );
+    await screen.findByText("Translate doc");
+
+    expect(await screen.findByText("Time (1)")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("show ▼"));
+
+    expect(await screen.findByText("Translated pages")).toBeInTheDocument();
   });
 
   describe("attachment list", () => {
@@ -367,6 +541,122 @@ describe("TaskDetailModal", () => {
           expect.objectContaining({ method: "PATCH" }),
         );
       });
+    });
+
+    it("Save is disabled in inline edit when the URL is cleared", async () => {
+      renderModal(
+        makeTaskDetail({
+          attachments: [
+            makeAttachment({ id: 3, type: "URL", url: "https://old.com" }),
+          ],
+        }),
+      );
+      await screen.findByText("Translate doc");
+
+      fireEvent.click(screen.getByTitle("Edit"));
+      fireEvent.change(screen.getByPlaceholderText("URL"), {
+        target: { value: "" },
+      });
+
+      expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    });
+
+    it("deletes an attachment after confirming in the alert dialog", async () => {
+      fetchMock.mockResolvedValueOnce(
+        new Response(JSON.stringify({}), { status: 200 }),
+      );
+      renderModal(
+        makeTaskDetail({
+          attachments: [
+            makeAttachment({ id: 3, type: "URL", displayText: "Spec doc" }),
+          ],
+        }),
+      );
+      await screen.findByText("Translate doc");
+
+      fireEvent.click(screen.getByTitle("Delete"));
+      fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(
+          expect.stringContaining("/attachments/3"),
+          expect.objectContaining({ method: "DELETE" }),
+        );
+      });
+    });
+
+    it("renders a URL-type attachment link pointing straight at an already-absolute URL", async () => {
+      renderModal(
+        makeTaskDetail({
+          attachments: [
+            makeAttachment({
+              id: 4,
+              type: "URL",
+              url: "https://example.com/doc",
+              displayText: "External doc",
+            }),
+          ],
+        }),
+      );
+      await screen.findByText("Translate doc");
+
+      expect(
+        screen.getByRole("link", { name: "External doc" }),
+      ).toHaveAttribute("href", "https://example.com/doc");
+    });
+
+    it("prefixes a bare host with https:// for a URL-type attachment", async () => {
+      renderModal(
+        makeTaskDetail({
+          attachments: [
+            makeAttachment({
+              id: 5,
+              type: "URL",
+              url: "example.com/doc",
+              displayText: "Bare host doc",
+            }),
+          ],
+        }),
+      );
+      await screen.findByText("Translate doc");
+
+      expect(
+        screen.getByRole("link", { name: "Bare host doc" }),
+      ).toHaveAttribute("href", "https://example.com/doc");
+    });
+
+    it("shows the raw url as the label when a URL attachment has no displayText", async () => {
+      renderModal(
+        makeTaskDetail({
+          attachments: [
+            makeAttachment({
+              id: 6,
+              type: "URL",
+              url: "https://example.com/plain",
+              displayText: null,
+            }),
+          ],
+        }),
+      );
+      await screen.findByText("Translate doc");
+
+      expect(
+        screen.getByRole("link", { name: "https://example.com/plain" }),
+      ).toBeInTheDocument();
+    });
+
+    it("clicking '+ Add' in the attachments section opens the attachment modal", async () => {
+      renderModal(
+        makeTaskDetail({
+          attachments: [makeAttachment({ id: 1 })],
+        }),
+      );
+      await screen.findByText("Translate doc");
+
+      const addButtons = screen.getAllByText("+ Add");
+      fireEvent.click(addButtons[addButtons.length - 1]);
+
+      expect(screen.getByText("Add attachment")).toBeInTheDocument();
     });
   });
 });

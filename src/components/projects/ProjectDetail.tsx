@@ -94,7 +94,6 @@ export function ProjectDetail() {
             tasksLoading={tasksLoading}
             taskHasMore={taskHasMore}
             taskLoadMore={taskLoadMore}
-            members={members}
             memberMap={memberMap}
             onOpenModal={setOpenTaskId}
           />

@@ -1,6 +1,32 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Project } from "@/types/projects.types";
+import type { Task } from "@/types/tasks.types";
+
+vi.mock("recharts", () => ({
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  PieChart: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  Pie: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Cell: () => null,
+  Tooltip: ({
+    formatter,
+  }: {
+    formatter: (value: number) => [string, string];
+  }) => <div data-testid="tooltip-preview">{formatter(7325)[0]}</div>,
+  Legend: ({ formatter }: { formatter: (value: string) => string }) => (
+    <div data-testid="legend-preview">
+      <span>{formatter("Short title")}</span>
+      <span>
+        {formatter("A Very Long Task Title Exceeding Eighteen Chars")}
+      </span>
+    </div>
+  ),
+}));
+
 import { OverviewTab } from "./OverviewTab";
 
 function makeProject(overrides: Partial<Project> = {}): Project {
@@ -25,6 +51,26 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
   };
+}
+
+function makeTask(overrides: Partial<Task> = {}): Task {
+  return {
+    id: 1,
+    projectId: 1,
+    assigneeId: null,
+    title: "Translate doc",
+    description: null,
+    status: "TODO",
+    dueDate: null,
+    startDate: null,
+    recurring: null,
+    reminderOffset: null,
+    sortOrder: 0,
+    totalTimeSeconds: 0,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    ...overrides,
+  } as Task;
 }
 
 describe("OverviewTab", () => {
@@ -57,5 +103,43 @@ describe("OverviewTab", () => {
     expect(screen.getByText("1,000")).toBeInTheDocument();
     expect(screen.getByText("0.1 USD")).toBeInTheDocument();
     expect(screen.getByText("100.00 USD")).toBeInTheDocument();
+  });
+
+  it("shows a pie breakdown with an Untracked slice when tasks don't cover total time", () => {
+    render(
+      <OverviewTab
+        project={makeProject()}
+        totalSeconds={3661}
+        tasks={[
+          makeTask({ id: 1, title: "Task A", totalTimeSeconds: 1000 }),
+          makeTask({ id: 2, title: "Task B", totalTimeSeconds: 0 }),
+        ]}
+      />,
+    );
+    expect(screen.getByText("Time by task")).toBeInTheDocument();
+    expect(screen.getByTestId("tooltip-preview")).toHaveTextContent("2:02:05");
+    const legend = screen.getByTestId("legend-preview");
+    expect(legend).toHaveTextContent("Short title");
+    expect(legend).toHaveTextContent("A Very Long Task…");
+  });
+
+  it("omits the Untracked slice when tracked time matches total, and hides the chart with no tracked time", () => {
+    const { rerender } = render(
+      <OverviewTab
+        project={makeProject()}
+        totalSeconds={1000}
+        tasks={[makeTask({ id: 1, title: "Task A", totalTimeSeconds: 1000 })]}
+      />,
+    );
+    expect(screen.getByText("Time by task")).toBeInTheDocument();
+
+    rerender(
+      <OverviewTab
+        project={makeProject()}
+        totalSeconds={0}
+        tasks={[makeTask({ id: 1, title: "Task A", totalTimeSeconds: 0 })]}
+      />,
+    );
+    expect(screen.queryByText("Time by task")).not.toBeInTheDocument();
   });
 });

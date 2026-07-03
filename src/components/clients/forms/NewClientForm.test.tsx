@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
@@ -9,6 +15,14 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
+
+let tagChipsProps: Record<string, unknown> = {};
+vi.mock("@/components/time/tags/TtcTagChips", () => ({
+  TtcTagChips: (props: Record<string, unknown>) => {
+    tagChipsProps = props;
+    return <div data-testid="tag-chips" />;
+  },
+}));
 
 import { NewClientForm } from "./NewClientForm";
 
@@ -235,5 +249,53 @@ describe("NewClientForm", () => {
         "Add contacts from the client detail page after creation.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("submits legalName, vatNumber, website, email, and phone from company fields", async () => {
+    gqlMutate.mockResolvedValueOnce({ createClient: { id: 9, name: "Acme" } });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText("Company name *"), {
+      target: { value: "Acme" },
+    });
+    fireEvent.change(screen.getByLabelText("Legal name"), {
+      target: { value: "Acme Limited" },
+    });
+    fireEvent.change(screen.getByLabelText("VAT number"), {
+      target: { value: "FR00123456789" },
+    });
+    fireEvent.change(screen.getByLabelText("Website"), {
+      target: { value: "https://acme.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Company email"), {
+      target: { value: "billing@acme.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Company phone"), {
+      target: { value: "+33100000000" },
+    });
+    fireEvent.click(screen.getByText("Create client"));
+
+    await waitFor(() => expect(gqlMutate).toHaveBeenCalled());
+    expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+      input: {
+        name: "Acme",
+        legalName: "Acme Limited",
+        vatNumber: "FR00123456789",
+        website: "https://acme.com",
+        email: "billing@acme.com",
+        phone: "+33100000000",
+      },
+    });
+  });
+
+  it("wires tag chip add/remove to the tagIds state", () => {
+    renderForm();
+    expect(tagChipsProps.tagIds).toEqual([]);
+
+    act(() => (tagChipsProps.onAdd as (id: number) => void)(3));
+    act(() => (tagChipsProps.onAdd as (id: number) => void)(4));
+    act(() => (tagChipsProps.onRemove as (id: number) => void)(3));
+
+    expect(tagChipsProps.tagIds).toEqual([4]);
   });
 });

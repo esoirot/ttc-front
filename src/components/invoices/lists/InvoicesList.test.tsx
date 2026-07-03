@@ -16,8 +16,17 @@ vi.mock("@/components/invoices/forms/GenerateInvoiceForm", () => ({
 }));
 
 vi.mock("@/components/invoices/cards/InvoiceListCard", () => ({
-  InvoiceListCard: ({ inv }: { inv: Invoice }) => (
-    <div data-testid="invoice-card">{inv.number}</div>
+  InvoiceListCard: ({
+    inv,
+    clientName,
+  }: {
+    inv: Invoice;
+    clientName?: string;
+  }) => (
+    <div data-testid="invoice-card">
+      {inv.number}
+      {clientName ? ` — ${clientName}` : ""}
+    </div>
   ),
 }));
 
@@ -184,5 +193,33 @@ describe("InvoicesList", () => {
   it("hides GenerateInvoiceForm when showGenerate=false", () => {
     renderList({ showGenerate: false });
     expect(screen.queryByTestId("generate-form")).not.toBeInTheDocument();
+  });
+
+  it("calls setSearch as the search input changes", () => {
+    const setSearch = vi.fn();
+    renderList({ setSearch });
+    fireEvent.change(screen.getByPlaceholderText("Search invoices…"), {
+      target: { value: "acme" },
+    });
+    expect(setSearch).toHaveBeenCalledWith("acme");
+  });
+
+  it("calls setTab when a status tab is clicked", () => {
+    const setTab = vi.fn();
+    renderList({ setTab });
+    const trigger = screen.getByRole("tab", { name: "Draft" });
+    fireEvent.mouseDown(trigger);
+    trigger.focus();
+    fireEvent.click(trigger);
+    expect(setTab).toHaveBeenCalledWith("DRAFT");
+  });
+
+  it("passes the resolved client name for invoices with a clientId", () => {
+    renderList({
+      invoices: [makeInvoice({ id: 1, clientId: 3 })],
+      total: 1,
+      clientMap: { 3: "Acme Corp" },
+    });
+    expect(screen.getByTestId("invoice-card")).toHaveTextContent("Acme Corp");
   });
 });

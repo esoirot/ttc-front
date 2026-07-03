@@ -44,7 +44,6 @@ export function TasksTab({
   tasksLoading,
   taskHasMore,
   taskLoadMore,
-  members,
   memberMap,
   onOpenModal,
 }: TasksTabProps) {
@@ -140,13 +139,9 @@ export function TasksTab({
                         <SortableTask
                           key={task.id}
                           task={task}
-                          onStatusChange={(tid, s) =>
-                            void updateTask({ id: tid, status: s })
-                          }
                           onDelete={(tid) => void deleteTask(tid)}
                           onOpenModal={onOpenModal}
                           memberMap={memberMap}
-                          members={members}
                         />
                       ))}
                     </SortableContext>

@@ -136,4 +136,64 @@ describe("ProfileTab", () => {
     expect(await screen.findByText("Email already in use")).toBeInTheDocument();
     expect(screen.queryByText("Profile saved.")).not.toBeInTheDocument();
   });
+
+  it("submits edited lastName, email, mobilePhone, jobTitle, and logoUrl", async () => {
+    gqlMutate.mockResolvedValueOnce({ updateMe: makeUser() });
+    renderProfileTab(makeUser());
+
+    fireEvent.change(screen.getByLabelText("Last name"), {
+      target: { value: "Jones" },
+    });
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "bob@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Mobile phone"), {
+      target: { value: "+9876" },
+    });
+    fireEvent.change(screen.getByLabelText("Job title"), {
+      target: { value: "Project Manager" },
+    });
+    fireEvent.change(screen.getByLabelText("Logo URL"), {
+      target: { value: "https://example.com/new-logo.png" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          input: expect.objectContaining({
+            lastName: "Jones",
+            email: "bob@example.com",
+            mobilePhone: "+9876",
+            jobTitle: "Project Manager",
+            logoUrl: "https://example.com/new-logo.png",
+          }),
+        }),
+      ),
+    );
+  });
+
+  it("updates the logo preview as the Logo URL field changes", () => {
+    renderProfileTab(makeUser({ logoUrl: "https://example.com/logo.png" }));
+
+    fireEvent.change(screen.getByLabelText("Logo URL"), {
+      target: { value: "https://example.com/updated.png" },
+    });
+
+    expect(screen.getByAltText("Logo preview")).toHaveAttribute(
+      "src",
+      "https://example.com/updated.png",
+    );
+  });
+
+  it("hides the logo preview once the Logo URL field is cleared", () => {
+    renderProfileTab(makeUser({ logoUrl: "https://example.com/logo.png" }));
+
+    fireEvent.change(screen.getByLabelText("Logo URL"), {
+      target: { value: "   " },
+    });
+
+    expect(screen.queryByAltText("Logo preview")).not.toBeInTheDocument();
+  });
 });

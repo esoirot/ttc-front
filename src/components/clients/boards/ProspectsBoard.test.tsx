@@ -1,7 +1,14 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { createQueryClient } from "@/test/queryClientWrapper";
 import type { Client, ClientConnection } from "@/types/clients.types";
 
@@ -11,6 +18,26 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
+
+const { dndHandlers } = vi.hoisted(() => ({
+  dndHandlers: {} as {
+    onDragStart?: (e: DragStartEvent) => void;
+    onDragEnd?: (e: DragEndEvent) => void;
+  },
+}));
+
+vi.mock("@dnd-kit/core", async () => {
+  const actual =
+    await vi.importActual<typeof import("@dnd-kit/core")>("@dnd-kit/core");
+  return {
+    ...actual,
+    DndContext: (props: React.ComponentProps<typeof actual.DndContext>) => {
+      dndHandlers.onDragStart = props.onDragStart;
+      dndHandlers.onDragEnd = props.onDragEnd;
+      return <actual.DndContext {...props} />;
+    },
+  };
+});
 
 import { ProspectsBoard } from "./ProspectsBoard";
 
@@ -214,5 +241,164 @@ describe("ProspectsBoard", () => {
       ).toBe(true),
     );
     vi.useRealTimers();
+  });
+
+  it("shows loading skeletons while clients are loading", () => {
+    gqlFetch.mockReturnValue(new Promise(() => {}));
+    renderBoard();
+    expect(screen.queryByText("Empty")).not.toBeInTheDocument();
+    expect(screen.getByText("Prospects")).toBeInTheDocument();
+  });
+
+  it("tracks the dragged client as active without throwing when a drag starts", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      clients: makeConnection([makeClient({ id: 4, name: "Being dragged" })]),
+    });
+    renderBoard();
+    expect(await screen.findByText("Being dragged")).toBeInTheDocument();
+
+    expect(() => {
+      act(() => {
+        dndHandlers.onDragStart?.({ active: { id: 4 } } as DragStartEvent);
+      });
+    }).not.toThrow();
+
+    expect(screen.getByText("Being dragged")).toBeInTheDocument();
+  });
+
+  it("does nothing when a drag ends outside any droppable target", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      clients: makeConnection([
+        makeClient({ id: 4, name: "Lead A", status: "TO_CONTACT" }),
+      ]),
+    });
+    renderBoard();
+    await screen.findByText("Lead A");
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: null,
+      } as unknown as DragEndEvent);
+    });
+
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when dropped back on the same status column", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      clients: makeConnection([
+        makeClient({ id: 4, name: "Lead A", status: "TO_CONTACT" }),
+      ]),
+    });
+    renderBoard();
+    await screen.findByText("Lead A");
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: "TO_CONTACT" },
+      } as unknown as DragEndEvent);
+    });
+
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("updates the client status and sets contactedAt when dropped on an active-contact column", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      clients: makeConnection([
+        makeClient({ id: 4, name: "Lead A", status: "TO_CONTACT" }),
+      ]),
+    });
+    gqlMutate.mockResolvedValueOnce({ updateClient: makeClient({ id: 4 }) });
+    renderBoard();
+    await screen.findByText("Lead A");
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: "CONTACTED" },
+      } as unknown as DragEndEvent);
+    });
+
+    await waitFor(() => expect(gqlMutate).toHaveBeenCalled());
+    const [, vars] = gqlMutate.mock.calls[0] as [
+      string,
+      { input: Record<string, unknown> },
+    ];
+    expect(vars.input).toMatchObject({ id: 4, status: "CONTACTED" });
+    expect(vars.input.contactedAt).toEqual(expect.any(String));
+  });
+
+  it("updates the client status without contactedAt when dropped on a non-active column", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      clients: makeConnection([
+        makeClient({ id: 4, name: "Lead A", status: "TO_CONTACT" }),
+      ]),
+    });
+    gqlMutate.mockResolvedValueOnce({ updateClient: makeClient({ id: 4 }) });
+    renderBoard();
+    await screen.findByText("Lead A");
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: "RECONTACT_LATER" },
+      } as unknown as DragEndEvent);
+    });
+
+    await waitFor(() => expect(gqlMutate).toHaveBeenCalled());
+    const [, vars] = gqlMutate.mock.calls[0] as [
+      string,
+      { input: Record<string, unknown> },
+    ];
+    expect(vars.input).toEqual({ id: 4, status: "RECONTACT_LATER" });
+  });
+
+  it("resolves the target status from the client under the drop point when over.id is not a column", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      clients: makeConnection([
+        makeClient({ id: 4, name: "Lead A", status: "TO_CONTACT" }),
+        makeClient({ id: 5, name: "Lead B", status: "FOLLOW_UP_1" }),
+      ]),
+    });
+    gqlMutate.mockResolvedValueOnce({ updateClient: makeClient({ id: 4 }) });
+    renderBoard();
+    await screen.findByText("Lead A");
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: 5 },
+      } as unknown as DragEndEvent);
+    });
+
+    await waitFor(() => expect(gqlMutate).toHaveBeenCalled());
+    const [, vars] = gqlMutate.mock.calls[0] as [
+      string,
+      { input: Record<string, unknown> },
+    ];
+    expect(vars.input).toMatchObject({ id: 4, status: "FOLLOW_UP_1" });
+  });
+
+  it("deletes a client via the ProspectCard delete confirmation", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      clients: makeConnection([
+        makeClient({ id: 4, name: "Lead A", status: "TO_CONTACT" }),
+      ]),
+    });
+    gqlMutate.mockResolvedValueOnce({ deleteClient: true });
+    renderBoard();
+    await screen.findByText("Lead A");
+
+    fireEvent.click(screen.getByLabelText("Delete prospect"));
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ id: 4 }),
+      ),
+    );
   });
 });

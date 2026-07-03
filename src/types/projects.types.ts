@@ -104,11 +104,9 @@ export interface ProjectTaskListProps {
 
 export interface SortableTaskProps {
   task: Task;
-  onStatusChange: (id: number, status: TaskStatus) => void;
   onDelete: (id: number) => void;
   onOpenModal: (taskId: number) => void;
   memberMap: Record<number, string>;
-  members: Member[];
 }
 
 export interface TasksTabProps {
@@ -117,7 +115,6 @@ export interface TasksTabProps {
   tasksLoading: boolean;
   taskHasMore: boolean;
   taskLoadMore: () => void;
-  members: Member[];
   memberMap: Record<number, string>;
   onOpenModal: (taskId: number) => void;
 }

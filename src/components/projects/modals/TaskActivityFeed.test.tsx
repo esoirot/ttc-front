@@ -177,6 +177,49 @@ describe("TaskActivityFeed", () => {
     },
   );
 
+  it.each([
+    [
+      "STARTED",
+      JSON.stringify({ description: "translate chapter 3" }),
+      'started time tracking on "translate chapter 3"',
+    ],
+    ["STARTED", null, "started time tracking"],
+    [
+      "STOPPED",
+      JSON.stringify({ durationSeconds: 5400 }),
+      "stopped time tracking (1h 30m)",
+    ],
+    ["STOPPED", null, "stopped time tracking"],
+    [
+      "STOPPED",
+      JSON.stringify({
+        durationSeconds: 5400,
+        description: "translate chapter 3",
+      }),
+      'stopped time tracking on "translate chapter 3" (1h 30m)',
+    ],
+    [
+      "STOPPED",
+      JSON.stringify({ description: "translate chapter 3" }),
+      'stopped time tracking on "translate chapter 3"',
+    ],
+    ["RESUMED", null, "resumed time tracking"],
+    [
+      "DELETED",
+      JSON.stringify({ durationSeconds: 120 }),
+      "deleted a time entry (2m)",
+    ],
+    ["DELETED", JSON.stringify({ durationSeconds: 0 }), "deleted a time entry"],
+  ] as [string, string | null, string][])(
+    "describes %s correctly",
+    (type, payload, expected) => {
+      render(
+        <TaskActivityFeed activities={[makeActivity({ type, payload })]} />,
+      );
+      expect(screen.getByText(expected, { exact: false })).toBeInTheDocument();
+    },
+  );
+
   it("describes DUE_DATE_SET with a to value as a set-due-date message", () => {
     render(
       <TaskActivityFeed

@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
@@ -10,6 +16,14 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
+
+let tagChipsProps: Record<string, unknown> = {};
+vi.mock("@/components/time/tags/TtcTagChips", () => ({
+  TtcTagChips: (props: Record<string, unknown>) => {
+    tagChipsProps = props;
+    return <div data-testid="tag-chips" />;
+  },
+}));
 
 import { ClientHeader } from "./ClientHeader";
 
@@ -359,5 +373,67 @@ describe("ClientHeader", () => {
     expect(screen.getByLabelText("City")).toBeInTheDocument();
     expect(screen.getByLabelText("Postal code")).toBeInTheDocument();
     expect(screen.getByLabelText("Country")).toBeInTheDocument();
+  });
+
+  it("saves edited legalName, vatNumber, website, email, and phone", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(makeClient({ id: 5 }), onUpdate);
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.change(screen.getByLabelText("Legal name"), {
+      target: { value: "Acme Limited" },
+    });
+    fireEvent.change(screen.getByLabelText("VAT number"), {
+      target: { value: "FR00123456789" },
+    });
+    fireEvent.change(screen.getByLabelText("Website"), {
+      target: { value: "https://acme.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "hello@acme.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Phone"), {
+      target: { value: "+33 1 00 00 00 00" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 5,
+          legalName: "Acme Limited",
+          vatNumber: "FR00123456789",
+          website: "https://acme.com",
+          email: "hello@acme.com",
+          phone: "+33 1 00 00 00 00",
+        }),
+      ),
+    );
+  });
+
+  it("switching the clientType tab in edit mode toggles the fields shown", () => {
+    renderHeader(makeClient());
+    fireEvent.click(screen.getByText("Edit"));
+    expect(screen.getByLabelText("Name")).toBeInTheDocument();
+
+    const trigger = screen.getByText("Individual");
+    fireEvent.mouseDown(trigger);
+    trigger.focus();
+    fireEvent.click(trigger);
+
+    expect(screen.getByLabelText("First name")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Name")).not.toBeInTheDocument();
+  });
+
+  it("wires tag chip add/remove to the edit form's tagIds", () => {
+    renderHeader(makeClient({ tags: [{ id: 1, name: "VIP" }] }));
+    fireEvent.click(screen.getByText("Edit"));
+    expect(tagChipsProps.tagIds).toEqual([1]);
+
+    act(() => (tagChipsProps.onAdd as (id: number) => void)(2));
+    expect(tagChipsProps.tagIds).toEqual([1, 2]);
+
+    act(() => (tagChipsProps.onRemove as (id: number) => void)(1));
+    expect(tagChipsProps.tagIds).toEqual([2]);
   });
 });

@@ -1,4 +1,4 @@
-import { formatTimestamp } from "@/lib/time";
+import { formatTimestamp, secsToHms } from "@/lib/time";
 import type { TaskActivity } from "@/types/tasks.types";
 
 function describe(activity: TaskActivity): string {
@@ -53,6 +53,25 @@ function describe(activity: TaskActivity): string {
         return `added label "${String(p?.name ?? "")}"`;
       case "LABEL_REMOVED":
         return `removed label "${String(p?.name ?? "")}"`;
+      case "STARTED":
+        return p?.description
+          ? `started time tracking on "${String(p.description)}"`
+          : "started time tracking";
+      case "STOPPED": {
+        const duration =
+          typeof p?.durationSeconds === "number"
+            ? ` (${secsToHms(p.durationSeconds)})`
+            : "";
+        return p?.description
+          ? `stopped time tracking on "${String(p.description)}"${duration}`
+          : `stopped time tracking${duration}`;
+      }
+      case "RESUMED":
+        return "resumed time tracking";
+      case "DELETED":
+        return p?.durationSeconds
+          ? `deleted a time entry (${secsToHms(Number(p.durationSeconds))})`
+          : "deleted a time entry";
       default:
         return activity.type.toLowerCase().replace(/_/g, " ");
     }

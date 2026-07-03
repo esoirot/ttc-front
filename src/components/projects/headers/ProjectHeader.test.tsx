@@ -155,4 +155,130 @@ describe("ProjectHeader", () => {
     expect(onUpdate).not.toHaveBeenCalled();
     expect(screen.getByText("Translate manual")).toBeInTheDocument();
   });
+
+  it("saves edited description, currency, languages, dates, wordCount, and rates", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(makeProject({ id: 7 }), [], onUpdate);
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.change(screen.getByLabelText("Description"), {
+      target: { value: "New desc" },
+    });
+    fireEvent.change(screen.getByLabelText("Currency"), {
+      target: { value: "USD" },
+    });
+    fireEvent.change(screen.getByLabelText("Source language"), {
+      target: { value: "EN" },
+    });
+    fireEvent.change(screen.getByLabelText("Target language"), {
+      target: { value: "FR" },
+    });
+    fireEvent.change(screen.getByLabelText("Start date"), {
+      target: { value: "2026-01-01" },
+    });
+    fireEvent.change(screen.getByLabelText("Deadline"), {
+      target: { value: "2026-02-01" },
+    });
+    fireEvent.change(screen.getByLabelText("Word count"), {
+      target: { value: "1000" },
+    });
+    fireEvent.change(screen.getByLabelText("Fixed fee"), {
+      target: { value: "500" },
+    });
+    fireEvent.change(screen.getByLabelText("Hourly rate"), {
+      target: { value: "25" },
+    });
+    fireEvent.change(screen.getByLabelText("Per-word rate"), {
+      target: { value: "0.1" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 7,
+          description: "New desc",
+          currency: "USD",
+          sourceLanguage: "EN",
+          targetLanguage: "FR",
+          startDate: "2026-01-01",
+          deadline: "2026-02-01",
+          wordCount: 1000,
+          fixedFee: 500,
+          hourlyRate: 25,
+          perWordRate: 0.1,
+        }),
+      ),
+    );
+  });
+
+  it("shows the language pair, deadline, and word count in the details line", () => {
+    renderHeader(
+      makeProject({
+        sourceLanguage: "EN",
+        targetLanguage: "FR",
+        deadline: "2026-12-31T00:00:00.000Z",
+        wordCount: 2500,
+      }),
+    );
+    expect(
+      screen.getByText("EN → FR · Due 2026-12-31 · 2,500 words"),
+    ).toBeInTheDocument();
+  });
+
+  it("joins multiple pricing lines with a plus sign", () => {
+    renderHeader(
+      makeProject({ fixedFee: 100, hourlyRate: 25, perWordRate: 0.1 }),
+    );
+    expect(
+      screen.getByText("Fixed 100 EUR + 25/hr EUR + 0.1/word EUR"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows no pricing line when no monetization fields are set", () => {
+    renderHeader(makeProject());
+    expect(screen.queryByText(/Fixed|\/hr|\/word/)).not.toBeInTheDocument();
+  });
+
+  it("does not render a RatePicker for a rate type with no matching rates", () => {
+    renderHeader(makeProject());
+    fireEvent.click(screen.getByText("Edit"));
+    expect(screen.queryByText("From rate…")).not.toBeInTheDocument();
+  });
+
+  it("renders a RatePicker trigger when matching rates are loaded", async () => {
+    gqlFetch.mockResolvedValue({
+      translationRates: [
+        {
+          id: 1,
+          userId: 1,
+          name: "Standard hourly",
+          amount: 30,
+          currency: "EUR",
+          type: "HOURLY",
+          description: null,
+          activityId: null,
+          clientId: null,
+          sourceLanguage: null,
+          targetLanguage: null,
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+      clientRates: [],
+    });
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <ProjectHeader
+          project={makeProject()}
+          clients={[]}
+          onUpdate={vi.fn()}
+          saving={false}
+        />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(screen.getByText("Edit"));
+
+    expect(await screen.findAllByText("From rate…")).toHaveLength(1);
+  });
 });

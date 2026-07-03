@@ -31,11 +31,9 @@ function renderTask(props: Partial<Parameters<typeof SortableTask>[0]> = {}) {
       <SortableContext items={[task.id]}>
         <SortableTask
           task={task}
-          onStatusChange={vi.fn()}
           onDelete={vi.fn()}
           onOpenModal={vi.fn()}
           memberMap={{}}
-          members={[]}
           {...props}
         />
       </SortableContext>

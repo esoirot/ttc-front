@@ -89,4 +89,18 @@ describe("ConnectForm", () => {
     render(<ConnectForm />);
     expect(screen.getByText("Invalid API key")).toBeInTheDocument();
   });
+
+  it("does not call mutate on submit when the api key is empty", () => {
+    const mutate = vi.fn();
+    useSetClockifyCredentialsMock.mockReturnValue({
+      mutate,
+      isPending: false,
+      error: null,
+    });
+    const { container } = render(<ConnectForm />);
+    const form = container.querySelector("form");
+    if (!form) throw new Error("form not found");
+    fireEvent.submit(form);
+    expect(mutate).not.toHaveBeenCalled();
+  });
 });

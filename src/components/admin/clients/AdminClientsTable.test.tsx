@@ -13,6 +13,21 @@ const { exportCsv } = vi.hoisted(() => ({ exportCsv: vi.fn() }));
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 vi.mock("@/lib/csv", () => ({ exportCsv }));
 
+vi.mock("../audits/ResourceAuditHistory", () => ({
+  ResourceAuditHistory: ({
+    resourceName,
+    onClose,
+  }: {
+    resourceName: string;
+    onClose: () => void;
+  }) => (
+    <div>
+      <p>History — {resourceName}</p>
+      <button onClick={onClose}>close-history</button>
+    </div>
+  ),
+}));
+
 import { AdminClientsTable } from "./AdminClientsTable";
 
 function makeClient(overrides: Partial<AdminClient> = {}): AdminClient {
@@ -208,5 +223,69 @@ describe("AdminClientsTable", () => {
     });
     renderTable();
     expect(await screen.findByText("Load more")).toBeInTheDocument();
+  });
+
+  it("selects all rows via the header checkbox and deselects a single row", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminClients: makeConnection([
+        makeClient({ id: 1, name: "Acme" }),
+        makeClient({ id: 2, name: "Beta" }),
+      ]),
+    });
+    renderTable();
+    await screen.findByText("Acme");
+
+    const [headerCheckbox, row1, row2] = screen.getAllByRole("checkbox");
+    fireEvent.click(headerCheckbox);
+    expect(screen.getByText("2 selected")).toBeInTheDocument();
+
+    fireEvent.click(row1);
+    expect(screen.getByText("1 selected")).toBeInTheDocument();
+
+    fireEvent.click(row2);
+    expect(screen.queryByText(/selected/)).not.toBeInTheDocument();
+  });
+
+  it("opens and closes the resource history dialog for a row", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminClients: makeConnection([makeClient({ id: 5, name: "Acme" })]),
+    });
+    renderTable();
+    await screen.findByText("Acme");
+
+    fireEvent.click(screen.getByRole("button", { name: "History" }));
+    expect(screen.getByText("History — Acme")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("close-history"));
+    expect(screen.queryByText("History — Acme")).not.toBeInTheDocument();
+  });
+
+  it("cancels the New Client dialog without creating", async () => {
+    gqlFetch.mockResolvedValueOnce({ adminClients: makeConnection([]) });
+    renderTable();
+    await screen.findByText("No clients found.");
+
+    fireEvent.click(screen.getByText("+ New Client"));
+    fireEvent.change(screen.getByPlaceholderText("Acme Corp"), {
+      target: { value: "Should not save" },
+    });
+    fireEvent.click(screen.getByText("Cancel"));
+
+    expect(screen.queryByPlaceholderText("Acme Corp")).not.toBeInTheDocument();
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("cancels the Edit dialog without saving", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminClients: makeConnection([makeClient({ id: 3, name: "Acme" })]),
+    });
+    renderTable();
+    await screen.findByText("Acme");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByText("Cancel"));
+
+    expect(screen.queryByText("Save")).not.toBeInTheDocument();
+    expect(gqlMutate).not.toHaveBeenCalled();
   });
 });
