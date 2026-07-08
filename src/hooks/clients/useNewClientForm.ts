@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCreateClient } from "@/hooks/clients/useClients";
 import { useTags } from "@/hooks/tags/useTags";
+import { isValidHttpUrl, isValidOptionalEmail } from "@/lib/schemas";
 import { EMPTY_CLIENT_FORM } from "@/constants/clients";
 import type {
   ClientType,
@@ -50,6 +51,14 @@ export function useNewClientForm(
     }
     if (!isCompany && !form.firstName.trim()) {
       setError("First name is required");
+      return;
+    }
+    if (!isValidHttpUrl(form.website)) {
+      setError("Enter a valid website URL");
+      return;
+    }
+    if (!isValidOptionalEmail(form.email)) {
+      setError("Enter a valid email address");
       return;
     }
     setError(null);

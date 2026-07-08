@@ -12,7 +12,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useNewClientForm } from "@/hooks/clients/useNewClientForm";
-import { INDUSTRY_LABELS } from "@/types/clients.types";
+import { INDUSTRY_LABELS } from "@/constants/clients";
 import type {
   ClientType,
   ClientIndustry,

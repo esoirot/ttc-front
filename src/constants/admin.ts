@@ -2,6 +2,7 @@ import type { InvoiceStatus } from "@/types/invoices.types";
 import type { ProjectStatus } from "@/types/projects.types";
 import type { AdminPermission } from "@/types/users.types";
 import type { TranslationRateType } from "@/types/rates.types";
+import { STATUSES } from "@/constants/projects";
 
 export const ACTION_VARIANT: Record<
   string,
@@ -53,15 +54,7 @@ export const ADMIN_PROJECT_STATUS_BADGE: Record<
   INVOICE_PAID: "default",
 };
 
-export const PROJECT_STATUSES: ProjectStatus[] = [
-  "DRAFT",
-  "ACTIVE",
-  "COMPLETED",
-  "CANCELLED",
-  "ARCHIVED",
-  "INVOICE_SENT",
-  "INVOICE_PAID",
-];
+export const PROJECT_STATUSES: ProjectStatus[] = STATUSES;
 
 export const ADMIN_EMPTY_CLIENT_FORM = {
   name: "",

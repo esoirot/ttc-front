@@ -258,6 +258,64 @@ describe("TaskDetailModal", () => {
     expect(screen.getByPlaceholderText("Checklist title…")).toBeInTheDocument();
   });
 
+  describe("+ Add dropdown opens targets synchronously (no click-forwarding timer)", () => {
+    function clickViaPointer(el: Element) {
+      fireEvent.pointerDown(el, {
+        button: 0,
+        pointerId: 1,
+        pointerType: "mouse",
+      });
+      fireEvent.pointerUp(el, {
+        button: 0,
+        pointerId: 1,
+        pointerType: "mouse",
+      });
+      fireEvent.click(el);
+    }
+
+    it("Checklist item opens the checklist section immediately", async () => {
+      renderModal(makeTaskDetail());
+      await screen.findByText("Translate doc");
+
+      clickViaPointer(screen.getByText("+ Add"));
+      clickViaPointer(screen.getByText("Checklist"));
+
+      expect(
+        screen.getByPlaceholderText("Checklist title…"),
+      ).toBeInTheDocument();
+    });
+
+    it("Label item opens the label popover immediately", async () => {
+      renderModal(makeTaskDetail());
+      await screen.findByText("Translate doc");
+
+      clickViaPointer(screen.getByText("+ Add"));
+      clickViaPointer(screen.getByText("Label"));
+
+      expect(screen.getByPlaceholderText("Label name…")).toBeInTheDocument();
+    });
+
+    it("Date item opens the date popover immediately", async () => {
+      renderModal(makeTaskDetail());
+      await screen.findByText("Translate doc");
+
+      clickViaPointer(screen.getByText("+ Add"));
+      clickViaPointer(screen.getByText("Date"));
+
+      expect(screen.getByText("Recurring")).toBeInTheDocument();
+    });
+
+    it("Attachment item opens the attachment modal immediately", async () => {
+      renderModal(makeTaskDetail());
+      await screen.findByText("Translate doc");
+
+      clickViaPointer(screen.getByText("+ Add"));
+      clickViaPointer(screen.getByText("Attachment"));
+
+      expect(screen.getByText("Add attachment")).toBeInTheDocument();
+    });
+  });
+
   it("shows a 'Time' toggle that reveals 'No time logged yet.' when opened", async () => {
     renderModal(makeTaskDetail());
     await screen.findByText("Translate doc");

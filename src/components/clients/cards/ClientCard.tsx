@@ -13,7 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { INDUSTRY_LABELS } from "@/types/clients.types";
+import { INDUSTRY_LABELS } from "@/constants/clients";
 import type { ClientCardProps } from "@/types/clients.types";
 import { contactLabel } from "@/hooks/clients/clientUtils";
 

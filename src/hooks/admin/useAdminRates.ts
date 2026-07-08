@@ -8,6 +8,7 @@ import {
 } from "../../graphql/admin.operations";
 import type { AdminRate, AdminConnection } from "@/types/admin.types";
 import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import { useGqlMutation } from "@/lib/gqlMutation";
 
 export function useAdminRates(type?: TranslationRateType) {
   const { data, isLoading } = useQuery({
@@ -30,19 +31,9 @@ export function useAdminCrudRates() {
   const invalidate = () =>
     void queryClient.invalidateQueries({ queryKey: ["adminRates"] });
 
-  const { mutateAsync: create } = useMutation({
-    mutationFn: (input: {
-      userId: number;
-      type: TranslationRateType;
-      name: string;
-      amount: number;
-      currency: string;
-      description?: string;
-      activityId?: number | null;
-    }) =>
-      gqlMutate<{ adminCreateRate: AdminRate }>(ADMIN_CREATE_RATE_MUTATION, {
-        input,
-      }).then((d) => d.adminCreateRate),
+  const { mutateAsync: create } = useGqlMutation({
+    mutation: ADMIN_CREATE_RATE_MUTATION,
+    unwrap: (d) => d.adminCreateRate,
     onSuccess: invalidate,
   });
 
@@ -98,7 +89,15 @@ export function useAdminCrudRates() {
   });
 
   return {
-    createRate: (input: Parameters<typeof create>[0]) => create(input),
+    createRate: (input: {
+      userId: number;
+      type: TranslationRateType;
+      name: string;
+      amount: number;
+      currency: string;
+      description?: string;
+      activityId?: number | null;
+    }) => create({ input }),
     updateRate: (input: Parameters<typeof update>[0]) => update(input),
     deleteRate: (id: number) => remove(id),
   };

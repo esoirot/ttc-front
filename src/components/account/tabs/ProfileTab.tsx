@@ -1,4 +1,5 @@
 import { useProfileForm } from "@/hooks/account/useProfileForm";
+import { toSafeHttpsSrc } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,8 +48,10 @@ export function ProfileTab() {
     saved,
     saving,
     saveError,
+    validationError,
     handleSaveProfile,
   } = useProfileForm();
+  const logoPreviewSrc = toSafeHttpsSrc(logoUrl);
 
   return (
     <form
@@ -66,7 +69,7 @@ export function ProfileTab() {
               <Input
                 id="profile-firstname"
                 type="text"
-                value={firstName ?? ""}
+                value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="First name"
               />
@@ -76,7 +79,7 @@ export function ProfileTab() {
               <Input
                 id="profile-lastname"
                 type="text"
-                value={lastName ?? ""}
+                value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Last name"
               />
@@ -99,7 +102,7 @@ export function ProfileTab() {
             <Input
               id="profile-phone"
               type="tel"
-              value={mobilePhone ?? ""}
+              value={mobilePhone}
               onChange={(e) => setMobilePhone(e.target.value)}
               placeholder="+1 555 000 0000"
             />
@@ -110,7 +113,7 @@ export function ProfileTab() {
             <Input
               id="profile-jobtitle"
               type="text"
-              value={jobTitle ?? ""}
+              value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
               placeholder="e.g. Senior Translator"
             />
@@ -125,9 +128,9 @@ export function ProfileTab() {
               onChange={(e) => setLogoUrl(e.target.value)}
               placeholder="https://example.com/logo.png"
             />
-            {logoUrl.trim() && (
+            {logoPreviewSrc && (
               <img
-                src={logoUrl.trim()}
+                src={logoPreviewSrc}
                 alt="Logo preview"
                 className="mt-1 max-h-12 max-w-[110px] object-contain rounded border border-border"
               />
@@ -170,7 +173,7 @@ export function ProfileTab() {
           <div className="flex flex-col gap-1.5">
             <Label>Interface language</Label>
             <Select
-              value={interfaceLanguage ?? "en"}
+              value={interfaceLanguage}
               onValueChange={setInterfaceLanguage}
             >
               <SelectTrigger>
@@ -188,10 +191,7 @@ export function ProfileTab() {
 
           <div className="flex flex-col gap-1.5">
             <Label>Date format</Label>
-            <Select
-              value={dateFormat ?? "DD/MM/YYYY"}
-              onValueChange={setDateFormat}
-            >
+            <Select value={dateFormat} onValueChange={setDateFormat}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -207,7 +207,7 @@ export function ProfileTab() {
 
           <div className="flex flex-col gap-1.5">
             <Label>Hour format</Label>
-            <Select value={hourFormat ?? "24h"} onValueChange={setHourFormat}>
+            <Select value={hourFormat} onValueChange={setHourFormat}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -223,10 +223,7 @@ export function ProfileTab() {
 
           <div className="flex flex-col gap-1.5">
             <Label>Number format</Label>
-            <Select
-              value={numberFormat ?? "1,234.56"}
-              onValueChange={setNumberFormat}
-            >
+            <Select value={numberFormat} onValueChange={setNumberFormat}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -241,6 +238,10 @@ export function ProfileTab() {
           </div>
         </CardContent>
       </Card>
+
+      {validationError && (
+        <p className="text-sm text-destructive">{validationError}</p>
+      )}
 
       {saveError && (
         <p className="text-sm text-destructive">{saveError.message}</p>

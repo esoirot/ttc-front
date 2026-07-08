@@ -12,7 +12,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClientHeaderForm } from "@/hooks/clients/useClientHeaderForm";
 import { hasBilling } from "@/hooks/clients/clientUtils";
-import { INDUSTRY_LABELS, STATUS_LABELS } from "@/types/clients.types";
+import { INDUSTRY_LABELS, STATUS_LABELS } from "@/constants/clients";
 import type {
   ClientHeaderProps,
   ClientType,
@@ -22,6 +22,7 @@ import type {
 import { BillingFields } from "../form-fields/BillingFields";
 import { AddressFields } from "../form-fields/AddressFields";
 import { TtcTagChips } from "@/components/time/tags/TtcTagChips";
+import { toSafeHref } from "@/lib/schemas";
 
 export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
   const {
@@ -32,11 +33,14 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
     setForm,
     resetForm,
     set,
+    touch,
+    errors,
     handleAddressChange,
     handleBillingChange,
     handleSave,
     isCompany,
   } = useClientHeaderForm(client, onUpdate);
+  const websiteHref = toSafeHref(client.website);
 
   if (editing) {
     return (
@@ -114,8 +118,14 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                   id="cl-website"
                   value={form.website}
                   onChange={set("website")}
+                  onBlur={touch("website")}
                   placeholder="https://acme.com"
                 />
+                {errors.website && (
+                  <span className="text-xs text-destructive">
+                    {errors.website}
+                  </span>
+                )}
               </div>
               <div className="flex flex-col gap-1">
                 <Label htmlFor="cl-industry">Industry</Label>
@@ -161,7 +171,13 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                   type="email"
                   value={form.email}
                   onChange={set("email")}
+                  onBlur={touch("email")}
                 />
+                {errors.email && (
+                  <span className="text-xs text-destructive">
+                    {errors.email}
+                  </span>
+                )}
               </div>
               <div className="flex flex-col gap-1">
                 <Label htmlFor="cl-phone">Phone</Label>
@@ -341,16 +357,21 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
           {client.phone && (
             <span className="text-muted-foreground">{client.phone}</span>
           )}
-          {client.website && (
-            <a
-              href={client.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:underline break-all"
-            >
-              {client.website}
-            </a>
-          )}
+          {client.website &&
+            (websiteHref ? (
+              <a
+                href={websiteHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:underline break-all"
+              >
+                {client.website}
+              </a>
+            ) : (
+              <span className="text-muted-foreground break-all">
+                {client.website}
+              </span>
+            ))}
           {client.industry && (
             <Badge variant="outline" className="w-fit text-xs">
               {INDUSTRY_LABELS[client.industry]}

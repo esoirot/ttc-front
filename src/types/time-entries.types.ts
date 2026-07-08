@@ -1,4 +1,5 @@
 import type { Tag } from "./tags.types";
+import type { Connection } from "./common.types";
 
 export interface TimeEntry {
   id: number;
@@ -19,11 +20,7 @@ export interface TimeEntry {
   updatedAt: string;
 }
 
-export interface TimeEntryConnection {
-  items: TimeEntry[];
-  nextCursor: number | null;
-  total: number;
-}
+export type TimeEntryConnection = Connection<TimeEntry>;
 
 export type TtcUpdateInput = {
   id: number;

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateAttachment } from "@/hooks/tasks/useAttachments";
+import { isValidHttpUrl } from "@/lib/schemas";
 
 export function TaskAttachmentModal({
   taskId,
@@ -20,7 +21,13 @@ export function TaskAttachmentModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile, createUrl, loading } = useCreateAttachment(taskId);
 
-  const canAttach = !loading && (file !== null || url.trim() !== "");
+  const urlError =
+    file === null && url.trim() !== "" && !isValidHttpUrl(url.trim())
+      ? "Enter a valid URL."
+      : "";
+  const canAttach =
+    !loading &&
+    (file !== null || (url.trim() !== "" && isValidHttpUrl(url.trim())));
 
   function reset() {
     setFile(null);
@@ -96,6 +103,9 @@ export function TaskAttachmentModal({
               }}
               className="h-8 text-xs"
             />
+            {urlError && (
+              <span className="text-xs text-destructive">{urlError}</span>
+            )}
           </div>
 
           {/* Display text — only shown when URL has content */}

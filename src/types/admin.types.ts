@@ -4,6 +4,7 @@ import type { Invoice } from "./invoices.types";
 import type { TimeEntry } from "./time-entries.types";
 import type { Rate } from "./rates.types";
 import type { AdminPermission } from "./users.types";
+import type { Connection } from "./common.types";
 
 export type { AdminPermission };
 
@@ -42,11 +43,7 @@ export interface AdminRate extends Rate {
   owner: AdminOwner;
 }
 
-export interface AdminConnection<T> {
-  items: T[];
-  nextCursor: number | null;
-  total: number;
-}
+export type AdminConnection<T> = Connection<T>;
 
 export interface ResourceAuditHistoryProps {
   open: boolean;

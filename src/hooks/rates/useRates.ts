@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   TRANSLATION_RATES_QUERY,
   CREATE_TRANSLATION_RATE_MUTATION,
@@ -7,40 +7,38 @@ import {
   type TranslationRateType,
   type TranslationRate,
 } from "../../graphql/rates.operations";
-import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import { useGqlQuery } from "@/lib/gqlQuery";
+import { useGqlMutation } from "@/lib/gqlMutation";
+import {
+  appendToFlatArray,
+  patchFlatArray,
+  removeFromFlatArray,
+} from "@/lib/cachePatch";
 import type { CreateRateInput, UpdateRateInput } from "@/types/rates.types";
 
 export type { TranslationRateType, TranslationRate };
 
 export function useRates(type?: TranslationRateType) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useGqlQuery({
     queryKey: ["translationRates", type ?? null],
-    queryFn: () =>
-      gqlFetch<{ translationRates: TranslationRate[] }>(
-        TRANSLATION_RATES_QUERY,
-        type ? { type } : {},
-      ).then((d) => d.translationRates),
+    query: TRANSLATION_RATES_QUERY,
+    variables: type ? { type } : {},
+    select: (d) => d.translationRates ?? [],
   });
   return { rates: data ?? [], loading: isLoading };
 }
 
 export function useCreateRate(activityId?: number) {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: (input: CreateRateInput) =>
-      gqlMutate<{ createTranslationRate: TranslationRate }>(
-        CREATE_TRANSLATION_RATE_MUTATION,
-        { input },
-      ).then((d) => d.createTranslationRate),
+  const { mutateAsync, isPending } = useGqlMutation({
+    mutation: CREATE_TRANSLATION_RATE_MUTATION,
+    unwrap: (d) => d.createTranslationRate,
     onSuccess: (created) => {
-      const patch = (old?: TranslationRate[]) => [...(old ?? []), created];
-      queryClient.setQueryData<TranslationRate[]>(
-        ["translationRates", null],
-        patch,
-      );
-      queryClient.setQueryData<TranslationRate[]>(
+      appendToFlatArray(queryClient, ["translationRates", null], created);
+      appendToFlatArray(
+        queryClient,
         ["translationRates", created.type],
-        patch,
+        created,
       );
       if (activityId != null) {
         void queryClient.invalidateQueries({
@@ -50,61 +48,59 @@ export function useCreateRate(activityId?: number) {
     },
   });
   return {
-    createRate: (input: CreateRateInput) => mutateAsync(input),
+    createRate: (input: CreateRateInput) => mutateAsync({ input }),
     loading: isPending,
   };
 }
 
 export function useUpdateRate() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: (input: UpdateRateInput) =>
-      gqlMutate<{ updateTranslationRate: TranslationRate }>(
-        UPDATE_TRANSLATION_RATE_MUTATION,
-        { input },
-      ).then((d) => d.updateTranslationRate),
+  const { mutateAsync, isPending } = useGqlMutation({
+    mutation: UPDATE_TRANSLATION_RATE_MUTATION,
+    unwrap: (d) => d.updateTranslationRate,
     onSuccess: (updated) => {
-      const patch = (old?: TranslationRate[]) =>
-        old?.map((r) => (r.id === updated.id ? updated : r)) ?? [];
-      queryClient.setQueryData<TranslationRate[]>(
+      patchFlatArray(
+        queryClient,
         ["translationRates", null],
-        patch,
+        updated,
+        (r) => r.id,
       );
-      queryClient.setQueryData<TranslationRate[]>(
+      patchFlatArray(
+        queryClient,
         ["translationRates", updated.type],
-        patch,
+        updated,
+        (r) => r.id,
       );
     },
   });
   return {
-    updateRate: (input: UpdateRateInput) => mutateAsync(input),
+    updateRate: (input: UpdateRateInput) => mutateAsync({ input }),
     loading: isPending,
   };
 }
 
 export function useDeleteRate(activityId?: number) {
   const queryClient = useQueryClient();
-  const { mutateAsync } = useMutation({
-    mutationFn: (id: number) =>
-      gqlMutate<{ deleteTranslationRate: boolean }>(
-        DELETE_TRANSLATION_RATE_MUTATION,
-        { id },
-      ).then((d) => d.deleteTranslationRate),
-    onSuccess: (_data, id) => {
-      const patch = (old?: TranslationRate[]) =>
-        old?.filter((r) => r.id !== id) ?? [];
-      queryClient.setQueryData<TranslationRate[]>(
+  const { mutateAsync } = useGqlMutation({
+    mutation: DELETE_TRANSLATION_RATE_MUTATION,
+    unwrap: (d) => d.deleteTranslationRate,
+    onSuccess: (_data, { id }) => {
+      removeFromFlatArray(
+        queryClient,
         ["translationRates", null],
-        patch,
+        id,
+        (r: TranslationRate) => r.id,
       );
       for (const type of [
         "HOURLY",
         "PER_WORD",
         "FIXED",
       ] as TranslationRateType[]) {
-        queryClient.setQueryData<TranslationRate[]>(
+        removeFromFlatArray(
+          queryClient,
           ["translationRates", type],
-          patch,
+          id,
+          (r: TranslationRate) => r.id,
         );
       }
       if (activityId != null) {
@@ -114,5 +110,5 @@ export function useDeleteRate(activityId?: number) {
       }
     },
   });
-  return { deleteRate: (id: number) => mutateAsync(id) };
+  return { deleteRate: (id: number) => mutateAsync({ id }) };
 }

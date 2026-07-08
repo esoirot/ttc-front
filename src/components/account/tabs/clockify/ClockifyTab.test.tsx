@@ -84,6 +84,9 @@ describe("ClockifyTab", () => {
   it("disconnects clockify when the confirm dialog is accepted", async () => {
     apiGet.mockResolvedValueOnce({ connected: true, workspaceId: "ws-1" });
     apiDelete.mockResolvedValueOnce(undefined);
+    // useDisconnectClockify invalidates ["clockify"] on success, triggering a
+    // refetch of the status query — mock its post-disconnect response too.
+    apiGet.mockResolvedValueOnce({ connected: false, workspaceId: null });
     renderTab();
 
     fireEvent.click(await screen.findByText("Disconnect Clockify"));

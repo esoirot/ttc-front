@@ -3,6 +3,7 @@ import { ProfileTab } from "./tabs/ProfileTab";
 import { SecurityTab } from "./tabs/security/SecurityTab";
 import { ClockifyTab } from "./tabs/clockify/ClockifyTab";
 import { HubspotTab } from "./tabs/hubspot/HubspotTab";
+import { GoogleCalendarTab } from "./tabs/googleCalendar/GoogleCalendarTab";
 
 export function EditProfileTabs() {
   return (
@@ -12,6 +13,7 @@ export function EditProfileTabs() {
         <TabsTrigger value="security">Security</TabsTrigger>
         <TabsTrigger value="clockify">Clockify</TabsTrigger>
         <TabsTrigger value="hubspot">HubSpot</TabsTrigger>
+        <TabsTrigger value="google-calendar">Google Calendar</TabsTrigger>
       </TabsList>
 
       <TabsContent value="profile">
@@ -28,6 +30,10 @@ export function EditProfileTabs() {
 
       <TabsContent value="hubspot">
         <HubspotTab />
+      </TabsContent>
+
+      <TabsContent value="google-calendar">
+        <GoogleCalendarTab />
       </TabsContent>
     </Tabs>
   );

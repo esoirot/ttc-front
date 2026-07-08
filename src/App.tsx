@@ -19,6 +19,7 @@ import { DashboardPage } from "./pages/dashboard/DashboardPage";
 import { EditProfilePage } from "./pages/account/EditProfilePage";
 import { ClockifyPage } from "./pages/integrations/ClockifyPage";
 import { HubspotPage } from "./pages/integrations/HubspotPage";
+import { GoogleCalendarPage } from "./pages/integrations/GoogleCalendarPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 import { AdminClientsPage } from "./pages/admin/AdminClientsPage";
@@ -95,6 +96,7 @@ const router = createBrowserRouter([
               { path: "/settings/2fa", element: <TwoFactorSetupPage /> },
               { path: "/time-tracker", element: <ClockifyPage /> },
               { path: "/hubspot", element: <HubspotPage /> },
+              { path: "/google-calendar", element: <GoogleCalendarPage /> },
               { path: "/clients", element: <ClientsPage /> },
               { path: "/clients/:id", element: <ClientDetailPage /> },
               { path: "/prospects", element: <ProspectsPage /> },

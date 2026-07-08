@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   RATE_SHEETS_QUERY,
   CREATE_RATE_SHEET_MUTATION,
@@ -10,72 +10,66 @@ import type {
   CreateRateSheetInput,
   UpdateRateSheetInput,
 } from "@/types/rate-sheets.types";
-import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import { useGqlQuery } from "@/lib/gqlQuery";
+import { useGqlMutation } from "@/lib/gqlMutation";
+import {
+  appendToFlatArray,
+  patchFlatArray,
+  removeFromFlatArray,
+} from "@/lib/cachePatch";
 
 export function useRateSheets() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useGqlQuery({
     queryKey: ["rateSheets"],
-    queryFn: () =>
-      gqlFetch<{ rateSheets: RateSheet[] }>(RATE_SHEETS_QUERY).then(
-        (d) => d.rateSheets,
-      ),
+    query: RATE_SHEETS_QUERY,
+    select: (d) => d.rateSheets,
   });
   return { rateSheets: data ?? [], loading: isLoading };
 }
 
 export function useCreateRateSheet() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: (input: CreateRateSheetInput) =>
-      gqlMutate<{ createRateSheet: RateSheet }>(CREATE_RATE_SHEET_MUTATION, {
-        input,
-      }).then((d) => d.createRateSheet),
+  const { mutateAsync, isPending } = useGqlMutation({
+    mutation: CREATE_RATE_SHEET_MUTATION,
+    unwrap: (d) => d.createRateSheet,
     onSuccess: (created) => {
-      queryClient.setQueryData<RateSheet[]>(["rateSheets"], (old) => [
-        ...(old ?? []),
-        created,
-      ]);
+      appendToFlatArray(queryClient, ["rateSheets"], created);
     },
   });
   return {
-    createRateSheet: (input: CreateRateSheetInput) => mutateAsync(input),
+    createRateSheet: (input: CreateRateSheetInput) => mutateAsync({ input }),
     loading: isPending,
   };
 }
 
 export function useUpdateRateSheet() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: (input: UpdateRateSheetInput) =>
-      gqlMutate<{ updateRateSheet: RateSheet }>(UPDATE_RATE_SHEET_MUTATION, {
-        input,
-      }).then((d) => d.updateRateSheet),
+  const { mutateAsync, isPending } = useGqlMutation({
+    mutation: UPDATE_RATE_SHEET_MUTATION,
+    unwrap: (d) => d.updateRateSheet,
     onSuccess: (updated) => {
-      queryClient.setQueryData<RateSheet[]>(
-        ["rateSheets"],
-        (old) => old?.map((rs) => (rs.id === updated.id ? updated : rs)) ?? [],
-      );
+      patchFlatArray(queryClient, ["rateSheets"], updated, (rs) => rs.id);
     },
   });
   return {
-    updateRateSheet: (input: UpdateRateSheetInput) => mutateAsync(input),
+    updateRateSheet: (input: UpdateRateSheetInput) => mutateAsync({ input }),
     loading: isPending,
   };
 }
 
 export function useDeleteRateSheet() {
   const queryClient = useQueryClient();
-  const { mutateAsync } = useMutation({
-    mutationFn: (id: number) =>
-      gqlMutate<{ deleteRateSheet: boolean }>(DELETE_RATE_SHEET_MUTATION, {
-        id,
-      }).then((d) => d.deleteRateSheet),
-    onSuccess: (_data, id) => {
-      queryClient.setQueryData<RateSheet[]>(
+  const { mutateAsync } = useGqlMutation({
+    mutation: DELETE_RATE_SHEET_MUTATION,
+    unwrap: (d) => d.deleteRateSheet,
+    onSuccess: (_data, { id }) => {
+      removeFromFlatArray(
+        queryClient,
         ["rateSheets"],
-        (old) => old?.filter((rs) => rs.id !== id) ?? [],
+        id,
+        (rs: RateSheet) => rs.id,
       );
     },
   });
-  return { deleteRateSheet: (id: number) => mutateAsync(id) };
+  return { deleteRateSheet: (id: number) => mutateAsync({ id }) };
 }

@@ -21,7 +21,11 @@ vi.mock("recharts", () => ({
     <div>{children}</div>
   ),
   AreaChart: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="area-chart">{children}</div>
+    // Real AreaChart renders its children (incl. the <defs>/<linearGradient>/
+    // <stop> gradient block) inside an <svg>. Wrapping in a <div> here put
+    // those SVG tags outside any SVG-namespaced ancestor, so React couldn't
+    // recognize them — spurious "unrecognized tag" warnings.
+    <svg data-testid="area-chart">{children}</svg>
   ),
   Area: () => null,
   XAxis: () => null,

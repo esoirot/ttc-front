@@ -174,6 +174,40 @@ describe("ProfileTab", () => {
     );
   });
 
+  it("sends name: undefined and null blank fields when first/last/phone/title are cleared", async () => {
+    gqlMutate.mockResolvedValueOnce({ updateMe: makeUser() });
+    renderProfileTab(makeUser());
+
+    fireEvent.change(screen.getByLabelText("First name"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByLabelText("Last name"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByLabelText("Mobile phone"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByLabelText("Job title"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          input: expect.objectContaining({
+            name: undefined,
+            firstName: null,
+            lastName: null,
+            mobilePhone: null,
+            jobTitle: null,
+          }),
+        }),
+      ),
+    );
+  });
+
   it("updates the logo preview as the Logo URL field changes", () => {
     renderProfileTab(makeUser({ logoUrl: "https://example.com/logo.png" }));
 
@@ -195,5 +229,66 @@ describe("ProfileTab", () => {
     });
 
     expect(screen.queryByAltText("Logo preview")).not.toBeInTheDocument();
+  });
+
+  it("falls back to defaults when optional user fields are null", () => {
+    renderProfileTab(
+      makeUser({
+        firstName: null,
+        lastName: null,
+        mobilePhone: null,
+        jobTitle: null,
+        interfaceLanguage: null,
+        dateFormat: null,
+        hourFormat: null,
+        numberFormat: null,
+      }),
+    );
+
+    expect(screen.getByLabelText("First name")).toHaveValue("");
+    expect(screen.getByLabelText("Last name")).toHaveValue("");
+    expect(screen.getByLabelText("Mobile phone")).toHaveValue("");
+    expect(screen.getByLabelText("Job title")).toHaveValue("");
+    const comboboxText = screen
+      .getAllByRole("combobox")
+      .map((el) => el.textContent)
+      .join(" | ");
+    expect(comboboxText).toContain("English");
+    expect(comboboxText).toContain("DD/MM/YYYY");
+    expect(comboboxText).toContain("24h (14:30)");
+    expect(comboboxText).toContain("1,234.56");
+  });
+
+  it("blocks submit and shows a validation error for a malformed email", async () => {
+    renderProfileTab(makeUser());
+
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "not-an-email" },
+    });
+    // fireEvent.click on the submit button would trigger the browser's
+    // native type="email" constraint validation first, short-circuiting
+    // before our JS handler runs — fire the submit event directly instead.
+    fireEvent.submit(
+      screen.getByRole("button", { name: "Save changes" }).closest("form")!,
+    );
+
+    expect(
+      await screen.findByText("Enter a valid email address"),
+    ).toBeInTheDocument();
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("blocks submit and shows a validation error for a non-https logo URL", async () => {
+    renderProfileTab(makeUser());
+
+    fireEvent.change(screen.getByLabelText("Logo URL"), {
+      target: { value: "http://example.com/logo.png" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(
+      await screen.findByText("Logo URL must be a valid https:// address"),
+    ).toBeInTheDocument();
+    expect(gqlMutate).not.toHaveBeenCalled();
   });
 });

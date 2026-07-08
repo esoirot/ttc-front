@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import type { Invoice } from "@/types/invoices.types";
-import { INVOICE_STATUS_COLORS } from "@/constants/invoices";
+import { STATUS_BADGE } from "@/constants/invoices";
 
 export function InvoiceRow({ inv }: { inv: Invoice }) {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ export function InvoiceRow({ inv }: { inv: Invoice }) {
         {inv.number}
       </span>
       <Badge
-        variant={INVOICE_STATUS_COLORS[inv.status] ?? "secondary"}
+        variant={STATUS_BADGE[inv.status] ?? "secondary"}
         className="text-xs"
       >
         {inv.status}

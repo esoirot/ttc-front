@@ -1,10 +1,4 @@
-import {
-  useQuery,
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-  type InfiniteData,
-} from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   PROJECTS_QUERY,
   PROJECT_QUERY,
@@ -14,12 +8,14 @@ import {
 } from "../../graphql/projects.operations";
 import type {
   Project,
-  ProjectConnection,
   ProjectInput,
   ProjectStatus,
   UpdateProjectInput,
 } from "@/types/projects.types";
-import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import { gqlFetch } from "@/lib/apollo";
+import { useGqlConnectionQuery } from "@/lib/gqlQuery";
+import { useGqlMutation } from "@/lib/gqlMutation";
+import { patchConnection, removeFromConnection } from "@/lib/cachePatch";
 
 const LIMIT = 20;
 
@@ -29,32 +25,19 @@ export function useProjects(status?: ProjectStatus, search?: string) {
     ...(search ? { search } : {}),
   };
 
-  const { data, fetchNextPage, hasNextPage, isLoading, error } =
-    useInfiniteQuery<ProjectConnection>({
+  const { items, total, hasMore, loadMore, loading, error } =
+    useGqlConnectionQuery({
       queryKey: [
         "projects",
         { status: status ?? null, search: search ?? null },
       ],
-      queryFn: ({ pageParam }) =>
-        gqlFetch<{ projects: ProjectConnection }>(PROJECTS_QUERY, {
-          ...baseVars,
-          pagination: {
-            limit: LIMIT,
-            ...(pageParam != null ? { cursor: pageParam as number } : {}),
-          },
-        }).then((d) => d.projects),
-      initialPageParam: undefined,
-      getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
+      query: PROJECTS_QUERY,
+      variables: baseVars,
+      select: (d) => d.projects,
+      limit: LIMIT,
     });
 
-  return {
-    projects: data?.pages.flatMap((p) => p?.items ?? []) ?? [],
-    total: data?.pages[0]?.total ?? 0,
-    hasMore: !!hasNextPage,
-    loadMore: () => void fetchNextPage(),
-    loading: isLoading,
-    error,
-  };
+  return { projects: items, total, hasMore, loadMore, loading, error };
 }
 
 export function useProject(id: number) {
@@ -71,17 +54,15 @@ export function useProject(id: number) {
 
 export function useCreateProject() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: ProjectInput) =>
-      gqlMutate<{ createProject: Project }>(CREATE_PROJECT_MUTATION, {
-        input,
-      }).then((d) => d.createProject),
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: CREATE_PROJECT_MUTATION,
+    unwrap: (d) => d.createProject,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
   return {
-    createProject: (input: ProjectInput) => mutateAsync(input),
+    createProject: (input: ProjectInput) => mutateAsync({ input }),
     loading: isPending,
     error,
   };
@@ -89,32 +70,16 @@ export function useCreateProject() {
 
 export function useUpdateProject() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: UpdateProjectInput) =>
-      gqlMutate<{ updateProject: Project }>(UPDATE_PROJECT_MUTATION, {
-        input,
-      }).then((d) => d.updateProject),
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: UPDATE_PROJECT_MUTATION,
+    unwrap: (d) => d.updateProject,
     onSuccess: (updated) => {
-      queryClient.setQueriesData<InfiniteData<ProjectConnection>>(
-        { queryKey: ["projects"] },
-        (old) =>
-          old
-            ? {
-                ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  items: page.items.map((p) =>
-                    p.id === updated.id ? updated : p,
-                  ),
-                })),
-              }
-            : old,
-      );
+      patchConnection(queryClient, ["projects"], updated, (p) => p.id);
       queryClient.setQueryData(["project", updated.id], updated);
     },
   });
   return {
-    updateProject: (input: UpdateProjectInput) => mutateAsync(input),
+    updateProject: (input: UpdateProjectInput) => mutateAsync({ input }),
     loading: isPending,
     error,
   };
@@ -122,31 +87,16 @@ export function useUpdateProject() {
 
 export function useDeleteProject() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (id: number) =>
-      gqlMutate<{ deleteProject: boolean }>(DELETE_PROJECT_MUTATION, {
-        id,
-      }).then((d) => d.deleteProject),
-    onSuccess: (_data, id) => {
-      queryClient.setQueriesData<InfiniteData<ProjectConnection>>(
-        { queryKey: ["projects"] },
-        (old) =>
-          old
-            ? {
-                ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  items: page.items.filter((p) => p.id !== id),
-                  total: page.total - 1,
-                })),
-              }
-            : old,
-      );
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: DELETE_PROJECT_MUTATION,
+    unwrap: (d) => d.deleteProject,
+    onSuccess: (_data, { id }) => {
+      removeFromConnection(queryClient, ["projects"], id, (p: Project) => p.id);
       queryClient.removeQueries({ queryKey: ["project", id] });
     },
   });
   return {
-    deleteProject: (id: number) => mutateAsync(id),
+    deleteProject: (id: number) => mutateAsync({ id }),
     loading: isPending,
     error,
   };

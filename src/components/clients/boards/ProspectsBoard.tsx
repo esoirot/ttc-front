@@ -26,7 +26,7 @@ import {
   PROSPECT_COLUMNS,
   STATUS_LABELS,
   ACTIVE_CONTACT_STATUSES,
-} from "@/types/clients.types";
+} from "@/constants/clients";
 import type { Client, ClientStatus } from "@/types/clients.types";
 import { NewClientForm } from "../forms/NewClientForm";
 import { ProspectCard } from "../sortables/ProspectCard";

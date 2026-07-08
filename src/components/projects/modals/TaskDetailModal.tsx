@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -20,21 +20,6 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTask, useUpdateTask } from "@/hooks/tasks/useTasks";
-import { useProject } from "@/hooks/projects/useProjects";
-import {
-  useActiveTimer,
-  useStartTimer,
-  useStopTimer,
-  useTimeEntries,
-  useUpdateTimeEntry,
-  useDeleteTimeEntry,
-  useResumeTimeEntry,
-} from "@/hooks/time/useTimeEntries";
-import { useProjects } from "@/hooks/projects/useProjects";
-import { useTags } from "@/hooks/tags/useTags";
-import { TtcEntryRow } from "@/components/time/rows/TtcEntryRow";
-import { useElapsedTimer } from "@/hooks/time/useElapsedTimer";
-import { secsToHms } from "@/lib/time";
 import type { TaskStatus } from "@/types/tasks.types";
 import {
   STATUS_LABELS,
@@ -48,24 +33,9 @@ import { TaskDatePicker } from "./TaskDatePicker";
 import { TaskCommentList } from "./TaskCommentList";
 import { TaskActivityFeed } from "./TaskActivityFeed";
 import { TaskAttachmentModal } from "./TaskAttachmentModal";
-import {
-  useDeleteAttachment,
-  useUpdateAttachment,
-} from "@/hooks/tasks/useAttachments";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { TaskLabelBadges } from "./TaskLabelBadges";
+import { TaskTimeSection } from "./TaskTimeSection";
+import { AttachmentList } from "./AttachmentList";
 
 const STATUSES: TaskStatus[] = TASK_STATUSES;
 
@@ -88,9 +58,8 @@ export function TaskDetailModal({
   const [addingChecklist, setAddingChecklist] = useState(false);
   const [checklistSectionOpen, setChecklistSectionOpen] = useState(false);
   const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
-  const checklistTriggerRef = useRef<HTMLButtonElement>(null);
-  const labelTriggerRef = useRef<HTMLButtonElement>(null);
-  const dateTriggerRef = useRef<HTMLButtonElement>(null);
+  const [labelPickerOpen, setLabelPickerOpen] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleVal, setTitleVal] = useState("");
 
@@ -192,12 +161,15 @@ export function TaskDetailModal({
                   ))}
                 </SelectContent>
               </Select>
-              <button
+              <Button
+                variant="ghost"
+                size="icon-xs"
                 onClick={onClose}
+                aria-label="Close"
                 className="text-muted-foreground hover:text-foreground shrink-0"
               >
                 ✕
-              </button>
+              </Button>
             </div>
 
             <Separator />
@@ -236,34 +208,26 @@ export function TaskDetailModal({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-44">
                       <DropdownMenuItem
-                        onSelect={() =>
-                          setTimeout(
-                            () => checklistTriggerRef.current?.click(),
-                            80,
-                          )
-                        }
+                        onSelect={() => {
+                          setChecklistSectionOpen(true);
+                          setAddingChecklist(true);
+                        }}
                       >
                         Checklist
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onSelect={() =>
-                          setTimeout(() => labelTriggerRef.current?.click(), 80)
-                        }
+                        onSelect={() => setLabelPickerOpen(true)}
                       >
                         Label
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onSelect={() =>
-                          setTimeout(() => dateTriggerRef.current?.click(), 80)
-                        }
+                        onSelect={() => setDatePickerOpen(true)}
                       >
                         Date
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onSelect={() =>
-                          setTimeout(() => setAttachmentModalOpen(true), 80)
-                        }
+                        onSelect={() => setAttachmentModalOpen(true)}
                       >
                         Attachment
                       </DropdownMenuItem>
@@ -271,7 +235,6 @@ export function TaskDetailModal({
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <Button
-                    ref={checklistTriggerRef}
                     variant="outline"
                     size="sm"
                     className="h-7 text-xs"
@@ -284,7 +247,8 @@ export function TaskDetailModal({
                   </Button>
                   <TaskLabelPicker
                     taskId={task.id}
-                    triggerRef={labelTriggerRef}
+                    open={labelPickerOpen}
+                    onOpenChange={setLabelPickerOpen}
                   />
                   <TaskDatePicker
                     key={task.id}
@@ -292,7 +256,8 @@ export function TaskDetailModal({
                     dueDate={task.dueDate}
                     recurring={task.recurring}
                     reminderOffset={task.reminderOffset}
-                    triggerRef={dateTriggerRef}
+                    open={datePickerOpen}
+                    onOpenChange={setDatePickerOpen}
                     onUpdate={(data) =>
                       void updateTask({ id: task.id, ...data })
                     }
@@ -361,330 +326,5 @@ export function TaskDetailModal({
         />
       )}
     </Dialog>
-  );
-}
-
-function TaskTimeSection({
-  taskId,
-  projectId,
-  taskTitle,
-}: {
-  taskId: number;
-  projectId: number;
-  taskTitle: string;
-}) {
-  const { entries, loading } = useTimeEntries({ taskId });
-  const { activeTimer } = useActiveTimer();
-  const { startTimer, loading: starting } = useStartTimer();
-  const { stopTimer, loading: stopping } = useStopTimer();
-  const { updateTimeEntry } = useUpdateTimeEntry();
-  const { deleteTimeEntry } = useDeleteTimeEntry();
-  const { resumeTimeEntry } = useResumeTimeEntry();
-  const { project } = useProject(projectId);
-  const { projects } = useProjects();
-  const { tags } = useTags();
-  const { task: taskDetail } = useTask(taskId);
-  const subtasks = taskDetail?.subtasks ?? [];
-  const [selectedSubtaskId, setSelectedSubtaskId] = useState<number | null>(
-    null,
-  );
-  const [entriesOpen, setEntriesOpen] = useState(false);
-  const isActiveOnTask = activeTimer?.taskId === taskId;
-  const elapsed = useElapsedTimer(
-    isActiveOnTask ? activeTimer?.startTime : null,
-  );
-
-  const totalSeconds = entries.reduce(
-    (sum, e) => sum + (e.durationSeconds ?? 0),
-    0,
-  );
-
-  function handleStart() {
-    const selectedSub =
-      subtasks.find((s) => s.id === selectedSubtaskId) ?? null;
-    const desc = project
-      ? selectedSub
-        ? `Task ${taskTitle} › ${selectedSub.title} of project ${project.title}`
-        : `Task ${taskTitle} of project ${project.title}`
-      : taskTitle;
-    void startTimer({
-      taskId,
-      projectId,
-      subtaskId: selectedSubtaskId ?? undefined,
-      description: desc,
-    });
-  }
-
-  function handleResume(entry: import("@/types/time-entries.types").TimeEntry) {
-    void resumeTimeEntry(entry.id);
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-          Time {entries.length > 0 ? `(${entries.length})` : ""}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-6 px-2 text-xs font-mono gap-1"
-          onClick={() => setEntriesOpen((o) => !o)}
-        >
-          ⏱ {secsToHms(totalSeconds)}
-          <span className="text-muted-foreground">
-            {entriesOpen ? "hide ▲" : "show ▼"}
-          </span>
-        </Button>
-      </div>
-
-      {subtasks.length > 0 && !isActiveOnTask && (
-        <Select
-          value={
-            selectedSubtaskId != null ? String(selectedSubtaskId) : "__none__"
-          }
-          onValueChange={(v) =>
-            setSelectedSubtaskId(v === "__none__" ? null : Number(v))
-          }
-        >
-          <SelectTrigger className="h-6 text-xs">
-            <SelectValue placeholder="No subtask" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__none__">No subtask</SelectItem>
-            {subtasks.map((s) => (
-              <SelectItem key={s.id} value={String(s.id)}>
-                {s.checklistTitle
-                  ? `${s.checklistTitle} › ${s.title}`
-                  : s.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
-
-      {isActiveOnTask ? (
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 animate-pulse">
-            ● {elapsed}
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-6 px-2 text-xs"
-            onClick={() => {
-              void stopTimer();
-              setSelectedSubtaskId(null);
-            }}
-            disabled={stopping}
-          >
-            ⏹ Stop
-          </Button>
-        </div>
-      ) : (
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-7 text-xs w-fit"
-          onClick={handleStart}
-          disabled={starting || !!activeTimer}
-          title={activeTimer ? "Another timer is already running" : undefined}
-        >
-          ▶ Start timer
-        </Button>
-      )}
-
-      {entriesOpen && (
-        <>
-          {loading && <Skeleton className="h-4 w-full" />}
-
-          {entries.length > 0 && (
-            <div className="flex flex-col border border-border rounded-md overflow-hidden">
-              {entries.map((e) => (
-                <div
-                  key={e.id}
-                  className="border-b border-border/50 last:border-0"
-                >
-                  <TtcEntryRow
-                    entry={e}
-                    projects={projects}
-                    tags={tags}
-                    onDelete={(id) => void deleteTimeEntry(id)}
-                    onResume={handleResume}
-                    onUpdate={(input) => void updateTimeEntry(input)}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {entries.length === 0 && !loading && (
-            <p className="text-xs text-muted-foreground">No time logged yet.</p>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-const API_BASE = (import.meta.env.VITE_API_URL as string).replace(
-  "/graphql",
-  "",
-);
-
-function AttachmentList({
-  taskId,
-  attachments,
-  onAdd,
-}: {
-  taskId: number;
-  attachments: import("@/types/tasks.types").TaskAttachment[];
-  onAdd: () => void;
-}) {
-  const { deleteAttachment } = useDeleteAttachment(taskId);
-  const { updateAttachment } = useUpdateAttachment(taskId);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editUrl, setEditUrl] = useState("");
-  const [editDisplayText, setEditDisplayText] = useState("");
-
-  function startEdit(a: import("@/types/tasks.types").TaskAttachment) {
-    setEditingId(a.id);
-    setEditUrl(a.url);
-    setEditDisplayText(a.displayText ?? "");
-  }
-
-  async function saveEdit() {
-    if (editingId == null) return;
-    await updateAttachment(editingId, editUrl, editDisplayText || undefined);
-    setEditingId(null);
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-          Attachments
-        </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-6 px-2 text-xs"
-          onClick={onAdd}
-        >
-          + Add
-        </Button>
-      </div>
-      <div className="flex flex-col gap-1">
-        {attachments.map((a) => {
-          const href =
-            a.type === "FILE"
-              ? a.url.startsWith("http")
-                ? a.url
-                : `${API_BASE}${a.url}`
-              : a.url.startsWith("http")
-                ? a.url
-                : `https://${a.url}`;
-          const label =
-            a.type === "FILE" ? (a.fileName ?? a.url) : a.displayText || a.url;
-
-          if (editingId === a.id) {
-            return (
-              <div key={a.id} className="flex flex-col gap-1.5 py-1">
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs">URL</Label>
-                  <Input
-                    value={editUrl}
-                    onChange={(e) => setEditUrl(e.target.value)}
-                    placeholder="URL"
-                    className="h-7 text-xs"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs">Display text</Label>
-                  <Input
-                    value={editDisplayText}
-                    onChange={(e) => setEditDisplayText(e.target.value)}
-                    placeholder="Display text (optional)"
-                    className="h-7 text-xs"
-                  />
-                </div>
-                <div className="flex gap-1.5">
-                  <Button
-                    size="sm"
-                    className="h-6 px-2 text-xs"
-                    onClick={() => void saveEdit()}
-                    disabled={!editUrl.trim()}
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 px-2 text-xs"
-                    onClick={() => setEditingId(null)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <div key={a.id} className="flex items-center gap-2 text-xs group">
-              <span className="shrink-0">
-                {a.type === "FILE" ? "📎" : "🔗"}
-              </span>
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 min-w-0 truncate text-primary hover:underline"
-              >
-                {label}
-              </a>
-              <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 transition-opacity">
-                {a.type === "URL" && (
-                  <button
-                    className="text-muted-foreground hover:text-foreground"
-                    onClick={() => startEdit(a)}
-                    title="Edit"
-                  >
-                    ✎
-                  </button>
-                )}
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <button
-                      className="text-muted-foreground hover:text-destructive"
-                      title="Delete"
-                    >
-                      ✕
-                    </button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete attachment?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        &ldquo;{label}&rdquo; will be permanently removed.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => void deleteAttachment(a.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   MY_ACTIVITIES_QUERY,
   ACTIVITY_QUERY,
@@ -10,89 +10,85 @@ import {
   DELETE_CHARGE_MUTATION,
 } from "@/graphql/activities.operations";
 import type { AnyActivity, ActivityType } from "@/types/activities.types";
-import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import { gqlMutate } from "@/lib/apollo";
+import { useGqlQuery } from "@/lib/gqlQuery";
+import { useGqlMutation } from "@/lib/gqlMutation";
+import {
+  appendToFlatArray,
+  patchFlatArray,
+  removeFromFlatArray,
+} from "@/lib/cachePatch";
 
 export function useMyActivities() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useGqlQuery({
     queryKey: ["activities"],
-    queryFn: () =>
-      gqlFetch<{ myActivities: AnyActivity[] }>(MY_ACTIVITIES_QUERY).then(
-        (d) => d.myActivities,
-      ),
+    query: MY_ACTIVITIES_QUERY,
+    select: (d) => d.myActivities,
   });
   return { activities: data ?? [], loading: isLoading };
 }
 
 export function useActivity(id: number) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useGqlQuery({
     queryKey: ["activity", id],
-    queryFn: () =>
-      gqlFetch<{ activity: AnyActivity }>(ACTIVITY_QUERY, { id }).then(
-        (d) => d.activity,
-      ),
+    query: ACTIVITY_QUERY,
+    variables: { id },
+    select: (d) => d.activity,
     enabled: !!id,
   });
   return { activity: data ?? null, loading: isLoading };
 }
 
+interface CreateActivityInput {
+  name: string;
+  activityType?: ActivityType | null;
+  languagePairs?: { fromLanguage: string; toLanguage: string }[] | null;
+  customFields?: { key: string; value: string }[] | null;
+}
+
 export function useCreateActivity() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: (input: {
-      name: string;
-      activityType?: ActivityType | null;
-      languagePairs?: { fromLanguage: string; toLanguage: string }[] | null;
-      customFields?: { key: string; value: string }[] | null;
-    }) =>
-      gqlMutate<{ createActivity: AnyActivity }>(CREATE_ACTIVITY_MUTATION, {
-        input,
-      }).then((d) => d.createActivity),
+  const { mutateAsync, isPending } = useGqlMutation({
+    mutation: CREATE_ACTIVITY_MUTATION,
+    unwrap: (d) => d.createActivity,
     onSuccess: (newActivity) => {
-      queryClient.setQueryData<AnyActivity[]>(["activities"], (old) => [
-        ...(old ?? []),
-        newActivity,
-      ]);
+      appendToFlatArray(queryClient, ["activities"], newActivity);
     },
   });
   return {
-    createActivity: (input: Parameters<typeof mutateAsync>[0]) =>
-      mutateAsync(input),
+    createActivity: (input: CreateActivityInput) => mutateAsync({ input }),
     loading: isPending,
   };
 }
 
+interface UpdateActivityInput {
+  id: number;
+  name?: string | null;
+  companyName?: string | null;
+  legalForm?: string | null;
+  professionalEmail?: string | null;
+  professionalPhone?: string | null;
+  website?: string | null;
+  timezone?: string | null;
+  objectiveQ1?: number | null;
+  objectiveQ2?: number | null;
+  objectiveQ3?: number | null;
+  objectiveQ4?: number | null;
+  languagePairs?: { fromLanguage: string; toLanguage: string }[] | null;
+}
+
 export function useUpdateActivity() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: {
-      id: number;
-      name?: string | null;
-      companyName?: string | null;
-      legalForm?: string | null;
-      professionalEmail?: string | null;
-      professionalPhone?: string | null;
-      website?: string | null;
-      timezone?: string | null;
-      objectiveQ1?: number | null;
-      objectiveQ2?: number | null;
-      objectiveQ3?: number | null;
-      objectiveQ4?: number | null;
-      languagePairs?: { fromLanguage: string; toLanguage: string }[] | null;
-    }) =>
-      gqlMutate<{ updateActivity: AnyActivity }>(UPDATE_ACTIVITY_MUTATION, {
-        input,
-      }).then((d) => d.updateActivity),
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: UPDATE_ACTIVITY_MUTATION,
+    unwrap: (d) => d.updateActivity,
     onSuccess: (updated) => {
-      queryClient.setQueryData<AnyActivity[]>(
-        ["activities"],
-        (old) => old?.map((a) => (a.id === updated.id ? updated : a)) ?? [],
-      );
+      patchFlatArray(queryClient, ["activities"], updated, (a) => a.id);
       queryClient.setQueryData(["activity", updated.id], updated);
     },
   });
   return {
-    updateActivity: (input: Parameters<typeof mutateAsync>[0]) =>
-      mutateAsync(input),
+    updateActivity: (input: UpdateActivityInput) => mutateAsync({ input }),
     loading: isPending,
     error,
   };
@@ -100,20 +96,20 @@ export function useUpdateActivity() {
 
 export function useDeleteActivity() {
   const queryClient = useQueryClient();
-  const { mutateAsync } = useMutation({
-    mutationFn: (id: number) =>
-      gqlMutate<{ deleteActivity: boolean }>(DELETE_ACTIVITY_MUTATION, {
-        id,
-      }).then((d) => d.deleteActivity),
-    onSuccess: (_data, id) => {
-      queryClient.setQueryData<AnyActivity[]>(
+  const { mutateAsync } = useGqlMutation({
+    mutation: DELETE_ACTIVITY_MUTATION,
+    unwrap: (d) => d.deleteActivity,
+    onSuccess: (_data, { id }) => {
+      removeFromFlatArray(
+        queryClient,
         ["activities"],
-        (old) => old?.filter((a) => a.id !== id) ?? [],
+        id,
+        (a: AnyActivity) => a.id,
       );
       queryClient.removeQueries({ queryKey: ["activity", id] });
     },
   });
-  return { deleteActivity: (id: number) => mutateAsync(id) };
+  return { deleteActivity: (id: number) => mutateAsync({ id }) };
 }
 
 export function useCreateCharge(activityId: number) {

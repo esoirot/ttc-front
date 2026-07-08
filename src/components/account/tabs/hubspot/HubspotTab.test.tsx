@@ -77,6 +77,9 @@ describe("HubspotTab", () => {
   it("disconnects hubspot when Disconnect HubSpot is clicked", async () => {
     apiGet.mockResolvedValueOnce({ connected: true, portalId: "12345" });
     apiDelete.mockResolvedValueOnce(undefined);
+    // useDisconnectHubspot invalidates ["hubspot"] on success, triggering a
+    // refetch of the status query — mock its post-disconnect response too.
+    apiGet.mockResolvedValueOnce({ connected: false, portalId: null });
     renderTab();
 
     fireEvent.click(await screen.findByText("Disconnect HubSpot"));

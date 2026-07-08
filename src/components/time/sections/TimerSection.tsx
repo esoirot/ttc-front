@@ -1,6 +1,4 @@
-import type { TimeEntry } from "@/types/time-entries.types";
-import type { Project } from "@/types/projects.types";
-import type { Tag } from "@/types/tags.types";
+import type { TimerSectionProps } from "@/types/shared-ui.types";
 import { ActiveTimerBanner } from "../banners/ActiveTimerBanner";
 import { TimerStartInput } from "../form-inputs/TimerStartInput";
 
@@ -15,18 +13,7 @@ export function TimerSection({
   initialProjectId,
   initialTaskId,
   initialTaskTitle,
-}: {
-  activeTimer: TimeEntry | null | undefined;
-  stopTimer: () => Promise<unknown>;
-  stopping: boolean;
-  refetch: () => void;
-  projects: Project[];
-  tags: Tag[];
-  recentDescriptions: string[];
-  initialProjectId?: number | null;
-  initialTaskId?: number | null;
-  initialTaskTitle?: string | null;
-}) {
+}: TimerSectionProps) {
   if (activeTimer) {
     return (
       <ActiveTimerBanner

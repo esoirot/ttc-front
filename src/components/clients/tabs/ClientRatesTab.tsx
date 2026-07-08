@@ -30,14 +30,16 @@ import {
   TYPE_UNIT,
 } from "@/constants/rates";
 import type { TranslationRateType } from "@/types/rates.types";
-import type { ClientRate } from "@/types/client-rates.types";
+import type {
+  ClientRate,
+  ClientRateFormData,
+} from "@/types/client-rates.types";
 import {
   useClientRates,
   useCreateClientRate,
   useDeleteClientRate,
   useUpdateClientRate,
 } from "@/hooks/clients/useClientRates";
-import type { FormData } from "@/types/clients.types";
 
 function ClientRateForm({
   clientId,
@@ -48,7 +50,7 @@ function ClientRateForm({
 }: {
   clientId: number;
   initial?: ClientRate;
-  onSave: (data: FormData) => void;
+  onSave: (data: ClientRateFormData) => void;
   onCancel: () => void;
   saving: boolean;
 }) {
@@ -182,7 +184,7 @@ export function ClientRatesTab({ clientId }: { clientId: number }) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  async function handleCreate(data: FormData) {
+  async function handleCreate(data: ClientRateFormData) {
     await createClientRate({
       type: data.type,
       name: data.name,
@@ -193,7 +195,7 @@ export function ClientRatesTab({ clientId }: { clientId: number }) {
     setShowForm(false);
   }
 
-  async function handleUpdate(id: number, data: FormData) {
+  async function handleUpdate(id: number, data: ClientRateFormData) {
     await updateClientRate({
       id,
       type: data.type,

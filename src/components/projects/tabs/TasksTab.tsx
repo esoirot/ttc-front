@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import {
   DndContext,
   PointerSensor,
@@ -14,10 +13,11 @@ import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
+  arrayMove,
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Task, TaskStatus, TaskConnection } from "@/types/tasks.types";
+import type { Task, TaskStatus } from "@/types/tasks.types";
 import type { TasksTabProps } from "@/types/projects.types";
 import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
 import { useDeleteTask, useUpdateTask } from "@/hooks/tasks/useTasks";
@@ -48,13 +48,15 @@ export function TasksTab({
   onOpenModal,
 }: TasksTabProps) {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { updateTask } = useUpdateTask(projectId);
   const { deleteTask } = useDeleteTask(projectId);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [localOrders, setLocalOrders] = useState<
+    Partial<Record<TaskStatus, number[]>>
+  >({});
   const activeTask =
     activeId !== null ? (tasks.find((t) => t.id === activeId) ?? null) : null;
 
@@ -78,22 +80,16 @@ export function TasksTab({
       : tasks.find((t) => t.id === Number(over.id))?.status;
 
     if (targetStatus && task.status !== targetStatus) {
-      queryClient.setQueryData<InfiniteData<TaskConnection>>(
-        ["tasks", projectId],
-        (old) =>
-          old
-            ? {
-                ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  items: page.items.map((t) =>
-                    t.id === task.id ? { ...t, status: targetStatus } : t,
-                  ),
-                })),
-              }
-            : old,
-      );
       void updateTask({ id: task.id, status: targetStatus });
+    } else if (targetStatus && task.status === targetStatus) {
+      const ids = tasksByStatus[targetStatus].map((t) => t.id);
+      const oldIndex = ids.indexOf(task.id);
+      const newIndex = ids.indexOf(Number(over.id));
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(ids, oldIndex, newIndex);
+      setLocalOrders((prev) => ({ ...prev, [targetStatus]: reordered }));
+      void updateTask({ id: task.id, sortOrder: newIndex });
     }
   }
 
@@ -101,6 +97,18 @@ export function TasksTab({
     (acc, s) => ({ ...acc, [s]: tasks.filter((t) => t.status === s) }),
     { TODO: [], IN_PROGRESS: [], DONE: [] },
   );
+
+  function orderedTasksForStatus(status: TaskStatus): Task[] {
+    const base = tasksByStatus[status];
+    const order = localOrders[status];
+    if (!order) return base;
+    const byId = new Map(base.map((t) => [t.id, t]));
+    const ordered = order
+      .map((id) => byId.get(id))
+      .filter((t): t is Task => t !== undefined);
+    const extra = base.filter((t) => !order.includes(t.id));
+    return [...ordered, ...extra];
+  }
 
   return (
     <>
@@ -132,10 +140,10 @@ export function TasksTab({
                   </h3>
                   <DroppableColumn id={status}>
                     <SortableContext
-                      items={tasksByStatus[status].map((t) => t.id)}
+                      items={orderedTasksForStatus(status).map((t) => t.id)}
                       strategy={verticalListSortingStrategy}
                     >
-                      {tasksByStatus[status].map((task) => (
+                      {orderedTasksForStatus(status).map((task) => (
                         <SortableTask
                           key={task.id}
                           task={task}

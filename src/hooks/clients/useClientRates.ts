@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ClientRate } from "@/types/client-rates.types";
 import {
   CLIENT_RATES_QUERY,
@@ -6,16 +6,16 @@ import {
   UPDATE_CLIENT_RATE_MUTATION,
   DELETE_CLIENT_RATE_MUTATION,
 } from "@/graphql/client-rates.operations";
-import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import { gqlMutate } from "@/lib/apollo";
+import { useGqlQuery } from "@/lib/gqlQuery";
 import type { CreateClientRateInput } from "@/types/clients.types";
 
 export function useClientRates(clientId: number | null) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useGqlQuery({
     queryKey: ["clientRates", clientId],
-    queryFn: () =>
-      gqlFetch<{ clientRates: ClientRate[] }>(CLIENT_RATES_QUERY, {
-        clientId: clientId!,
-      }).then((d) => d.clientRates),
+    query: CLIENT_RATES_QUERY,
+    variables: { clientId: clientId! },
+    select: (d) => d.clientRates,
     enabled: clientId != null,
   });
   return { clientRates: data ?? [], loading: isLoading };

@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useTags } from "@/hooks/tags/useTags";
+import { isValidHttpUrl, isValidOptionalEmail } from "@/lib/schemas";
 import type {
   Client,
   ClientHeaderProps,
   ClientHeaderFormState,
 } from "@/types/clients.types";
+
+type TouchedField = "website" | "email";
 
 function formFromClient(client: Client): ClientHeaderFormState {
   return {
@@ -40,15 +43,34 @@ export function useClientHeaderForm(
   const [form, setForm] = useState<ClientHeaderFormState>(() =>
     formFromClient(client),
   );
+  const [touched, setTouched] = useState<
+    Partial<Record<TouchedField, boolean>>
+  >({});
 
   function resetForm() {
     setForm(formFromClient(client));
+    setTouched({});
   }
 
   function set(field: keyof ClientHeaderFormState) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
   }
+
+  function touch(field: TouchedField) {
+    return () => setTouched((prev) => ({ ...prev, [field]: true }));
+  }
+
+  const errors = {
+    website:
+      touched.website && !isValidHttpUrl(form.website)
+        ? "Enter a valid URL."
+        : "",
+    email:
+      touched.email && !isValidOptionalEmail(form.email)
+        ? "Enter a valid email address."
+        : "",
+  };
 
   function handleAddressChange(
     field: "address" | "city" | "country" | "postalCode",
@@ -66,6 +88,10 @@ export function useClientHeaderForm(
 
   async function handleSave(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!isValidHttpUrl(form.website) || !isValidOptionalEmail(form.email)) {
+      setTouched({ website: true, email: true });
+      return;
+    }
     const isCompany = form.clientType === "COMPANY";
     await onUpdate({
       id: client.id,
@@ -112,6 +138,8 @@ export function useClientHeaderForm(
     setForm,
     resetForm,
     set,
+    touch,
+    errors,
     handleAddressChange,
     handleBillingChange,
     handleSave,

@@ -125,6 +125,42 @@ describe("AdminInvoicesTable", () => {
     );
   });
 
+  it("changes the status filter and refetches with that status", async () => {
+    gqlFetch.mockResolvedValue({ adminInvoices: makeConnection([]) });
+    renderTable();
+    await screen.findByText("No invoices found.");
+
+    fireEvent.click(screen.getAllByRole("combobox")[0]!);
+    fireEvent.click(screen.getByRole("option", { name: "SENT" }));
+
+    await waitFor(() =>
+      expect(
+        gqlFetch.mock.calls.some(
+          (c) => (c[1] as Record<string, unknown>)?.status === "SENT",
+        ),
+      ).toBe(true),
+    );
+  });
+
+  it("selects and deselects all rows via the header checkbox", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminInvoices: makeConnection([
+        makeInvoice({ id: 1, number: "INV-001" }),
+        makeInvoice({ id: 2, number: "INV-002" }),
+      ]),
+    });
+    renderTable();
+    await screen.findByText("INV-001");
+    await screen.findByText("INV-002");
+
+    const headerCheckbox = screen.getAllByRole("checkbox")[0]!;
+    fireEvent.click(headerCheckbox);
+    expect(screen.getByText("2 selected")).toBeInTheDocument();
+
+    fireEvent.click(headerCheckbox);
+    expect(screen.queryByText("2 selected")).not.toBeInTheDocument();
+  });
+
   it("exports rows as CSV", async () => {
     gqlFetch.mockResolvedValueOnce({
       adminInvoices: makeConnection([makeInvoice({ number: "INV-002" })]),
@@ -148,7 +184,12 @@ describe("AdminInvoicesTable", () => {
     renderTable();
     await screen.findByText("INV-001");
 
-    fireEvent.click(screen.getAllByRole("checkbox")[1]!);
+    const rowCheckbox = screen.getAllByRole("checkbox")[1]!;
+    fireEvent.click(rowCheckbox);
+    fireEvent.click(rowCheckbox);
+    expect(screen.queryByText("1 selected")).not.toBeInTheDocument();
+
+    fireEvent.click(rowCheckbox);
     fireEvent.click(screen.getByText("Delete selected (1)"));
     const dialog = screen.getByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
@@ -187,6 +228,84 @@ describe("AdminInvoicesTable", () => {
         input: expect.objectContaining({ id: 3, notes: "New note" }),
       }),
     );
+  });
+
+  it("changes status and due date fields within the Edit dialog before saving", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminInvoices: makeConnection([makeInvoice({ id: 3 })]),
+    });
+    gqlMutate.mockResolvedValueOnce({
+      adminUpdateInvoice: makeInvoice({ id: 3, status: "PAID" }),
+    });
+    renderTable();
+    await screen.findByText("INV-001");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    const dialog = screen.getByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("combobox"));
+    fireEvent.click(screen.getByRole("option", { name: "PAID" }));
+
+    const dueDateInput = dialog.querySelector('input[type="date"]')!;
+    fireEvent.change(dueDateInput, { target: { value: "2026-07-01" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+        input: expect.objectContaining({
+          id: 3,
+          status: "PAID",
+          dueDate: "2026-07-01",
+        }),
+      }),
+    );
+  });
+
+  it("saves with notes/dueDate left blank, sending undefined for both", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminInvoices: makeConnection([
+        makeInvoice({ id: 3, notes: null, dueDate: null }),
+      ]),
+    });
+    gqlMutate.mockResolvedValueOnce({
+      adminUpdateInvoice: makeInvoice({ id: 3 }),
+    });
+    renderTable();
+    await screen.findByText("INV-001");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+        input: expect.objectContaining({
+          id: 3,
+          notes: undefined,
+          dueDate: undefined,
+        }),
+      }),
+    );
+  });
+
+  it("closes the Edit dialog via Escape without saving", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminInvoices: makeConnection([makeInvoice({ id: 3 })]),
+    });
+    renderTable();
+    await screen.findByText("INV-001");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.keyDown(screen.getByRole("dialog"), {
+      key: "Escape",
+      code: "Escape",
+    });
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    expect(gqlMutate).not.toHaveBeenCalled();
   });
 
   it("cancels the Edit dialog without saving", async () => {

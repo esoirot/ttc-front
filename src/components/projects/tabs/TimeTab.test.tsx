@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import type { TimeTabProps } from "@/types/shared-ui.types";
 
 let timerSectionProps: Record<string, unknown> = {};
 vi.mock("@/components/time/sections/TimerSection", () => ({
@@ -19,24 +20,36 @@ vi.mock("@/components/time/lists/EntryList", () => ({
 
 import { TimeTab } from "./TimeTab";
 
-function baseProps(overrides: Partial<Parameters<typeof TimeTab>[0]> = {}) {
+function baseProps(
+  overrides: {
+    list?: Partial<TimeTabProps["list"]>;
+    timer?: Partial<TimeTabProps["timer"]>;
+  } = {},
+): TimeTabProps {
   return {
-    projectId: 5,
-    entries: [],
-    loading: false,
-    hasMore: false,
-    loadMore: vi.fn(),
-    refetch: vi.fn(),
-    activeTimer: null,
-    stopTimer: vi.fn(),
-    stopping: false,
-    deleteTimeEntry: vi.fn(),
-    updateTimeEntry: vi.fn(),
-    projects: [],
-    tags: [],
-    recentDescriptions: [],
-    handleResume: vi.fn(),
-    ...overrides,
+    list: {
+      entries: [],
+      loading: false,
+      hasMore: false,
+      loadMore: vi.fn(),
+      deleteTimeEntry: vi.fn(),
+      projects: [],
+      tags: [],
+      onResume: vi.fn(),
+      onUpdate: vi.fn(),
+      ...overrides.list,
+    },
+    timer: {
+      activeTimer: null,
+      stopTimer: vi.fn(),
+      stopping: false,
+      refetch: vi.fn(),
+      projects: [],
+      tags: [],
+      recentDescriptions: [],
+      initialProjectId: 5,
+      ...overrides.timer,
+    },
   };
 }
 
@@ -49,7 +62,7 @@ describe("TimeTab", () => {
   });
 
   it("passes projectId through to TimerSection as initialProjectId", () => {
-    render(<TimeTab {...baseProps({ projectId: 7 })} />);
+    render(<TimeTab {...baseProps({ timer: { initialProjectId: 7 } })} />);
 
     expect(timerSectionProps.initialProjectId).toBe(7);
   });
@@ -60,9 +73,7 @@ describe("TimeTab", () => {
     render(
       <TimeTab
         {...baseProps({
-          stopTimer,
-          stopping: true,
-          refetch,
+          timer: { stopTimer, stopping: true, refetch },
         })}
       />,
     );
@@ -80,12 +91,14 @@ describe("TimeTab", () => {
     render(
       <TimeTab
         {...baseProps({
-          entries: entries as never,
-          handleResume,
-          updateTimeEntry,
-          deleteTimeEntry,
-          loading: true,
-          hasMore: true,
+          list: {
+            entries: entries as never,
+            onResume: handleResume,
+            onUpdate: updateTimeEntry,
+            deleteTimeEntry,
+            loading: true,
+            hasMore: true,
+          },
         })}
       />,
     );

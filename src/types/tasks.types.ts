@@ -1,3 +1,5 @@
+import type { Connection } from "./common.types";
+
 export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
 
 export interface Subtask {
@@ -79,11 +81,7 @@ export interface TaskDetail extends Task {
   attachments: TaskAttachment[];
 }
 
-export interface TaskConnection {
-  items: Task[];
-  nextCursor: number | null;
-  total: number;
-}
+export type TaskConnection = Connection<Task>;
 
 export type CreateTaskInput = {
   projectId: number;

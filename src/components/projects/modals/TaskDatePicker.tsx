@@ -1,4 +1,4 @@
-import { type RefObject, useState } from "react";
+import { useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -62,7 +62,8 @@ export function TaskDatePicker({
   recurring,
   reminderOffset,
   onUpdate,
-  triggerRef,
+  open: openProp,
+  onOpenChange,
 }: {
   startDate: string | null;
   dueDate: string | null;
@@ -74,9 +75,12 @@ export function TaskDatePicker({
     recurring: string | null;
     reminderOffset: string | null;
   }) => void;
-  triggerRef?: RefObject<HTMLButtonElement | null>;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = onOpenChange ?? setOpenState;
 
   const parsedStart = parseISO(startDate);
   const parsedDue = parseISO(dueDate);
@@ -145,12 +149,7 @@ export function TaskDatePicker({
   return (
     <Popover open={open} onOpenChange={handleOpen}>
       <PopoverTrigger asChild>
-        <Button
-          ref={triggerRef}
-          variant="outline"
-          size="sm"
-          className="h-7 text-xs w-fit"
-        >
+        <Button variant="outline" size="sm" className="h-7 text-xs w-fit">
           📅 {label}
         </Button>
       </PopoverTrigger>

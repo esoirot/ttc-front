@@ -41,7 +41,7 @@ describe("useProjectTaskList", () => {
     gqlMutate.mockReset();
   });
 
-  it("filters tasks by status", async () => {
+  it("fetches the project's tasks", async () => {
     gqlFetch.mockResolvedValueOnce({
       tasks: makeConnection([
         makeTask({ id: 1, status: "TODO" }),
@@ -49,163 +49,70 @@ describe("useProjectTaskList", () => {
       ]),
     });
 
-    const { result } = renderHook(
-      () => useProjectTaskList({ projectId: 1, members: [] }),
-      { wrapper: createQueryWrapper() },
-    );
+    const { result } = renderHook(() => useProjectTaskList({ projectId: 1 }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.tasks.map((t) => t.id)).toEqual([1, 2]);
+  });
+
+  it("statusFilter defaults to ALL and can be changed", async () => {
+    gqlFetch.mockResolvedValueOnce({ tasks: makeConnection([]) });
+
+    const { result } = renderHook(() => useProjectTaskList({ projectId: 1 }), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.statusFilter).toBe("ALL");
 
     act(() => {
       result.current.setStatusFilter("DONE");
     });
 
-    expect(result.current.filtered.map((t) => t.id)).toEqual([2]);
+    expect(result.current.statusFilter).toBe("DONE");
   });
 
-  it("handleSelectAll selects every filtered task; handleSelect toggles one", async () => {
-    gqlFetch.mockResolvedValueOnce({
-      tasks: makeConnection([makeTask({ id: 1 }), makeTask({ id: 2 })]),
-    });
-
-    const { result } = renderHook(
-      () => useProjectTaskList({ projectId: 1, members: [] }),
-      { wrapper: createQueryWrapper() },
-    );
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    act(() => {
-      result.current.handleSelectAll(true);
-    });
-    expect(result.current.allSelected).toBe(true);
-    expect(result.current.selected).toEqual(new Set([1, 2]));
-
-    act(() => {
-      result.current.handleSelect(1, false);
-    });
-    expect(result.current.selected).toEqual(new Set([2]));
-    expect(result.current.allSelected).toBe(false);
-  });
-
-  it("handleCreate does nothing for a blank title", async () => {
-    gqlFetch.mockResolvedValueOnce({ tasks: makeConnection([]) });
-
-    const { result } = renderHook(
-      () => useProjectTaskList({ projectId: 1, members: [] }),
-      { wrapper: createQueryWrapper() },
-    );
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    act(() => {
-      result.current.setNewTitle("   ");
-    });
-    await act(async () => {
-      await result.current.handleCreate();
-    });
-
-    expect(gqlMutate).not.toHaveBeenCalled();
-  });
-
-  it("handleCreate creates the task, clears the title, and closes the form", async () => {
+  it("createTask calls the create mutation with the given input", async () => {
     gqlFetch.mockResolvedValueOnce({ tasks: makeConnection([]) });
     gqlMutate.mockResolvedValueOnce({ createTask: makeTask({ id: 9 }) });
 
-    const { result } = renderHook(
-      () => useProjectTaskList({ projectId: 1, members: [] }),
-      { wrapper: createQueryWrapper() },
-    );
+    const { result } = renderHook(() => useProjectTaskList({ projectId: 1 }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    act(() => {
-      result.current.setNewTitle("New task");
-      result.current.setShowCreate(true);
-    });
     await act(async () => {
-      await result.current.handleCreate();
+      await result.current.createTask({ projectId: 1, title: "New task" });
     });
 
     expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
       input: { projectId: 1, title: "New task" },
     });
-    expect(result.current.newTitle).toBe("");
-    expect(result.current.showCreate).toBe(false);
   });
 
-  it("handleBulkDelete deletes each selected task and clears the selection", async () => {
+  it("deleteTask and updateTask call their respective mutations", async () => {
     gqlFetch.mockResolvedValueOnce({
-      tasks: makeConnection([makeTask({ id: 1 }), makeTask({ id: 2 })]),
+      tasks: makeConnection([makeTask({ id: 1 })]),
     });
-    gqlMutate.mockResolvedValue({ deleteTask: true });
+    gqlMutate.mockResolvedValue({ deleteTask: true, updateTask: makeTask() });
 
-    const { result } = renderHook(
-      () => useProjectTaskList({ projectId: 1, members: [] }),
-      { wrapper: createQueryWrapper() },
-    );
+    const { result } = renderHook(() => useProjectTaskList({ projectId: 1 }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    act(() => {
-      result.current.handleSelectAll(true);
+    await act(async () => {
+      await result.current.deleteTask(1);
     });
     await act(async () => {
-      await result.current.handleBulkDelete();
+      await result.current.updateTask({ id: 1, status: "DONE" });
     });
 
     expect(gqlMutate).toHaveBeenCalledTimes(2);
-    expect(result.current.selected).toEqual(new Set());
-  });
-
-  it("handleBulkStatus updates each selected task to the chosen status", async () => {
-    gqlFetch.mockResolvedValueOnce({
-      tasks: makeConnection([makeTask({ id: 1 }), makeTask({ id: 2 })]),
-    });
-    gqlMutate.mockResolvedValue({ updateTask: makeTask() });
-
-    const { result } = renderHook(
-      () => useProjectTaskList({ projectId: 1, members: [] }),
-      { wrapper: createQueryWrapper() },
-    );
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    act(() => {
-      result.current.handleSelectAll(true);
-      result.current.setBulkStatus("DONE");
-    });
-    await act(async () => {
-      await result.current.handleBulkStatus();
-    });
-
-    expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
-      input: { id: 1, status: "DONE" },
-    });
-    expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
-      input: { id: 2, status: "DONE" },
-    });
-  });
-
-  it("handleDragEnd no-ops when dropped on itself or with no drop target", async () => {
-    gqlFetch.mockResolvedValueOnce({
-      tasks: makeConnection([makeTask({ id: 1 }), makeTask({ id: 2 })]),
-    });
-
-    const { result } = renderHook(
-      () => useProjectTaskList({ projectId: 1, members: [] }),
-      { wrapper: createQueryWrapper() },
-    );
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    act(() => {
-      result.current.handleDragEnd({
-        active: { id: 1 },
-        over: { id: 1 },
-      } as never);
-    });
-
-    expect(gqlMutate).not.toHaveBeenCalled();
   });
 });

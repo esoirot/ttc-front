@@ -281,4 +281,128 @@ describe("ProjectHeader", () => {
 
     expect(await screen.findAllByText("From rate…")).toHaveLength(1);
   });
+
+  it("picking a rate from the RatePicker fills the amount and currency", async () => {
+    gqlFetch.mockResolvedValue({
+      translationRates: [
+        {
+          id: 1,
+          userId: 1,
+          name: "Standard hourly",
+          amount: 30,
+          currency: "USD",
+          type: "HOURLY",
+          description: null,
+          activityId: null,
+          clientId: null,
+          sourceLanguage: null,
+          targetLanguage: null,
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+      clientRates: [],
+    });
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <ProjectHeader
+          project={makeProject({ id: 7 })}
+          clients={[]}
+          onUpdate={onUpdate}
+          saving={false}
+        />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.click(await screen.findByText("From rate…"));
+    fireEvent.click(
+      screen.getByRole("option", { name: "Standard hourly — 30 USD" }),
+    );
+
+    expect(screen.getByLabelText("Hourly rate")).toHaveValue(30);
+    expect(screen.getByLabelText("Currency")).toHaveValue("USD");
+
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 7, hourlyRate: 30, currency: "USD" }),
+      ),
+    );
+  });
+
+  it("selecting a client and saving sends the numeric clientId", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(
+      makeProject({ id: 7 }),
+      [makeClient({ id: 2, name: "Beta Corp" })],
+      onUpdate,
+    );
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.click(screen.getByLabelText("Client"));
+    fireEvent.click(screen.getByRole("option", { name: "Beta Corp" }));
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 7, clientId: 2 }),
+      ),
+    );
+  });
+
+  it("changing the status and saving sends the new status", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(makeProject({ id: 7, status: "ACTIVE" }), [], onUpdate);
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.click(screen.getByLabelText("Status"));
+    fireEvent.click(screen.getByRole("option", { name: "COMPLETED" }));
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 7, status: "COMPLETED" }),
+      ),
+    );
+  });
+
+  it("clearing monetization fields sends null while leaving word count blank sends undefined", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(
+      makeProject({
+        id: 7,
+        fixedFee: 100,
+        hourlyRate: 25,
+        perWordRate: 0.1,
+        wordCount: null,
+      }),
+      [],
+      onUpdate,
+    );
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.change(screen.getByLabelText("Fixed fee"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByLabelText("Hourly rate"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByLabelText("Per-word rate"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 7,
+          fixedFee: null,
+          hourlyRate: null,
+          perWordRate: null,
+          wordCount: undefined,
+        }),
+      ),
+    );
+  });
 });

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { CompanyContact, EditInput } from "@/types/clients.types";
 import { EMPTY_EDIT } from "@/constants/clients";
+import { isValidOptionalEmail } from "@/lib/schemas";
 
 export function ContactRow({
   contact,
@@ -30,6 +31,7 @@ export function ContactRow({
 }) {
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(EMPTY_EDIT);
+  const [emailTouched, setEmailTouched] = useState(false);
 
   function startEdit() {
     setEditForm({
@@ -38,11 +40,21 @@ export function ContactRow({
       email: contact.email ?? "",
       phone: contact.phone ?? "",
     });
+    setEmailTouched(false);
     setEditing(true);
   }
 
+  const emailError =
+    emailTouched && !isValidOptionalEmail(editForm.email)
+      ? "Enter a valid email address."
+      : "";
+
   async function handleSave(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!isValidOptionalEmail(editForm.email)) {
+      setEmailTouched(true);
+      return;
+    }
     await onEdit({
       id: contact.id,
       firstName: editForm.firstName || undefined,
@@ -94,8 +106,12 @@ export function ContactRow({
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, email: e.target.value }))
                   }
+                  onBlur={() => setEmailTouched(true)}
                   placeholder="jane@acme.com"
                 />
+                {emailError && (
+                  <span className="text-xs text-destructive">{emailError}</span>
+                )}
               </div>
               <div className="flex flex-col gap-1">
                 <Label htmlFor={`eph-${contact.id}`}>Phone</Label>

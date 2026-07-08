@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useAdminRates, useAdminCrudRates } from "@/hooks/admin/useAdminRates";
+import { useBulkSelection } from "@/hooks/admin/useBulkSelection";
 import type { AdminRate } from "@/types/admin.types";
 import type { TranslationRateType } from "@/types/rates.types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -27,22 +27,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { RateForm } from "./RateForm";
-import { exportCsv } from "@/lib/csv";
 import { TRANSLATION_RATE_TYPES as RATE_TYPES } from "@/constants/rates";
 import { ADMIN_EMPTY_RATE_FORM } from "@/constants/admin";
 import { ResourceAuditHistory } from "../audits/ResourceAuditHistory";
+import { AdminPageHeader } from "../shared/AdminPageHeader";
+import { BulkDeleteBar } from "../shared/BulkDeleteBar";
+import { RowDeleteButton } from "../shared/RowDeleteButton";
+import { ExportCsvButton } from "../shared/ExportCsvButton";
+import {
+  TableEmptyRow,
+  TableLoadingSkeleton,
+} from "../shared/AdminTableChrome";
 
 export function AdminRatesTable() {
   const [typeFilter, setTypeFilter] = useState<TranslationRateType | "ALL">(
@@ -53,20 +49,12 @@ export function AdminRatesTable() {
   );
   const { createRate, updateRate, deleteRate } = useAdminCrudRates();
 
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const { selected, toggle, toggleAll, clear, isAllSelected } =
+    useBulkSelection(rates.map((r) => r.id));
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AdminRate | null>(null);
   const [historyTarget, setHistoryTarget] = useState<AdminRate | null>(null);
   const [form, setForm] = useState(ADMIN_EMPTY_RATE_FORM);
-
-  function toggleSelect(id: number) {
-    setSelected((prev) => {
-      const n = new Set(prev);
-      if (n.has(id)) n.delete(id);
-      else n.add(id);
-      return n;
-    });
-  }
 
   function openCreate() {
     setForm(ADMIN_EMPTY_RATE_FORM);
@@ -97,10 +85,7 @@ export function AdminRatesTable() {
 
   return (
     <>
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-xl font-semibold flex-1">Rates</h1>
-        <span className="text-sm text-muted-foreground">{total} total</span>
-      </div>
+      <AdminPageHeader title="Rates" total={total} />
 
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         <Select
@@ -120,62 +105,22 @@ export function AdminRatesTable() {
           </SelectContent>
         </Select>
         <div className="ml-auto flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportCsv(csvRows, "rates.csv")}
-          >
-            Export CSV
-          </Button>
+          <ExportCsvButton rows={csvRows} filename="rates.csv" />
           <Button size="sm" onClick={openCreate}>
             + New Rate
           </Button>
         </div>
       </div>
 
-      {selected.size > 0 && (
-        <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-muted rounded text-sm">
-          <span className="text-muted-foreground">
-            {selected.size} selected
-          </span>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm" variant="destructive" className="ml-auto h-7">
-                Delete selected ({selected.size})
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Delete {selected.size} rates?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => {
-                    selected.forEach((id) => void deleteRate(id));
-                    setSelected(new Set());
-                  }}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+      <BulkDeleteBar
+        selectedIds={selected}
+        itemLabel="rates"
+        onDelete={deleteRate}
+        onDone={clear}
+      />
 
       {loading ? (
-        <div className="flex flex-col gap-2">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
-        </div>
+        <TableLoadingSkeleton />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden">
           <Table>
@@ -183,14 +128,8 @@ export function AdminRatesTable() {
               <TableRow>
                 <TableHead className="w-8">
                   <Checkbox
-                    checked={rates.length > 0 && selected.size === rates.length}
-                    onCheckedChange={() =>
-                      setSelected(
-                        selected.size === rates.length
-                          ? new Set()
-                          : new Set(rates.map((r) => r.id)),
-                      )
-                    }
+                    checked={rates.length > 0 && isAllSelected}
+                    onCheckedChange={toggleAll}
                   />
                 </TableHead>
                 <TableHead>ID</TableHead>
@@ -205,21 +144,14 @@ export function AdminRatesTable() {
             </TableHeader>
             <TableBody>
               {rates.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="text-center text-muted-foreground py-8"
-                  >
-                    No rates found.
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow colSpan={9}>No rates found.</TableEmptyRow>
               )}
               {rates.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell>
                     <Checkbox
                       checked={selected.has(r.id)}
-                      onCheckedChange={() => toggleSelect(r.id)}
+                      onCheckedChange={() => toggle(r.id)}
                     />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground font-mono">
@@ -265,36 +197,16 @@ export function AdminRatesTable() {
                       >
                         🕐
                       </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="icon-xs"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive"
-                            aria-label="Delete"
-                          >
-                            ✕
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete rate?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Delete <strong>{r.name}</strong>? This cannot be
-                              undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={() => void deleteRate(r.id)}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <RowDeleteButton
+                        onDelete={() => deleteRate(r.id)}
+                        title="Delete rate?"
+                        description={
+                          <>
+                            Delete <strong>{r.name}</strong>? This cannot be
+                            undone.
+                          </>
+                        }
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -308,7 +220,7 @@ export function AdminRatesTable() {
         open={createOpen}
         onOpenChange={(v) => !v && setCreateOpen(false)}
       >
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>New Rate</DialogTitle>
           </DialogHeader>
@@ -347,7 +259,7 @@ export function AdminRatesTable() {
         open={!!editTarget}
         onOpenChange={(v) => !v && setEditTarget(null)}
       >
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Edit Rate — {editTarget?.name}</DialogTitle>
           </DialogHeader>

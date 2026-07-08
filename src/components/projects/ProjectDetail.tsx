@@ -101,21 +101,27 @@ export function ProjectDetail() {
 
         <TabsContent value="time" className="mt-4">
           <TimeTab
-            projectId={projectId}
-            entries={timeTab.entries}
-            loading={timeTab.loading}
-            hasMore={timeTab.hasMore}
-            loadMore={timeTab.loadMore}
-            refetch={timeTab.refetch}
-            activeTimer={timeTab.activeTimer}
-            stopTimer={timeTab.stopTimer}
-            stopping={timeTab.stopping}
-            deleteTimeEntry={timeTab.deleteTimeEntry}
-            updateTimeEntry={timeTab.updateTimeEntry}
-            projects={timeTab.projects}
-            tags={timeTab.tags}
-            recentDescriptions={timeTab.recentDescriptions}
-            handleResume={timeTab.handleResume}
+            list={{
+              entries: timeTab.entries,
+              loading: timeTab.loading,
+              hasMore: timeTab.hasMore,
+              loadMore: timeTab.loadMore,
+              deleteTimeEntry: timeTab.deleteTimeEntry,
+              projects: timeTab.projects,
+              tags: timeTab.tags,
+              onResume: timeTab.handleResume,
+              onUpdate: timeTab.updateTimeEntry,
+            }}
+            timer={{
+              activeTimer: timeTab.activeTimer,
+              stopTimer: timeTab.stopTimer,
+              stopping: timeTab.stopping,
+              refetch: timeTab.refetch,
+              projects: timeTab.projects,
+              tags: timeTab.tags,
+              recentDescriptions: timeTab.recentDescriptions,
+              initialProjectId: projectId,
+            }}
           />
         </TabsContent>
       </Tabs>

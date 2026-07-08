@@ -27,6 +27,9 @@ vi.mock("./statsGrid/StatsGrid", () => ({
 vi.mock("./prospectsToContact/ProspectsToContact", () => ({
   ProspectsToContact: () => <div>Prospects to contact</div>,
 }));
+vi.mock("./googleCalendar/GoogleCalendarWidget", () => ({
+  GoogleCalendarWidget: () => <div>Google Calendar widget</div>,
+}));
 
 import { AccountDashboard } from "./AccountDashboard";
 
@@ -143,5 +146,6 @@ describe("AccountDashboard", () => {
     expect(screen.getByText("Upcoming deadlines")).toBeInTheDocument();
     expect(screen.getByText("Recent time entries")).toBeInTheDocument();
     expect(screen.getByText("Prospects to contact")).toBeInTheDocument();
+    expect(screen.getByText("Google Calendar widget")).toBeInTheDocument();
   });
 });

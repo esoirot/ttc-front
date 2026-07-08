@@ -1,11 +1,9 @@
-import { useState } from "react";
 import {
   useAdminTimeEntries,
   useAdminDeleteTimeEntry,
 } from "@/hooks/admin/useAdminTimeEntries";
+import { useBulkSelection } from "@/hooks/admin/useBulkSelection";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -15,33 +13,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminPageHeader } from "../shared/AdminPageHeader";
+import { BulkDeleteBar } from "../shared/BulkDeleteBar";
+import { RowDeleteButton } from "../shared/RowDeleteButton";
+import { ExportCsvButton } from "../shared/ExportCsvButton";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { exportCsv } from "@/lib/csv";
+  LoadMoreButton,
+  TableEmptyRow,
+  TableLoadingSkeleton,
+} from "../shared/AdminTableChrome";
 import { secsToHms } from "@/lib/time";
 
 export function AdminTimeEntriesTable() {
   const { entries, loading, hasMore, loadMore, total } = useAdminTimeEntries();
   const { deleteEntry } = useAdminDeleteTimeEntry();
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-
-  function toggleSelect(id: number) {
-    setSelected((prev) => {
-      const n = new Set(prev);
-      if (n.has(id)) n.delete(id);
-      else n.add(id);
-      return n;
-    });
-  }
+  const { selected, toggle, toggleAll, clear, isAllSelected } =
+    useBulkSelection(entries.map((e) => e.id));
 
   const csvRows = entries.map((e) => ({
     id: e.id,
@@ -55,66 +42,23 @@ export function AdminTimeEntriesTable() {
 
   return (
     <>
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-xl font-semibold flex-1">Time Entries</h1>
-        <span className="text-sm text-muted-foreground">{total} total</span>
-      </div>
+      <AdminPageHeader title="Time Entries" total={total} />
 
       <div className="flex items-center gap-2 mb-4">
         <div className="ml-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportCsv(csvRows, "time-entries.csv")}
-          >
-            Export CSV
-          </Button>
+          <ExportCsvButton rows={csvRows} filename="time-entries.csv" />
         </div>
       </div>
 
-      {selected.size > 0 && (
-        <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-muted rounded text-sm">
-          <span className="text-muted-foreground">
-            {selected.size} selected
-          </span>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm" variant="destructive" className="ml-auto h-7">
-                Delete selected ({selected.size})
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Delete {selected.size} entries?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => {
-                    selected.forEach((id) => void deleteEntry(id));
-                    setSelected(new Set());
-                  }}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+      <BulkDeleteBar
+        selectedIds={selected}
+        itemLabel="entries"
+        onDelete={deleteEntry}
+        onDone={clear}
+      />
 
       {loading && entries.length === 0 ? (
-        <div className="flex flex-col gap-2">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
-        </div>
+        <TableLoadingSkeleton rows={4} />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden">
           <Table>
@@ -122,16 +66,8 @@ export function AdminTimeEntriesTable() {
               <TableRow>
                 <TableHead className="w-8">
                   <Checkbox
-                    checked={
-                      entries.length > 0 && selected.size === entries.length
-                    }
-                    onCheckedChange={() =>
-                      setSelected(
-                        selected.size === entries.length
-                          ? new Set()
-                          : new Set(entries.map((e) => e.id)),
-                      )
-                    }
+                    checked={entries.length > 0 && isAllSelected}
+                    onCheckedChange={toggleAll}
                   />
                 </TableHead>
                 <TableHead>ID</TableHead>
@@ -146,21 +82,16 @@ export function AdminTimeEntriesTable() {
             </TableHeader>
             <TableBody>
               {entries.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="text-center text-muted-foreground py-8"
-                  >
-                    No time entries found.
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow colSpan={9}>
+                  No time entries found.
+                </TableEmptyRow>
               )}
               {entries.map((e) => (
                 <TableRow key={e.id}>
                   <TableCell>
                     <Checkbox
                       checked={selected.has(e.id)}
-                      onCheckedChange={() => toggleSelect(e.id)}
+                      onCheckedChange={() => toggle(e.id)}
                     />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground font-mono">
@@ -194,37 +125,11 @@ export function AdminTimeEntriesTable() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          size="icon-xs"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          aria-label="Delete"
-                        >
-                          ✕
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Delete time entry?
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            onClick={() => void deleteEntry(e.id)}
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <RowDeleteButton
+                      onDelete={() => deleteEntry(e.id)}
+                      title="Delete time entry?"
+                      description="This cannot be undone."
+                    />
                   </TableCell>
                 </TableRow>
               ))}
@@ -232,11 +137,7 @@ export function AdminTimeEntriesTable() {
           </Table>
         </div>
       )}
-      {hasMore && (
-        <Button variant="outline" className="mt-4 w-full" onClick={loadMore}>
-          Load more
-        </Button>
-      )}
+      {hasMore && <LoadMoreButton onClick={loadMore} />}
     </>
   );
 }

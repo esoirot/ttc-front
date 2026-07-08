@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { InvoiceDetailHeaderProps as Props } from "@/types/invoices.types";
 import { STATUS_BADGE, STATUS_TRANSITIONS } from "@/constants/invoices";
+import { toSafeHttpsSrc } from "@/lib/schemas";
 
 export function InvoiceDetailHeader({
   number,
@@ -25,13 +26,14 @@ export function InvoiceDetailHeader({
   onDelete,
 }: Props) {
   const transitions = STATUS_TRANSITIONS[status] ?? [];
+  const logoSrc = toSafeHttpsSrc(logoUrl);
 
   return (
     <>
-      {logoUrl && (
+      {logoSrc && (
         <div className="flex justify-end mb-4">
           <img
-            src={logoUrl}
+            src={logoSrc}
             alt="Company logo"
             className="max-h-12 max-w-[110px] object-contain"
           />

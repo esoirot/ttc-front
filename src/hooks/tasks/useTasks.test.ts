@@ -178,6 +178,90 @@ describe("useUpdateTask", () => {
     const detail = queryClient.getQueryData<TaskDetail>(["task", 3]);
     expect(detail?.title).toBe("Renamed");
   });
+
+  it("optimistically patches the status in the project list cache before the mutation resolves", async () => {
+    let resolveMutate!: (value: { updateTask: Task }) => void;
+    gqlMutate.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveMutate = resolve;
+      }),
+    );
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(["tasks", 1], {
+      pages: [makeConnection([makeTask({ id: 3, status: "TODO" })])],
+      pageParams: [undefined],
+    });
+
+    const { result } = renderHook(() => useUpdateTask(1), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    const pending = result.current.updateTask({ id: 3, status: "DONE" });
+
+    await waitFor(() => {
+      const list = queryClient.getQueryData<{ pages: TaskConnection[] }>([
+        "tasks",
+        1,
+      ]);
+      expect(list?.pages[0].items[0].status).toBe("DONE");
+    });
+
+    resolveMutate({ updateTask: makeTask({ id: 3, status: "DONE" }) });
+    await pending;
+  });
+
+  it("rolls back the optimistic status patch when the mutation fails", async () => {
+    gqlMutate.mockRejectedValueOnce(new Error("boom"));
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(["tasks", 1], {
+      pages: [makeConnection([makeTask({ id: 3, status: "TODO" })])],
+      pageParams: [undefined],
+    });
+
+    const { result } = renderHook(() => useUpdateTask(1), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    await expect(
+      result.current.updateTask({ id: 3, status: "DONE" }),
+    ).rejects.toThrow("boom");
+
+    const list = queryClient.getQueryData<{ pages: TaskConnection[] }>([
+      "tasks",
+      1,
+    ]);
+    expect(list?.pages[0].items[0].status).toBe("TODO");
+  });
+
+  it("does not touch the project list cache for a sortOrder-only update", async () => {
+    let resolveMutate!: (value: { updateTask: Task }) => void;
+    gqlMutate.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveMutate = resolve;
+      }),
+    );
+    const queryClient = createQueryClient();
+    const seeded = {
+      pages: [makeConnection([makeTask({ id: 3, sortOrder: 0 })])],
+      pageParams: [undefined],
+    };
+    queryClient.setQueryData(["tasks", 1], seeded);
+
+    const { result } = renderHook(() => useUpdateTask(1), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    const pending = result.current.updateTask({ id: 3, sortOrder: 2 });
+
+    const list = queryClient.getQueryData<{ pages: TaskConnection[] }>([
+      "tasks",
+      1,
+    ]);
+    expect(list).toEqual(seeded);
+
+    resolveMutate({ updateTask: makeTask({ id: 3, sortOrder: 2 }) });
+    await pending;
+  });
 });
 
 describe("useDeleteTask", () => {

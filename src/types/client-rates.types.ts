@@ -14,3 +14,11 @@ export interface ClientRate {
   createdAt: string;
   updatedAt: string;
 }
+
+export type ClientRateFormData = {
+  type: TranslationRateType;
+  name: string;
+  amount: string;
+  currency: string;
+  description: string;
+};

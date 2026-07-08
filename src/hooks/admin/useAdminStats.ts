@@ -1,15 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
 import { ADMIN_STATS_QUERY } from "../../graphql/admin.operations";
-import type { AdminStats } from "@/types/admin.types";
-import { gqlFetch } from "@/lib/apollo";
+import { useGqlQuery } from "@/lib/gqlQuery";
 
 export function useAdminStats() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useGqlQuery({
     queryKey: ["adminStats"],
-    queryFn: () =>
-      gqlFetch<{ adminStats: AdminStats }>(ADMIN_STATS_QUERY).then(
-        (d) => d.adminStats,
-      ),
+    query: ADMIN_STATS_QUERY,
+    select: (d) => d.adminStats,
   });
   return { stats: data ?? null, loading: isLoading };
 }

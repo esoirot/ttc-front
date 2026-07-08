@@ -1,8 +1,7 @@
 import type { Client } from "./clients.types";
 import type { Task, TaskStatus } from "./tasks.types";
-import type { TimeEntry, TtcUpdateInput } from "./time-entries.types";
 import type { Member } from "./users.types";
-import type { Tag } from "./tags.types";
+import type { Connection } from "./common.types";
 
 export type ProjectStatus =
   | "DRAFT"
@@ -35,11 +34,7 @@ export interface Project {
   updatedAt: string;
 }
 
-export interface ProjectConnection {
-  items: Project[];
-  nextCursor: number | null;
-  total: number;
-}
+export type ProjectConnection = Connection<Project>;
 
 export interface CreateProjectFormProps {
   clients: Client[];
@@ -117,24 +112,6 @@ export interface TasksTabProps {
   taskLoadMore: () => void;
   memberMap: Record<number, string>;
   onOpenModal: (taskId: number) => void;
-}
-
-export interface TimeTabProps {
-  projectId: number;
-  entries: TimeEntry[];
-  loading: boolean;
-  hasMore: boolean;
-  loadMore: () => void;
-  refetch: () => void;
-  activeTimer: TimeEntry | null | undefined;
-  stopTimer: () => Promise<unknown>;
-  stopping: boolean;
-  deleteTimeEntry: (id: number) => Promise<unknown>;
-  updateTimeEntry: (input: TtcUpdateInput) => void;
-  projects: Project[];
-  tags: Tag[];
-  recentDescriptions: string[];
-  handleResume: (entry: TimeEntry) => void;
 }
 
 export type ProjectInput = {

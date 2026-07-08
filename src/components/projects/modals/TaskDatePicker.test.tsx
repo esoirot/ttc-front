@@ -71,4 +71,17 @@ describe("TaskDatePicker", () => {
     fireEvent.click(screen.getByText(/No date/));
     expect(screen.queryByText("Remove")).not.toBeInTheDocument();
   });
+
+  it("renders open when the open prop is true, without needing a click", () => {
+    renderPicker({ open: true, onOpenChange: vi.fn() });
+    expect(screen.getByText("Recurring")).toBeInTheDocument();
+  });
+
+  it("calls onOpenChange instead of managing state internally when controlled", () => {
+    const onOpenChange = vi.fn();
+    renderPicker({ open: false, onOpenChange });
+    fireEvent.click(screen.getByText(/No date/));
+    expect(onOpenChange).toHaveBeenCalledWith(true);
+    expect(screen.queryByText("Recurring")).not.toBeInTheDocument();
+  });
 });

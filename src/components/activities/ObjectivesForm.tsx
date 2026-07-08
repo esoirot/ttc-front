@@ -17,16 +17,35 @@ export function ObjectivesForm({ activityId, initial }: ObjectivesFormProps) {
   const [q3, setQ3] = useState(centsToEuros(initial.objectiveQ3));
   const [q4, setQ4] = useState(centsToEuros(initial.objectiveQ4));
   const [saved, setSaved] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  function parseObjective(str: string): {
+    cents: number | null;
+    valid: boolean;
+  } {
+    if (str.trim() === "") return { cents: null, valid: true };
+    const cents = eurosToCents(str);
+    return { cents, valid: cents != null && cents >= 0 };
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const q1r = parseObjective(q1);
+    const q2r = parseObjective(q2);
+    const q3r = parseObjective(q3);
+    const q4r = parseObjective(q4);
+    if (!q1r.valid || !q2r.valid || !q3r.valid || !q4r.valid) {
+      setValidationError("Objectives must be valid numbers ≥ 0.");
+      return;
+    }
+    setValidationError(null);
     try {
       await updateActivity({
         id: activityId,
-        objectiveQ1: eurosToCents(q1),
-        objectiveQ2: eurosToCents(q2),
-        objectiveQ3: eurosToCents(q3),
-        objectiveQ4: eurosToCents(q4),
+        objectiveQ1: q1r.cents,
+        objectiveQ2: q2r.cents,
+        objectiveQ3: q3r.cents,
+        objectiveQ4: q4r.cents,
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -65,6 +84,9 @@ export function ObjectivesForm({ activityId, initial }: ObjectivesFormProps) {
           </div>
         ))}
       </div>
+      {validationError && (
+        <p className="text-sm text-destructive">{validationError}</p>
+      )}
       {saveError && (
         <p className="text-sm text-destructive">{saveError.message}</p>
       )}

@@ -1,3 +1,5 @@
+import type { Connection } from "./common.types";
+
 export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED";
 
 export interface InvoiceItem {
@@ -27,11 +29,7 @@ export interface Invoice {
   items: InvoiceItem[];
 }
 
-export interface InvoiceConnection {
-  items: Invoice[];
-  nextCursor: number | null;
-  total: number;
-}
+export type InvoiceConnection = Connection<Invoice>;
 
 export type InvoiceAddItemInput = {
   invoiceId: number;

@@ -5,6 +5,7 @@ import {
   useDeleteUser,
 } from "@/hooks/account/useUsers";
 import { useCurrentUser, useAdminDisableTwoFactor } from "@/hooks/auth/useAuth";
+import { useBulkSelection } from "@/hooks/admin/useBulkSelection";
 import type {
   User,
   UserRole,
@@ -12,7 +13,6 @@ import type {
 } from "@/types/users.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,6 +50,13 @@ import {
 } from "@/components/ui/table";
 import { PermissionsEditor } from "../permissions/PermissionsEditor";
 import { ResourceAuditHistory } from "../audits/ResourceAuditHistory";
+import { AdminPageHeader } from "../shared/AdminPageHeader";
+import { BulkDeleteBar } from "../shared/BulkDeleteBar";
+import { RowDeleteButton } from "../shared/RowDeleteButton";
+import {
+  TableEmptyRow,
+  TableLoadingSkeleton,
+} from "../shared/AdminTableChrome";
 
 export function AdminUsersTable() {
   const { users, loading } = useUsers();
@@ -62,7 +69,6 @@ export function AdminUsersTable() {
   const [editUser, setEditUser] = useState<EditForm | null>(null);
   const [historyUser, setHistoryUser] = useState<User | null>(null);
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<Set<number>>(new Set());
 
   const filtered = users.filter(
     (u) =>
@@ -71,22 +77,8 @@ export function AdminUsersTable() {
       (u.name ?? "").toLowerCase().includes(search.toLowerCase()),
   );
 
-  function toggleSelect(id: number) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function toggleAll() {
-    setSelected(
-      selected.size === filtered.length
-        ? new Set()
-        : new Set(filtered.map((u) => u.id)),
-    );
-  }
+  const { selected, toggle, toggleAll, clear, isAllSelected } =
+    useBulkSelection(filtered.map((u) => u.id));
 
   function handleSaveEdit() {
     if (!editUser) return;
@@ -100,12 +92,7 @@ export function AdminUsersTable() {
 
   return (
     <>
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-xl font-semibold flex-1">Users</h1>
-        <span className="text-sm text-muted-foreground">
-          {users.length} total
-        </span>
-      </div>
+      <AdminPageHeader title="Users" total={users.length} />
 
       <div className="flex items-center gap-2 mb-4">
         <Input
@@ -116,51 +103,16 @@ export function AdminUsersTable() {
         />
       </div>
 
-      {selected.size > 0 && (
-        <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-muted rounded text-sm">
-          <span className="text-muted-foreground">
-            {selected.size} selected
-          </span>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm" variant="destructive" className="ml-auto h-7">
-                Delete selected ({selected.size})
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Delete {selected.size} users?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => {
-                    selected.forEach((id) => {
-                      if (id !== Number(me?.id)) void deleteUser(id);
-                    });
-                    setSelected(new Set());
-                  }}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+      <BulkDeleteBar
+        selectedIds={selected}
+        itemLabel="users"
+        onDelete={deleteUser}
+        onDone={clear}
+        excludeIds={me?.id != null ? new Set([Number(me.id)]) : undefined}
+      />
 
       {loading ? (
-        <div className="flex flex-col gap-2">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
-        </div>
+        <TableLoadingSkeleton />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden">
           <Table>
@@ -168,9 +120,7 @@ export function AdminUsersTable() {
               <TableRow>
                 <TableHead className="w-8">
                   <Checkbox
-                    checked={
-                      filtered.length > 0 && selected.size === filtered.length
-                    }
+                    checked={filtered.length > 0 && isAllSelected}
                     onCheckedChange={toggleAll}
                   />
                 </TableHead>
@@ -185,21 +135,14 @@ export function AdminUsersTable() {
             </TableHeader>
             <TableBody>
               {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    className="text-center text-muted-foreground py-8"
-                  >
-                    No users found.
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow colSpan={8}>No users found.</TableEmptyRow>
               )}
               {filtered.map((u: User) => (
                 <TableRow key={u.id}>
                   <TableCell>
                     <Checkbox
                       checked={selected.has(u.id)}
-                      onCheckedChange={() => toggleSelect(u.id)}
+                      onCheckedChange={() => toggle(u.id)}
                       disabled={u.id === Number(me?.id)}
                     />
                   </TableCell>
@@ -298,37 +241,18 @@ export function AdminUsersTable() {
                           </AlertDialogContent>
                         </AlertDialog>
                       )}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="icon-xs"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive"
-                            disabled={u.id === Number(me?.id) || deleting}
-                            aria-label="Delete user"
-                          >
-                            ✕
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete user?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Delete <strong>{u.email}</strong>? This cannot be
-                              undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={() => void deleteUser(u.id)}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <RowDeleteButton
+                        onDelete={() => deleteUser(u.id)}
+                        title="Delete user?"
+                        description={
+                          <>
+                            Delete <strong>{u.email}</strong>? This cannot be
+                            undone.
+                          </>
+                        }
+                        disabled={u.id === Number(me?.id) || deleting}
+                        ariaLabel="Delete user"
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -339,7 +263,7 @@ export function AdminUsersTable() {
       )}
 
       <Dialog open={!!editUser} onOpenChange={(v) => !v && setEditUser(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
           </DialogHeader>

@@ -1,20 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
 import {
   DASHBOARD_QUERY,
   type DashboardData,
 } from "../../graphql/dashboard.operations";
-import { gqlFetch } from "@/lib/apollo";
+import { useGqlQuery } from "@/lib/gqlQuery";
 
 export function useDashboard(): {
   dashboard: DashboardData | null;
   loading: boolean;
 } {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useGqlQuery({
     queryKey: ["dashboard"],
-    queryFn: () =>
-      gqlFetch<{ dashboard: DashboardData }>(DASHBOARD_QUERY).then(
-        (d) => d.dashboard,
-      ),
+    query: DASHBOARD_QUERY,
+    select: (d) => d.dashboard,
   });
   return { dashboard: data ?? null, loading: isLoading };
 }

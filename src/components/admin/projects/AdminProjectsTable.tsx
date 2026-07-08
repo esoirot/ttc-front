@@ -3,13 +3,13 @@ import {
   useAdminProjects,
   useAdminCrudProjects,
 } from "@/hooks/admin/useAdminProjects";
+import { useBulkSelection } from "@/hooks/admin/useBulkSelection";
 import type { AdminProject } from "@/types/admin.types";
 import type { ProjectStatus } from "@/types/projects.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -33,22 +33,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { exportCsv } from "@/lib/csv";
-import {
   ADMIN_PROJECT_STATUS_BADGE,
   PROJECT_STATUSES,
 } from "@/constants/admin";
 import { ResourceAuditHistory } from "../audits/ResourceAuditHistory";
+import { AdminPageHeader } from "../shared/AdminPageHeader";
+import { BulkDeleteBar } from "../shared/BulkDeleteBar";
+import { RowDeleteButton } from "../shared/RowDeleteButton";
+import { ExportCsvButton } from "../shared/ExportCsvButton";
+import {
+  LoadMoreButton,
+  TableEmptyRow,
+  TableLoadingSkeleton,
+} from "../shared/AdminTableChrome";
 
 export function AdminProjectsTable() {
   const [search, setSearch] = useState("");
@@ -62,7 +59,8 @@ export function AdminProjectsTable() {
   const { createProject, updateProject, deleteProject } =
     useAdminCrudProjects();
 
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const { selected, toggle, toggleAll, clear, isAllSelected } =
+    useBulkSelection(projects.map((p) => p.id));
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AdminProject | null>(null);
   const [historyTarget, setHistoryTarget] = useState<AdminProject | null>(null);
@@ -74,15 +72,6 @@ export function AdminProjectsTable() {
     wordCount: "",
     unitPrice: "",
   });
-
-  function toggleSelect(id: number) {
-    setSelected((prev) => {
-      const n = new Set(prev);
-      if (n.has(id)) n.delete(id);
-      else n.add(id);
-      return n;
-    });
-  }
 
   function openCreate() {
     setForm({
@@ -127,10 +116,7 @@ export function AdminProjectsTable() {
 
   return (
     <>
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-xl font-semibold flex-1">Projects</h1>
-        <span className="text-sm text-muted-foreground">{total} total</span>
-      </div>
+      <AdminPageHeader title="Projects" total={total} />
 
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         <Input
@@ -156,62 +142,22 @@ export function AdminProjectsTable() {
           </SelectContent>
         </Select>
         <div className="ml-auto flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportCsv(csvRows, "projects.csv")}
-          >
-            Export CSV
-          </Button>
+          <ExportCsvButton rows={csvRows} filename="projects.csv" />
           <Button size="sm" onClick={openCreate}>
             + New Project
           </Button>
         </div>
       </div>
 
-      {selected.size > 0 && (
-        <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-muted rounded text-sm">
-          <span className="text-muted-foreground">
-            {selected.size} selected
-          </span>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm" variant="destructive" className="ml-auto h-7">
-                Delete selected ({selected.size})
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Delete {selected.size} projects?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => {
-                    selected.forEach((id) => void deleteProject(id));
-                    setSelected(new Set());
-                  }}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+      <BulkDeleteBar
+        selectedIds={selected}
+        itemLabel="projects"
+        onDelete={deleteProject}
+        onDone={clear}
+      />
 
       {loading && projects.length === 0 ? (
-        <div className="flex flex-col gap-2">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
-        </div>
+        <TableLoadingSkeleton rows={4} />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden">
           <Table>
@@ -219,16 +165,8 @@ export function AdminProjectsTable() {
               <TableRow>
                 <TableHead className="w-8">
                   <Checkbox
-                    checked={
-                      projects.length > 0 && selected.size === projects.length
-                    }
-                    onCheckedChange={() =>
-                      setSelected(
-                        selected.size === projects.length
-                          ? new Set()
-                          : new Set(projects.map((p) => p.id)),
-                      )
-                    }
+                    checked={projects.length > 0 && isAllSelected}
+                    onCheckedChange={toggleAll}
                   />
                 </TableHead>
                 <TableHead>ID</TableHead>
@@ -243,21 +181,14 @@ export function AdminProjectsTable() {
             </TableHeader>
             <TableBody>
               {projects.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="text-center text-muted-foreground py-8"
-                  >
-                    No projects found.
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow colSpan={9}>No projects found.</TableEmptyRow>
               )}
               {projects.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell>
                     <Checkbox
                       checked={selected.has(p.id)}
-                      onCheckedChange={() => toggleSelect(p.id)}
+                      onCheckedChange={() => toggle(p.id)}
                     />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground font-mono">
@@ -304,36 +235,16 @@ export function AdminProjectsTable() {
                       >
                         🕐
                       </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="icon-xs"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive"
-                            aria-label="Delete"
-                          >
-                            ✕
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete project?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Delete <strong>{p.title}</strong>? This cannot be
-                              undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={() => void deleteProject(p.id)}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <RowDeleteButton
+                        onDelete={() => deleteProject(p.id)}
+                        title="Delete project?"
+                        description={
+                          <>
+                            Delete <strong>{p.title}</strong>? This cannot be
+                            undone.
+                          </>
+                        }
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -342,17 +253,13 @@ export function AdminProjectsTable() {
           </Table>
         </div>
       )}
-      {hasMore && (
-        <Button variant="outline" className="mt-4 w-full" onClick={loadMore}>
-          Load more
-        </Button>
-      )}
+      {hasMore && <LoadMoreButton onClick={loadMore} />}
 
       <Dialog
         open={createOpen}
         onOpenChange={(v) => !v && setCreateOpen(false)}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>New Project</DialogTitle>
           </DialogHeader>
@@ -420,7 +327,7 @@ export function AdminProjectsTable() {
         open={!!editTarget}
         onOpenChange={(v) => !v && setEditTarget(null)}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Edit Project — {editTarget?.title}</DialogTitle>
           </DialogHeader>

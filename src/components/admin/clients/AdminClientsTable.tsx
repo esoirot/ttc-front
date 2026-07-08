@@ -3,10 +3,11 @@ import {
   useAdminClients,
   useAdminCrudClients,
 } from "@/hooks/admin/useAdminClients";
+import { useBulkSelection } from "@/hooks/admin/useBulkSelection";
 import type { AdminClient } from "@/types/admin.types";
+import { isValidOptionalEmail } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -22,21 +23,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { ClientForm } from "./ClientForm";
-import { exportCsv } from "@/lib/csv";
 import { ADMIN_EMPTY_CLIENT_FORM } from "@/constants/admin";
 import { ResourceAuditHistory } from "../audits/ResourceAuditHistory";
+import { AdminPageHeader } from "../shared/AdminPageHeader";
+import { BulkDeleteBar } from "../shared/BulkDeleteBar";
+import { RowDeleteButton } from "../shared/RowDeleteButton";
+import { ExportCsvButton } from "../shared/ExportCsvButton";
+import {
+  LoadMoreButton,
+  TableEmptyRow,
+  TableLoadingSkeleton,
+} from "../shared/AdminTableChrome";
 
 export function AdminClientsTable() {
   const [search, setSearch] = useState("");
@@ -45,20 +43,13 @@ export function AdminClientsTable() {
   );
   const { createClient, updateClient, deleteClient } = useAdminCrudClients();
 
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const { selected, toggle, toggleAll, clear, isAllSelected } =
+    useBulkSelection(clients.map((c) => c.id));
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AdminClient | null>(null);
   const [historyTarget, setHistoryTarget] = useState<AdminClient | null>(null);
   const [form, setForm] = useState(ADMIN_EMPTY_CLIENT_FORM);
-
-  function toggleSelect(id: number) {
-    setSelected((prev) => {
-      const n = new Set(prev);
-      if (n.has(id)) n.delete(id);
-      else n.add(id);
-      return n;
-    });
-  }
+  const emailValid = isValidOptionalEmail(form.email);
 
   function openCreate() {
     setForm(ADMIN_EMPTY_CLIENT_FORM);
@@ -81,6 +72,7 @@ export function AdminClientsTable() {
   }
 
   function handleCreate() {
+    if (!emailValid) return;
     void createClient({
       userId: 0,
       ...form,
@@ -91,7 +83,7 @@ export function AdminClientsTable() {
   }
 
   function handleUpdate() {
-    if (!editTarget) return;
+    if (!editTarget || !emailValid) return;
     void updateClient({ id: editTarget.id, ...form });
     setEditTarget(null);
   }
@@ -109,10 +101,7 @@ export function AdminClientsTable() {
 
   return (
     <>
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-xl font-semibold flex-1">Clients</h1>
-        <span className="text-sm text-muted-foreground">{total} total</span>
-      </div>
+      <AdminPageHeader title="Clients" total={total} />
 
       <div className="flex items-center gap-2 mb-4">
         <Input
@@ -122,62 +111,22 @@ export function AdminClientsTable() {
           className="max-w-xs h-8 text-sm"
         />
         <div className="ml-auto flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportCsv(csvRows, "clients.csv")}
-          >
-            Export CSV
-          </Button>
+          <ExportCsvButton rows={csvRows} filename="clients.csv" />
           <Button size="sm" onClick={openCreate}>
             + New Client
           </Button>
         </div>
       </div>
 
-      {selected.size > 0 && (
-        <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-muted rounded text-sm">
-          <span className="text-muted-foreground">
-            {selected.size} selected
-          </span>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm" variant="destructive" className="ml-auto h-7">
-                Delete selected ({selected.size})
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Delete {selected.size} clients?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => {
-                    selected.forEach((id) => void deleteClient(id));
-                    setSelected(new Set());
-                  }}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+      <BulkDeleteBar
+        selectedIds={selected}
+        itemLabel="clients"
+        onDelete={deleteClient}
+        onDone={clear}
+      />
 
       {loading && clients.length === 0 ? (
-        <div className="flex flex-col gap-2">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
-        </div>
+        <TableLoadingSkeleton rows={4} />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden">
           <Table>
@@ -185,16 +134,8 @@ export function AdminClientsTable() {
               <TableRow>
                 <TableHead className="w-8">
                   <Checkbox
-                    checked={
-                      clients.length > 0 && selected.size === clients.length
-                    }
-                    onCheckedChange={() =>
-                      setSelected(
-                        selected.size === clients.length
-                          ? new Set()
-                          : new Set(clients.map((c) => c.id)),
-                      )
-                    }
+                    checked={clients.length > 0 && isAllSelected}
+                    onCheckedChange={toggleAll}
                   />
                 </TableHead>
                 <TableHead>ID</TableHead>
@@ -209,21 +150,14 @@ export function AdminClientsTable() {
             </TableHeader>
             <TableBody>
               {clients.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="text-center text-muted-foreground py-8"
-                  >
-                    No clients found.
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow colSpan={9}>No clients found.</TableEmptyRow>
               )}
               {clients.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
                     <Checkbox
                       checked={selected.has(c.id)}
-                      onCheckedChange={() => toggleSelect(c.id)}
+                      onCheckedChange={() => toggle(c.id)}
                     />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground font-mono">
@@ -259,36 +193,16 @@ export function AdminClientsTable() {
                       >
                         🕐
                       </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="icon-xs"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive"
-                            aria-label="Delete"
-                          >
-                            ✕
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete client?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Delete <strong>{c.name}</strong>? This cannot be
-                              undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={() => void deleteClient(c.id)}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <RowDeleteButton
+                        onDelete={() => deleteClient(c.id)}
+                        title="Delete client?"
+                        description={
+                          <>
+                            Delete <strong>{c.name}</strong>? This cannot be
+                            undone.
+                          </>
+                        }
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -297,21 +211,22 @@ export function AdminClientsTable() {
           </Table>
         </div>
       )}
-      {hasMore && (
-        <Button variant="outline" className="mt-4 w-full" onClick={loadMore}>
-          Load more
-        </Button>
-      )}
+      {hasMore && <LoadMoreButton onClick={loadMore} />}
 
       <Dialog
         open={createOpen}
         onOpenChange={(v) => !v && setCreateOpen(false)}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>New Client</DialogTitle>
           </DialogHeader>
           <ClientForm form={form} onChange={(f) => setForm(f as typeof form)} />
+          {!emailValid && (
+            <p className="text-xs text-destructive">
+              Enter a valid email address.
+            </p>
+          )}
           <div className="flex gap-2 justify-end mt-2">
             <Button
               variant="outline"
@@ -320,7 +235,11 @@ export function AdminClientsTable() {
             >
               Cancel
             </Button>
-            <Button size="sm" onClick={handleCreate} disabled={!form.name}>
+            <Button
+              size="sm"
+              onClick={handleCreate}
+              disabled={!form.name || !emailValid}
+            >
               Create
             </Button>
           </div>
@@ -331,11 +250,16 @@ export function AdminClientsTable() {
         open={!!editTarget}
         onOpenChange={(v) => !v && setEditTarget(null)}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Edit Client — {editTarget?.name}</DialogTitle>
           </DialogHeader>
           <ClientForm form={form} onChange={(f) => setForm(f as typeof form)} />
+          {!emailValid && (
+            <p className="text-xs text-destructive">
+              Enter a valid email address.
+            </p>
+          )}
           <div className="flex gap-2 justify-end mt-2">
             <Button
               variant="outline"
@@ -344,7 +268,7 @@ export function AdminClientsTable() {
             >
               Cancel
             </Button>
-            <Button size="sm" onClick={handleUpdate}>
+            <Button size="sm" onClick={handleUpdate} disabled={!emailValid}>
               Save
             </Button>
           </div>

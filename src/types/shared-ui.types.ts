@@ -12,6 +12,13 @@ export type TimerStartInputProps = {
   initialTaskTitle?: string | null;
 };
 
+export interface TimerSectionProps extends TimerStartInputProps {
+  activeTimer: TimeEntry | null | undefined;
+  stopTimer: () => Promise<unknown>;
+  stopping: boolean;
+  refetch: () => void;
+}
+
 export interface EntryListProps {
   entries: TimeEntry[];
   loading: boolean;
@@ -22,6 +29,11 @@ export interface EntryListProps {
   tags: Tag[];
   onResume: (entry: TimeEntry) => void;
   onUpdate: (input: TtcUpdateInput) => void;
+}
+
+export interface TimeTabProps {
+  list: EntryListProps;
+  timer: TimerSectionProps;
 }
 
 export type CreateInvoiceFormProps = {

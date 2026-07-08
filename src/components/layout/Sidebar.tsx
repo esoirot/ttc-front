@@ -363,6 +363,42 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
           </svg>
         ),
       },
+      {
+        to: "/google-calendar",
+        end: false,
+        label: "Google Calendar",
+        icon: (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect
+              x="1.5"
+              y="2.5"
+              width="13"
+              height="12"
+              rx="1.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M1.5 6h13"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M4.5 1.5v2M11.5 1.5v2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        ),
+      },
     ],
   },
 ];

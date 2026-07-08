@@ -288,7 +288,7 @@ describe("TasksTab", () => {
     );
   });
 
-  it("does not call updateTask when reordering within the same status column", () => {
+  it("calls updateTask with the new sortOrder when reordering within the same status column", async () => {
     renderTab({
       tasks: [
         makeTask({ id: 4, title: "Task A", status: "TODO" }),
@@ -303,7 +303,33 @@ describe("TasksTab", () => {
       } as unknown as DragEndEvent);
     });
 
-    expect(gqlMutate).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
+        input: expect.objectContaining({ id: 4, sortOrder: 1 }),
+      }),
+    );
+  });
+
+  it("optimistically reorders the on-screen task list within the same status column", () => {
+    renderTab({
+      tasks: [
+        makeTask({ id: 4, title: "Task A", status: "TODO" }),
+        makeTask({ id: 5, title: "Task B", status: "TODO" }),
+        makeTask({ id: 6, title: "Task C", status: "TODO" }),
+      ],
+    });
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: 6 },
+      } as unknown as DragEndEvent);
+    });
+
+    const titles = screen
+      .getAllByText(/Task [ABC]/)
+      .map((el) => el.textContent);
+    expect(titles).toEqual(["Task B", "Task C", "Task A"]);
   });
 
   it("optimistically updates the cached task list on a status-changing drop", async () => {

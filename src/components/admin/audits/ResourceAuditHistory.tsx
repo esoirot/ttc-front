@@ -20,7 +20,10 @@ export function ResourceAuditHistory({ open, onClose, resourceName }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+      <DialogContent
+        className="max-w-lg max-h-[80vh] flex flex-col"
+        aria-describedby={undefined}
+      >
         <DialogHeader>
           <DialogTitle>History — {resourceName}</DialogTitle>
         </DialogHeader>

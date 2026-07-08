@@ -4,7 +4,6 @@ export {
   STATUS_BADGE,
   STATUS_TRANSITIONS,
   QTY_LABEL,
-  INVOICE_STATUS_COLORS,
 } from "./invoices";
 export * from "./rates";
 export * from "./projects";

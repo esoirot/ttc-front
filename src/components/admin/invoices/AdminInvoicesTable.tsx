@@ -3,13 +3,13 @@ import {
   useAdminInvoices,
   useAdminCrudInvoices,
 } from "@/hooks/admin/useAdminInvoices";
+import { useBulkSelection } from "@/hooks/admin/useBulkSelection";
 import type { AdminInvoice } from "@/types/admin.types";
 import type { InvoiceStatus } from "@/types/invoices.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -33,22 +33,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { exportCsv } from "@/lib/csv";
-import {
   ADMIN_INVOICE_STATUS_BADGE,
   INVOICE_STATUSES,
 } from "@/constants/admin";
 import { ResourceAuditHistory } from "../audits/ResourceAuditHistory";
+import { AdminPageHeader } from "../shared/AdminPageHeader";
+import { BulkDeleteBar } from "../shared/BulkDeleteBar";
+import { RowDeleteButton } from "../shared/RowDeleteButton";
+import { ExportCsvButton } from "../shared/ExportCsvButton";
+import {
+  LoadMoreButton,
+  TableEmptyRow,
+  TableLoadingSkeleton,
+} from "../shared/AdminTableChrome";
 
 export function AdminInvoicesTable() {
   const [search, setSearch] = useState("");
@@ -61,7 +58,8 @@ export function AdminInvoicesTable() {
   );
   const { updateInvoice, deleteInvoice } = useAdminCrudInvoices();
 
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const { selected, toggle, toggleAll, clear, isAllSelected } =
+    useBulkSelection(invoices.map((i) => i.id));
   const [editTarget, setEditTarget] = useState<AdminInvoice | null>(null);
   const [historyTarget, setHistoryTarget] = useState<AdminInvoice | null>(null);
   const [editForm, setEditForm] = useState({
@@ -69,15 +67,6 @@ export function AdminInvoicesTable() {
     notes: "",
     dueDate: "",
   });
-
-  function toggleSelect(id: number) {
-    setSelected((prev) => {
-      const n = new Set(prev);
-      if (n.has(id)) n.delete(id);
-      else n.add(id);
-      return n;
-    });
-  }
 
   function openEdit(inv: AdminInvoice) {
     setEditForm({
@@ -100,10 +89,7 @@ export function AdminInvoicesTable() {
 
   return (
     <>
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-xl font-semibold flex-1">Invoices</h1>
-        <span className="text-sm text-muted-foreground">{total} total</span>
-      </div>
+      <AdminPageHeader title="Invoices" total={total} />
 
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         <Input
@@ -129,59 +115,19 @@ export function AdminInvoicesTable() {
           </SelectContent>
         </Select>
         <div className="ml-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportCsv(csvRows, "invoices.csv")}
-          >
-            Export CSV
-          </Button>
+          <ExportCsvButton rows={csvRows} filename="invoices.csv" />
         </div>
       </div>
 
-      {selected.size > 0 && (
-        <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-muted rounded text-sm">
-          <span className="text-muted-foreground">
-            {selected.size} selected
-          </span>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm" variant="destructive" className="ml-auto h-7">
-                Delete selected ({selected.size})
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Delete {selected.size} invoices?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => {
-                    selected.forEach((id) => void deleteInvoice(id));
-                    setSelected(new Set());
-                  }}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+      <BulkDeleteBar
+        selectedIds={selected}
+        itemLabel="invoices"
+        onDelete={deleteInvoice}
+        onDone={clear}
+      />
 
       {loading && invoices.length === 0 ? (
-        <div className="flex flex-col gap-2">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
-        </div>
+        <TableLoadingSkeleton rows={4} />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden">
           <Table>
@@ -189,16 +135,8 @@ export function AdminInvoicesTable() {
               <TableRow>
                 <TableHead className="w-8">
                   <Checkbox
-                    checked={
-                      invoices.length > 0 && selected.size === invoices.length
-                    }
-                    onCheckedChange={() =>
-                      setSelected(
-                        selected.size === invoices.length
-                          ? new Set()
-                          : new Set(invoices.map((i) => i.id)),
-                      )
-                    }
+                    checked={invoices.length > 0 && isAllSelected}
+                    onCheckedChange={toggleAll}
                   />
                 </TableHead>
                 <TableHead>ID</TableHead>
@@ -213,14 +151,7 @@ export function AdminInvoicesTable() {
             </TableHeader>
             <TableBody>
               {invoices.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="text-center text-muted-foreground py-8"
-                  >
-                    No invoices found.
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow colSpan={9}>No invoices found.</TableEmptyRow>
               )}
               {invoices.map((inv) => {
                 const total = inv.items.reduce((s, i) => s + i.total, 0);
@@ -229,7 +160,7 @@ export function AdminInvoicesTable() {
                     <TableCell>
                       <Checkbox
                         checked={selected.has(inv.id)}
-                        onCheckedChange={() => toggleSelect(inv.id)}
+                        onCheckedChange={() => toggle(inv.id)}
                       />
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground font-mono">
@@ -276,38 +207,16 @@ export function AdminInvoicesTable() {
                         >
                           🕐
                         </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="icon-xs"
-                              variant="ghost"
-                              className="text-destructive hover:text-destructive"
-                              aria-label="Delete"
-                            >
-                              ✕
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Delete invoice?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Delete <strong>{inv.number}</strong>? This
-                                cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                onClick={() => void deleteInvoice(inv.id)}
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <RowDeleteButton
+                          onDelete={() => deleteInvoice(inv.id)}
+                          title="Delete invoice?"
+                          description={
+                            <>
+                              Delete <strong>{inv.number}</strong>? This cannot
+                              be undone.
+                            </>
+                          }
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -317,17 +226,13 @@ export function AdminInvoicesTable() {
           </Table>
         </div>
       )}
-      {hasMore && (
-        <Button variant="outline" className="mt-4 w-full" onClick={loadMore}>
-          Load more
-        </Button>
-      )}
+      {hasMore && <LoadMoreButton onClick={loadMore} />}
 
       <Dialog
         open={!!editTarget}
         onOpenChange={(v) => !v && setEditTarget(null)}
       >
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Edit Invoice — {editTarget?.number}</DialogTitle>
           </DialogHeader>

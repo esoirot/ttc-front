@@ -1,6 +1,4 @@
 import {
-  useQuery,
-  useInfiniteQuery,
   useMutation,
   useQueryClient,
   type InfiniteData,
@@ -23,7 +21,10 @@ import type {
   ContactInput,
   ClientInput,
 } from "@/types/clients.types";
-import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import { gqlMutate } from "@/lib/apollo";
+import { useGqlQuery, useGqlConnectionQuery } from "@/lib/gqlQuery";
+import { useGqlMutation } from "@/lib/gqlMutation";
+import { removeFromConnection, patchNestedField } from "@/lib/cachePatch";
 
 const LIMIT = 20;
 
@@ -41,8 +42,8 @@ export function useClients(
     ...(status ? { status } : {}),
   };
 
-  const { data, fetchNextPage, hasNextPage, isLoading, error } =
-    useInfiniteQuery<ClientConnection>({
+  const { items, total, hasMore, loadMore, loading, error } =
+    useGqlConnectionQuery({
       queryKey: [
         "clients",
         {
@@ -52,33 +53,21 @@ export function useClients(
           status: status ?? null,
         },
       ],
-      queryFn: ({ pageParam }) =>
-        gqlFetch<{ clients: ClientConnection }>(CLIENTS_QUERY, {
-          ...baseVars,
-          pagination: {
-            limit,
-            ...(pageParam != null ? { cursor: pageParam as number } : {}),
-          },
-        }).then((d) => d.clients),
-      initialPageParam: undefined,
-      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      query: CLIENTS_QUERY,
+      variables: baseVars,
+      select: (d) => d.clients,
+      limit,
     });
 
-  return {
-    clients: data?.pages.flatMap((p) => p.items) ?? [],
-    total: data?.pages[0]?.total ?? 0,
-    hasMore: !!hasNextPage,
-    loadMore: () => void fetchNextPage(),
-    loading: isLoading,
-    error,
-  };
+  return { clients: items, total, hasMore, loadMore, loading, error };
 }
 
 export function useClient(id: number) {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useGqlQuery({
     queryKey: ["client", id],
-    queryFn: () =>
-      gqlFetch<{ client: Client }>(CLIENT_QUERY, { id }).then((d) => d.client),
+    query: CLIENT_QUERY,
+    variables: { id },
+    select: (d) => d.client,
     enabled: !!id,
   });
   return { client: data ?? null, loading: isLoading, error };
@@ -86,17 +75,15 @@ export function useClient(id: number) {
 
 export function useCreateClient() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: ClientInput) =>
-      gqlMutate<{ createClient: Client }>(CREATE_CLIENT_MUTATION, {
-        input,
-      }).then((d) => d.createClient),
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: CREATE_CLIENT_MUTATION,
+    unwrap: (d) => d.createClient,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
   });
   return {
-    createClient: (input: ClientInput) => mutateAsync(input),
+    createClient: (input: ClientInput) => mutateAsync({ input }),
     loading: isPending,
     error,
   };
@@ -161,53 +148,42 @@ export function useUpdateClient() {
 
 export function useDeleteClient() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (id: number) =>
-      gqlMutate<{ deleteClient: boolean }>(DELETE_CLIENT_MUTATION, {
-        id,
-      }).then((d) => d.deleteClient),
-    onSuccess: (_data, id) => {
-      queryClient.setQueriesData<InfiniteData<ClientConnection>>(
-        { queryKey: ["clients"] },
-        (old) =>
-          old
-            ? {
-                ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  items: page.items.filter((c) => c.id !== id),
-                  total: page.total - 1,
-                })),
-              }
-            : old,
-      );
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: DELETE_CLIENT_MUTATION,
+    unwrap: (d) => d.deleteClient,
+    onSuccess: (_data, { id }) => {
+      removeFromConnection(queryClient, ["clients"], id, (c: Client) => c.id);
       queryClient.removeQueries({ queryKey: ["client", id] });
     },
   });
   return {
-    deleteClient: (id: number) => mutateAsync(id),
+    deleteClient: (id: number) => mutateAsync({ id }),
     loading: isPending,
     error,
   };
 }
 
+type Contact = Client["contacts"][number];
+
 export function useCreateCompanyContact(clientId: number) {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: Omit<ContactInput, "clientId">) =>
-      gqlMutate<{ createCompanyContact: Client["contacts"][number] }>(
-        CREATE_COMPANY_CONTACT_MUTATION,
-        { input: { ...input, clientId } },
-      ).then((d) => d.createCompanyContact),
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: CREATE_COMPANY_CONTACT_MUTATION,
+    unwrap: (d) => d.createCompanyContact,
     onSuccess: (newContact) => {
-      queryClient.setQueryData<Client>(["client", clientId], (old) =>
-        old ? { ...old, contacts: [...old.contacts, newContact] } : old,
+      patchNestedField<Client, Contact>(
+        queryClient,
+        ["client", clientId],
+        "contacts",
+        newContact,
+        (c) => c.id,
+        "add",
       );
     },
   });
   return {
     createContact: (input: Omit<ContactInput, "clientId">) =>
-      mutateAsync(input),
+      mutateAsync({ input: { ...input, clientId } }),
     loading: isPending,
     error,
   };
@@ -215,31 +191,24 @@ export function useCreateCompanyContact(clientId: number) {
 
 export function useUpdateCompanyContact(clientId: number) {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (
-      input: Partial<Omit<ContactInput, "clientId">> & { id: number },
-    ) =>
-      gqlMutate<{ updateCompanyContact: Client["contacts"][number] }>(
-        UPDATE_COMPANY_CONTACT_MUTATION,
-        { input },
-      ).then((d) => d.updateCompanyContact),
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: UPDATE_COMPANY_CONTACT_MUTATION,
+    unwrap: (d) => d.updateCompanyContact,
     onSuccess: (updated) => {
-      queryClient.setQueryData<Client>(["client", clientId], (old) =>
-        old
-          ? {
-              ...old,
-              contacts: old.contacts.map((c) =>
-                c.id === updated.id ? updated : c,
-              ),
-            }
-          : old,
+      patchNestedField<Client, Contact>(
+        queryClient,
+        ["client", clientId],
+        "contacts",
+        updated,
+        (c) => c.id,
+        "upsert",
       );
     },
   });
   return {
     updateContact: (
       input: Partial<Omit<ContactInput, "clientId">> & { id: number },
-    ) => mutateAsync(input),
+    ) => mutateAsync({ input }),
     loading: isPending,
     error,
   };
@@ -247,13 +216,10 @@ export function useUpdateCompanyContact(clientId: number) {
 
 export function useDeleteCompanyContact(clientId: number) {
   const queryClient = useQueryClient();
-  const { mutateAsync, error } = useMutation({
-    mutationFn: (id: number) =>
-      gqlMutate<{ deleteCompanyContact: boolean }>(
-        DELETE_COMPANY_CONTACT_MUTATION,
-        { id },
-      ).then((d) => d.deleteCompanyContact),
-    onSuccess: (_data, id) => {
+  const { mutateAsync, error } = useGqlMutation({
+    mutation: DELETE_COMPANY_CONTACT_MUTATION,
+    unwrap: (d) => d.deleteCompanyContact,
+    onSuccess: (_data, { id }) => {
       queryClient.setQueryData<Client>(["client", clientId], (old) =>
         old
           ? { ...old, contacts: old.contacts.filter((c) => c.id !== id) }
@@ -262,7 +228,7 @@ export function useDeleteCompanyContact(clientId: number) {
     },
   });
   return {
-    deleteContact: (id: number) => mutateAsync(id),
+    deleteContact: (id: number) => mutateAsync({ id }),
     error,
   };
 }

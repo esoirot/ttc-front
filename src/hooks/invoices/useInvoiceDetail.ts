@@ -10,6 +10,7 @@ import {
 } from "./useInvoices";
 import { useCurrentUser } from "../auth/useAuth";
 import { apiGet } from "../../lib/api";
+import { downloadBlob } from "../../lib/utils";
 
 export function useInvoiceDetail(invoiceId: number) {
   const navigate = useNavigate();
@@ -28,12 +29,7 @@ export function useInvoiceDetail(invoiceId: number) {
       const blob = await apiGet<Blob>(`/invoices/${invoiceId}/pdf`, {
         responseType: "blob",
       });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `invoice-${invoiceId}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `invoice-${invoiceId}.pdf`);
     } finally {
       setDownloading(false);
     }

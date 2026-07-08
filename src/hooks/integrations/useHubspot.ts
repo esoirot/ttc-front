@@ -38,19 +38,6 @@ export function useDisconnectHubspot() {
   });
 }
 
-export function useHubspotContacts(after?: string, limit?: number) {
-  const params = new URLSearchParams();
-  if (after) params.set("after", after);
-  if (limit) params.set("limit", String(limit));
-  const qs = params.size > 0 ? `?${params.toString()}` : "";
-  return useQuery<HubspotListResponse<HubspotContact>>({
-    queryKey: ["hubspot", "contacts", after, limit],
-    queryFn: () =>
-      apiGet<HubspotListResponse<HubspotContact>>(`/hubspot/contacts${qs}`),
-    retry: false,
-  });
-}
-
 export function useCreateContact() {
   const qc = useQueryClient();
   return useMutation({
@@ -68,32 +55,6 @@ export function useUpdateContact() {
       apiPatch<HubspotContact>(`/hubspot/contacts/${id}`, input),
     onSuccess: () =>
       void qc.invalidateQueries({ queryKey: ["hubspot", "contacts"] }),
-  });
-}
-
-export function useHubspotCompanies(after?: string, limit?: number) {
-  const params = new URLSearchParams();
-  if (after) params.set("after", after);
-  if (limit) params.set("limit", String(limit));
-  const qs = params.size > 0 ? `?${params.toString()}` : "";
-  return useQuery<HubspotListResponse<HubspotCompany>>({
-    queryKey: ["hubspot", "companies", after, limit],
-    queryFn: () =>
-      apiGet<HubspotListResponse<HubspotCompany>>(`/hubspot/companies${qs}`),
-    retry: false,
-  });
-}
-
-export function useHubspotDeals(after?: string, limit?: number) {
-  const params = new URLSearchParams();
-  if (after) params.set("after", after);
-  if (limit) params.set("limit", String(limit));
-  const qs = params.size > 0 ? `?${params.toString()}` : "";
-  return useQuery<HubspotListResponse<HubspotDeal>>({
-    queryKey: ["hubspot", "deals", after, limit],
-    queryFn: () =>
-      apiGet<HubspotListResponse<HubspotDeal>>(`/hubspot/deals${qs}`),
-    retry: false,
   });
 }
 

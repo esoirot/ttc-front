@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { isValidEmail } from "../utils";
+import { isValidEmail } from "@/lib/schemas";
 import { AuthLayout } from "../layouts/AuthLayout";
 import { GoogleOAuthButton } from "../oauth/GoogleOAuthButton";
 

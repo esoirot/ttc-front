@@ -1,4 +1,4 @@
-import { type RefObject, useState } from "react";
+import { useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -11,12 +11,16 @@ import { PRESET_COLORS } from "@/constants/tasks";
 
 export function TaskLabelPicker({
   taskId,
-  triggerRef,
+  open: openProp,
+  onOpenChange,
 }: {
   taskId: number;
-  triggerRef?: RefObject<HTMLButtonElement | null>;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = onOpenChange ?? setOpenState;
   const [name, setName] = useState("");
   const [color, setColor] = useState(PRESET_COLORS[5]);
   const { createLabel, loading } = useCreateTaskLabel(taskId);
@@ -31,12 +35,7 @@ export function TaskLabelPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          ref={triggerRef}
-          variant="outline"
-          size="sm"
-          className="h-7 text-xs"
-        >
+        <Button variant="outline" size="sm" className="h-7 text-xs">
           + Add label
         </Button>
       </PopoverTrigger>

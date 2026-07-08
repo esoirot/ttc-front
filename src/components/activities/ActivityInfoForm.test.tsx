@@ -98,6 +98,31 @@ describe("ActivityInfoForm", () => {
     );
   });
 
+  it("sends name: null when the name field is blank", async () => {
+    gqlMutate.mockResolvedValueOnce({ updateActivity: { id: 5 } });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText("Activity name"), {
+      target: { value: "   " },
+    });
+    // Activity name is `required` — a real click would be blocked by native
+    // constraint validation before whitespace-only input reaches the JS
+    // handler; fire the submit event directly to exercise the trim-to-null
+    // branch regardless.
+    fireEvent.submit(
+      screen.getByRole("button", { name: "Save" }).closest("form")!,
+    );
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          input: expect.objectContaining({ name: null }),
+        }),
+      ),
+    );
+  });
+
   it("shows 'Saved.' after a successful save", async () => {
     gqlMutate.mockResolvedValueOnce({ updateActivity: { id: 5 } });
     renderForm();
@@ -105,6 +130,104 @@ describe("ActivityInfoForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     expect(await screen.findByText("Saved.")).toBeInTheDocument();
+  });
+
+  it("updates companyName, professionalPhone, and website fields on change", () => {
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText("Registered company name"), {
+      target: { value: "New Co" },
+    });
+    fireEvent.change(screen.getByLabelText("Professional phone"), {
+      target: { value: "+15550001111" },
+    });
+    fireEvent.change(screen.getByLabelText("Website"), {
+      target: { value: "https://new-co.example" },
+    });
+
+    expect(screen.getByLabelText("Registered company name")).toHaveValue(
+      "New Co",
+    );
+    expect(screen.getByLabelText("Professional phone")).toHaveValue(
+      "+15550001111",
+    );
+    expect(screen.getByLabelText("Website")).toHaveValue(
+      "https://new-co.example",
+    );
+  });
+
+  it("submits truthy companyName/professionalPhone/website unchanged (not null)", async () => {
+    gqlMutate.mockResolvedValueOnce({ updateActivity: { id: 5 } });
+    renderForm(
+      makeInitial({
+        companyName: "Acme SARL",
+        professionalPhone: "+33123456789",
+        website: "https://acme.com",
+      }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          input: expect.objectContaining({
+            companyName: "Acme SARL",
+            professionalPhone: "+33123456789",
+            website: "https://acme.com",
+          }),
+        }),
+      ),
+    );
+  });
+
+  it("blocks submit and shows a validation error for a malformed professional email", async () => {
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText("Professional email"), {
+      target: { value: "not-an-email" },
+    });
+    // fireEvent.click on the submit button would trigger the browser's
+    // native type="email" constraint validation first, short-circuiting
+    // before our JS handler runs — fire the submit event directly instead.
+    fireEvent.submit(
+      screen.getByRole("button", { name: "Save" }).closest("form")!,
+    );
+
+    expect(
+      await screen.findByText("Enter a valid professional email address"),
+    ).toBeInTheDocument();
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("blocks submit and shows a validation error for a javascript: website URL", async () => {
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText("Website"), {
+      target: { value: "javascript:alert(1)" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(
+      await screen.findByText("Enter a valid website URL"),
+    ).toBeInTheDocument();
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("hides the 'Saved.' message again after the timeout elapses", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    gqlMutate.mockResolvedValueOnce({ updateActivity: { id: 5 } });
+    renderForm();
+
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("Saved.")).toBeInTheDocument();
+
+    vi.advanceTimersByTime(3000);
+    await waitFor(() =>
+      expect(screen.queryByText("Saved.")).not.toBeInTheDocument(),
+    );
+    vi.useRealTimers();
   });
 
   it("disables submit and shows 'Saving…' while pending", async () => {

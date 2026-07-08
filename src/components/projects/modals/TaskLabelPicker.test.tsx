@@ -77,4 +77,27 @@ describe("TaskLabelPicker", () => {
 
     await waitFor(() => expect(gqlMutate).toHaveBeenCalled());
   });
+
+  it("renders open when the open prop is true, without needing a click", () => {
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <TaskLabelPicker taskId={4} open onOpenChange={vi.fn()} />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByPlaceholderText("Label name…")).toBeInTheDocument();
+  });
+
+  it("calls onOpenChange instead of managing state internally when controlled", () => {
+    const onOpenChange = vi.fn();
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <TaskLabelPicker taskId={4} open={false} onOpenChange={onOpenChange} />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(screen.getByText("+ Add label"));
+    expect(onOpenChange).toHaveBeenCalledWith(true);
+    expect(
+      screen.queryByPlaceholderText("Label name…"),
+    ).not.toBeInTheDocument();
+  });
 });

@@ -122,6 +122,97 @@ describe("CreateActivityForm", () => {
     );
   });
 
+  function selectActivityType(name: string) {
+    fireEvent.click(screen.getAllByRole("combobox")[0]);
+    fireEvent.click(screen.getByRole("option", { name }));
+  }
+
+  it("shows the Languages section and sends languagePairs: null for Translator type with no pairs added", async () => {
+    gqlMutate.mockResolvedValueOnce({
+      createActivity: { id: 7, name: "Y", activityType: "TRANSLATOR" },
+    });
+    renderForm();
+
+    selectActivityType("Translator");
+    expect(screen.getByText("Languages")).toBeInTheDocument();
+    expect(screen.queryByText("Custom fields")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Activity name"), {
+      target: { value: "Y" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          input: expect.objectContaining({
+            activityType: "TRANSLATOR",
+            languagePairs: null,
+          }),
+        }),
+      ),
+    );
+  });
+
+  it("sends the filled language pairs array for Translator type when a pair is added", async () => {
+    gqlMutate.mockResolvedValueOnce({
+      createActivity: { id: 8, name: "Z", activityType: "TRANSLATOR" },
+    });
+    renderForm();
+
+    selectActivityType("Translator");
+    fireEvent.change(screen.getByLabelText("Activity name"), {
+      target: { value: "Z" },
+    });
+    fireEvent.click(screen.getByText("+ Add pair"));
+
+    const [, fromTrigger, toTrigger] = screen.getAllByRole("combobox");
+    fireEvent.click(fromTrigger);
+    fireEvent.click(screen.getByRole("option", { name: /English \(EN\)/ }));
+    fireEvent.click(toTrigger);
+    fireEvent.click(screen.getByRole("option", { name: /French \(FR\)/ }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          input: expect.objectContaining({
+            languagePairs: [{ fromLanguage: "EN", toLanguage: "FR" }],
+          }),
+        }),
+      ),
+    );
+  });
+
+  it("does not call createActivity when the form is invalid on submit", async () => {
+    renderForm();
+
+    // name is required — bypass native constraint validation to exercise
+    // the isValid() early-return guard directly.
+    fireEvent.submit(
+      screen.getByRole("button", { name: "Create" }).closest("form")!,
+    );
+
+    await new Promise((r) => setTimeout(r, 0));
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("does not navigate when the mutation resolves without a created activity", async () => {
+    gqlMutate.mockResolvedValueOnce({ createActivity: null });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText("Activity name"), {
+      target: { value: "X" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() => expect(gqlMutate).toHaveBeenCalled());
+    expect(navigateMock).not.toHaveBeenCalled();
+  });
+
   it("shows 'Creating…' and disables submit while the mutation is pending", async () => {
     let resolveMutate!: (v: {
       createActivity: { id: number; name: string };

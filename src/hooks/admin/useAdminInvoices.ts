@@ -1,112 +1,69 @@
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-  type InfiniteData,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import type { InvoiceStatus } from "@/types/invoices.types";
 import {
   ADMIN_INVOICES_QUERY,
   ADMIN_UPDATE_INVOICE_MUTATION,
   ADMIN_DELETE_INVOICE_MUTATION,
 } from "../../graphql/admin.operations";
-import type { AdminInvoice, AdminConnection } from "@/types/admin.types";
-import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import type { AdminInvoice } from "@/types/admin.types";
+import { useGqlConnectionQuery } from "@/lib/gqlQuery";
+import { useGqlMutation } from "@/lib/gqlMutation";
+import { patchConnection, removeFromConnection } from "@/lib/cachePatch";
 
 const LIMIT = 20;
 
 export function useAdminInvoices(status?: InvoiceStatus, search?: string) {
-  const { data, fetchNextPage, hasNextPage, isLoading } = useInfiniteQuery<
-    AdminConnection<AdminInvoice>
-  >({
+  const { items, total, hasMore, loadMore, loading } = useGqlConnectionQuery({
     queryKey: [
       "adminInvoices",
       { status: status ?? null, search: search ?? null },
     ],
-    queryFn: ({ pageParam }) =>
-      gqlFetch<{ adminInvoices: AdminConnection<AdminInvoice> }>(
-        ADMIN_INVOICES_QUERY,
-        {
-          status,
-          search,
-          pagination: {
-            limit: LIMIT,
-            ...(pageParam != null ? { cursor: pageParam as number } : {}),
-          },
-        },
-      ).then((d) => d.adminInvoices),
-    initialPageParam: undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    query: ADMIN_INVOICES_QUERY,
+    variables: { status, search },
+    select: (d) => d.adminInvoices,
+    limit: LIMIT,
   });
 
   return {
-    invoices: data?.pages.flatMap((p) => p.items) ?? [],
-    loading: isLoading,
-    total: data?.pages[0]?.total ?? 0,
-    hasMore: !!hasNextPage,
-    loadMore: () => void fetchNextPage(),
+    invoices: items,
+    loading,
+    total,
+    hasMore,
+    loadMore,
   };
 }
 
 export function useAdminCrudInvoices() {
   const queryClient = useQueryClient();
 
-  const { mutateAsync: update } = useMutation({
-    mutationFn: (input: {
-      id: number;
-      status?: InvoiceStatus;
-      notes?: string;
-      dueDate?: string;
-    }) =>
-      gqlMutate<{ adminUpdateInvoice: AdminInvoice }>(
-        ADMIN_UPDATE_INVOICE_MUTATION,
-        { input },
-      ).then((d) => d.adminUpdateInvoice),
+  const { mutateAsync: update } = useGqlMutation({
+    mutation: ADMIN_UPDATE_INVOICE_MUTATION,
+    unwrap: (d) => d.adminUpdateInvoice,
     onSuccess: (updated) => {
-      queryClient.setQueriesData<InfiniteData<AdminConnection<AdminInvoice>>>(
-        { queryKey: ["adminInvoices"] },
-        (old) =>
-          old
-            ? {
-                ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  items: page.items.map((inv) =>
-                    inv.id === updated.id ? updated : inv,
-                  ),
-                })),
-              }
-            : old,
-      );
+      patchConnection(queryClient, ["adminInvoices"], updated, (inv) => inv.id);
     },
   });
 
-  const { mutateAsync: remove } = useMutation({
-    mutationFn: (id: number) =>
-      gqlMutate<{ adminDeleteInvoice: { id: number } }>(
-        ADMIN_DELETE_INVOICE_MUTATION,
-        { id },
-      ).then((d) => d.adminDeleteInvoice),
-    onSuccess: (_data, id) => {
-      queryClient.setQueriesData<InfiniteData<AdminConnection<AdminInvoice>>>(
-        { queryKey: ["adminInvoices"] },
-        (old) =>
-          old
-            ? {
-                ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  items: page.items.filter((inv) => inv.id !== id),
-                  total: page.total - 1,
-                })),
-              }
-            : old,
+  const { mutateAsync: remove } = useGqlMutation({
+    mutation: ADMIN_DELETE_INVOICE_MUTATION,
+    unwrap: (d) => d.adminDeleteInvoice,
+    onSuccess: (_data, { id }) => {
+      removeFromConnection(
+        queryClient,
+        ["adminInvoices"],
+        id,
+        (inv: AdminInvoice) => inv.id,
       );
     },
   });
 
   return {
-    updateInvoice: (input: Parameters<typeof update>[0]) => update(input),
-    deleteInvoice: (id: number) => remove(id),
+    updateInvoice: (input: {
+      id: number;
+      status?: InvoiceStatus;
+      notes?: string;
+      dueDate?: string;
+    }) => update({ input }),
+    deleteInvoice: (id: number) => remove({ id }),
   };
 }

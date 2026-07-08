@@ -1,10 +1,4 @@
-import {
-  useQuery,
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-  type InfiniteData,
-} from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   INVOICES_QUERY,
   INVOICE_QUERY,
@@ -19,10 +13,16 @@ import {
 import type {
   Invoice,
   InvoiceItem,
-  InvoiceConnection,
   InvoiceStatus,
 } from "@/types/invoices.types";
-import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import { gqlFetch } from "@/lib/apollo";
+import { useGqlConnectionQuery } from "@/lib/gqlQuery";
+import { useGqlMutation } from "@/lib/gqlMutation";
+import {
+  patchConnection,
+  removeFromConnection,
+  patchNestedField,
+} from "@/lib/cachePatch";
 
 const LIMIT = 20;
 
@@ -37,8 +37,8 @@ export function useInvoices(
     ...(search ? { search } : {}),
   };
 
-  const { data, fetchNextPage, hasNextPage, isLoading, error } =
-    useInfiniteQuery<InvoiceConnection>({
+  const { items, total, hasMore, loadMore, loading, error } =
+    useGqlConnectionQuery({
       queryKey: [
         "invoices",
         {
@@ -47,26 +47,13 @@ export function useInvoices(
           search: search ?? null,
         },
       ],
-      queryFn: ({ pageParam }) =>
-        gqlFetch<{ invoices: InvoiceConnection }>(INVOICES_QUERY, {
-          ...baseVars,
-          pagination: {
-            limit: LIMIT,
-            ...(pageParam != null ? { cursor: pageParam as number } : {}),
-          },
-        }).then((d) => d.invoices),
-      initialPageParam: undefined,
-      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      query: INVOICES_QUERY,
+      variables: baseVars,
+      select: (d) => d.invoices,
+      limit: LIMIT,
     });
 
-  return {
-    invoices: data?.pages.flatMap((p) => p.items) ?? [],
-    total: data?.pages[0]?.total ?? 0,
-    hasMore: !!hasNextPage,
-    loadMore: () => void fetchNextPage(),
-    loading: isLoading,
-    error,
-  };
+  return { invoices: items, total, hasMore, loadMore, loading, error };
 }
 
 export function useInvoice(id: number) {
@@ -74,7 +61,7 @@ export function useInvoice(id: number) {
     queryKey: ["invoice", id],
     queryFn: () =>
       gqlFetch<{ invoice: Invoice }>(INVOICE_QUERY, { id }).then(
-        (d) => d.invoice,
+        (d) => d.invoice ?? null,
       ),
     enabled: !!id,
   });
@@ -83,23 +70,20 @@ export function useInvoice(id: number) {
 
 export function useCreateInvoice() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: {
-      clientId?: number;
-      currency?: string;
-      dueDate?: string;
-      notes?: string;
-    }) =>
-      gqlMutate<{ createInvoice: Invoice }>(CREATE_INVOICE_MUTATION, {
-        input,
-      }).then((d) => d.createInvoice),
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: CREATE_INVOICE_MUTATION,
+    unwrap: (d) => d.createInvoice,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["invoices"] });
     },
   });
   return {
-    createInvoice: (input: Parameters<typeof mutateAsync>[0]) =>
-      mutateAsync(input),
+    createInvoice: (input: {
+      clientId?: number;
+      currency?: string;
+      dueDate?: string;
+      notes?: string;
+    }) => mutateAsync({ input }),
     loading: isPending,
     error,
   };
@@ -107,24 +91,21 @@ export function useCreateInvoice() {
 
 export function useGenerateInvoice() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: {
-      projectId: number;
-      clientId?: number;
-      currency?: string;
-      dueDate?: string;
-      hourlyRate?: number;
-    }) =>
-      gqlMutate<{ generateInvoice: Invoice }>(GENERATE_INVOICE_MUTATION, {
-        input,
-      }).then((d) => d.generateInvoice),
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: GENERATE_INVOICE_MUTATION,
+    unwrap: (d) => d.generateInvoice,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["invoices"] });
     },
   });
   return {
-    generateInvoice: (input: Parameters<typeof mutateAsync>[0]) =>
-      mutateAsync(input),
+    generateInvoice: (input: {
+      projectId: number;
+      clientId?: number;
+      currency?: string;
+      dueDate?: string;
+      hourlyRate?: number;
+    }) => mutateAsync({ input }),
     loading: isPending,
     error,
   };
@@ -132,8 +113,16 @@ export function useGenerateInvoice() {
 
 export function useUpdateInvoice(id: number) {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: {
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: UPDATE_INVOICE_MUTATION,
+    unwrap: (d) => d.updateInvoice,
+    onSuccess: (updated) => {
+      patchConnection(queryClient, ["invoices"], updated, (inv) => inv.id);
+      queryClient.setQueryData(["invoice", id], updated);
+    },
+  });
+  return {
+    updateInvoice: (input: {
       id: number;
       status?: InvoiceStatus;
       currency?: string;
@@ -141,32 +130,7 @@ export function useUpdateInvoice(id: number) {
       paidAt?: string;
       notes?: string;
       clientId?: number;
-    }) =>
-      gqlMutate<{ updateInvoice: Invoice }>(UPDATE_INVOICE_MUTATION, {
-        input,
-      }).then((d) => d.updateInvoice),
-    onSuccess: (updated) => {
-      queryClient.setQueriesData<InfiniteData<InvoiceConnection>>(
-        { queryKey: ["invoices"] },
-        (old) =>
-          old
-            ? {
-                ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  items: page.items.map((inv) =>
-                    inv.id === updated.id ? updated : inv,
-                  ),
-                })),
-              }
-            : old,
-      );
-      queryClient.setQueryData(["invoice", id], updated);
-    },
-  });
-  return {
-    updateInvoice: (input: Parameters<typeof mutateAsync>[0]) =>
-      mutateAsync(input),
+    }) => mutateAsync({ input }),
     loading: isPending,
     error,
   };
@@ -174,31 +138,21 @@ export function useUpdateInvoice(id: number) {
 
 export function useDeleteInvoice() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (invoiceId: number) =>
-      gqlMutate<{ deleteInvoice: boolean }>(DELETE_INVOICE_MUTATION, {
-        id: invoiceId,
-      }).then((d) => d.deleteInvoice),
-    onSuccess: (_data, invoiceId) => {
-      queryClient.setQueriesData<InfiniteData<InvoiceConnection>>(
-        { queryKey: ["invoices"] },
-        (old) =>
-          old
-            ? {
-                ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  items: page.items.filter((inv) => inv.id !== invoiceId),
-                  total: page.total - 1,
-                })),
-              }
-            : old,
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: DELETE_INVOICE_MUTATION,
+    unwrap: (d) => d.deleteInvoice,
+    onSuccess: (_data, { id }) => {
+      removeFromConnection(
+        queryClient,
+        ["invoices"],
+        id,
+        (inv: Invoice) => inv.id,
       );
-      queryClient.removeQueries({ queryKey: ["invoice", invoiceId] });
+      queryClient.removeQueries({ queryKey: ["invoice", id] });
     },
   });
   return {
-    deleteInvoice: (invoiceId: number) => mutateAsync(invoiceId),
+    deleteInvoice: (invoiceId: number) => mutateAsync({ id: invoiceId }),
     loading: isPending,
     error,
   };
@@ -206,26 +160,29 @@ export function useDeleteInvoice() {
 
 export function useAddInvoiceItem(invoiceId: number) {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: {
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: ADD_INVOICE_ITEM_MUTATION,
+    unwrap: (d) => d.addInvoiceItem,
+    onSuccess: (newItem) => {
+      patchNestedField<Invoice, InvoiceItem>(
+        queryClient,
+        ["invoice", invoiceId],
+        "items",
+        newItem,
+        (i) => i.id,
+        "add",
+      );
+    },
+  });
+  return {
+    addItem: (input: {
       invoiceId: number;
       description?: string;
       quantity: number;
       unitPrice: number;
       projectId?: number;
       timeEntryId?: number;
-    }) =>
-      gqlMutate<{ addInvoiceItem: InvoiceItem }>(ADD_INVOICE_ITEM_MUTATION, {
-        input,
-      }).then((d) => d.addInvoiceItem),
-    onSuccess: (newItem) => {
-      queryClient.setQueryData<Invoice>(["invoice", invoiceId], (old) =>
-        old ? { ...old, items: [...old.items, newItem] } : old,
-      );
-    },
-  });
-  return {
-    addItem: (input: Parameters<typeof mutateAsync>[0]) => mutateAsync(input),
+    }) => mutateAsync({ input }),
     loading: isPending,
     error,
   };
@@ -233,27 +190,17 @@ export function useAddInvoiceItem(invoiceId: number) {
 
 export function useUpdateInvoiceItem(invoiceId: number) {
   const queryClient = useQueryClient();
-  const { mutateAsync } = useMutation({
-    mutationFn: (input: {
-      id: number;
-      description?: string;
-      quantity?: number;
-      unitPrice?: number;
-    }) =>
-      gqlMutate<{ updateInvoiceItem: InvoiceItem }>(
-        UPDATE_INVOICE_ITEM_MUTATION,
-        { input },
-      ).then((d) => d.updateInvoiceItem),
+  const { mutateAsync } = useGqlMutation({
+    mutation: UPDATE_INVOICE_ITEM_MUTATION,
+    unwrap: (d) => d.updateInvoiceItem,
     onSuccess: (updated) => {
-      queryClient.setQueryData<Invoice>(["invoice", invoiceId], (old) =>
-        old
-          ? {
-              ...old,
-              items: old.items.map((item) =>
-                item.id === updated.id ? updated : item,
-              ),
-            }
-          : old,
+      patchNestedField<Invoice, InvoiceItem>(
+        queryClient,
+        ["invoice", invoiceId],
+        "items",
+        updated,
+        (i) => i.id,
+        "upsert",
       );
     },
   });
@@ -263,27 +210,25 @@ export function useUpdateInvoiceItem(invoiceId: number) {
       description?: string;
       quantity?: number;
       unitPrice?: number;
-    }) => mutateAsync(input),
+    }) => mutateAsync({ input }),
   };
 }
 
 export function useRemoveInvoiceItem(invoiceId: number) {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (itemId: number) =>
-      gqlMutate<{ removeInvoiceItem: boolean }>(REMOVE_INVOICE_ITEM_MUTATION, {
-        id: itemId,
-      }).then((d) => d.removeInvoiceItem),
-    onSuccess: (_data, itemId) => {
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: REMOVE_INVOICE_ITEM_MUTATION,
+    unwrap: (d) => d.removeInvoiceItem,
+    onSuccess: (_data, { id }) => {
       queryClient.setQueryData<Invoice>(["invoice", invoiceId], (old) =>
         old
-          ? { ...old, items: old.items.filter((item) => item.id !== itemId) }
+          ? { ...old, items: old.items.filter((item) => item.id !== id) }
           : old,
       );
     },
   });
   return {
-    removeItem: (itemId: number) => mutateAsync(itemId),
+    removeItem: (itemId: number) => mutateAsync({ id: itemId }),
     loading: isPending,
     error,
   };

@@ -25,9 +25,6 @@ import {
   useDisconnectHubspot,
   useForceDisconnectHubspot,
   useHubspotAdminConnections,
-  useHubspotCompanies,
-  useHubspotDeals,
-  useHubspotContacts,
   useHubspotStatus,
   useImportHubspotContact,
   useInfiniteHubspotCompanies,
@@ -325,71 +322,6 @@ describe("useImportHubspotContact", () => {
 
     expect(apiPost).toHaveBeenCalledWith("/hubspot/contacts/c1/import-client");
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["clients"] });
-  });
-});
-
-describe("useHubspotContacts", () => {
-  beforeEach(() => {
-    apiGet.mockReset();
-  });
-
-  it("fetches without query params when after/limit are omitted", async () => {
-    apiGet.mockResolvedValueOnce({ results: [] });
-
-    const { result } = renderHook(() => useHubspotContacts(), {
-      wrapper: createQueryWrapper(),
-    });
-
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(apiGet).toHaveBeenCalledWith("/hubspot/contacts");
-  });
-
-  it("includes after and limit in the query string when provided", async () => {
-    apiGet.mockResolvedValueOnce({ results: [] });
-
-    renderHook(() => useHubspotContacts("cursor-1", 10), {
-      wrapper: createQueryWrapper(),
-    });
-
-    await waitFor(() =>
-      expect(apiGet).toHaveBeenCalledWith(
-        "/hubspot/contacts?after=cursor-1&limit=10",
-      ),
-    );
-  });
-});
-
-describe("useHubspotCompanies", () => {
-  beforeEach(() => {
-    apiGet.mockReset();
-  });
-
-  it("fetches companies with the given after/limit", async () => {
-    apiGet.mockResolvedValueOnce({ results: [{ id: "co1" }] });
-
-    const { result } = renderHook(() => useHubspotCompanies("cursor-2", 5), {
-      wrapper: createQueryWrapper(),
-    });
-
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(apiGet).toHaveBeenCalledWith(
-      "/hubspot/companies?after=cursor-2&limit=5",
-    );
-    expect(result.current.data).toEqual({ results: [{ id: "co1" }] });
-  });
-});
-
-describe("useHubspotDeals", () => {
-  beforeEach(() => {
-    apiGet.mockReset();
-  });
-
-  it("fetches deals without query params when after/limit are omitted", async () => {
-    apiGet.mockResolvedValueOnce({ results: [] });
-
-    renderHook(() => useHubspotDeals(), { wrapper: createQueryWrapper() });
-
-    await waitFor(() => expect(apiGet).toHaveBeenCalledWith("/hubspot/deals"));
   });
 });
 

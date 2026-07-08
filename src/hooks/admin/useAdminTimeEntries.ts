@@ -1,71 +1,46 @@
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-  type InfiniteData,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ADMIN_TIME_ENTRIES_QUERY,
   ADMIN_DELETE_TIME_ENTRY_MUTATION,
 } from "../../graphql/admin.operations";
-import type { AdminTimeEntry, AdminConnection } from "@/types/admin.types";
-import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import type { AdminTimeEntry } from "@/types/admin.types";
+import { useGqlConnectionQuery } from "@/lib/gqlQuery";
+import { useGqlMutation } from "@/lib/gqlMutation";
+import { removeFromConnection } from "@/lib/cachePatch";
 
 const LIMIT = 20;
 
 export function useAdminTimeEntries(userId?: number) {
-  const { data, fetchNextPage, hasNextPage, isLoading } = useInfiniteQuery<
-    AdminConnection<AdminTimeEntry>
-  >({
+  const { items, total, hasMore, loadMore, loading } = useGqlConnectionQuery({
     queryKey: ["adminTimeEntries", { userId: userId ?? null }],
-    queryFn: ({ pageParam }) =>
-      gqlFetch<{ adminTimeEntries: AdminConnection<AdminTimeEntry> }>(
-        ADMIN_TIME_ENTRIES_QUERY,
-        {
-          userId,
-          pagination: {
-            limit: LIMIT,
-            ...(pageParam != null ? { cursor: pageParam as number } : {}),
-          },
-        },
-      ).then((d) => d.adminTimeEntries),
-    initialPageParam: undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    query: ADMIN_TIME_ENTRIES_QUERY,
+    variables: { userId },
+    select: (d) => d.adminTimeEntries,
+    limit: LIMIT,
   });
 
   return {
-    entries: data?.pages.flatMap((p) => p.items) ?? [],
-    loading: isLoading,
-    total: data?.pages[0]?.total ?? 0,
-    hasMore: !!hasNextPage,
-    loadMore: () => void fetchNextPage(),
+    entries: items,
+    loading,
+    total,
+    hasMore,
+    loadMore,
   };
 }
 
 export function useAdminDeleteTimeEntry() {
   const queryClient = useQueryClient();
-  const { mutateAsync } = useMutation({
-    mutationFn: (id: number) =>
-      gqlMutate<{ adminDeleteTimeEntry: { id: number } }>(
-        ADMIN_DELETE_TIME_ENTRY_MUTATION,
-        { id },
-      ).then((d) => d.adminDeleteTimeEntry),
-    onSuccess: (_data, id) => {
-      queryClient.setQueriesData<InfiniteData<AdminConnection<AdminTimeEntry>>>(
-        { queryKey: ["adminTimeEntries"] },
-        (old) =>
-          old
-            ? {
-                ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  items: page.items.filter((e) => e.id !== id),
-                  total: page.total - 1,
-                })),
-              }
-            : old,
+  const { mutateAsync } = useGqlMutation({
+    mutation: ADMIN_DELETE_TIME_ENTRY_MUTATION,
+    unwrap: (d) => d.adminDeleteTimeEntry,
+    onSuccess: (_data, { id }) => {
+      removeFromConnection(
+        queryClient,
+        ["adminTimeEntries"],
+        id,
+        (e: AdminTimeEntry) => e.id,
       );
     },
   });
-  return { deleteEntry: (id: number) => mutateAsync(id) };
+  return { deleteEntry: (id: number) => mutateAsync({ id }) };
 }

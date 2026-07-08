@@ -113,6 +113,46 @@ describe("AdminProjectsTable", () => {
     );
   });
 
+  it("changes the status filter and refetches with that status", async () => {
+    gqlFetch.mockResolvedValue({ adminProjects: makeConnection([]) });
+    renderTable();
+    await screen.findByText("No projects found.");
+
+    fireEvent.click(screen.getAllByRole("combobox")[0]!);
+    fireEvent.click(screen.getByRole("option", { name: "ACTIVE" }));
+
+    await waitFor(() =>
+      expect(
+        gqlFetch.mock.calls.some(
+          (c) => (c[1] as Record<string, unknown>)?.status === "ACTIVE",
+        ),
+      ).toBe(true),
+    );
+  });
+
+  it("selects and deselects all rows via the header checkbox, and toggles a single row off", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminProjects: makeConnection([
+        makeProject({ id: 1, title: "Docs" }),
+        makeProject({ id: 2, title: "Manual" }),
+      ]),
+    });
+    renderTable();
+    await screen.findByText("Docs");
+    await screen.findByText("Manual");
+
+    const [headerCheckbox, rowCheckbox] = screen.getAllByRole("checkbox");
+    fireEvent.click(rowCheckbox!);
+    fireEvent.click(rowCheckbox!);
+    expect(screen.queryByText(/selected/)).not.toBeInTheDocument();
+
+    fireEvent.click(headerCheckbox!);
+    expect(screen.getByText("2 selected")).toBeInTheDocument();
+
+    fireEvent.click(headerCheckbox!);
+    expect(screen.queryByText("2 selected")).not.toBeInTheDocument();
+  });
+
   it("exports rows as CSV", async () => {
     gqlFetch.mockResolvedValueOnce({
       adminProjects: makeConnection([makeProject({ title: "Docs" })]),
@@ -167,6 +207,55 @@ describe("AdminProjectsTable", () => {
     );
   });
 
+  it("creates a project with status, deadline, and word count set", async () => {
+    gqlFetch.mockResolvedValueOnce({ adminProjects: makeConnection([]) });
+    gqlMutate.mockResolvedValueOnce({
+      adminCreateProject: makeProject({ id: 10, title: "Full" }),
+    });
+    renderTable();
+    await screen.findByText("No projects found.");
+
+    fireEvent.click(screen.getByRole("button", { name: "+ New Project" }));
+    const dialog = screen.getByRole("dialog");
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "Full" },
+    });
+    fireEvent.click(within(dialog).getByRole("combobox"));
+    fireEvent.click(screen.getByRole("option", { name: "ACTIVE" }));
+    fireEvent.change(dialog.querySelector('input[type="date"]')!, {
+      target: { value: "2026-08-01" },
+    });
+    fireEvent.change(dialog.querySelector('input[type="number"]')!, {
+      target: { value: "500" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() =>
+      expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+        input: expect.objectContaining({ title: "Full", status: "ACTIVE" }),
+      }),
+    );
+  });
+
+  it("closes the New Project dialog via Escape without creating", async () => {
+    gqlFetch.mockResolvedValueOnce({ adminProjects: makeConnection([]) });
+    renderTable();
+    await screen.findByText("No projects found.");
+
+    fireEvent.click(screen.getByRole("button", { name: "+ New Project" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.keyDown(screen.getByRole("dialog"), {
+      key: "Escape",
+      code: "Escape",
+    });
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
   it("Create button is disabled until a title is entered", async () => {
     gqlFetch.mockResolvedValueOnce({ adminProjects: makeConnection([]) });
     renderTable();
@@ -215,6 +304,105 @@ describe("AdminProjectsTable", () => {
         input: expect.objectContaining({ id: 3, title: "New title" }),
       }),
     );
+  });
+
+  it("saves with deadline/wordCount left blank, sending undefined for both", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminProjects: makeConnection([
+        makeProject({ id: 6, title: "Blank fields" }),
+      ]),
+    });
+    gqlMutate.mockResolvedValueOnce({
+      adminUpdateProject: makeProject({ id: 6 }),
+    });
+    renderTable();
+    await screen.findByText("Blank fields");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+        input: expect.objectContaining({
+          id: 6,
+          deadline: undefined,
+          wordCount: undefined,
+        }),
+      }),
+    );
+  });
+
+  it("changes status and word count within the Edit dialog before saving", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminProjects: makeConnection([
+        makeProject({ id: 7, title: "Editable" }),
+      ]),
+    });
+    gqlMutate.mockResolvedValueOnce({
+      adminUpdateProject: makeProject({ id: 7, status: "COMPLETED" }),
+    });
+    renderTable();
+    await screen.findByText("Editable");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    const dialog = screen.getByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("combobox"));
+    fireEvent.click(screen.getByRole("option", { name: "COMPLETED" }));
+    fireEvent.change(dialog.querySelector('input[type="date"]')!, {
+      target: { value: "2026-09-01" },
+    });
+    fireEvent.change(dialog.querySelector('input[type="number"]')!, {
+      target: { value: "250" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+        input: expect.objectContaining({
+          id: 7,
+          status: "COMPLETED",
+          deadline: "2026-09-01",
+          wordCount: 250,
+        }),
+      }),
+    );
+  });
+
+  it("cancels the Edit dialog without saving", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminProjects: makeConnection([
+        makeProject({ id: 8, title: "Untouched" }),
+      ]),
+    });
+    renderTable();
+    await screen.findByText("Untouched");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("closes the Edit dialog via Escape without saving", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminProjects: makeConnection([makeProject({ id: 9, title: "Esc me" })]),
+    });
+    renderTable();
+    await screen.findByText("Esc me");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.keyDown(screen.getByRole("dialog"), {
+      key: "Escape",
+      code: "Escape",
+    });
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    expect(gqlMutate).not.toHaveBeenCalled();
   });
 
   it("deletes a single project via its row confirm dialog", async () => {

@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LEGAL_FORMS, TIMEZONES } from "@/constants/activities";
+import { isValidHttpUrl, isValidOptionalEmail } from "@/lib/schemas";
 import type { ActivityInfoFormProps } from "@/types/activities.types";
 
 export function ActivityInfoForm({
@@ -30,9 +31,19 @@ export function ActivityInfoForm({
   const [website, setWebsite] = useState(initial.website ?? "");
   const [timezone, setTimezone] = useState(initial.timezone ?? "");
   const [saved, setSaved] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!isValidOptionalEmail(professionalEmail.trim())) {
+      setValidationError("Enter a valid professional email address");
+      return;
+    }
+    if (!isValidHttpUrl(website.trim())) {
+      setValidationError("Enter a valid website URL");
+      return;
+    }
+    setValidationError(null);
     await updateActivity({
       id: activityId,
       name: name.trim() || null,
@@ -123,6 +134,9 @@ export function ActivityInfoForm({
           </Select>
         </div>
       </div>
+      {validationError && (
+        <p className="text-sm text-destructive">{validationError}</p>
+      )}
       {saved && (
         <p className="text-sm text-emerald-600 dark:text-emerald-400">Saved.</p>
       )}

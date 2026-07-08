@@ -128,3 +128,53 @@ export async function mockClockifyTracker(page: Page, workspaceId = "ws1") {
     },
   );
 }
+
+export async function mockGoogleCalendarStatus(
+  page: Page,
+  status: { connected: boolean; email: string | null },
+) {
+  await page.route("**/google-calendar/status", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(status),
+    });
+  });
+}
+
+export async function mockGoogleCalendarEvents(
+  page: Page,
+  events: {
+    id: string;
+    summary?: string;
+    start: { date?: string; dateTime?: string };
+    end: { date?: string; dateTime?: string };
+    htmlLink?: string;
+  }[] = [],
+) {
+  await page.route(
+    new RegExp("/google-calendar/events(\\?.*)?$"),
+    async (route) => {
+      if (route.request().method() === "GET") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ items: events }),
+        });
+        return;
+      }
+      if (route.request().method() === "POST") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            id: "e-new",
+            ...(route.request().postDataJSON() as object),
+          }),
+        });
+        return;
+      }
+      await route.continue();
+    },
+  );
+}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useCurrentUser, useUpdateMe } from "@/hooks/auth/useAuth";
+import { isValidEmail, isValidHttpsUrl } from "@/lib/schemas";
 
 export function useProfileForm() {
   const { user } = useCurrentUser();
@@ -25,9 +26,19 @@ export function useProfileForm() {
     user?.numberFormat ?? "1,234.56",
   );
   const [saved, setSaved] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   async function handleSaveProfile(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!isValidEmail(email.trim())) {
+      setValidationError("Enter a valid email address");
+      return;
+    }
+    if (!isValidHttpsUrl(logoUrl.trim())) {
+      setValidationError("Logo URL must be a valid https:// address");
+      return;
+    }
+    setValidationError(null);
     const first = firstName.trim() || null;
     const last = lastName.trim() || null;
     try {
@@ -36,15 +47,15 @@ export function useProfileForm() {
           first || last ? [first, last].filter(Boolean).join(" ") : undefined,
         email: email.trim(),
         logoUrl: logoUrl.trim() || undefined,
-        defaultCurrency: defaultCurrency || undefined,
+        defaultCurrency,
         firstName: first,
         lastName: last,
         mobilePhone: mobilePhone.trim() || null,
         jobTitle: jobTitle.trim() || null,
-        interfaceLanguage: interfaceLanguage || null,
-        dateFormat: dateFormat || null,
-        hourFormat: hourFormat || null,
-        numberFormat: numberFormat || null,
+        interfaceLanguage,
+        dateFormat,
+        hourFormat,
+        numberFormat,
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -80,6 +91,7 @@ export function useProfileForm() {
     saved,
     saving,
     saveError,
+    validationError,
     handleSaveProfile,
   };
 }

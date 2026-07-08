@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { STATUS_LABELS } from "@/types/clients.types";
+import { STATUS_LABELS } from "@/constants/clients";
 import type {
   DashboardProspect,
   ProspectsToContactProps as Props,

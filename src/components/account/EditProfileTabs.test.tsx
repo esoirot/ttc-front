@@ -99,4 +99,16 @@ describe("EditProfileTabs", () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it("switches to the Google Calendar tab", async () => {
+    renderTabs();
+
+    fireEvent.focus(screen.getByRole("tab", { name: "Google Calendar" }));
+
+    expect(
+      await screen.findByText(
+        "Connect your Google account to see your events on the dashboard and create new ones.",
+      ),
+    ).toBeInTheDocument();
+  });
 });

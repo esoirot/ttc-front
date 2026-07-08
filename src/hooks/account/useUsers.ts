@@ -1,49 +1,49 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   USERS_QUERY,
   MEMBERS_QUERY,
   UPDATE_USER_MUTATION,
   DELETE_USER_MUTATION,
 } from "../../graphql/users.operations";
-import type {
-  User,
-  Member,
-  UserRole,
-  AdminPermission,
-} from "@/types/users.types";
-import { gqlFetch, gqlMutate } from "@/lib/apollo";
+import type { User, UserRole, AdminPermission } from "@/types/users.types";
+import { useGqlQuery } from "@/lib/gqlQuery";
+import { useGqlMutation } from "@/lib/gqlMutation";
+import { removeFromFlatArray } from "@/lib/cachePatch";
 
 export function useUsers() {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useGqlQuery({
     queryKey: ["users"],
-    queryFn: () =>
-      gqlFetch<{ users: User[] }>(USERS_QUERY).then((d) => d.users),
+    query: USERS_QUERY,
+    select: (d) => d.users,
   });
   return { users: data ?? [], loading: isLoading, error };
 }
 
 export function useMembers() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useGqlQuery({
     queryKey: ["members"],
-    queryFn: () =>
-      gqlFetch<{ members: Member[] }>(MEMBERS_QUERY).then((d) => d.members),
+    query: MEMBERS_QUERY,
+    select: (d) => d.members,
   });
   return { members: data ?? [], loading: isLoading };
 }
 
+interface UpdateUserInput {
+  id: number;
+  role?: UserRole;
+  name?: string;
+  email?: string;
+  adminPermissions?: AdminPermission[];
+}
+
 export function useUpdateUser() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (updateUserInput: {
-      id: number;
-      role?: UserRole;
-      name?: string;
-      email?: string;
-      adminPermissions?: AdminPermission[];
-    }) =>
-      gqlMutate<{
-        updateUser: Pick<User, "id" | "role" | "adminPermissions">;
-      }>(UPDATE_USER_MUTATION, { updateUserInput }).then((d) => d.updateUser),
+  // Not migrated to patchFlatArray: `updated` is only Pick<User, "id" | "role" |
+  // "adminPermissions"> from the server, so this merges onto the existing cached
+  // user rather than replacing it wholesale.
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: UPDATE_USER_MUTATION,
+    unwrap: (d) => d.updateUser,
     onSuccess: (updated) => {
       queryClient.setQueryData<User[]>(
         ["users"],
@@ -54,8 +54,8 @@ export function useUpdateUser() {
     },
   });
   return {
-    updateUser: (input: Parameters<typeof mutateAsync>[0]) =>
-      mutateAsync(input),
+    updateUser: (updateUserInput: UpdateUserInput) =>
+      mutateAsync({ updateUserInput }),
     loading: isPending,
     error,
   };
@@ -63,20 +63,15 @@ export function useUpdateUser() {
 
 export function useDeleteUser() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (id: number) =>
-      gqlMutate<{ removeUser: { id: number } }>(DELETE_USER_MUTATION, {
-        id,
-      }).then((d) => d.removeUser),
-    onSuccess: (_data, id) => {
-      queryClient.setQueryData<User[]>(
-        ["users"],
-        (old) => old?.filter((u) => u.id !== id) ?? [],
-      );
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: DELETE_USER_MUTATION,
+    unwrap: (d) => d.removeUser,
+    onSuccess: (_data, { id }) => {
+      removeFromFlatArray(queryClient, ["users"], id, (u: User) => u.id);
     },
   });
   return {
-    deleteUser: (id: number) => mutateAsync(id),
+    deleteUser: (id: number) => mutateAsync({ id }),
     loading: isPending,
     error,
   };

@@ -42,7 +42,7 @@ export const UPDATE_TRANSLATION_RATE_MUTATION: TypedDocumentNode<
     input: {
       id: number;
       type?: TranslationRateType;
-      activityId?: number;
+      activityId?: number | null;
       name?: string;
       amount?: number;
       currency?: string;

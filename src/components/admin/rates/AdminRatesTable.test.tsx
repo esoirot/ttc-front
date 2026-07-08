@@ -131,6 +131,46 @@ describe("AdminRatesTable", () => {
     expect(screen.getByText("25.00")).toBeInTheDocument();
   });
 
+  it("changes the type filter and refetches with that type", async () => {
+    gqlFetch.mockResolvedValue({ adminRates: makeConnection([]) });
+    renderTable();
+    await screen.findByText("No rates found.");
+
+    fireEvent.click(screen.getAllByRole("combobox")[0]!);
+    fireEvent.click(screen.getByRole("option", { name: "HOURLY" }));
+
+    await waitFor(() =>
+      expect(
+        gqlFetch.mock.calls.some(
+          (c) => (c[1] as Record<string, unknown>)?.type === "HOURLY",
+        ),
+      ).toBe(true),
+    );
+  });
+
+  it("selects and deselects all rows via the header checkbox, and toggles a single row off", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminRates: makeConnection([
+        makeRate({ id: 1, name: "Rate A" }),
+        makeRate({ id: 2, name: "Rate B" }),
+      ]),
+    });
+    renderTable();
+    await screen.findByText("Rate A");
+    await screen.findByText("Rate B");
+
+    const [headerCheckbox, rowCheckbox] = screen.getAllByRole("checkbox");
+    fireEvent.click(rowCheckbox!);
+    fireEvent.click(rowCheckbox!);
+    expect(screen.queryByText(/selected/)).not.toBeInTheDocument();
+
+    fireEvent.click(headerCheckbox!);
+    expect(screen.getByText("2 selected")).toBeInTheDocument();
+
+    fireEvent.click(headerCheckbox!);
+    expect(screen.queryByText("2 selected")).not.toBeInTheDocument();
+  });
+
   it("exports rows as CSV", async () => {
     gqlFetch.mockResolvedValueOnce({
       adminRates: makeConnection([makeRate({ name: "Rush job" })]),
@@ -203,6 +243,25 @@ describe("AdminRatesTable", () => {
     expect(gqlMutate).not.toHaveBeenCalled();
   });
 
+  it("closes the New Rate dialog via Escape without creating", async () => {
+    gqlFetch.mockResolvedValueOnce({ adminRates: makeConnection([]) });
+    renderTable();
+    await screen.findByText("No rates found.");
+
+    fireEvent.click(screen.getByRole("button", { name: "+ New Rate" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.keyDown(screen.getByRole("dialog"), {
+      key: "Escape",
+      code: "Escape",
+    });
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
   it("opens Edit pre-filled and saves an update", async () => {
     gqlFetch.mockResolvedValueOnce({
       adminRates: makeConnection([makeRate({ id: 3, name: "Old rate" })]),
@@ -224,6 +283,63 @@ describe("AdminRatesTable", () => {
         input: expect.objectContaining({ id: 3, name: "New name" }),
       }),
     );
+  });
+
+  it("sends activityId as a number when editing a rate that has one", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminRates: makeConnection([
+        makeRate({ id: 6, name: "Has activity", activityId: 7 }),
+      ]),
+    });
+    gqlMutate.mockResolvedValueOnce({
+      adminUpdateRate: makeRate({ id: 6 }),
+    });
+    renderTable();
+    await screen.findByText("Has activity");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+        input: expect.objectContaining({ id: 6, activityId: 7 }),
+      }),
+    );
+  });
+
+  it("cancels the Edit dialog without saving", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminRates: makeConnection([makeRate({ id: 8, name: "Untouched" })]),
+    });
+    renderTable();
+    await screen.findByText("Untouched");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("closes the Edit dialog via Escape without saving", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      adminRates: makeConnection([makeRate({ id: 9, name: "Esc me" })]),
+    });
+    renderTable();
+    await screen.findByText("Esc me");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.keyDown(screen.getByRole("dialog"), {
+      key: "Escape",
+      code: "Escape",
+    });
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    expect(gqlMutate).not.toHaveBeenCalled();
   });
 
   it("deletes a single rate via its row confirm dialog", async () => {

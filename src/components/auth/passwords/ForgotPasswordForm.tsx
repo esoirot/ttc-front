@@ -4,7 +4,7 @@ import { useRequestPasswordReset } from "@/hooks/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { isValidEmail } from "../utils";
+import { isValidEmail } from "@/lib/schemas";
 import { AuthLayout } from "../layouts/AuthLayout";
 
 export function ForgotPasswordForm() {

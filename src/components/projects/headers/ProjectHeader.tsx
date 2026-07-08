@@ -52,18 +52,8 @@ function RatePicker({
   );
 }
 
-export function ProjectHeader({
-  project,
-  clients,
-  onUpdate,
-  saving,
-}: ProjectHeaderProps) {
-  const { rates: userRates } = useRates();
-  const clientIdNum = project.clientId;
-  const { clientRates } = useClientRates(clientIdNum);
-
-  const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({
+function buildFormState(project: ProjectHeaderProps["project"]) {
+  return {
     title: project.title,
     description: project.description ?? "",
     status: project.status,
@@ -77,31 +67,33 @@ export function ProjectHeader({
     perWordRate: project.perWordRate != null ? String(project.perWordRate) : "",
     deadline: project.deadline?.slice(0, 10) ?? "",
     startDate: project.startDate?.slice(0, 10) ?? "",
-  });
+  };
+}
+
+export function ProjectHeader({
+  project,
+  clients,
+  onUpdate,
+  saving,
+}: ProjectHeaderProps) {
+  const { rates: userRates } = useRates();
+  const clientIdNum = project.clientId;
+  const { clientRates } = useClientRates(clientIdNum);
+
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState(() => buildFormState(project));
 
   function resetForm() {
-    setForm({
-      title: project.title,
-      description: project.description ?? "",
-      status: project.status,
-      clientId:
-        project.clientId != null ? String(project.clientId) : "__none__",
-      sourceLanguage: project.sourceLanguage ?? "",
-      targetLanguage: project.targetLanguage ?? "",
-      wordCount: project.wordCount != null ? String(project.wordCount) : "",
-      currency: project.currency ?? "EUR",
-      fixedFee: project.fixedFee != null ? String(project.fixedFee) : "",
-      hourlyRate: project.hourlyRate != null ? String(project.hourlyRate) : "",
-      perWordRate:
-        project.perWordRate != null ? String(project.perWordRate) : "",
-      deadline: project.deadline?.slice(0, 10) ?? "",
-      startDate: project.startDate?.slice(0, 10) ?? "",
-    });
+    setForm(buildFormState(project));
   }
 
   function set(field: keyof typeof form) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  }
+
+  function parseNonNegative(str: string): number | null {
+    return str ? Number(str) : null;
   }
 
   async function handleSave(e: React.SubmitEvent<HTMLFormElement>) {
@@ -114,11 +106,11 @@ export function ProjectHeader({
       status: form.status,
       sourceLanguage: form.sourceLanguage || undefined,
       targetLanguage: form.targetLanguage || undefined,
-      wordCount: form.wordCount ? Number(form.wordCount) : undefined,
+      wordCount: parseNonNegative(form.wordCount) ?? undefined,
       currency: form.currency || undefined,
-      fixedFee: form.fixedFee ? Number(form.fixedFee) : null,
-      hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : null,
-      perWordRate: form.perWordRate ? Number(form.perWordRate) : null,
+      fixedFee: parseNonNegative(form.fixedFee),
+      hourlyRate: parseNonNegative(form.hourlyRate),
+      perWordRate: parseNonNegative(form.perWordRate),
       deadline: form.deadline || undefined,
       startDate: form.startDate || undefined,
     });

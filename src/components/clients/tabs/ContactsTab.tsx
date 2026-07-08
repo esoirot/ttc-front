@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import type { ContactsTabProps } from "@/types/clients.types";
 import { ContactRow } from "../rows/ContactRow";
 import { EMPTY_CONTACT } from "@/constants/clients";
+import { isValidOptionalEmail } from "@/lib/schemas";
 
 export function ContactsTab({
   contacts,
@@ -17,15 +18,25 @@ export function ContactsTab({
 }: ContactsTabProps) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_CONTACT);
+  const [emailTouched, setEmailTouched] = useState(false);
 
   function setField(key: keyof typeof EMPTY_CONTACT, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  const emailError =
+    emailTouched && !isValidOptionalEmail(form.email)
+      ? "Enter a valid email address."
+      : "";
+
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const { firstName, lastName, email, phone } = form;
     if (!firstName && !lastName && !email && !phone) return;
+    if (!isValidOptionalEmail(email)) {
+      setEmailTouched(true);
+      return;
+    }
     await onAdd({
       firstName: firstName || undefined,
       lastName: lastName || undefined,
@@ -33,6 +44,7 @@ export function ContactsTab({
       phone: phone || undefined,
     });
     setForm(EMPTY_CONTACT);
+    setEmailTouched(false);
     setShowForm(false);
   }
 
@@ -84,8 +96,14 @@ export function ContactsTab({
                     type="email"
                     value={form.email}
                     onChange={(e) => setField("email", e.target.value)}
+                    onBlur={() => setEmailTouched(true)}
                     placeholder="jane@acme.com"
                   />
+                  {emailError && (
+                    <span className="text-xs text-destructive">
+                      {emailError}
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-col gap-1">
                   <Label htmlFor="cph">Phone</Label>

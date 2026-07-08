@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -30,38 +31,65 @@ import type { TaskStatus } from "@/types/tasks.types";
 import type { ProjectTaskListProps } from "@/types/projects.types";
 import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
 import { useProjectTaskList } from "@/hooks/projects/useProjectTaskList";
+import { useTaskDragReorder } from "@/hooks/projects/useTaskDragReorder";
+import { useBulkSelection } from "@/hooks/admin/useBulkSelection";
 import { SortableRow } from "../rows/SortableRow";
 
 interface Props extends ProjectTaskListProps {
   onOpenModal: (taskId: number) => void;
 }
 
-export function ProjectTaskList({ projectId, members, onOpenModal }: Props) {
+export function ProjectTaskList({ projectId, onOpenModal }: Props) {
   const {
+    tasks,
     loading,
     hasMore,
     loadMore,
     createLoading,
+    createTask,
     deleteTask,
+    updateTask,
     statusFilter,
     setStatusFilter,
-    selected,
-    bulkStatus,
-    setBulkStatus,
-    showCreate,
-    setShowCreate,
-    newTitle,
-    setNewTitle,
-    sensors,
-    filtered,
-    allSelected,
-    handleCreate,
-    handleSelect,
-    handleSelectAll,
-    handleBulkDelete,
-    handleBulkStatus,
-    handleDragEnd,
-  } = useProjectTaskList({ projectId, members });
+  } = useProjectTaskList({ projectId });
+
+  const { displayTasks, sensors, handleDragEnd } = useTaskDragReorder(
+    tasks,
+    (id, sortOrder) => void updateTask({ id, sortOrder }),
+  );
+
+  const filtered =
+    statusFilter === "ALL"
+      ? displayTasks
+      : displayTasks.filter((t) => t.status === statusFilter);
+
+  const { selected, toggle, toggleAll, clear, isAllSelected } =
+    useBulkSelection(filtered.map((t) => t.id));
+
+  const [showCreate, setShowCreate] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [bulkStatus, setBulkStatus] = useState<TaskStatus>("TODO");
+
+  async function handleCreate() {
+    if (!newTitle.trim()) return;
+    await createTask({ projectId, title: newTitle.trim() });
+    setNewTitle("");
+    setShowCreate(false);
+  }
+
+  async function handleBulkDelete() {
+    for (const id of selected) {
+      await deleteTask(id);
+    }
+    clear();
+  }
+
+  async function handleBulkStatus() {
+    for (const id of selected) {
+      await updateTask({ id, status: bulkStatus });
+    }
+    clear();
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -210,13 +238,18 @@ export function ProjectTaskList({ projectId, members, onOpenModal }: Props) {
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
+          onDragEnd={(e) =>
+            handleDragEnd(
+              e,
+              filtered.map((t) => t.id),
+            )
+          }
         >
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 px-3 py-1 text-xs text-muted-foreground">
               <Checkbox
-                checked={allSelected}
-                onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                checked={isAllSelected}
+                onCheckedChange={() => toggleAll()}
                 aria-label="Select all"
               />
               <span>Select all</span>
@@ -230,7 +263,7 @@ export function ProjectTaskList({ projectId, members, onOpenModal }: Props) {
                   key={task.id}
                   task={task}
                   selected={selected.has(task.id)}
-                  onSelect={handleSelect}
+                  onSelect={(id) => toggle(id)}
                   onOpenModal={onOpenModal}
                   onDelete={(id) => void deleteTask(id)}
                 />
