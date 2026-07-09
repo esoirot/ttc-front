@@ -24,3 +24,20 @@ export const Default: Story = {
     </Tabs>
   ),
 };
+
+export const Line: Story = {
+  render: () => (
+    <Tabs defaultValue="ALL" className="w-80">
+      <TabsList variant="line">
+        <TabsTrigger value="ALL">All</TabsTrigger>
+        <TabsTrigger value="ACTIVE">Active</TabsTrigger>
+        <TabsTrigger value="DRAFT">Draft</TabsTrigger>
+        <TabsTrigger value="COMPLETED">Completed</TabsTrigger>
+      </TabsList>
+      <TabsContent value="ALL">All projects.</TabsContent>
+      <TabsContent value="ACTIVE">Active projects.</TabsContent>
+      <TabsContent value="DRAFT">Draft projects.</TabsContent>
+      <TabsContent value="COMPLETED">Completed projects.</TabsContent>
+    </Tabs>
+  ),
+};

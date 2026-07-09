@@ -1,4 +1,7 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EditableTimeField } from "@/components/time/EditableTimeField";
+import { useUpdateTimeEntry } from "@/hooks/time/useTimeEntries";
 import type {
   DashboardTimeEntry,
   RecentTimeEntriesProps as Props,
@@ -11,6 +14,15 @@ function formatDuration(seconds: number): string {
 }
 
 export function RecentTimeEntries({ entries }: Props) {
+  const queryClient = useQueryClient();
+  const { updateTimeEntry } = useUpdateTimeEntry();
+
+  function commitStartTime(id: number, newIso: string) {
+    void updateTimeEntry({ id, startTime: newIso }).then(() => {
+      void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    });
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -34,8 +46,13 @@ export function RecentTimeEntries({ entries }: Props) {
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {e.startTime.slice(0, 16).replace("T", " ")}
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <span>{e.startTime.slice(0, 10)}</span>
+                    <EditableTimeField
+                      iso={e.startTime}
+                      label="start time"
+                      onCommit={(newIso) => commitStartTime(e.id, newIso)}
+                    />
                   </p>
                 </div>
                 <span className="text-xs font-mono text-muted-foreground">

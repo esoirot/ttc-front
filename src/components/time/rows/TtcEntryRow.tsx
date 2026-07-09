@@ -16,7 +16,8 @@ import { cn } from "@/lib/utils";
 
 import type { TtcUpdateInput } from "@/types/time-entries.types";
 import { TtcTagChips } from "../tags/TtcTagChips";
-import { formatTime, secsToHms } from "../ttcHelpers";
+import { EditableTimeField } from "../EditableTimeField";
+import { secsToHms } from "../ttcHelpers";
 import { useTasks, useTask } from "@/hooks/tasks/useTasks";
 
 export function TtcEntryRow({
@@ -26,6 +27,7 @@ export function TtcEntryRow({
   onDelete,
   onResume,
   onUpdate,
+  stackedTime = false,
 }: {
   entry: TimeEntry;
   projects: Project[];
@@ -33,6 +35,8 @@ export function TtcEntryRow({
   onDelete: (id: number) => void;
   onResume?: (entry: TimeEntry) => void;
   onUpdate: (input: TtcUpdateInput) => void;
+  /** Stack start/end/duration on 3 labeled lines instead of 1 — used in the cramped task modal sidebar. */
+  stackedTime?: boolean;
 }) {
   const [editingDesc, setEditingDesc] = useState(false);
   const [descValue, setDescValue] = useState(entry.description ?? "");
@@ -320,21 +324,66 @@ export function TtcEntryRow({
             $
           </Button>
         </div>
-        <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
-          <span>{formatTime(entry.startTime)}</span>
-          <span>-</span>
-          {entry.endTime ? (
-            <span>{formatTime(entry.endTime)}</span>
+        {(() => {
+          const startField = (
+            <EditableTimeField
+              iso={entry.startTime}
+              label="start time"
+              isValid={(newIso) => !entry.endTime || newIso < entry.endTime}
+              onCommit={(newIso) =>
+                onUpdate({ id: entry.id, startTime: newIso })
+              }
+            />
+          );
+          const endField = entry.endTime ? (
+            <EditableTimeField
+              iso={entry.endTime}
+              label="end time"
+              isValid={(newIso) => newIso > entry.startTime}
+              onCommit={(newIso) => onUpdate({ id: entry.id, endTime: newIso })}
+            />
           ) : (
             <span className="text-primary">running</span>
-          )}
-          <span className="mx-0.5">·</span>
-          <span>
-            {entry.durationSeconds != null
-              ? secsToHms(entry.durationSeconds)
-              : "—"}
-          </span>
-        </div>
+          );
+          const durationField = (
+            <span>
+              {entry.durationSeconds != null
+                ? secsToHms(entry.durationSeconds)
+                : "—"}
+            </span>
+          );
+
+          return stackedTime ? (
+            <div className="flex flex-col gap-0.5 text-xs font-mono text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <span className="w-14 shrink-0 text-muted-foreground/70">
+                  Start
+                </span>
+                {startField}
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-14 shrink-0 text-muted-foreground/70">
+                  End
+                </span>
+                {endField}
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-14 shrink-0 text-muted-foreground/70">
+                  Duration
+                </span>
+                {durationField}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
+              {startField}
+              <span>-</span>
+              {endField}
+              <span className="mx-0.5">·</span>
+              {durationField}
+            </div>
+          );
+        })()}
       </div>
       <div className="flex items-center gap-1 shrink-0 pt-1">
         {onResume && (

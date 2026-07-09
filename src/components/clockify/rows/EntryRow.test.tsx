@@ -93,6 +93,76 @@ describe("EntryRow", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 
+  it("does not render an editable end time while the entry is running", () => {
+    render(
+      <EntryRow
+        {...baseProps}
+        entry={makeEntry({
+          timeInterval: {
+            start: "2026-06-24T09:00:00.000Z",
+            end: null,
+            duration: null,
+          },
+        })}
+      />,
+    );
+    expect(
+      screen.queryByTitle("Click to edit end time"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("clicking the start time enters edit mode and commits a new start on Enter", () => {
+    const onUpdate = vi.fn();
+    render(<EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />);
+
+    fireEvent.click(screen.getByTitle("Click to edit start time"));
+    const input = screen.getByDisplayValue(/\d{2}:\d{2}/);
+    fireEvent.change(input, { target: { value: "07:00" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+    const call = onUpdate.mock.calls[0][0] as {
+      entryId: string;
+      start: string;
+      end?: string;
+    };
+    expect(call.entryId).toBe("e1");
+    expect(new Date(call.start).getHours()).toBe(7);
+    expect(call.end).toBe("2026-06-24T10:30:00.000Z");
+  });
+
+  it("clicking the end time enters edit mode and commits a new end on Enter", () => {
+    const onUpdate = vi.fn();
+    render(<EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />);
+
+    fireEvent.click(screen.getByTitle("Click to edit end time"));
+    const input = screen.getByDisplayValue(/\d{2}:\d{2}/);
+    fireEvent.change(input, { target: { value: "12:00" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+    const call = onUpdate.mock.calls[0][0] as {
+      entryId: string;
+      start: string;
+      end?: string;
+    };
+    expect(call.entryId).toBe("e1");
+    expect(new Date(call.end!).getHours()).toBe(12);
+    expect(call.start).toBe("2026-06-24T09:00:00.000Z");
+  });
+
+  it("rejects a start time that would land after the current end time", () => {
+    const onUpdate = vi.fn();
+    render(<EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />);
+
+    fireEvent.click(screen.getByTitle("Click to edit start time"));
+    const input = screen.getByDisplayValue(/\d{2}:\d{2}/);
+    fireEvent.change(input, { target: { value: "23:00" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
   it("calls onResume with the entry when the resume button is clicked", () => {
     const onResume = vi.fn();
     const entry = makeEntry();

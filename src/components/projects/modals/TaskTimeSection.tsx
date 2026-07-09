@@ -173,6 +173,7 @@ export function TaskTimeSection({
                     onDelete={(id) => void deleteTimeEntry(id)}
                     onResume={handleResume}
                     onUpdate={(input) => void updateTimeEntry(input)}
+                    stackedTime
                   />
                 </div>
               ))}

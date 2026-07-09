@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { Project } from "@/types/projects.types";
 import type { Task } from "@/types/tasks.types";
+import { formatDuration } from "@/lib/time";
 
 vi.mock("recharts", () => ({
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
@@ -17,11 +18,27 @@ vi.mock("recharts", () => ({
   }: {
     formatter: (value: number) => [string, string];
   }) => <div data-testid="tooltip-preview">{formatter(7325)[0]}</div>,
-  Legend: ({ formatter }: { formatter: (value: string) => string }) => (
+  Legend: ({
+    formatter,
+  }: {
+    formatter: (
+      value: string,
+      entry: { payload: { name: string; value: number } },
+    ) => string;
+  }) => (
     <div data-testid="legend-preview">
-      <span>{formatter("Short title")}</span>
       <span>
-        {formatter("A Very Long Task Title Exceeding Eighteen Chars")}
+        {formatter("Short title", {
+          payload: { name: "Short title", value: 1000 },
+        })}
+      </span>
+      <span>
+        {formatter("A Very Long Task Title Exceeding Eighteen Chars", {
+          payload: {
+            name: "A Very Long Task Title Exceeding Eighteen Chars",
+            value: 2000,
+          },
+        })}
       </span>
     </div>
   ),
@@ -119,8 +136,10 @@ describe("OverviewTab", () => {
     expect(screen.getByText("Time by task")).toBeInTheDocument();
     expect(screen.getByTestId("tooltip-preview")).toHaveTextContent("2:02:05");
     const legend = screen.getByTestId("legend-preview");
-    expect(legend).toHaveTextContent("Short title");
-    expect(legend).toHaveTextContent("A Very Long Task…");
+    expect(legend).toHaveTextContent(`Short title — ${formatDuration(1000)}`);
+    expect(legend).toHaveTextContent(
+      `A Very Long Task… — ${formatDuration(2000)}`,
+    );
   });
 
   it("omits the Untracked slice when tracked time matches total, and hides the chart with no tracked time", () => {

@@ -8,6 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  type LegendPayload,
 } from "recharts";
 
 const COLORS = [
@@ -135,9 +136,15 @@ export function OverviewTab({
                   iconType="circle"
                   iconSize={8}
                   wrapperStyle={{ fontSize: "11px" }}
-                  formatter={(value: string) =>
-                    value.length > 18 ? value.slice(0, 16) + "…" : value
-                  }
+                  formatter={(value: string, entry: LegendPayload) => {
+                    const label =
+                      value.length > 18 ? value.slice(0, 16) + "…" : value;
+                    const { value: seconds } = entry.payload as {
+                      name: string;
+                      value: number;
+                    };
+                    return `${label} — ${formatDuration(seconds)}`;
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>

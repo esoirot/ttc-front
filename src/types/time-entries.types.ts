@@ -30,6 +30,8 @@ export type TtcUpdateInput = {
   taskId?: number | null;
   subtaskId?: number | null;
   tagIds?: number[];
+  startTime?: string;
+  endTime?: string;
 };
 
 export interface ActiveTimerBannerProps {

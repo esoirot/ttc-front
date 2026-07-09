@@ -19,6 +19,10 @@ export const Destructive: Story = {
 
 export const Outline: Story = { args: { variant: "outline" } };
 
+export const Ghost: Story = { args: { variant: "ghost" } };
+
+export const Link: Story = { args: { variant: "link" } };
+
 export const ProjectStatuses: Story = {
   render: () => (
     <div className="flex flex-wrap gap-2">

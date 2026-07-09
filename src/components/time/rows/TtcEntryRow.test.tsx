@@ -15,10 +15,15 @@ vi.mock("../tags/TtcTagChips", () => ({
 const { gqlFetch } = vi.hoisted(() => ({ gqlFetch: vi.fn() }));
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate: vi.fn() }));
 
-import { formatTime } from "@/components/clockify/helpers";
 import type { TimeEntry } from "@/types/time-entries.types";
 import type { Project } from "@/types/projects.types";
 import { TtcEntryRow } from "./TtcEntryRow";
+
+function formatLocalHHmmss(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
 
 function wrap(el: ReactElement) {
   return (
@@ -121,12 +126,35 @@ describe("TtcEntryRow", () => {
     expect(screen.getByText("No description")).toBeInTheDocument();
   });
 
-  it("shows the start/end time and duration", () => {
+  it("renders start/end/duration inline by default (no Start/End/Duration labels)", () => {
+    render(wrap(<TtcEntryRow {...baseProps()} />));
+
+    expect(screen.queryByText("Start")).not.toBeInTheDocument();
+    expect(screen.queryByText("End")).not.toBeInTheDocument();
+    expect(screen.queryByText("Duration")).not.toBeInTheDocument();
+  });
+
+  it("stacks start/end/duration on 3 labeled lines when stackedTime is set", () => {
+    render(wrap(<TtcEntryRow {...baseProps({ stackedTime: true })} />));
+
+    expect(screen.getByText("Start")).toBeInTheDocument();
+    expect(screen.getByText("End")).toBeInTheDocument();
+    expect(screen.getByText("Duration")).toBeInTheDocument();
+    expect(screen.getByTitle("Click to edit start time")).toBeInTheDocument();
+    expect(screen.getByTitle("Click to edit end time")).toBeInTheDocument();
+    expect(screen.getByText("01:00:00")).toBeInTheDocument();
+  });
+
+  it("shows the start/end time (with seconds) and duration", () => {
     const entry = makeEntry();
     render(wrap(<TtcEntryRow {...baseProps({ entry })} />));
 
-    expect(screen.getByText(formatTime(entry.startTime))).toBeInTheDocument();
-    expect(screen.getByText(formatTime(entry.endTime!))).toBeInTheDocument();
+    expect(screen.getByTitle("Click to edit start time")).toHaveTextContent(
+      formatLocalHHmmss(entry.startTime),
+    );
+    expect(screen.getByTitle("Click to edit end time")).toHaveTextContent(
+      formatLocalHHmmss(entry.endTime!),
+    );
     expect(screen.getByText("01:00:00")).toBeInTheDocument();
   });
 
@@ -143,6 +171,75 @@ describe("TtcEntryRow", () => {
 
     expect(screen.getByText("running")).toBeInTheDocument();
     expect(screen.getByText("—")).toBeInTheDocument();
+  });
+
+  it("clicking the start time enters edit mode and commits a new startTime on Enter", () => {
+    const onUpdate = vi.fn();
+    render(wrap(<TtcEntryRow {...baseProps({ onUpdate })} />));
+
+    fireEvent.click(screen.getByTitle("Click to edit start time"));
+    const input = screen.getByDisplayValue(/\d{2}:\d{2}/);
+    fireEvent.change(input, { target: { value: "07:00" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+    const call = onUpdate.mock.calls[0][0] as { id: number; startTime: string };
+    expect(call.id).toBe(1);
+    expect(new Date(call.startTime).getHours()).toBe(7);
+    expect(new Date(call.startTime).getMinutes()).toBe(0);
+  });
+
+  it("clicking the end time enters edit mode and commits a new endTime on Enter", () => {
+    const onUpdate = vi.fn();
+    render(wrap(<TtcEntryRow {...baseProps({ onUpdate })} />));
+
+    fireEvent.click(screen.getByTitle("Click to edit end time"));
+    const input = screen.getByDisplayValue(/\d{2}:\d{2}/);
+    fireEvent.change(input, { target: { value: "14:00" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+    const call = onUpdate.mock.calls[0][0] as { id: number; endTime: string };
+    expect(call.id).toBe(1);
+    expect(new Date(call.endTime).getHours()).toBe(14);
+  });
+
+  it("commits a startTime edit that only changes the seconds", () => {
+    const onUpdate = vi.fn();
+    render(wrap(<TtcEntryRow {...baseProps({ onUpdate })} />));
+
+    fireEvent.click(screen.getByTitle("Click to edit start time"));
+    const input = screen.getByDisplayValue(/\d{2}:\d{2}:\d{2}/);
+    const hhmm = formatLocalHHmmss(makeEntry().startTime).slice(0, 5);
+    fireEvent.change(input, { target: { value: `${hhmm}:45` } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+    const call = onUpdate.mock.calls[0][0] as { id: number; startTime: string };
+    expect(new Date(call.startTime).getSeconds()).toBe(45);
+  });
+
+  it("rejects a start time that would land after the current end time", () => {
+    const onUpdate = vi.fn();
+    render(wrap(<TtcEntryRow {...baseProps({ onUpdate })} />));
+
+    fireEvent.click(screen.getByTitle("Click to edit start time"));
+    const input = screen.getByDisplayValue(/\d{2}:\d{2}/);
+    fireEvent.change(input, { target: { value: "23:00" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
+  it("does not render an editable end time while the entry is running", () => {
+    render(
+      wrap(
+        <TtcEntryRow {...baseProps({ entry: makeEntry({ endTime: null }) })} />,
+      ),
+    );
+    expect(
+      screen.queryByTitle("Click to edit end time"),
+    ).not.toBeInTheDocument();
   });
 
   it("enters edit mode on description click and commits the trimmed value on Enter", () => {

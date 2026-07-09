@@ -8,7 +8,8 @@ import type {
   UpdateEntryInput,
 } from "@/types/clockify.types";
 import { TagChips } from "../tags/TagChips";
-import { formatTime, secsToHms } from "../helpers";
+import { EditableTimeField } from "@/components/time/EditableTimeField";
+import { secsToHms } from "../helpers";
 import { ProjectSelect } from "../forms-inputs/ProjectSelect";
 import { BillableToggle } from "../forms-inputs/BillableToggle";
 
@@ -45,14 +46,14 @@ export function EntryRow({
     partial: Partial<
       Pick<
         UpdateEntryInput,
-        "projectId" | "billable" | "tagIds" | "description"
+        "projectId" | "billable" | "tagIds" | "description" | "start" | "end"
       >
     >,
   ) {
     onUpdate({
       entryId: entry.id,
-      start: entry.timeInterval.start,
-      end: entry.timeInterval.end ?? undefined,
+      start: partial.start ?? entry.timeInterval.start,
+      end: partial.end ?? entry.timeInterval.end ?? undefined,
       description:
         partial.description !== undefined
           ? partial.description
@@ -135,10 +136,20 @@ export function EntryRow({
           />
         </div>
         <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
-          <span>{formatTime(start)}</span>
+          <EditableTimeField
+            iso={start}
+            label="start time"
+            isValid={(newIso) => !end || newIso < end}
+            onCommit={(newIso) => patch({ start: newIso })}
+          />
           <span>–</span>
           {end ? (
-            <span>{formatTime(end)}</span>
+            <EditableTimeField
+              iso={end}
+              label="end time"
+              isValid={(newIso) => newIso > start}
+              onCommit={(newIso) => patch({ end: newIso })}
+            />
           ) : (
             <span className="text-primary">running</span>
           )}
