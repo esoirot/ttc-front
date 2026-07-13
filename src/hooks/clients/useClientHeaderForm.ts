@@ -19,10 +19,15 @@ function formFromClient(client: Client): ClientHeaderFormState {
     email: client.email ?? "",
     phone: client.phone ?? "",
     address: client.address ?? "",
+    addressLine2: client.addressLine2 ?? "",
     city: client.city ?? "",
     country: client.country ?? "",
+    state: client.state ?? "",
     postalCode: client.postalCode ?? "",
     vatNumber: client.vatNumber ?? "",
+    legalForm: client.legalForm ?? "",
+    color: client.color ?? "",
+    notes: client.notes ?? "",
     paymentDelayDays: client.paymentDelayDays?.toString() ?? "",
     taxRate: client.taxRate?.toString() ?? "",
     billingEndOfMonth: client.billingEndOfMonth,
@@ -53,7 +58,7 @@ export function useClientHeaderForm(
   }
 
   function set(field: keyof ClientHeaderFormState) {
-    return (e: React.ChangeEvent<HTMLInputElement>) =>
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
   }
 
@@ -73,7 +78,13 @@ export function useClientHeaderForm(
   };
 
   function handleAddressChange(
-    field: "address" | "city" | "country" | "postalCode",
+    field:
+      | "address"
+      | "addressLine2"
+      | "city"
+      | "country"
+      | "state"
+      | "postalCode",
     value: string,
   ) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -101,6 +112,7 @@ export function useClientHeaderForm(
         ? {
             legalName: form.legalName || undefined,
             vatNumber: form.vatNumber || undefined,
+            legalForm: form.legalForm || undefined,
             firstName: undefined,
             lastName: undefined,
           }
@@ -109,13 +121,18 @@ export function useClientHeaderForm(
             lastName: form.lastName || undefined,
             legalName: undefined,
             vatNumber: undefined,
+            legalForm: undefined,
           }),
       email: form.email || undefined,
       phone: form.phone || undefined,
       address: form.address || undefined,
+      addressLine2: form.addressLine2 || undefined,
       city: form.city || undefined,
       country: form.country || undefined,
+      state: form.state || undefined,
       postalCode: form.postalCode || undefined,
+      color: form.color || undefined,
+      notes: form.notes || undefined,
       paymentDelayDays: form.paymentDelayDays
         ? Number(form.paymentDelayDays)
         : undefined,

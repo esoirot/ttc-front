@@ -14,7 +14,7 @@ import { Button } from "./button";
 
 const meta: Meta<typeof AlertDialog> = {
   component: AlertDialog,
-  title: "ui/AlertDialog",
+  title: "Molecules/AlertDialog",
 };
 export default meta;
 type Story = StoryObj<typeof AlertDialog>;
@@ -26,6 +26,30 @@ export const Default: Story = {
         <Button variant="ghost">Delete</Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete project?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  ),
+};
+
+export const Small: Story = {
+  render: () => (
+    <AlertDialog defaultOpen>
+      <AlertDialogTrigger asChild>
+        <Button variant="ghost">Delete</Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogTitle>Delete project?</AlertDialogTitle>
           <AlertDialogDescription>

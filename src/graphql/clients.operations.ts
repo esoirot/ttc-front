@@ -9,11 +9,11 @@ import type {
   CompanyContact,
 } from "@/types/clients.types";
 
-const CONTACT_FIELDS = `id clientId firstName lastName email phone createdAt updatedAt`;
+const CONTACT_FIELDS = `id clientId firstName lastName email phone jobTitle color createdAt updatedAt`;
 
 const CLIENT_FIELDS = `
-  id userId name legalName email phone company address
-  city country postalCode vatNumber
+  id userId name legalName email phone company address addressLine2
+  city country state postalCode vatNumber legalForm color
   notes hubspotId
   clientType firstName lastName paymentDelayDays taxRate billingEndOfMonth
   website industry status contactedAt tags { id name }
@@ -55,10 +55,14 @@ type ClientInput = {
   email?: string;
   phone?: string;
   address?: string;
+  addressLine2?: string;
   city?: string;
   country?: string;
+  state?: string;
   postalCode?: string;
   vatNumber?: string;
+  legalForm?: string;
+  color?: string;
   notes?: string;
   hubspotId?: string;
   clientType?: ClientType;
@@ -107,6 +111,8 @@ type ContactInput = {
   lastName?: string;
   email?: string;
   phone?: string;
+  jobTitle?: string;
+  color?: string;
 };
 
 export const CREATE_COMPANY_CONTACT_MUTATION: TypedDocumentNode<

@@ -38,6 +38,8 @@ export interface CompanyContact {
   lastName: string | null;
   email: string | null;
   phone: string | null;
+  jobTitle: string | null;
+  color: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -51,10 +53,14 @@ export interface Client {
   phone: string | null;
   company: string | null;
   address: string | null;
+  addressLine2: string | null;
   city: string | null;
   country: string | null;
+  state: string | null;
   postalCode: string | null;
   vatNumber: string | null;
+  legalForm: string | null;
+  color: string | null;
   notes: string | null;
   hubspotId: string | null;
   clientType: ClientType;
@@ -84,10 +90,15 @@ export interface ClientHeaderProps {
     email?: string;
     phone?: string;
     address?: string;
+    addressLine2?: string;
     city?: string;
     country?: string;
+    state?: string;
     postalCode?: string;
     vatNumber?: string;
+    legalForm?: string;
+    color?: string;
+    notes?: string;
     clientType?: ClientType;
     firstName?: string;
     lastName?: string;
@@ -117,6 +128,8 @@ export type EditInput = {
   lastName?: string;
   email?: string;
   phone?: string;
+  jobTitle?: string;
+  color?: string;
 };
 
 export type ContactInput = {
@@ -124,6 +137,8 @@ export type ContactInput = {
   lastName?: string;
   email?: string;
   phone?: string;
+  jobTitle?: string;
+  color?: string;
 };
 
 export type ContactsTabProps = {
@@ -150,10 +165,15 @@ export type ClientHeaderFormState = {
   email: string;
   phone: string;
   address: string;
+  addressLine2: string;
   city: string;
   country: string;
+  state: string;
   postalCode: string;
   vatNumber: string;
+  legalForm: string;
+  color: string;
+  notes: string;
   paymentDelayDays: string;
   taxRate: string;
   billingEndOfMonth: boolean;
@@ -182,11 +202,19 @@ export interface BillingFieldsProps {
 
 export interface AddressFieldsProps {
   address: string;
+  addressLine2: string;
   city: string;
   country: string;
+  state: string;
   postalCode: string;
   onChange: (
-    field: "address" | "city" | "country" | "postalCode",
+    field:
+      | "address"
+      | "addressLine2"
+      | "city"
+      | "country"
+      | "state"
+      | "postalCode",
     value: string,
   ) => void;
   idPrefix?: string;
@@ -198,10 +226,14 @@ export type ClientInput = {
   email?: string;
   phone?: string;
   address?: string;
+  addressLine2?: string;
   city?: string;
   country?: string;
+  state?: string;
   postalCode?: string;
   vatNumber?: string;
+  legalForm?: string;
+  color?: string;
   notes?: string;
   hubspotId?: string;
   clientType?: ClientType;

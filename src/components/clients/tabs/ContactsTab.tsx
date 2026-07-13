@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ContactsTabProps } from "@/types/clients.types";
 import { ContactRow } from "../rows/ContactRow";
+import { ColorField } from "../form-fields/ColorField";
 import { EMPTY_CONTACT } from "@/constants/clients";
 import { isValidOptionalEmail } from "@/lib/schemas";
 
@@ -31,8 +32,9 @@ export function ContactsTab({
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    const { firstName, lastName, email, phone } = form;
-    if (!firstName && !lastName && !email && !phone) return;
+    const { firstName, lastName, email, phone, jobTitle, color } = form;
+    if (!firstName && !lastName && !email && !phone && !jobTitle && !color)
+      return;
     if (!isValidOptionalEmail(email)) {
       setEmailTouched(true);
       return;
@@ -42,6 +44,8 @@ export function ContactsTab({
       lastName: lastName || undefined,
       email: email || undefined,
       phone: phone || undefined,
+      jobTitle: jobTitle || undefined,
+      color: color || undefined,
     });
     setForm(EMPTY_CONTACT);
     setEmailTouched(false);
@@ -114,6 +118,20 @@ export function ContactsTab({
                     placeholder="+33 1 00 00 00 00"
                   />
                 </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="cjt">Job title</Label>
+                  <Input
+                    id="cjt"
+                    value={form.jobTitle}
+                    onChange={(e) => setField("jobTitle", e.target.value)}
+                    placeholder="Project Manager"
+                  />
+                </div>
+                <ColorField
+                  id="ccol"
+                  value={form.color}
+                  onChange={(v) => setField("color", v)}
+                />
               </div>
               <div className="flex gap-2 self-end">
                 <Button

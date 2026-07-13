@@ -11,7 +11,7 @@ import { Button } from "./button";
 
 const meta: Meta<typeof Card> = {
   component: Card,
-  title: "ui/Card",
+  title: "Molecules/Card",
 };
 export default meta;
 type Story = StoryObj<typeof Card>;
@@ -30,6 +30,25 @@ export const Default: Story = {
       </CardContent>
       <CardFooter>
         <Button size="sm">View client</Button>
+      </CardFooter>
+    </Card>
+  ),
+};
+
+export const Small: Story = {
+  render: () => (
+    <Card size="sm" className="w-80">
+      <CardHeader>
+        <CardTitle>Acme Corp</CardTitle>
+        <CardDescription>Translation client since 2024</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">
+          EN → FR · 12 active projects
+        </p>
+      </CardContent>
+      <CardFooter>
+        <Button size="xs">View client</Button>
       </CardFooter>
     </Card>
   ),

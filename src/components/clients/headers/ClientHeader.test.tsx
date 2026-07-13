@@ -37,10 +37,14 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     phone: null,
     company: null,
     address: null,
+    addressLine2: null,
     city: null,
     country: null,
+    state: null,
     postalCode: null,
     vatNumber: null,
+    legalForm: null,
+    color: null,
     notes: null,
     hubspotId: null,
     clientType: "COMPANY",
@@ -370,9 +374,89 @@ describe("ClientHeader", () => {
     renderHeader(makeClient());
     fireEvent.click(screen.getByText("Edit"));
     expect(screen.getByLabelText("Address")).toBeInTheDocument();
+    expect(screen.getByLabelText("Address line 2")).toBeInTheDocument();
     expect(screen.getByLabelText("City")).toBeInTheDocument();
+    expect(screen.getByLabelText("State / Province")).toBeInTheDocument();
     expect(screen.getByLabelText("Postal code")).toBeInTheDocument();
     expect(screen.getByLabelText("Country")).toBeInTheDocument();
+  });
+
+  it("edit form shows Legal form, Color, and Notes inputs for a COMPANY client", () => {
+    renderHeader(makeClient());
+    fireEvent.click(screen.getByText("Edit"));
+    expect(screen.getByLabelText("Legal form")).toBeInTheDocument();
+    expect(screen.getByLabelText("Color")).toBeInTheDocument();
+    expect(screen.getByLabelText("Notes")).toBeInTheDocument();
+  });
+
+  it("edit form pre-fills legalForm, addressLine2, state, color, and notes", () => {
+    renderHeader(
+      makeClient({
+        legalForm: "SAS",
+        addressLine2: "Suite 200",
+        state: "Quebec",
+        color: "#D2D5DA",
+        notes: "Prefers email contact",
+      }),
+    );
+    fireEvent.click(screen.getByText("Edit"));
+    expect(screen.getByLabelText("Legal form")).toHaveValue("SAS");
+    expect(screen.getByLabelText("Address line 2")).toHaveValue("Suite 200");
+    expect(screen.getByLabelText("State / Province")).toHaveValue("Quebec");
+    expect(screen.getByLabelText("Color")).toHaveValue("#D2D5DA");
+    expect(screen.getByLabelText("Notes")).toHaveValue("Prefers email contact");
+  });
+
+  it("saves edited legalForm, addressLine2, state, color, and notes", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(makeClient({ id: 5 }), onUpdate);
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.change(screen.getByLabelText("Legal form"), {
+      target: { value: "SAS" },
+    });
+    fireEvent.change(screen.getByLabelText("Address line 2"), {
+      target: { value: "Suite 200" },
+    });
+    fireEvent.change(screen.getByLabelText("State / Province"), {
+      target: { value: "Quebec" },
+    });
+    fireEvent.change(screen.getByLabelText("Color"), {
+      target: { value: "#D2D5DA" },
+    });
+    fireEvent.change(screen.getByLabelText("Notes"), {
+      target: { value: "Prefers email contact" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 5,
+          legalForm: "SAS",
+          addressLine2: "Suite 200",
+          state: "Quebec",
+          color: "#D2D5DA",
+          notes: "Prefers email contact",
+        }),
+      ),
+    );
+  });
+
+  it("shows addressLine2, state, legalForm, and notes in view mode", () => {
+    renderHeader(
+      makeClient({
+        address: "12 Rue de Rivoli",
+        addressLine2: "Suite 200",
+        state: "Île-de-France",
+        legalForm: "SAS",
+        notes: "Prefers email contact",
+      }),
+    );
+    expect(screen.getByText("Suite 200")).toBeInTheDocument();
+    expect(screen.getByText(/Île-de-France/)).toBeInTheDocument();
+    expect(screen.getByText("SAS")).toBeInTheDocument();
+    expect(screen.getByText("Prefers email contact")).toBeInTheDocument();
   });
 
   it("saves edited legalName, vatNumber, website, email, and phone", async () => {

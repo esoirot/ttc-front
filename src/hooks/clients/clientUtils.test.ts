@@ -41,6 +41,8 @@ function makeContact(overrides: Partial<CompanyContact> = {}): CompanyContact {
     lastName: null,
     email: null,
     phone: null,
+    jobTitle: null,
+    color: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,

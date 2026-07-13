@@ -12,7 +12,7 @@ import { Button } from "./button";
 
 const meta: Meta<typeof Dialog> = {
   component: Dialog,
-  title: "ui/Dialog",
+  title: "Molecules/Dialog",
 };
 export default meta;
 type Story = StoryObj<typeof Dialog>;

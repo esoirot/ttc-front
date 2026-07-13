@@ -3,7 +3,7 @@ import { Alert, AlertTitle, AlertDescription } from "./alert";
 
 const meta: Meta<typeof Alert> = {
   component: Alert,
-  title: "ui/Alert",
+  title: "Molecules/Alert",
 };
 export default meta;
 type Story = StoryObj<typeof Alert>;

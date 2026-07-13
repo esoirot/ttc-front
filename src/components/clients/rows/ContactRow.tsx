@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { CompanyContact, EditInput } from "@/types/clients.types";
+import { ColorField } from "../form-fields/ColorField";
 import { EMPTY_EDIT } from "@/constants/clients";
 import { isValidOptionalEmail } from "@/lib/schemas";
 
@@ -39,6 +40,8 @@ export function ContactRow({
       lastName: contact.lastName ?? "",
       email: contact.email ?? "",
       phone: contact.phone ?? "",
+      jobTitle: contact.jobTitle ?? "",
+      color: contact.color ?? "",
     });
     setEmailTouched(false);
     setEditing(true);
@@ -61,6 +64,8 @@ export function ContactRow({
       lastName: editForm.lastName || undefined,
       email: editForm.email || undefined,
       phone: editForm.phone || undefined,
+      jobTitle: editForm.jobTitle || undefined,
+      color: editForm.color || undefined,
     });
     setEditing(false);
   }
@@ -124,6 +129,22 @@ export function ContactRow({
                   placeholder="+33 1 00 00 00 00"
                 />
               </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor={`ejt-${contact.id}`}>Job title</Label>
+                <Input
+                  id={`ejt-${contact.id}`}
+                  value={editForm.jobTitle}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, jobTitle: e.target.value }))
+                  }
+                  placeholder="Project Manager"
+                />
+              </div>
+              <ColorField
+                id={`ecol-${contact.id}`}
+                value={editForm.color}
+                onChange={(v) => setEditForm((f) => ({ ...f, color: v }))}
+              />
             </div>
             <div className="flex gap-2 self-end">
               <Button
@@ -147,7 +168,20 @@ export function ContactRow({
   return (
     <div className="flex items-center justify-between py-2 border-b border-border text-sm">
       <div className="flex flex-col gap-0.5">
-        {displayName && <span className="font-medium">{displayName}</span>}
+        <div className="flex items-center gap-2">
+          {contact.color && (
+            <span
+              className="h-3 w-3 shrink-0 rounded-sm border border-border"
+              style={{ backgroundColor: contact.color }}
+            />
+          )}
+          {displayName && <span className="font-medium">{displayName}</span>}
+        </div>
+        {contact.jobTitle && (
+          <span className="text-muted-foreground text-xs">
+            {contact.jobTitle}
+          </span>
+        )}
         <div className="flex gap-3 text-muted-foreground text-xs">
           {contact.email && <span>{contact.email}</span>}
           {contact.phone && <span>{contact.phone}</span>}

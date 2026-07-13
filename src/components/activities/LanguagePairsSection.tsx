@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUpdateActivity } from "@/hooks/activities/useActivities";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,13 @@ export function LanguagePairsSection({
     })),
   );
   const [saved, setSaved] = useState(false);
+  const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    return () => clearTimeout(savedTimeoutRef.current);
+  }, []);
 
   function addPair() {
     setPairs((prev) => [...prev, { fromLanguage: "", toLanguage: "" }]);
@@ -56,7 +63,8 @@ export function LanguagePairsSection({
     if (!isValid()) return;
     await updateActivity({ id: activityId, languagePairs: pairs });
     setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    clearTimeout(savedTimeoutRef.current);
+    savedTimeoutRef.current = setTimeout(() => setSaved(false), 3000);
   }
 
   return (

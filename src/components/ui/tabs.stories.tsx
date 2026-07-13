@@ -3,7 +3,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
 
 const meta: Meta<typeof Tabs> = {
   component: Tabs,
-  title: "ui/Tabs",
+  title: "Molecules/Tabs",
 };
 export default meta;
 type Story = StoryObj<typeof Tabs>;

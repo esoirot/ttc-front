@@ -10,7 +10,7 @@ import { Button } from "./button";
 
 const meta: Meta<typeof Popover> = {
   component: Popover,
-  title: "ui/Popover",
+  title: "Molecules/Popover",
 };
 export default meta;
 type Story = StoryObj<typeof Popover>;

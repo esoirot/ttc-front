@@ -29,7 +29,13 @@ export function useNewClientForm(
   }
 
   function handleAddressChange(
-    field: "address" | "city" | "country" | "postalCode",
+    field:
+      | "address"
+      | "addressLine2"
+      | "city"
+      | "country"
+      | "state"
+      | "postalCode",
     value: string,
   ) {
     setField(field, value);
@@ -74,6 +80,7 @@ export function useNewClientForm(
         ? {
             legalName: form.legalName || undefined,
             vatNumber: form.vatNumber || undefined,
+            legalForm: form.legalForm || undefined,
           }
         : {
             firstName: form.firstName || undefined,
@@ -82,9 +89,13 @@ export function useNewClientForm(
       email: form.email || undefined,
       phone: form.phone || undefined,
       address: form.address || undefined,
+      addressLine2: form.addressLine2 || undefined,
       city: form.city || undefined,
       country: form.country || undefined,
+      state: form.state || undefined,
       postalCode: form.postalCode || undefined,
+      color: form.color || undefined,
+      notes: form.notes || undefined,
       paymentDelayDays: form.paymentDelayDays
         ? Number(form.paymentDelayDays)
         : undefined,

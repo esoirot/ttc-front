@@ -4,7 +4,7 @@ import { Input } from "./input";
 
 const meta: Meta<typeof Label> = {
   component: Label,
-  title: "ui/Label",
+  title: "Atoms/Label",
 };
 export default meta;
 type Story = StoryObj<typeof Label>;

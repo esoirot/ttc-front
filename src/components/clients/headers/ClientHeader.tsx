@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ import type {
 } from "@/types/clients.types";
 import { BillingFields } from "../form-fields/BillingFields";
 import { AddressFields } from "../form-fields/AddressFields";
+import { ColorField } from "../form-fields/ColorField";
 import { TtcTagChips } from "@/components/time/tags/TtcTagChips";
 import { toSafeHref } from "@/lib/schemas";
 
@@ -90,7 +92,15 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                       onChange={set("vatNumber")}
                     />
                   </div>
-                  <div />
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="cl-legalForm">Legal form</Label>
+                    <Input
+                      id="cl-legalForm"
+                      value={form.legalForm}
+                      onChange={set("legalForm")}
+                      placeholder="SAS, Ltd, LLC…"
+                    />
+                  </div>
                 </>
               ) : (
                 <>
@@ -155,7 +165,11 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                   </SelectContent>
                 </Select>
               </div>
-              <div />
+              <ColorField
+                id="cl-color"
+                value={form.color}
+                onChange={(v) => setForm((prev) => ({ ...prev, color: v }))}
+              />
             </div>
           </div>
 
@@ -197,8 +211,10 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
             <div className="grid grid-cols-2 gap-3">
               <AddressFields
                 address={form.address}
+                addressLine2={form.addressLine2}
                 city={form.city}
                 country={form.country}
+                state={form.state}
                 postalCode={form.postalCode}
                 onChange={handleAddressChange}
                 idPrefix="cl"
@@ -213,6 +229,21 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
             onChange={handleBillingChange}
             idPrefix="cl"
           />
+
+          <div className="pt-4 border-t border-border">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+              Notes
+            </p>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="cl-notes">Notes</Label>
+              <Textarea
+                id="cl-notes"
+                value={form.notes}
+                onChange={set("notes")}
+                placeholder="Internal notes about this client…"
+              />
+            </div>
+          </div>
 
           <div className="pt-4 border-t border-border">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
@@ -300,7 +331,15 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
     <div className="mb-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{client.name}</h1>
+          <div className="flex items-center gap-2">
+            {client.color && (
+              <span
+                className="h-4 w-4 shrink-0 rounded-sm border border-border"
+                style={{ backgroundColor: client.color }}
+              />
+            )}
+            <h1 className="text-2xl font-bold">{client.name}</h1>
+          </div>
           {client.clientType === "COMPANY" &&
             client.legalName &&
             client.legalName !== client.name && (
@@ -339,9 +378,10 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
             {client.clientType === "COMPANY" ? "Company" : "Contact"}
           </p>
           {client.address && <span>{client.address}</span>}
-          {(client.city ?? client.country) && (
+          {client.addressLine2 && <span>{client.addressLine2}</span>}
+          {(client.city ?? client.state ?? client.country) && (
             <span>
-              {[client.postalCode, client.city, client.country]
+              {[client.postalCode, client.city, client.state, client.country]
                 .filter(Boolean)
                 .join(", ")}
             </span>
@@ -350,6 +390,9 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
             <span className="text-muted-foreground">
               VAT {client.vatNumber}
             </span>
+          )}
+          {client.clientType === "COMPANY" && client.legalForm && (
+            <span className="text-muted-foreground">{client.legalForm}</span>
           )}
           {client.email && (
             <span className="text-muted-foreground">{client.email}</span>
@@ -394,6 +437,15 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
           </div>
         )}
       </div>
+
+      {client.notes && (
+        <div className="mt-4 flex flex-col gap-1 text-sm">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Notes
+          </p>
+          <p className="whitespace-pre-wrap">{client.notes}</p>
+        </div>
+      )}
 
       {client.tags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-1">

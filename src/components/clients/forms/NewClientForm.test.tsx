@@ -191,9 +191,54 @@ describe("NewClientForm", () => {
   it("shows address fields", () => {
     renderForm();
     expect(screen.getByLabelText("Address")).toBeInTheDocument();
+    expect(screen.getByLabelText("Address line 2")).toBeInTheDocument();
     expect(screen.getByLabelText("City")).toBeInTheDocument();
+    expect(screen.getByLabelText("State / Province")).toBeInTheDocument();
     expect(screen.getByLabelText("Postal code")).toBeInTheDocument();
     expect(screen.getByLabelText("Country")).toBeInTheDocument();
+  });
+
+  it("shows Legal form, Color, and Notes fields in company mode", () => {
+    renderForm();
+    expect(screen.getByLabelText("Legal form")).toBeInTheDocument();
+    expect(screen.getByLabelText("Color")).toBeInTheDocument();
+    expect(screen.getByLabelText("Notes")).toBeInTheDocument();
+  });
+
+  it("submits legalForm, color, notes, addressLine2, and state", async () => {
+    gqlMutate.mockResolvedValueOnce({ createClient: { id: 9, name: "Acme" } });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText("Company name *"), {
+      target: { value: "Acme" },
+    });
+    fireEvent.change(screen.getByLabelText("Legal form"), {
+      target: { value: "SAS" },
+    });
+    fireEvent.change(screen.getByLabelText("Color"), {
+      target: { value: "#D2D5DA" },
+    });
+    fireEvent.change(screen.getByLabelText("Notes"), {
+      target: { value: "Prefers email contact" },
+    });
+    fireEvent.change(screen.getByLabelText("Address line 2"), {
+      target: { value: "Suite 200" },
+    });
+    fireEvent.change(screen.getByLabelText("State / Province"), {
+      target: { value: "Quebec" },
+    });
+    fireEvent.click(screen.getByText("Create client"));
+
+    await waitFor(() => expect(gqlMutate).toHaveBeenCalled());
+    expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+      input: {
+        legalForm: "SAS",
+        color: "#D2D5DA",
+        notes: "Prefers email contact",
+        addressLine2: "Suite 200",
+        state: "Quebec",
+      },
+    });
   });
 
   it("shows billing fields", () => {

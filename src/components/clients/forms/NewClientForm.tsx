@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -20,6 +21,7 @@ import type {
 } from "@/types/clients.types";
 import { AddressFields } from "../form-fields/AddressFields";
 import { BillingFields } from "../form-fields/BillingFields";
+import { ColorField } from "../form-fields/ColorField";
 import { TtcTagChips } from "@/components/time/tags/TtcTagChips";
 
 export function NewClientForm({ onClose, defaultStatus, title }: Props) {
@@ -84,7 +86,15 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
                     placeholder="FR00123456789"
                   />
                 </div>
-                <div />
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="ncf-legalForm">Legal form</Label>
+                  <Input
+                    id="ncf-legalForm"
+                    value={form.legalForm}
+                    onChange={(e) => setField("legalForm", e.target.value)}
+                    placeholder="SAS, Ltd, LLC…"
+                  />
+                </div>
               </>
             ) : (
               <>
@@ -143,7 +153,11 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
                 </SelectContent>
               </Select>
             </div>
-            <div />
+            <ColorField
+              id="ncf-color"
+              value={form.color}
+              onChange={(v) => setField("color", v)}
+            />
 
             <div className="flex flex-col gap-1">
               <Label htmlFor="ncf-email">
@@ -173,8 +187,10 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
 
             <AddressFields
               address={form.address}
+              addressLine2={form.addressLine2}
               city={form.city}
               country={form.country}
+              state={form.state}
               postalCode={form.postalCode}
               onChange={handleAddressChange}
               idPrefix="ncf"
@@ -187,6 +203,16 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
               onChange={handleBillingChange}
               idPrefix="ncf"
             />
+
+            <div className="col-span-2 flex flex-col gap-1">
+              <Label htmlFor="ncf-notes">Notes</Label>
+              <Textarea
+                id="ncf-notes"
+                value={form.notes}
+                onChange={(e) => setField("notes", e.target.value)}
+                placeholder="Internal notes about this client…"
+              />
+            </div>
 
             <div className="col-span-2 pt-4 border-t border-border flex flex-col gap-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">

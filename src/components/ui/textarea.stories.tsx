@@ -3,7 +3,7 @@ import { Textarea } from "./textarea";
 
 const meta: Meta<typeof Textarea> = {
   component: Textarea,
-  title: "ui/Textarea",
+  title: "Atoms/Textarea",
   args: { placeholder: "Add a description..." },
 };
 export default meta;
@@ -17,4 +17,8 @@ export const WithValue: Story = {
 
 export const Disabled: Story = {
   args: { disabled: true, defaultValue: "Locked" },
+};
+
+export const Invalid: Story = {
+  args: { "aria-invalid": true, defaultValue: "" },
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUpdateActivity } from "@/hooks/activities/useActivities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,13 @@ export function ActivityInfoForm({
   const [timezone, setTimezone] = useState(initial.timezone ?? "");
   const [saved, setSaved] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    return () => clearTimeout(savedTimeoutRef.current);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -55,7 +62,8 @@ export function ActivityInfoForm({
       timezone: timezone || null,
     });
     setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    clearTimeout(savedTimeoutRef.current);
+    savedTimeoutRef.current = setTimeout(() => setSaved(false), 3000);
   }
 
   return (

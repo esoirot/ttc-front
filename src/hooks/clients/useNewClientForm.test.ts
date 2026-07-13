@@ -157,6 +157,58 @@ describe("useNewClientForm", () => {
     });
   });
 
+  it("includes addressLine2, state, legalForm, color, and notes when set (company)", async () => {
+    gqlMutate.mockResolvedValueOnce({ createClient: { id: 1 } });
+    const { result } = renderHook(() => useNewClientForm(vi.fn()), {
+      wrapper: createQueryWrapper(),
+    });
+
+    act(() => {
+      result.current.setField("name", "Acme");
+      result.current.handleAddressChange("addressLine2", "Suite 200");
+      result.current.handleAddressChange("state", "Quebec");
+      result.current.setField("legalForm", "SAS");
+      result.current.setField("color", "#D2D5DA");
+      result.current.setField("notes", "Prefers email contact");
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit(submitEvent());
+    });
+
+    expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+      input: expect.objectContaining({
+        addressLine2: "Suite 200",
+        state: "Quebec",
+        legalForm: "SAS",
+        color: "#D2D5DA",
+        notes: "Prefers email contact",
+      }),
+    });
+  });
+
+  it("omits legalForm from the payload for INDIVIDUAL clients", async () => {
+    gqlMutate.mockResolvedValueOnce({ createClient: { id: 1 } });
+    const { result } = renderHook(() => useNewClientForm(vi.fn()), {
+      wrapper: createQueryWrapper(),
+    });
+
+    act(() => {
+      result.current.setField("clientType", "INDIVIDUAL");
+      result.current.setField("firstName", "Jane");
+      result.current.setField("legalForm", "SAS");
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit(submitEvent());
+    });
+
+    const input = gqlMutate.mock.calls[0][1] as {
+      input: Record<string, unknown>;
+    };
+    expect(input.input).not.toHaveProperty("legalForm");
+  });
+
   it("resets the form, clears tagIds, and calls onClose on success", async () => {
     gqlMutate.mockResolvedValueOnce({ createClient: { id: 1 } });
     const onClose = vi.fn();

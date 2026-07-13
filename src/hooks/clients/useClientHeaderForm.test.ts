@@ -22,10 +22,14 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     phone: null,
     company: null,
     address: null,
+    addressLine2: null,
     city: null,
     country: null,
+    state: null,
     postalCode: null,
     vatNumber: null,
+    legalForm: null,
+    color: null,
     notes: null,
     hubspotId: null,
     clientType: "COMPANY",
@@ -98,6 +102,59 @@ describe("useClientHeaderForm", () => {
         firstName: undefined,
         lastName: undefined,
       }),
+    );
+  });
+
+  it("save: company branch includes legalForm, addressLine2, state, color, and notes", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    const client = makeClient({
+      id: 12,
+      legalForm: "SAS",
+      addressLine2: "Suite 200",
+      state: "Quebec",
+      color: "#D2D5DA",
+      notes: "Prefers email contact",
+    });
+    const { result } = renderHook(() => useClientHeaderForm(client, onUpdate), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.handleSave({
+        preventDefault: () => {},
+      } as React.SubmitEvent<HTMLFormElement>);
+    });
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        legalForm: "SAS",
+        addressLine2: "Suite 200",
+        state: "Quebec",
+        color: "#D2D5DA",
+        notes: "Prefers email contact",
+      }),
+    );
+  });
+
+  it("save: individual branch omits legalForm", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    const client = makeClient({
+      id: 13,
+      clientType: "INDIVIDUAL",
+      firstName: "Jane",
+    });
+    const { result } = renderHook(() => useClientHeaderForm(client, onUpdate), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.handleSave({
+        preventDefault: () => {},
+      } as React.SubmitEvent<HTMLFormElement>);
+    });
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ legalForm: undefined }),
     );
   });
 

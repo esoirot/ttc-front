@@ -9,14 +9,19 @@ export const EMPTY_CLIENT_FORM = {
   name: "",
   legalName: "",
   vatNumber: "",
+  legalForm: "",
   firstName: "",
   lastName: "",
   email: "",
   phone: "",
   address: "",
+  addressLine2: "",
   city: "",
   country: "",
+  state: "",
   postalCode: "",
+  color: "",
+  notes: "",
   paymentDelayDays: "",
   taxRate: "",
   billingEndOfMonth: false,
@@ -39,9 +44,18 @@ export const EMPTY_CONTACT = {
   lastName: "",
   email: "",
   phone: "",
+  jobTitle: "",
+  color: "",
 };
 
-export const EMPTY_EDIT = { firstName: "", lastName: "", email: "", phone: "" };
+export const EMPTY_EDIT = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  jobTitle: "",
+  color: "",
+};
 
 export const STATUS_LABELS: Record<ClientStatus, string> = {
   TO_CONTACT: "Prospect",

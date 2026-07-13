@@ -11,7 +11,7 @@ import { Badge } from "./badge";
 
 const meta: Meta<typeof Table> = {
   component: Table,
-  title: "ui/Table",
+  title: "Molecules/Table",
 };
 export default meta;
 type Story = StoryObj<typeof Table>;

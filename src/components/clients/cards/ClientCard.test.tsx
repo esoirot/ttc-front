@@ -104,6 +104,8 @@ describe("ClientCard", () => {
               lastName: null,
               email: null,
               phone: null,
+              jobTitle: null,
+              color: null,
               createdAt: "",
               updatedAt: "",
             },
@@ -114,6 +116,8 @@ describe("ClientCard", () => {
               lastName: null,
               email: null,
               phone: null,
+              jobTitle: null,
+              color: null,
               createdAt: "",
               updatedAt: "",
             },
@@ -140,5 +144,15 @@ describe("ClientCard", () => {
     fireEvent.click(screen.getByText("Delete"));
 
     expect(onDelete).toHaveBeenCalledWith(3);
+  });
+
+  it("does not navigate to the (now-deleted) client's detail page after confirming delete", () => {
+    const onDelete = vi.fn();
+    render(<ClientCard client={makeClient({ id: 3 })} onDelete={onDelete} />);
+
+    fireEvent.click(screen.getByText("✕"));
+    fireEvent.click(screen.getByText("Delete"));
+
+    expect(navigateMock).not.toHaveBeenCalled();
   });
 });

@@ -11,6 +11,8 @@ function makeContact(overrides: Partial<CompanyContact> = {}): CompanyContact {
     lastName: "Doe",
     email: null,
     phone: null,
+    jobTitle: null,
+    color: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -109,6 +111,51 @@ describe("ContactsTab", () => {
     );
     await waitFor(() =>
       expect(screen.queryByLabelText("First name")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("shows Job title and Color fields in the add-contact form", () => {
+    render(
+      <ContactsTab
+        contacts={[]}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+        onAdd={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("+ Add contact"));
+    expect(screen.getByLabelText("Job title")).toBeInTheDocument();
+    expect(screen.getByLabelText("Color")).toBeInTheDocument();
+  });
+
+  it("submits jobTitle and color from the add-contact form", async () => {
+    const onAdd = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ContactsTab
+        contacts={[]}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+        onAdd={onAdd}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("+ Add contact"));
+    fireEvent.change(screen.getByLabelText("Job title"), {
+      target: { value: "Vendor Manager" },
+    });
+    fireEvent.change(screen.getByLabelText("Color"), {
+      target: { value: "#FCA5A5" },
+    });
+    fireEvent.click(screen.getByText("Add contact"));
+
+    await waitFor(() =>
+      expect(onAdd).toHaveBeenCalledWith(
+        expect.objectContaining({
+          jobTitle: "Vendor Manager",
+          color: "#FCA5A5",
+        }),
+      ),
     );
   });
 

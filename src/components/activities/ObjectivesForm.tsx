@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUpdateActivity } from "@/hooks/activities/useActivities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,13 @@ export function ObjectivesForm({ activityId, initial }: ObjectivesFormProps) {
   const [q4, setQ4] = useState(centsToEuros(initial.objectiveQ4));
   const [saved, setSaved] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    return () => clearTimeout(savedTimeoutRef.current);
+  }, []);
 
   function parseObjective(str: string): {
     cents: number | null;
@@ -48,7 +55,8 @@ export function ObjectivesForm({ activityId, initial }: ObjectivesFormProps) {
         objectiveQ4: q4r.cents,
       });
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      clearTimeout(savedTimeoutRef.current);
+      savedTimeoutRef.current = setTimeout(() => setSaved(false), 3000);
     } catch {
       /* error state is surfaced via useUpdateActivity's error */
     }

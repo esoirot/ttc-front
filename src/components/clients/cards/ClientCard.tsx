@@ -115,7 +115,10 @@ export function ClientCard({ client, onDelete }: ClientCardProps) {
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => onDelete(client.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(client.id);
+                  }}
                 >
                   Delete
                 </AlertDialogAction>
