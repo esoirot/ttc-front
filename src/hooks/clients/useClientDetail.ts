@@ -42,6 +42,7 @@ export function useClientDetail(clientId: number) {
     invoicesLoading,
     totalSeconds,
     timeLoading,
+    statusHistory: client?.statusHistory ?? [],
     updateClient,
     updatingClient,
     createContact,

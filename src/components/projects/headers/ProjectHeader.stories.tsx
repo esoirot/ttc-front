@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 import type { Project } from "@/types/projects.types";
 import type { Client } from "@/types/clients.types";
 import { ProjectHeader } from "./ProjectHeader";
@@ -74,7 +75,9 @@ const meta: Meta<typeof ProjectHeader> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <Story />
+        <MemoryRouter>
+          <Story />
+        </MemoryRouter>
       </QueryClientProvider>
     ),
   ],

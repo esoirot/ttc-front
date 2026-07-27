@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MemoryRouter } from "react-router-dom";
 import type { Invoice } from "@/types/invoices.types";
+import type { ClientStatusHistory } from "@/types/clients.types";
 import { ActivityTab } from "./ActivityTab";
 
 function makeInvoice(overrides: Partial<Invoice> = {}): Invoice {
@@ -50,6 +51,7 @@ const meta: Meta<typeof ActivityTab> = {
     timeLoading: false,
     hasProjects: true,
     totalSeconds: 9045,
+    statusHistory: [],
   },
 };
 export default meta;
@@ -79,4 +81,29 @@ export const NoInvoicesNoTime: Story = {
 
 export const NoProjectsLinked: Story = {
   args: { invoices: [], hasProjects: false, totalSeconds: 0 },
+};
+
+const statusHistory: ClientStatusHistory[] = [
+  {
+    id: 1,
+    clientId: 1,
+    userId: 1,
+    type: "STATUS_CHANGED",
+    payload: JSON.stringify({ from: "TO_CONTACT", to: "CONTACTED" }),
+    createdAt: "2026-06-01T09:00:00.000Z",
+    user: { id: 1, name: "Ada Lovelace" },
+  },
+  {
+    id: 2,
+    clientId: 1,
+    userId: 1,
+    type: "CONTACTED_AT_CHANGED",
+    payload: JSON.stringify({ from: null, to: "2026-06-05T00:00:00.000Z" }),
+    createdAt: "2026-06-05T10:00:00.000Z",
+    user: { id: 1, name: "Ada Lovelace" },
+  },
+];
+
+export const WithStatusHistory: Story = {
+  args: { invoices: [], totalSeconds: 0, statusHistory },
 };

@@ -21,6 +21,16 @@ const CLIENT_FIELDS = `
   contacts { ${CONTACT_FIELDS} }
 `;
 
+const HISTORY_FIELDS = `id clientId userId type payload createdAt user { id name }`;
+
+// Includes statusHistory — used everywhere a single Client is fetched/returned
+// whole (detail query, create/update mutations, all of which fully overwrite
+// the ["client", id] cache entry with their response). Deliberately NOT
+// folded into CLIENT_FIELDS itself, which CLIENTS_QUERY (paginated list) also
+// uses — that would trigger the statusHistory resolver per row for data the
+// list view never renders.
+const CLIENT_DETAIL_FIELDS = `${CLIENT_FIELDS} statusHistory { ${HISTORY_FIELDS} }`;
+
 export const CLIENTS_QUERY: TypedDocumentNode<
   { clients: ClientConnection },
   {
@@ -45,7 +55,7 @@ export const CLIENT_QUERY: TypedDocumentNode<
   { id: number }
 > = gql`
   query Client($id: Int!) {
-    client(id: $id) { ${CLIENT_FIELDS} }
+    client(id: $id) { ${CLIENT_DETAIL_FIELDS} }
   }
 `;
 
@@ -83,7 +93,7 @@ export const CREATE_CLIENT_MUTATION: TypedDocumentNode<
   { input: ClientInput }
 > = gql`
   mutation CreateClient($input: CreateClientInput!) {
-    createClient(input: $input) { ${CLIENT_FIELDS} }
+    createClient(input: $input) { ${CLIENT_DETAIL_FIELDS} }
   }
 `;
 
@@ -92,7 +102,7 @@ export const UPDATE_CLIENT_MUTATION: TypedDocumentNode<
   { input: Partial<ClientInput> & { id: number } }
 > = gql`
   mutation UpdateClient($input: UpdateClientInput!) {
-    updateClient(input: $input) { ${CLIENT_FIELDS} }
+    updateClient(input: $input) { ${CLIENT_DETAIL_FIELDS} }
   }
 `;
 

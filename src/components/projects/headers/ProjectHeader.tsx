@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -369,7 +370,15 @@ export function ProjectHeader({
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">
               {client && (
-                <span className="text-muted-foreground">{client.name} — </span>
+                <>
+                  <Link
+                    to={`/clients/${client.id}`}
+                    className="text-muted-foreground hover:text-foreground hover:underline"
+                  >
+                    {client.name}
+                  </Link>
+                  <span className="text-muted-foreground"> — </span>
+                </>
               )}
               {project.title}
             </h1>

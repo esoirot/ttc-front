@@ -370,7 +370,7 @@ describe("TtcEntryRow", () => {
     expect(onUpdate).toHaveBeenCalledWith({ id: 1, billable: false });
   });
 
-  it("wires tag chip add/remove to onUpdate with the recomputed tagIds list", () => {
+  it("wires tag chip onChange to onUpdate with the given tagIds list", () => {
     const onUpdate = vi.fn();
     render(
       wrap(
@@ -383,11 +383,37 @@ describe("TtcEntryRow", () => {
       ),
     );
 
-    (tagChipsProps.onAdd as (id: number) => void)(2);
+    (tagChipsProps.onChange as (ids: number[]) => void)([1, 2]);
     expect(onUpdate).toHaveBeenCalledWith({ id: 1, tagIds: [1, 2] });
+  });
 
-    (tagChipsProps.onRemove as (id: number) => void)(1);
-    expect(onUpdate).toHaveBeenCalledWith({ id: 1, tagIds: [] });
+  it("applies a batch of tag changes atomically in a single onChange call", () => {
+    // Regression guard: onAdd/onRemove used to be two separate callbacks
+    // that each recomputed tagIds from the same stale `entry.tags` render
+    // snapshot — calling both synchronously (as a staged multi-tag Save
+    // does) meant one of the two onUpdate calls silently lost the other's
+    // change. A single onChange(tagIds) call cannot have this problem.
+    const onUpdate = vi.fn();
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              tags: [
+                { id: 1, name: "Urgent" },
+                { id: 2, name: "Client A" },
+              ],
+            }),
+            onUpdate,
+          })}
+        />,
+      ),
+    );
+
+    (tagChipsProps.onChange as (ids: number[]) => void)([2, 3]);
+
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+    expect(onUpdate).toHaveBeenCalledWith({ id: 1, tagIds: [2, 3] });
   });
 
   it("calls onResume with the entry when the resume button is clicked", () => {

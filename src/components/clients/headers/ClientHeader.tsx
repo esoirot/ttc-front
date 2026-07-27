@@ -294,15 +294,7 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
             <TtcTagChips
               tagIds={form.tagIds}
               tags={tags}
-              onAdd={(id) =>
-                setForm((prev) => ({ ...prev, tagIds: [...prev.tagIds, id] }))
-              }
-              onRemove={(id) =>
-                setForm((prev) => ({
-                  ...prev,
-                  tagIds: prev.tagIds.filter((x) => x !== id),
-                }))
-              }
+              onChange={(tagIds) => setForm((prev) => ({ ...prev, tagIds }))}
             />
           </div>
         </div>

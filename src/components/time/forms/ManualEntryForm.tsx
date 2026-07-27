@@ -53,14 +53,7 @@ export function ManualEntryForm({
           </div>
           <div className="flex flex-col gap-1">
             <Label className="text-xs text-muted-foreground">Tags</Label>
-            <TtcTagChips
-              tagIds={tagIds}
-              tags={tags}
-              onAdd={(id) => setTagIds((prev) => [...prev, id])}
-              onRemove={(id) =>
-                setTagIds((prev) => prev.filter((t) => t !== id))
-              }
-            />
+            <TtcTagChips tagIds={tagIds} tags={tags} onChange={setTagIds} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">

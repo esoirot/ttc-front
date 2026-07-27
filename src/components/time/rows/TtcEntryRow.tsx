@@ -293,18 +293,7 @@ export function TtcEntryRow({
           <TtcTagChips
             tagIds={entry.tags.map((t) => t.id)}
             tags={tags}
-            onAdd={(id) =>
-              onUpdate({
-                id: entry.id,
-                tagIds: [...entry.tags.map((t) => t.id), id],
-              })
-            }
-            onRemove={(id) =>
-              onUpdate({
-                id: entry.id,
-                tagIds: entry.tags.map((t) => t.id).filter((x) => x !== id),
-              })
-            }
+            onChange={(tagIds) => onUpdate({ id: entry.id, tagIds })}
           />
           <Button
             variant="outline"

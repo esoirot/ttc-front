@@ -333,13 +333,11 @@ describe("NewClientForm", () => {
     });
   });
 
-  it("wires tag chip add/remove to the tagIds state", () => {
+  it("wires tag chip onChange to the tagIds state", () => {
     renderForm();
     expect(tagChipsProps.tagIds).toEqual([]);
 
-    act(() => (tagChipsProps.onAdd as (id: number) => void)(3));
-    act(() => (tagChipsProps.onAdd as (id: number) => void)(4));
-    act(() => (tagChipsProps.onRemove as (id: number) => void)(3));
+    act(() => (tagChipsProps.onChange as (ids: number[]) => void)([4]));
 
     expect(tagChipsProps.tagIds).toEqual([4]);
   });

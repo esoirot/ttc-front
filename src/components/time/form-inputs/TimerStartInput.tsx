@@ -78,12 +78,7 @@ export function TimerStartInput({
             ))}
           </SelectContent>
         </Select>
-        <TtcTagChips
-          tagIds={tagIds}
-          tags={tags}
-          onAdd={(id) => setTagIds((prev) => [...prev, id])}
-          onRemove={(id) => setTagIds((prev) => prev.filter((t) => t !== id))}
-        />
+        <TtcTagChips tagIds={tagIds} tags={tags} onChange={setTagIds} />
         <Button
           type="button"
           variant="outline"

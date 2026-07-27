@@ -108,5 +108,7 @@ export const INDUSTRY_LABELS: Record<ClientIndustry, string> = {
   GOVERNMENT: "Government",
   NGO: "NGO / Non-profit",
   REAL_ESTATE: "Real Estate",
+  TOURISM: "Tourism",
+  LUXE: "Luxury Goods",
   OTHER: "Other",
 };

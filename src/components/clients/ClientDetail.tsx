@@ -22,6 +22,7 @@ export function ClientDetail() {
     invoicesLoading,
     totalSeconds,
     timeLoading,
+    statusHistory,
     updateClient,
     updatingClient,
     createContact,
@@ -107,6 +108,7 @@ export function ClientDetail() {
             totalSeconds={totalSeconds}
             timeLoading={timeLoading}
             hasProjects={clientProjectIds.length > 0}
+            statusHistory={statusHistory}
           />
         </TabsContent>
 

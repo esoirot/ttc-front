@@ -75,8 +75,7 @@ export interface ManualEntryFormProps {
 export type TtcTagChipsProps = {
   tagIds: number[];
   tags: Tag[];
-  onAdd: (id: number) => void;
-  onRemove: (id: number) => void;
+  onChange: (tagIds: number[]) => void;
 };
 
 export type TimeEntryFilters = {

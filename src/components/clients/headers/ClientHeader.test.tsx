@@ -509,15 +509,12 @@ describe("ClientHeader", () => {
     expect(screen.queryByLabelText("Name")).not.toBeInTheDocument();
   });
 
-  it("wires tag chip add/remove to the edit form's tagIds", () => {
+  it("wires tag chip onChange to the edit form's tagIds", () => {
     renderHeader(makeClient({ tags: [{ id: 1, name: "VIP" }] }));
     fireEvent.click(screen.getByText("Edit"));
     expect(tagChipsProps.tagIds).toEqual([1]);
 
-    act(() => (tagChipsProps.onAdd as (id: number) => void)(2));
-    expect(tagChipsProps.tagIds).toEqual([1, 2]);
-
-    act(() => (tagChipsProps.onRemove as (id: number) => void)(1));
+    act(() => (tagChipsProps.onChange as (ids: number[]) => void)([2]));
     expect(tagChipsProps.tagIds).toEqual([2]);
   });
 });

@@ -218,14 +218,7 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 Tags
               </p>
-              <TtcTagChips
-                tagIds={tagIds}
-                tags={tags}
-                onAdd={(id) => setTagIds((prev) => [...prev, id])}
-                onRemove={(id) =>
-                  setTagIds((prev) => prev.filter((x) => x !== id))
-                }
-              />
+              <TtcTagChips tagIds={tagIds} tags={tags} onChange={setTagIds} />
             </div>
           </div>
 

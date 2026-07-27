@@ -1,6 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ActivityTabProps } from "@/types/clients.types";
 import { InvoiceRow } from "../rows/InvoiceRow";
+import { ClientStatusHistoryFeed } from "../ClientStatusHistoryFeed";
 import { formatDurationWithoutSeconds } from "@/lib/time";
 
 export function ActivityTab({
@@ -9,6 +10,7 @@ export function ActivityTab({
   totalSeconds,
   timeLoading,
   hasProjects,
+  statusHistory,
 }: ActivityTabProps) {
   return (
     <>
@@ -42,6 +44,11 @@ export function ActivityTab({
             {formatDurationWithoutSeconds(totalSeconds)}
           </p>
         )}
+      </div>
+
+      <div className="mt-6">
+        <h3 className="text-sm font-semibold mb-2">Status history</h3>
+        <ClientStatusHistoryFeed history={statusHistory} />
       </div>
     </>
   );

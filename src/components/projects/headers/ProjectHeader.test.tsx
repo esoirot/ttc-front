@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
 import type { Client } from "@/types/clients.types";
@@ -77,12 +78,14 @@ function renderHeader(
   gqlFetch.mockResolvedValue({ translationRates: [], clientRates: [] });
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <ProjectHeader
-        project={project}
-        clients={clients}
-        onUpdate={onUpdate}
-        saving={false}
-      />
+      <MemoryRouter>
+        <ProjectHeader
+          project={project}
+          clients={clients}
+          onUpdate={onUpdate}
+          saving={false}
+        />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }
@@ -108,7 +111,12 @@ describe("ProjectHeader", () => {
     renderHeader(makeProject({ clientId: 1 }), [
       makeClient({ id: 1, name: "Acme" }),
     ]);
-    expect(screen.getByText(/Acme —/)).toBeInTheDocument();
+    // "Acme" (a <Link>) and the " — " separator are separate sibling
+    // elements, not one text node, so match the link directly.
+    expect(screen.getByRole("link", { name: "Acme" })).toHaveAttribute(
+      "href",
+      "/clients/1",
+    );
   });
 
   it("shows a pricing summary line when monetization fields are set", () => {

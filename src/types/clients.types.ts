@@ -19,6 +19,8 @@ export type ClientIndustry =
   | "GOVERNMENT"
   | "NGO"
   | "REAL_ESTATE"
+  | "TOURISM"
+  | "LUXE"
   | "OTHER";
 
 export type ClientStatus =
@@ -42,6 +44,21 @@ export interface CompanyContact {
   color: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ClientStatusHistoryUser {
+  id: number;
+  name: string | null;
+}
+
+export interface ClientStatusHistory {
+  id: number;
+  clientId: number;
+  userId: number;
+  type: string;
+  payload: string | null;
+  createdAt: string;
+  user: ClientStatusHistoryUser | null;
 }
 
 export interface Client {
@@ -75,6 +92,9 @@ export interface Client {
   contactedAt: string | null;
   tags: { id: number; name: string }[];
   contacts: CompanyContact[];
+  // Only populated by CLIENT_QUERY (detail fetch) — CLIENTS_QUERY (paginated
+  // list) omits it to avoid an N+1 resolver hit per row the list never renders.
+  statusHistory?: ClientStatusHistory[];
   createdAt: string;
   updatedAt: string;
 }
@@ -120,6 +140,7 @@ export type ActivityTabProps = {
   totalSeconds: number;
   timeLoading: boolean;
   hasProjects: boolean;
+  statusHistory: ClientStatusHistory[];
 };
 
 export type EditInput = {

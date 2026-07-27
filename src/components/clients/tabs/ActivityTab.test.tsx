@@ -41,6 +41,7 @@ function renderTab(props: Partial<Parameters<typeof ActivityTab>[0]> = {}) {
         totalSeconds={0}
         timeLoading={false}
         hasProjects={true}
+        statusHistory={[]}
         {...props}
       />
     </MemoryRouter>,

@@ -16,6 +16,7 @@ import { TtcTagChips } from "./TtcTagChips";
 const TAGS: Tag[] = [
   { id: 1, name: "Urgent", userId: 1 } as Tag,
   { id: 2, name: "Client A", userId: 1 } as Tag,
+  { id: 3, name: "Internal", userId: 1 } as Tag,
 ];
 
 function renderChips(
@@ -23,15 +24,13 @@ function renderChips(
 ) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <TtcTagChips
-        tagIds={[]}
-        tags={TAGS}
-        onAdd={vi.fn()}
-        onRemove={vi.fn()}
-        {...overrides}
-      />
+      <TtcTagChips tagIds={[]} tags={TAGS} onChange={vi.fn()} {...overrides} />
     </QueryClientProvider>,
   );
+}
+
+function openEditor() {
+  fireEvent.click(screen.getByRole("button", { name: /tag/i }));
 }
 
 describe("TtcTagChips", () => {
@@ -40,82 +39,187 @@ describe("TtcTagChips", () => {
     gqlMutate.mockReset();
   });
 
-  it("renders a chip per active tag id", () => {
+  it("renders a read-only chip per active tag id", () => {
     renderChips({ tagIds: [1, 2] });
 
     expect(screen.getByText("Urgent")).toBeInTheDocument();
     expect(screen.getByText("Client A")).toBeInTheDocument();
   });
 
-  it("calls onRemove with the tag id when its x is clicked", () => {
-    const onRemove = vi.fn();
-    renderChips({ tagIds: [1], onRemove });
+  it("removes a committed chip instantly via its x, without opening the editor", () => {
+    const onChange = vi.fn();
+    renderChips({ tagIds: [1, 2], onChange });
 
-    fireEvent.click(screen.getByText("x"));
-    expect(onRemove).toHaveBeenCalledWith(1);
+    const chip = screen.getByText("Urgent").closest("span")!;
+    fireEvent.click(chip.querySelector("button")!);
+
+    expect(onChange).toHaveBeenCalledWith([2]);
   });
 
-  it("filters the dropdown by query, excluding already-active tags", () => {
-    renderChips({ tagIds: [1] });
+  it("seeds staged state from tagIds — Save with no edits reproduces the same ids", () => {
+    const onChange = vi.fn();
+    renderChips({ tagIds: [1], onChange });
 
-    const input = screen.getByPlaceholderText("+ tag");
-    fireEvent.focus(input);
-    fireEvent.change(input, { target: { value: "client" } });
+    openEditor();
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(screen.getByText("Client A")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Urgent" }),
-    ).not.toBeInTheDocument();
+    expect(onChange).toHaveBeenCalledWith([1]);
   });
 
-  it("selects an existing tag via mousedown and clears the query", () => {
-    const onAdd = vi.fn();
-    renderChips({ onAdd });
+  it("toggling an existing tag on does not call onChange until Save", () => {
+    const onChange = vi.fn();
+    renderChips({ tagIds: [1], onChange });
 
-    const input = screen.getByPlaceholderText("+ tag");
-    fireEvent.focus(input);
-    fireEvent.change(input, { target: { value: "Urgent" } });
-    fireEvent.mouseDown(screen.getByText("Urgent"));
+    openEditor();
+    fireEvent.click(screen.getByText("Client A"));
+    expect(onChange).not.toHaveBeenCalled();
 
-    expect(onAdd).toHaveBeenCalledWith(1);
-    expect(input).toHaveValue("");
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onChange).toHaveBeenCalledWith([1, 2]);
   });
 
-  it("offers to create a new tag when the query matches nothing existing", () => {
+  it("toggling an already-attached tag off stages its removal, applied on Save", () => {
+    const onChange = vi.fn();
+    renderChips({ tagIds: [1, 2], onChange });
+
+    openEditor();
+    fireEvent.click(screen.getByRole("option", { name: "Urgent" }));
+    expect(onChange).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onChange).toHaveBeenCalledWith([2]);
+  });
+
+  it("applies a combined add + remove as a single Save call with the correct final ids", () => {
+    const onChange = vi.fn();
+    renderChips({ tagIds: [1, 2], onChange });
+
+    openEditor();
+    fireEvent.click(screen.getByRole("option", { name: "Urgent" })); // stage removal of 1
+    fireEvent.click(screen.getByRole("option", { name: "Internal" })); // stage addition of 3
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith([2, 3]);
+  });
+
+  it("Cancel discards all staged changes with zero onChange calls", () => {
+    const onChange = vi.fn();
+    renderChips({ tagIds: [1], onChange });
+
+    openEditor();
+    fireEvent.click(screen.getByText("Client A"));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(onChange).not.toHaveBeenCalled();
+
+    openEditor();
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onChange).toHaveBeenCalledWith([1]);
+  });
+
+  it("staging a new tag name shows a preview chip without calling createTag", () => {
     renderChips();
 
-    const input = screen.getByPlaceholderText("+ tag");
-    fireEvent.focus(input);
+    openEditor();
+    const input = screen.getByPlaceholderText("Search or add tag…");
     fireEvent.change(input, { target: { value: "Brand New" } });
+    fireEvent.click(screen.getByText('Add "Brand New"'));
 
-    expect(screen.getByText('Create "Brand New"')).toBeInTheDocument();
+    expect(gqlMutate).not.toHaveBeenCalled();
+    expect(screen.getByText("Brand New")).toBeInTheDocument();
   });
 
-  it("does not offer to create when the query exactly matches an existing tag", () => {
-    renderChips();
+  it("a staged pending-new chip is individually removable before Save", async () => {
+    gqlMutate.mockResolvedValueOnce({ createTag: { id: 9, name: "B" } });
+    const onChange = vi.fn();
+    renderChips({ onChange });
 
-    const input = screen.getByPlaceholderText("+ tag");
-    fireEvent.focus(input);
-    fireEvent.change(input, { target: { value: "urgent" } });
+    openEditor();
+    const input = screen.getByPlaceholderText("Search or add tag…");
 
-    expect(screen.queryByText(/^Create/)).not.toBeInTheDocument();
+    fireEvent.change(input, { target: { value: "A" } });
+    fireEvent.click(screen.getByText('Add "A"'));
+    fireEvent.change(input, { target: { value: "B" } });
+    fireEvent.click(screen.getByText('Add "B"'));
+
+    const chipA = screen.getByText("A").closest("span")!;
+    fireEvent.click(chipA.querySelector("button")!);
+
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith([9]));
+    expect(gqlMutate).toHaveBeenCalledTimes(1);
+    expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
+      input: { name: "B" },
+    });
   });
 
-  it("creates a new tag and adds it once the mutation resolves", async () => {
+  it("Save creates staged new tags then calls onChange with the resulting ids", async () => {
     gqlMutate.mockResolvedValueOnce({
       createTag: { id: 9, name: "Brand New" },
     });
-    const onAdd = vi.fn();
-    renderChips({ onAdd });
+    const onChange = vi.fn();
+    renderChips({ tagIds: [1], onChange });
 
-    const input = screen.getByPlaceholderText("+ tag");
-    fireEvent.focus(input);
+    openEditor();
+    const input = screen.getByPlaceholderText("Search or add tag…");
     fireEvent.change(input, { target: { value: "Brand New" } });
-    fireEvent.mouseDown(screen.getByText('Create "Brand New"'));
+    fireEvent.click(screen.getByText('Add "Brand New"'));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
-    await waitFor(() => expect(onAdd).toHaveBeenCalledWith(9));
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith([1, 9]));
     expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
       input: { name: "Brand New" },
     });
+  });
+
+  it("Save disables itself while a create mutation is in flight", async () => {
+    let resolveCreate!: (v: unknown) => void;
+    gqlMutate.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveCreate = resolve;
+      }),
+    );
+    renderChips();
+
+    openEditor();
+    const input = screen.getByPlaceholderText("Search or add tag…");
+    fireEvent.change(input, { target: { value: "Brand New" } });
+    fireEvent.click(screen.getByText('Add "Brand New"'));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+
+    resolveCreate({ createTag: { id: 9, name: "Brand New" } });
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "Saving…" }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it("a createTag failure during Save keeps staged state intact for retry", async () => {
+    gqlMutate.mockRejectedValueOnce(new Error("network error"));
+    gqlMutate.mockResolvedValueOnce({
+      createTag: { id: 9, name: "Brand New" },
+    });
+    const onChange = vi.fn();
+    renderChips({ onChange });
+
+    openEditor();
+    const input = screen.getByPlaceholderText("Search or add tag…");
+    fireEvent.change(input, { target: { value: "Brand New" } });
+    fireEvent.click(screen.getByText('Add "Brand New"'));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/Couldn't create/)).toBeInTheDocument(),
+    );
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByText("Brand New")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith([9]));
   });
 });
