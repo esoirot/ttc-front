@@ -46,6 +46,7 @@ export function RateSheetForm({
   const [clientId, setClientId] = useState<string>(
     initial?.clientId != null ? String(initial.clientId) : "__none__",
   );
+  const [isDefault, setIsDefault] = useState(initial?.isDefault ?? false);
   const [description, setDescription] = useState(initial?.description ?? "");
   const [sourceLanguage, setSourceLanguage] = useState(
     initial?.sourceLanguage ?? "",
@@ -106,6 +107,7 @@ export function RateSheetForm({
       currency: activeCurrency,
       pricePerWord: parsedPrice,
       matchRates,
+      isDefault: clientId === "__none__" ? false : isDefault,
     });
   }
 
@@ -157,6 +159,19 @@ export function RateSheetForm({
             </SelectContent>
           </Select>
         </div>
+
+        {clientId !== "__none__" && (
+          <div className="col-span-2 flex items-center gap-2">
+            <Checkbox
+              id="rs-is-default"
+              checked={isDefault}
+              onCheckedChange={(v) => setIsDefault(Boolean(v))}
+            />
+            <Label htmlFor="rs-is-default" className="cursor-pointer">
+              Default rate sheet for this client
+            </Label>
+          </div>
+        )}
 
         <div className="col-span-2 flex flex-col gap-1.5">
           <Label htmlFor="rs-description">Description</Label>

@@ -15,6 +15,7 @@ const sheet: RateSheet = {
   currency: "EUR",
   pricePerWord: 0.12,
   matchRates: defaultMatchRates(),
+  isDefault: false,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };

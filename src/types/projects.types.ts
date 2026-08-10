@@ -26,6 +26,7 @@ export interface Project {
   fixedFee: number | null;
   hourlyRate: number | null;
   perWordRate: number | null;
+  useCustomRate: boolean;
   currency: string;
   deadline: string | null;
   startDate: string | null;
@@ -69,6 +70,7 @@ export interface ProjectHeaderProps {
     fixedFee?: number | null;
     hourlyRate?: number | null;
     perWordRate?: number | null;
+    useCustomRate?: boolean;
     currency?: string;
     deadline?: string;
     startDate?: string;
@@ -126,6 +128,7 @@ export type ProjectInput = {
   fixedFee?: number | null;
   hourlyRate?: number | null;
   perWordRate?: number | null;
+  useCustomRate?: boolean;
   currency?: string;
   deadline?: string;
   startDate?: string;

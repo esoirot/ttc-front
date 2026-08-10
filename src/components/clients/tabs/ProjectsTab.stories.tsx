@@ -18,6 +18,7 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     fixedFee: null,
     hourlyRate: null,
     perWordRate: null,
+    useCustomRate: false,
     currency: "EUR",
     deadline: null,
     startDate: null,

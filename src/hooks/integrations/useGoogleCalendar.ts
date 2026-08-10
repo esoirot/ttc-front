@@ -29,13 +29,19 @@ export function useGoogleCalendarEvents(
   timeMax: string,
   enabled = true,
 ) {
+  const qc = useQueryClient();
   return useQuery<GoogleCalendarEventList>({
     queryKey: ["google-calendar", "events", timeMin, timeMax],
     queryFn: () => {
       const params = new URLSearchParams({ timeMin, timeMax });
       return apiGet<GoogleCalendarEventList>(
         `/google-calendar/events?${params.toString()}`,
-      );
+      ).catch((err: unknown) => {
+        // Refresh token invalid/revoked — backend already cleared stored
+        // credentials; re-check status so the UI flips to the reconnect prompt.
+        void qc.invalidateQueries({ queryKey: ["google-calendar", "status"] });
+        throw err;
+      });
     },
     enabled: enabled && !!timeMin && !!timeMax,
     retry: false,

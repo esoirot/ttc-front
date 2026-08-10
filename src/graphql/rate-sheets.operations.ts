@@ -33,6 +33,7 @@ const RATE_SHEET_FIELDS = `
   currency
   pricePerWord
   matchRates { ${MATCH_RATE_FIELDS} }
+  isDefault
   createdAt
   updatedAt
 `;

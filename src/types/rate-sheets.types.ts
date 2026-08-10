@@ -14,6 +14,7 @@ export interface RateSheet {
   currency: string;
   pricePerWord: number;
   matchRates: MatchRates;
+  isDefault: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,6 +29,7 @@ export interface CreateRateSheetInput {
   currency: string;
   pricePerWord: number;
   matchRates: MatchRates;
+  isDefault?: boolean;
 }
 
 export interface UpdateRateSheetInput {
@@ -41,6 +43,7 @@ export interface UpdateRateSheetInput {
   currency?: string;
   pricePerWord?: number;
   matchRates?: MatchRates;
+  isDefault?: boolean;
 }
 
 export interface RateSheetFormProps {

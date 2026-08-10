@@ -32,16 +32,27 @@ export function ProjectCard({
           <p className="font-medium">{project.title}</p>
           <p className="text-muted-foreground text-xs">
             {project.clientId ? (clientName ?? "Client") : "No client"}
-            {project.sourceLanguage && project.targetLanguage
-              ? ` · ${project.sourceLanguage}→${project.targetLanguage}`
-              : ""}
-            {project.deadline ? ` · Due ${project.deadline.slice(0, 10)}` : ""}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           <span className="text-xs font-mono text-muted-foreground">
             ⏱ {secsToHms(project.totalTimeSeconds ?? 0)}
           </span>
+          {project.sourceLanguage && project.targetLanguage && (
+            <Badge variant="outline" className="text-xs font-mono">
+              {project.sourceLanguage} → {project.targetLanguage}
+            </Badge>
+          )}
+          {project.deadline && (
+            <Badge variant="outline" className="text-xs">
+              Due {project.deadline.slice(0, 10)}
+            </Badge>
+          )}
+          {project.wordCount != null && (
+            <Badge variant="outline" className="text-xs">
+              {project.wordCount.toLocaleString()} words
+            </Badge>
+          )}
           <Badge
             variant={STATUS_VARIANTS[project.status] ?? "outline"}
             className={STATUS_BADGE_CLASSES[project.status]}

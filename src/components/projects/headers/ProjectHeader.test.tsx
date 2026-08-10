@@ -30,6 +30,7 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     fixedFee: null,
     hourlyRate: null,
     perWordRate: null,
+    useCustomRate: false,
     currency: "EUR",
     deadline: null,
     startDate: null,
@@ -102,9 +103,22 @@ describe("ProjectHeader", () => {
     expect(screen.getByText("ACTIVE")).toBeInTheDocument();
   });
 
-  it("shows 'No details' when no language/deadline/wordcount is set", () => {
+  it("shows no language, due date, or word count badges when unset", () => {
     renderHeader(makeProject());
-    expect(screen.getByText("No details")).toBeInTheDocument();
+    expect(screen.queryByText(/→/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Due /)).not.toBeInTheDocument();
+    expect(screen.queryByText(/words$/)).not.toBeInTheDocument();
+  });
+
+  it("shows due date and word count as their own badges", () => {
+    renderHeader(
+      makeProject({
+        deadline: "2026-12-31T00:00:00.000Z",
+        wordCount: 2500,
+      }),
+    );
+    expect(screen.getByText("Due 2026-12-31")).toBeInTheDocument();
+    expect(screen.getByText("2,500 words")).toBeInTheDocument();
   });
 
   it("shows the client name prefix when linked", () => {
@@ -120,7 +134,9 @@ describe("ProjectHeader", () => {
   });
 
   it("shows a pricing summary line when monetization fields are set", () => {
-    renderHeader(makeProject({ hourlyRate: 25, currency: "USD" }));
+    renderHeader(
+      makeProject({ useCustomRate: true, hourlyRate: 25, currency: "USD" }),
+    );
     expect(screen.getByText("25/hr USD")).toBeInTheDocument();
   });
 
@@ -175,12 +191,10 @@ describe("ProjectHeader", () => {
     fireEvent.change(screen.getByLabelText("Currency"), {
       target: { value: "USD" },
     });
-    fireEvent.change(screen.getByLabelText("Source language"), {
-      target: { value: "EN" },
-    });
-    fireEvent.change(screen.getByLabelText("Target language"), {
-      target: { value: "FR" },
-    });
+    fireEvent.click(screen.getByLabelText("Source language"));
+    fireEvent.click(screen.getByRole("option", { name: "EN — English" }));
+    fireEvent.click(screen.getByLabelText("Target language"));
+    fireEvent.click(screen.getByRole("option", { name: "FR — French" }));
     fireEvent.change(screen.getByLabelText("Start date"), {
       target: { value: "2026-01-01" },
     });
@@ -190,6 +204,7 @@ describe("ProjectHeader", () => {
     fireEvent.change(screen.getByLabelText("Word count"), {
       target: { value: "1000" },
     });
+    fireEvent.click(screen.getByRole("checkbox", { name: /use custom rate/i }));
     fireEvent.change(screen.getByLabelText("Fixed fee"), {
       target: { value: "500" },
     });
@@ -220,7 +235,7 @@ describe("ProjectHeader", () => {
     );
   });
 
-  it("shows the language pair, deadline, and word count in the details line", () => {
+  it("shows the language pair, due date, and word count as three separate badges", () => {
     renderHeader(
       makeProject({
         sourceLanguage: "EN",
@@ -229,14 +244,19 @@ describe("ProjectHeader", () => {
         wordCount: 2500,
       }),
     );
-    expect(
-      screen.getByText("EN → FR · Due 2026-12-31 · 2,500 words"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("EN → FR")).toBeInTheDocument();
+    expect(screen.getByText("Due 2026-12-31")).toBeInTheDocument();
+    expect(screen.getByText("2,500 words")).toBeInTheDocument();
   });
 
   it("joins multiple pricing lines with a plus sign", () => {
     renderHeader(
-      makeProject({ fixedFee: 100, hourlyRate: 25, perWordRate: 0.1 }),
+      makeProject({
+        useCustomRate: true,
+        fixedFee: 100,
+        hourlyRate: 25,
+        perWordRate: 0.1,
+      }),
     );
     expect(
       screen.getByText("Fixed 100 EUR + 25/hr EUR + 0.1/word EUR"),
@@ -246,6 +266,78 @@ describe("ProjectHeader", () => {
   it("shows no pricing line when no monetization fields are set", () => {
     renderHeader(makeProject());
     expect(screen.queryByText(/Fixed|\/hr|\/word/)).not.toBeInTheDocument();
+  });
+
+  it("shows the client rate sheet price when a matching sheet is loaded", async () => {
+    gqlFetch.mockResolvedValue({
+      translationRates: [],
+      clientRates: [],
+      rateSheets: [
+        {
+          id: 1,
+          userId: 1,
+          activityId: null,
+          clientId: 3,
+          name: "EN-FR standard",
+          description: null,
+          sourceLanguage: "EN",
+          targetLanguage: "FR",
+          currency: "EUR",
+          pricePerWord: 0.12,
+          matchRates: {
+            perfectMatch: 0,
+            cm: 0,
+            repetitions: 0,
+            repetitionsBetweenFiles: 0,
+            match100: 0,
+            match95_99: 0,
+            match85_94: 0,
+            match75_84: 0,
+            match50_74: 0,
+            referenceAdaptativeMT: 0,
+            adaptativeMTWithLearning: 0,
+            newWordsTA: 0,
+          },
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    });
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <ProjectHeader
+          project={makeProject({
+            clientId: 3,
+            sourceLanguage: "EN",
+            targetLanguage: "FR",
+          })}
+          clients={[]}
+          onUpdate={vi.fn()}
+          saving={false}
+        />
+      </QueryClientProvider>,
+    );
+    expect(
+      await screen.findByText("Client rate: 0.12 EUR/word (EN-FR standard)"),
+    ).toBeInTheDocument();
+  });
+
+  it("checking 'Use custom rate' reveals monetization inputs and saves useCustomRate", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(makeProject({ id: 7 }), [], onUpdate);
+
+    fireEvent.click(screen.getByText("Edit"));
+    expect(screen.queryByLabelText("Fixed fee")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /use custom rate/i }));
+    expect(screen.getByLabelText("Fixed fee")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 7, useCustomRate: true }),
+      ),
+    );
   });
 
   it("does not render a RatePicker for a rate type with no matching rates", () => {
@@ -286,6 +378,7 @@ describe("ProjectHeader", () => {
       </QueryClientProvider>,
     );
     fireEvent.click(screen.getByText("Edit"));
+    fireEvent.click(screen.getByRole("checkbox", { name: /use custom rate/i }));
 
     expect(await screen.findAllByText("From rate…")).toHaveLength(1);
   });
@@ -323,6 +416,7 @@ describe("ProjectHeader", () => {
       </QueryClientProvider>,
     );
     fireEvent.click(screen.getByText("Edit"));
+    fireEvent.click(screen.getByRole("checkbox", { name: /use custom rate/i }));
     fireEvent.click(await screen.findByText("From rate…"));
     fireEvent.click(
       screen.getByRole("option", { name: "Standard hourly — 30 USD" }),
@@ -380,6 +474,7 @@ describe("ProjectHeader", () => {
     renderHeader(
       makeProject({
         id: 7,
+        useCustomRate: true,
         fixedFee: 100,
         hourlyRate: 25,
         perWordRate: 0.1,

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -18,7 +19,10 @@ import type { TranslationRate } from "@/types/rates.types";
 import type { ClientRate } from "@/types/client-rates.types";
 import { useRates } from "@/hooks/rates/useRates";
 import { useClientRates } from "@/hooks/clients/useClientRates";
+import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
+import { findClientRateSheet } from "@/lib/projectRate";
 import { STATUSES } from "@/constants/projects";
+import { LANGUAGES } from "@/constants/languages";
 
 type RateOption = TranslationRate | ClientRate;
 
@@ -66,6 +70,7 @@ function buildFormState(project: ProjectHeaderProps["project"]) {
     fixedFee: project.fixedFee != null ? String(project.fixedFee) : "",
     hourlyRate: project.hourlyRate != null ? String(project.hourlyRate) : "",
     perWordRate: project.perWordRate != null ? String(project.perWordRate) : "",
+    useCustomRate: project.useCustomRate,
     deadline: project.deadline?.slice(0, 10) ?? "",
     startDate: project.startDate?.slice(0, 10) ?? "",
   };
@@ -80,6 +85,8 @@ export function ProjectHeader({
   const { rates: userRates } = useRates();
   const clientIdNum = project.clientId;
   const { clientRates } = useClientRates(clientIdNum);
+  const { rateSheets } = useRateSheets();
+  const clientRateSheet = findClientRateSheet(rateSheets, project);
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(() => buildFormState(project));
@@ -112,6 +119,7 @@ export function ProjectHeader({
       fixedFee: parseNonNegative(form.fixedFee),
       hourlyRate: parseNonNegative(form.hourlyRate),
       perWordRate: parseNonNegative(form.perWordRate),
+      useCustomRate: form.useCustomRate,
       deadline: form.deadline || undefined,
       startDate: form.startDate || undefined,
     });
@@ -201,21 +209,51 @@ export function ProjectHeader({
           </div>
           <div className="flex flex-col gap-1">
             <Label htmlFor="pj-src">Source language</Label>
-            <Input
-              id="pj-src"
-              value={form.sourceLanguage}
-              onChange={set("sourceLanguage")}
-              placeholder="e.g. EN"
-            />
+            <Select
+              value={form.sourceLanguage || "__none__"}
+              onValueChange={(val) =>
+                setForm((prev) => ({
+                  ...prev,
+                  sourceLanguage: val === "__none__" ? "" : val,
+                }))
+              }
+            >
+              <SelectTrigger id="pj-src">
+                <SelectValue placeholder="Select…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">—</SelectItem>
+                {LANGUAGES.map((l) => (
+                  <SelectItem key={l.code} value={l.code}>
+                    {l.code} — {l.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex flex-col gap-1">
             <Label htmlFor="pj-tgt">Target language</Label>
-            <Input
-              id="pj-tgt"
-              value={form.targetLanguage}
-              onChange={set("targetLanguage")}
-              placeholder="e.g. FR"
-            />
+            <Select
+              value={form.targetLanguage || "__none__"}
+              onValueChange={(val) =>
+                setForm((prev) => ({
+                  ...prev,
+                  targetLanguage: val === "__none__" ? "" : val,
+                }))
+              }
+            >
+              <SelectTrigger id="pj-tgt">
+                <SelectValue placeholder="Select…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">—</SelectItem>
+                {LANGUAGES.map((l) => (
+                  <SelectItem key={l.code} value={l.code}>
+                    {l.code} — {l.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex flex-col gap-1">
             <Label htmlFor="pj-start">Start date</Label>
@@ -253,84 +291,109 @@ export function ProjectHeader({
               Monetization
             </p>
             <Separator className="flex-1" />
-            <p className="text-xs text-muted-foreground">
-              Leave blank to disable
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="pj-custom-rate"
+              checked={form.useCustomRate}
+              onCheckedChange={(checked) =>
+                setForm((prev) => ({
+                  ...prev,
+                  useCustomRate: checked === true,
+                }))
+              }
+            />
+            <Label htmlFor="pj-custom-rate" className="text-sm font-normal">
+              Use custom rate for this project instead of the client&apos;s rate
+              sheet
+            </Label>
+          </div>
+          {!form.useCustomRate && (
+            <p className="text-sm text-muted-foreground">
+              {clientRateSheet
+                ? `Using client rate sheet "${clientRateSheet.name}" — ${clientRateSheet.pricePerWord} ${clientRateSheet.currency}/word`
+                : 'No client rate sheet found for this client and language pair. Add one in Rates, or check "Use custom rate" above.'}
             </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="pj-fixed">Fixed fee</Label>
-                <RatePicker
-                  allRates={fixedRates}
-                  onPick={(amount, currency) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      fixedFee: String(amount),
-                      currency,
-                    }))
-                  }
+          )}
+          {form.useCustomRate && (
+            <div className="grid grid-cols-2 gap-3">
+              <p className="col-span-2 text-xs text-muted-foreground -mb-1">
+                Leave blank to disable
+              </p>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="pj-fixed">Fixed fee</Label>
+                  <RatePicker
+                    allRates={fixedRates}
+                    onPick={(amount, currency) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        fixedFee: String(amount),
+                        currency,
+                      }))
+                    }
+                  />
+                </div>
+                <Input
+                  id="pj-fixed"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="0.00"
+                  value={form.fixedFee}
+                  onChange={set("fixedFee")}
                 />
               </div>
-              <Input
-                id="pj-fixed"
-                type="number"
-                min={0}
-                step="0.01"
-                placeholder="0.00"
-                value={form.fixedFee}
-                onChange={set("fixedFee")}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="pj-hourly">Hourly rate</Label>
-                <RatePicker
-                  allRates={hourlyRates}
-                  onPick={(amount, currency) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      hourlyRate: String(amount),
-                      currency,
-                    }))
-                  }
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="pj-hourly">Hourly rate</Label>
+                  <RatePicker
+                    allRates={hourlyRates}
+                    onPick={(amount, currency) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        hourlyRate: String(amount),
+                        currency,
+                      }))
+                    }
+                  />
+                </div>
+                <Input
+                  id="pj-hourly"
+                  type="number"
+                  min={0}
+                  step="0.0001"
+                  placeholder="0.0000"
+                  value={form.hourlyRate}
+                  onChange={set("hourlyRate")}
                 />
               </div>
-              <Input
-                id="pj-hourly"
-                type="number"
-                min={0}
-                step="0.0001"
-                placeholder="0.0000"
-                value={form.hourlyRate}
-                onChange={set("hourlyRate")}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="pj-word">Per-word rate</Label>
-                <RatePicker
-                  allRates={perWordRates}
-                  onPick={(amount, currency) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      perWordRate: String(amount),
-                      currency,
-                    }))
-                  }
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="pj-word">Per-word rate</Label>
+                  <RatePicker
+                    allRates={perWordRates}
+                    onPick={(amount, currency) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        perWordRate: String(amount),
+                        currency,
+                      }))
+                    }
+                  />
+                </div>
+                <Input
+                  id="pj-word"
+                  type="number"
+                  min={0}
+                  step="0.0001"
+                  placeholder="0.0000"
+                  value={form.perWordRate}
+                  onChange={set("perWordRate")}
                 />
               </div>
-              <Input
-                id="pj-word"
-                type="number"
-                min={0}
-                step="0.0001"
-                placeholder="0.0000"
-                value={form.perWordRate}
-                onChange={set("perWordRate")}
-              />
             </div>
-          </div>
+          )}
         </div>
 
         <div className="flex gap-2">
@@ -355,19 +418,26 @@ export function ProjectHeader({
 
   const client = clients.find((c) => c.id === project.clientId);
 
-  const pricing = [
-    project.fixedFee != null && `Fixed ${project.fixedFee} ${project.currency}`,
-    project.hourlyRate != null &&
-      `${project.hourlyRate}/hr ${project.currency}`,
-    project.perWordRate != null &&
-      `${project.perWordRate}/word ${project.currency}`,
-  ].filter(Boolean);
+  const pricing = project.useCustomRate
+    ? [
+        project.fixedFee != null &&
+          `Fixed ${project.fixedFee} ${project.currency}`,
+        project.hourlyRate != null &&
+          `${project.hourlyRate}/hr ${project.currency}`,
+        project.perWordRate != null &&
+          `${project.perWordRate}/word ${project.currency}`,
+      ].filter(Boolean)
+    : clientRateSheet
+      ? [
+          `Client rate: ${clientRateSheet.pricePerWord} ${clientRateSheet.currency}/word (${clientRateSheet.name})`,
+        ]
+      : ["No client rate sheet for this language pair"];
 
   return (
     <div className="mb-6">
       <div className="flex items-start justify-between">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold">
               {client && (
                 <>
@@ -388,19 +458,22 @@ export function ProjectHeader({
             >
               {project.status}
             </Badge>
+            {project.sourceLanguage && project.targetLanguage && (
+              <Badge variant="outline" className="font-mono">
+                {project.sourceLanguage} → {project.targetLanguage}
+              </Badge>
+            )}
+            {project.deadline && (
+              <Badge variant="outline">
+                Due {project.deadline.slice(0, 10)}
+              </Badge>
+            )}
+            {project.wordCount != null && (
+              <Badge variant="outline">
+                {project.wordCount.toLocaleString()} words
+              </Badge>
+            )}
           </div>
-          <p className="text-muted-foreground text-sm mt-1">
-            {[
-              project.sourceLanguage &&
-                project.targetLanguage &&
-                `${project.sourceLanguage} → ${project.targetLanguage}`,
-              project.deadline && `Due ${project.deadline.slice(0, 10)}`,
-              project.wordCount &&
-                `${project.wordCount.toLocaleString()} words`,
-            ]
-              .filter(Boolean)
-              .join(" · ") || "No details"}
-          </p>
           {pricing.length > 0 && (
             <p className="text-muted-foreground text-sm mt-0.5">
               {pricing.join(" + ")}

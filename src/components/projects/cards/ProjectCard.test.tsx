@@ -18,6 +18,7 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     fixedFee: null,
     hourlyRate: null,
     perWordRate: null,
+    useCustomRate: false,
     currency: "EUR",
     deadline: null,
     startDate: null,
@@ -52,21 +53,37 @@ describe("ProjectCard", () => {
     expect(screen.getByText(/Acme/)).toBeInTheDocument();
   });
 
-  it("shows the language pair and deadline when present", () => {
+  it("shows the language pair, due date, and word count as separate badges when present", () => {
     render(
       <ProjectCard
         project={makeProject({
           sourceLanguage: "EN",
           targetLanguage: "FR",
           deadline: "2026-07-01T00:00:00.000Z",
+          wordCount: 1500,
         })}
         clientName={undefined}
         onDelete={vi.fn()}
         onClick={vi.fn()}
       />,
     );
-    expect(screen.getByText(/EN→FR/)).toBeInTheDocument();
-    expect(screen.getByText(/Due 2026-07-01/)).toBeInTheDocument();
+    expect(screen.getByText(/EN → FR/)).toBeInTheDocument();
+    expect(screen.getByText("Due 2026-07-01")).toBeInTheDocument();
+    expect(screen.getByText("1,500 words")).toBeInTheDocument();
+  });
+
+  it("hides the language, due date, and word count badges when unset", () => {
+    render(
+      <ProjectCard
+        project={makeProject()}
+        clientName={undefined}
+        onDelete={vi.fn()}
+        onClick={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(/→/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Due /)).not.toBeInTheDocument();
+    expect(screen.queryByText(/words$/)).not.toBeInTheDocument();
   });
 
   it("calls onClick when the card is clicked", () => {

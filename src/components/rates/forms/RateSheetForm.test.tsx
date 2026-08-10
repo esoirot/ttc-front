@@ -47,6 +47,7 @@ function makeInitial(overrides: Partial<RateSheet> = {}): RateSheet {
     currency: "EUR",
     pricePerWord: 0.08,
     matchRates: defaultMatchRates(),
+    isDefault: false,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -170,6 +171,7 @@ describe("RateSheetForm", () => {
       currency: "EUR",
       pricePerWord: 0.05,
       matchRates: defaultMatchRates(),
+      isDefault: false,
     });
   });
 
@@ -240,5 +242,39 @@ describe("RateSheetForm", () => {
     const countBefore = screen.getAllByRole("combobox").length;
     fireEvent.click(screen.getByLabelText("Other currency"));
     expect(screen.getAllByRole("combobox")).toHaveLength(countBefore + 1);
+  });
+
+  it("hides the default-rate-sheet checkbox when no client is selected", () => {
+    renderForm();
+    expect(
+      screen.queryByText("Default rate sheet for this client"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the default-rate-sheet checkbox once a client is selected and sends isDefault on save", () => {
+    const { onSave } = renderForm({
+      initial: makeInitial({ clientId: 1, name: "Sheet" }),
+    });
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "Default rate sheet for this client",
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ clientId: 1, isDefault: true }),
+    );
+  });
+
+  it("does not send isDefault true when the client is cleared back to none", () => {
+    const { onSave } = renderForm({
+      initial: makeInitial({ clientId: 1, isDefault: true, name: "Sheet" }),
+    });
+    fireEvent.click(screen.getByLabelText("Client (optional)"));
+    fireEvent.click(screen.getByRole("option", { name: "No client" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ clientId: null, isDefault: false }),
+    );
   });
 });

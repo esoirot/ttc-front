@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDuration } from "@/lib/time";
+import { findClientRateSheet } from "@/lib/projectRate";
+import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
 import type { OverviewTabProps } from "@/types/projects.types";
 import {
   PieChart,
@@ -29,6 +31,13 @@ export function OverviewTab({
   totalSeconds,
   tasks,
 }: OverviewTabProps) {
+  const { rateSheets } = useRateSheets();
+  const clientRateSheet = findClientRateSheet(rateSheets, project);
+  const hasCustomPricing =
+    project.fixedFee != null ||
+    project.hourlyRate != null ||
+    project.perWordRate != null;
+
   const tasksWithTime = tasks.filter((t) => (t.totalTimeSeconds ?? 0) > 0);
   const taskTotal = tasksWithTime.reduce(
     (sum, t) => sum + (t.totalTimeSeconds ?? 0),
@@ -67,28 +76,45 @@ export function OverviewTab({
             </CardContent>
           </Card>
         )}
-        {project.unitPrice && (
+        {(project.useCustomRate ? hasCustomPricing : true) && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Unit price</CardTitle>
+              <CardTitle className="text-sm">Pricing</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl">
-                {project.unitPrice} {project.currency}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-        {project.unitPrice && project.wordCount && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Est. revenue</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl">
-                {(project.unitPrice * project.wordCount).toFixed(2)}{" "}
-                {project.currency}
-              </p>
+            <CardContent className="flex flex-col gap-1">
+              {project.useCustomRate ? (
+                <>
+                  {project.fixedFee != null && (
+                    <p className="text-lg">
+                      Fixed {project.fixedFee} {project.currency}
+                    </p>
+                  )}
+                  {project.hourlyRate != null && (
+                    <p className="text-lg">
+                      {project.hourlyRate} {project.currency}/hr
+                    </p>
+                  )}
+                  {project.perWordRate != null && (
+                    <p className="text-lg">
+                      {project.perWordRate} {project.currency}/word
+                    </p>
+                  )}
+                </>
+              ) : clientRateSheet ? (
+                <>
+                  <p className="text-lg">
+                    {clientRateSheet.pricePerWord} {clientRateSheet.currency}
+                    /word
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Client rate sheet — {clientRateSheet.name}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No client rate sheet for this language pair
+                </p>
+              )}
             </CardContent>
           </Card>
         )}

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import type { CreateProjectFormProps } from "@/types/projects.types";
 import { useCreateProject } from "@/hooks/projects/useProjects";
+import { LANGUAGES } from "@/constants/languages";
 
 export function CreateProjectForm({
   clients,
@@ -81,21 +82,45 @@ export function CreateProjectForm({
             </div>
             <div className="flex flex-col gap-1">
               <Label htmlFor="srcLang">Source language</Label>
-              <Input
-                id="srcLang"
-                value={srcLang}
-                onChange={(e) => setSrcLang(e.target.value)}
-                placeholder="EN"
-              />
+              <Select
+                value={srcLang || "__none__"}
+                onValueChange={(val) =>
+                  setSrcLang(val === "__none__" ? "" : val)
+                }
+              >
+                <SelectTrigger id="srcLang" className="w-full">
+                  <SelectValue placeholder="Select…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">—</SelectItem>
+                  {LANGUAGES.map((l) => (
+                    <SelectItem key={l.code} value={l.code}>
+                      {l.code} — {l.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex flex-col gap-1">
               <Label htmlFor="tgtLang">Target language</Label>
-              <Input
-                id="tgtLang"
-                value={tgtLang}
-                onChange={(e) => setTgtLang(e.target.value)}
-                placeholder="FR"
-              />
+              <Select
+                value={tgtLang || "__none__"}
+                onValueChange={(val) =>
+                  setTgtLang(val === "__none__" ? "" : val)
+                }
+              >
+                <SelectTrigger id="tgtLang" className="w-full">
+                  <SelectValue placeholder="Select…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">—</SelectItem>
+                  {LANGUAGES.map((l) => (
+                    <SelectItem key={l.code} value={l.code}>
+                      {l.code} — {l.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           {formError && <p className="text-destructive text-sm">{formError}</p>}

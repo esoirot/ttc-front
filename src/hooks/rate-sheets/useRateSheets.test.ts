@@ -33,6 +33,7 @@ function makeSheet(overrides: Partial<RateSheet> = {}): RateSheet {
     currency: "EUR",
     pricePerWord: 12,
     matchRates: {} as RateSheet["matchRates"],
+    isDefault: false,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -81,6 +82,7 @@ describe("useCreateRateSheet", () => {
       currency: "EUR",
       pricePerWord: 10,
       matchRates: {} as RateSheet["matchRates"],
+      isDefault: false,
     });
 
     const sheets = queryClient.getQueryData<RateSheet[]>(["rateSheets"]);

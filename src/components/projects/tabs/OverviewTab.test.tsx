@@ -1,8 +1,12 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createQueryWrapper } from "@/test/queryClientWrapper";
 import type { Project } from "@/types/projects.types";
 import type { Task } from "@/types/tasks.types";
 import { formatDuration } from "@/lib/time";
+
+const { gqlFetch } = vi.hoisted(() => ({ gqlFetch: vi.fn() }));
+vi.mock("@/lib/apollo", () => ({ gqlFetch }));
 
 vi.mock("recharts", () => ({
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
@@ -61,6 +65,7 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     fixedFee: null,
     hourlyRate: null,
     perWordRate: null,
+    useCustomRate: false,
     currency: "EUR",
     deadline: null,
     startDate: null,
@@ -91,35 +96,105 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 }
 
 describe("OverviewTab", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+    gqlFetch.mockResolvedValue({ rateSheets: [] });
+  });
+
   it("always shows time logged, formatted", () => {
     render(
       <OverviewTab project={makeProject()} totalSeconds={3661} tasks={[]} />,
+      { wrapper: createQueryWrapper() },
     );
     expect(screen.getByText("1:01:01")).toBeInTheDocument();
   });
 
-  it("hides word count, unit price, and revenue cards when unset", () => {
-    render(<OverviewTab project={makeProject()} totalSeconds={0} tasks={[]} />);
+  it("hides word count card and shows the no-rate-sheet fallback when unset", () => {
+    render(
+      <OverviewTab project={makeProject()} totalSeconds={0} tasks={[]} />,
+      {
+        wrapper: createQueryWrapper(),
+      },
+    );
     expect(screen.queryByText("Word count")).not.toBeInTheDocument();
-    expect(screen.queryByText("Unit price")).not.toBeInTheDocument();
-    expect(screen.queryByText("Est. revenue")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("No client rate sheet for this language pair"),
+    ).toBeInTheDocument();
   });
 
-  it("shows word count and unit price when set, and computes revenue", () => {
+  it("shows word count and only the custom pricing lines that are set when useCustomRate is on", () => {
     render(
       <OverviewTab
         project={makeProject({
           wordCount: 1000,
-          unitPrice: 0.1,
+          fixedFee: null,
+          hourlyRate: 50,
+          perWordRate: 0.1,
+          useCustomRate: true,
           currency: "USD",
         })}
         totalSeconds={0}
         tasks={[]}
       />,
+      { wrapper: createQueryWrapper() },
     );
     expect(screen.getByText("1,000")).toBeInTheDocument();
-    expect(screen.getByText("0.1 USD")).toBeInTheDocument();
-    expect(screen.getByText("100.00 USD")).toBeInTheDocument();
+    expect(screen.getByText("Pricing")).toBeInTheDocument();
+    expect(screen.queryByText(/^Fixed /)).not.toBeInTheDocument();
+    expect(screen.getByText("50 USD/hr")).toBeInTheDocument();
+    expect(screen.getByText("0.1 USD/word")).toBeInTheDocument();
+  });
+
+  it("shows the client rate sheet price per word when useCustomRate is off and a sheet matches", async () => {
+    gqlFetch.mockResolvedValue({
+      rateSheets: [
+        {
+          id: 1,
+          userId: 1,
+          activityId: null,
+          clientId: 5,
+          name: "EN-FR standard",
+          description: null,
+          sourceLanguage: "EN",
+          targetLanguage: "FR",
+          currency: "EUR",
+          pricePerWord: 0.12,
+          matchRates: {
+            perfectMatch: 0,
+            cm: 0,
+            repetitions: 0,
+            repetitionsBetweenFiles: 0,
+            match100: 0,
+            match95_99: 0,
+            match85_94: 0,
+            match75_84: 0,
+            match50_74: 0,
+            referenceAdaptativeMT: 0,
+            adaptativeMTWithLearning: 0,
+            newWordsTA: 0,
+          },
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    });
+    render(
+      <OverviewTab
+        project={makeProject({
+          clientId: 5,
+          sourceLanguage: "EN",
+          targetLanguage: "FR",
+          useCustomRate: false,
+        })}
+        totalSeconds={0}
+        tasks={[]}
+      />,
+      { wrapper: createQueryWrapper() },
+    );
+    expect(await screen.findByText("0.12 EUR/word")).toBeInTheDocument();
+    expect(
+      screen.getByText("Client rate sheet — EN-FR standard"),
+    ).toBeInTheDocument();
   });
 
   it("shows a pie breakdown with an Untracked slice when tasks don't cover total time", () => {
@@ -132,6 +207,7 @@ describe("OverviewTab", () => {
           makeTask({ id: 2, title: "Task B", totalTimeSeconds: 0 }),
         ]}
       />,
+      { wrapper: createQueryWrapper() },
     );
     expect(screen.getByText("Time by task")).toBeInTheDocument();
     expect(screen.getByTestId("tooltip-preview")).toHaveTextContent("2:02:05");
@@ -149,6 +225,7 @@ describe("OverviewTab", () => {
         totalSeconds={1000}
         tasks={[makeTask({ id: 1, title: "Task A", totalTimeSeconds: 1000 })]}
       />,
+      { wrapper: createQueryWrapper() },
     );
     expect(screen.getByText("Time by task")).toBeInTheDocument();
 

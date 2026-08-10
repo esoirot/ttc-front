@@ -43,12 +43,10 @@ describe("CreateProjectForm", () => {
     fireEvent.change(screen.getByLabelText("Title *"), {
       target: { value: "New project" },
     });
-    fireEvent.change(screen.getByLabelText("Source language"), {
-      target: { value: "EN" },
-    });
-    fireEvent.change(screen.getByLabelText("Target language"), {
-      target: { value: "FR" },
-    });
+    fireEvent.click(screen.getByLabelText("Source language"));
+    fireEvent.click(screen.getByRole("option", { name: "EN — English" }));
+    fireEvent.click(screen.getByLabelText("Target language"));
+    fireEvent.click(screen.getByRole("option", { name: "FR — French" }));
     fireEvent.click(screen.getByText("Create project"));
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());

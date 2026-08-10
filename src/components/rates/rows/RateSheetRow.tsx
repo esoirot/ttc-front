@@ -34,6 +34,11 @@ export function RateSheetRow({
           {clientName && (
             <span className="text-xs text-muted-foreground">{clientName}</span>
           )}
+          {sheet.isDefault && clientName && (
+            <Badge variant="secondary" className="text-xs">
+              Default
+            </Badge>
+          )}
           {sheet.description && (
             <span className="text-xs text-muted-foreground truncate hidden sm:inline">
               — {sheet.description}

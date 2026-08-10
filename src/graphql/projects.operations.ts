@@ -8,7 +8,7 @@ import type {
 
 const PROJECT_FIELDS = `
   id userId clientId title description status
-  sourceLanguage targetLanguage wordCount unitPrice fixedFee hourlyRate perWordRate currency
+  sourceLanguage targetLanguage wordCount unitPrice fixedFee hourlyRate perWordRate useCustomRate currency
   deadline startDate totalTimeSeconds createdAt updatedAt
 `;
 
@@ -50,6 +50,7 @@ type ProjectInput = {
   fixedFee?: number | null;
   hourlyRate?: number | null;
   perWordRate?: number | null;
+  useCustomRate?: boolean;
   currency?: string;
   deadline?: string;
   startDate?: string;

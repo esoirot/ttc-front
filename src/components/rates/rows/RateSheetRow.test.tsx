@@ -16,6 +16,7 @@ function makeSheet(overrides: Partial<RateSheet> = {}): RateSheet {
     currency: "EUR",
     pricePerWord: 0.12,
     matchRates: {} as RateSheet["matchRates"],
+    isDefault: false,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -54,6 +55,29 @@ describe("RateSheetRow", () => {
       />,
     );
     expect(screen.getByText("Acme")).toBeInTheDocument();
+  });
+
+  it("shows a Default badge when isDefault is true and a client is set", () => {
+    render(
+      <RateSheetRow
+        sheet={makeSheet({ isDefault: true })}
+        clientName="Acme"
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Default")).toBeInTheDocument();
+  });
+
+  it("hides the Default badge when isDefault is true but no client is set", () => {
+    render(
+      <RateSheetRow
+        sheet={makeSheet({ isDefault: true })}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText("Default")).not.toBeInTheDocument();
   });
 
   it("calls onEdit and onDelete", () => {

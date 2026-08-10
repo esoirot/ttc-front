@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Project } from "@/types/projects.types";
 import type { Task } from "@/types/tasks.types";
 import { OverviewTab } from "./OverviewTab";
@@ -13,10 +14,11 @@ const project: Project = {
   sourceLanguage: "EN",
   targetLanguage: "FR",
   wordCount: 12000,
-  unitPrice: 0.12,
+  unitPrice: null,
   fixedFee: null,
   hourlyRate: null,
-  perWordRate: null,
+  perWordRate: 0.12,
+  useCustomRate: false,
   currency: "EUR",
   deadline: null,
   startDate: null,
@@ -54,6 +56,13 @@ const tasks: Task[] = [
 const meta: Meta<typeof OverviewTab> = {
   component: OverviewTab,
   title: "Organisms/OverviewTab",
+  decorators: [
+    (Story) => (
+      <QueryClientProvider client={new QueryClient()}>
+        <Story />
+      </QueryClientProvider>
+    ),
+  ],
   args: {
     project,
     totalSeconds: 7200,
@@ -71,7 +80,7 @@ export const NoTimeLogged: Story = {
 
 export const MinimalProject: Story = {
   args: {
-    project: { ...project, wordCount: null, unitPrice: null },
+    project: { ...project, wordCount: null, perWordRate: null },
     tasks: [],
   },
 };
