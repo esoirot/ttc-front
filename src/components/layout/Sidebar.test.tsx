@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { createQueryClient } from "@/test/queryClientWrapper";
 import type { AuthUser } from "@/types/auth.types";
@@ -41,6 +41,39 @@ describe("Sidebar", () => {
   beforeEach(() => {
     gqlFetch.mockReset();
     gqlMutate.mockReset();
+    document.documentElement.classList.remove("dark");
+    localStorage.removeItem("ttc_theme");
+  });
+
+  afterEach(() => {
+    document.documentElement.classList.remove("dark");
+    localStorage.removeItem("ttc_theme");
+  });
+
+  it("toggles dark mode class and persists the choice on click", async () => {
+    gqlFetch.mockResolvedValue({ me: makeUser() });
+
+    render(<Sidebar />, { wrapper });
+
+    await screen.findByText("Alice");
+    const toggle = screen.getByRole("button", {
+      name: "Switch to dark mode",
+    });
+
+    fireEvent.click(toggle);
+
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    expect(localStorage.getItem("ttc_theme")).toBe("dark");
+    expect(
+      screen.getByRole("button", { name: "Switch to light mode" }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Switch to light mode" }),
+    );
+
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+    expect(localStorage.getItem("ttc_theme")).toBe("light");
   });
 
   it("hides the Admin nav item for non-admin users", async () => {

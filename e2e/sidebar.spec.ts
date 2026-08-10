@@ -68,6 +68,27 @@ test("sidebar nav links navigate correctly", async ({ page }) => {
   await expect(page).toHaveURL("/clients");
 });
 
+test("theme toggle switches dark mode and persists across reload", async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto("/");
+  const html = page.locator("html");
+  await expect(html).not.toHaveClass(/dark/);
+
+  await page.getByRole("button", { name: "Switch to dark mode" }).click();
+  await expect(html).toHaveClass(/dark/);
+  await expect(
+    page.getByRole("button", { name: "Switch to light mode" }),
+  ).toBeVisible();
+
+  await page.reload();
+  await expect(html).toHaveClass(/dark/);
+
+  await page.getByRole("button", { name: "Switch to light mode" }).click();
+  await expect(html).not.toHaveClass(/dark/);
+});
+
 test("sign out clears session and redirects to /login", async ({ page }) => {
   let loggedOut = false;
   await page.route("**/graphql", async (route) => {

@@ -1,5 +1,7 @@
 import { NavLink, Link } from "react-router-dom";
+import { Sun, Moon } from "lucide-react";
 import { useCurrentUser, useLogout } from "../../hooks/auth/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -457,14 +459,31 @@ function NavItemLink({ to, end, label, icon }: NavItem) {
 export function Sidebar() {
   const { user } = useCurrentUser();
   const { logout, loading } = useLogout();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <aside className="flex flex-row flex-wrap border-b border-border sm:flex-col sm:flex-nowrap sm:w-56 sm:shrink-0 sm:sticky sm:top-0 sm:h-screen sm:overflow-y-auto sm:border-b-0 sm:border-r bg-sidebar">
-      <div className="flex items-center gap-2 px-4 py-5 font-bold text-sm tracking-tight border-r border-border sm:border-r-0 sm:border-b">
-        <span className="text-primary text-base" aria-hidden="true">
-          ⟡
+      <div className="flex items-center justify-between gap-2 px-4 py-5 font-bold text-sm tracking-tight border-r border-border sm:border-r-0 sm:border-b">
+        <span className="flex items-center gap-2">
+          <span className="text-primary text-base" aria-hidden="true">
+            ⟡
+          </span>
+          Freelance Assistant
         </span>
-        Freelance Assistant
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={
+            theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+          }
+          onClick={toggleTheme}
+        >
+          {theme === "dark" ? (
+            <Sun className="size-4" />
+          ) : (
+            <Moon className="size-4" />
+          )}
+        </Button>
       </div>
 
       <nav
