@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDuration } from "@/lib/time";
-import { findClientRateSheet } from "@/lib/projectRate";
+import { resolveProjectRateSheet } from "@/lib/projectRate";
 import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
 import type { OverviewTabProps } from "@/types/projects.types";
 import {
@@ -32,7 +32,7 @@ export function OverviewTab({
   tasks,
 }: OverviewTabProps) {
   const { rateSheets } = useRateSheets();
-  const clientRateSheet = findClientRateSheet(rateSheets, project);
+  const clientRateSheet = resolveProjectRateSheet(rateSheets, project);
   const hasCustomPricing =
     project.fixedFee != null ||
     project.hourlyRate != null ||
@@ -112,7 +112,7 @@ export function OverviewTab({
                 </>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  No client rate sheet for this language pair
+                  No client rate sheet for this project
                 </p>
               )}
             </CardContent>

@@ -66,6 +66,7 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     hourlyRate: null,
     perWordRate: null,
     useCustomRate: false,
+    rateSheetId: null,
     currency: "EUR",
     deadline: null,
     startDate: null,
@@ -118,7 +119,7 @@ describe("OverviewTab", () => {
     );
     expect(screen.queryByText("Word count")).not.toBeInTheDocument();
     expect(
-      screen.getByText("No client rate sheet for this language pair"),
+      screen.getByText("No client rate sheet for this project"),
     ).toBeInTheDocument();
   });
 
@@ -194,6 +195,63 @@ describe("OverviewTab", () => {
     expect(await screen.findByText("0.12 EUR/word")).toBeInTheDocument();
     expect(
       screen.getByText("Client rate sheet — EN-FR standard"),
+    ).toBeInTheDocument();
+  });
+
+  it("prefers the explicitly selected rateSheetId over a language-pair match", async () => {
+    gqlFetch.mockResolvedValue({
+      rateSheets: [
+        {
+          id: 1,
+          userId: 1,
+          activityId: null,
+          clientId: 5,
+          name: "EN-FR language match",
+          description: null,
+          sourceLanguage: "EN",
+          targetLanguage: "FR",
+          currency: "EUR",
+          pricePerWord: 0.12,
+          matchRates: {},
+          isDefault: false,
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+        {
+          id: 2,
+          userId: 1,
+          activityId: null,
+          clientId: 5,
+          name: "Explicitly chosen sheet",
+          description: null,
+          sourceLanguage: "DE",
+          targetLanguage: "IT",
+          currency: "USD",
+          pricePerWord: 0.2,
+          matchRates: {},
+          isDefault: true,
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    });
+    render(
+      <OverviewTab
+        project={makeProject({
+          clientId: 5,
+          sourceLanguage: "EN",
+          targetLanguage: "FR",
+          useCustomRate: false,
+          rateSheetId: 2,
+        })}
+        totalSeconds={0}
+        tasks={[]}
+      />,
+      { wrapper: createQueryWrapper() },
+    );
+    expect(await screen.findByText("0.2 USD/word")).toBeInTheDocument();
+    expect(
+      screen.getByText("Client rate sheet — Explicitly chosen sheet"),
     ).toBeInTheDocument();
   });
 

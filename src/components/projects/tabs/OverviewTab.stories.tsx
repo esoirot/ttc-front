@@ -19,6 +19,7 @@ const project: Project = {
   hourlyRate: null,
   perWordRate: 0.12,
   useCustomRate: false,
+  rateSheetId: null,
   currency: "EUR",
   deadline: null,
   startDate: null,

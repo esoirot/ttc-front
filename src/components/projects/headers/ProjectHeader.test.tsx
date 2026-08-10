@@ -31,6 +31,7 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     hourlyRate: null,
     perWordRate: null,
     useCustomRate: false,
+    rateSheetId: null,
     currency: "EUR",
     deadline: null,
     startDate: null,
@@ -69,6 +70,26 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     createdAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
   } as Client;
+}
+
+function makeRateSheet(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    userId: 1,
+    activityId: null,
+    clientId: 3,
+    name: "Sheet",
+    description: null,
+    sourceLanguage: "EN",
+    targetLanguage: "FR",
+    currency: "EUR",
+    pricePerWord: 0.1,
+    matchRates: {},
+    isDefault: false,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    ...overrides,
+  };
 }
 
 function renderHeader(
@@ -253,6 +274,7 @@ describe("ProjectHeader", () => {
     renderHeader(
       makeProject({
         useCustomRate: true,
+        rateSheetId: null,
         fixedFee: 100,
         hourlyRate: 25,
         perWordRate: 0.1,
@@ -320,6 +342,141 @@ describe("ProjectHeader", () => {
     expect(
       await screen.findByText("Client rate: 0.12 EUR/word (EN-FR standard)"),
     ).toBeInTheDocument();
+  });
+
+  it("defaults the rate sheet select to the client's isDefault sheet on save", async () => {
+    gqlFetch.mockResolvedValue({
+      translationRates: [],
+      clientRates: [],
+      rateSheets: [
+        makeRateSheet({ id: 1, clientId: 3, isDefault: false }),
+        makeRateSheet({ id: 2, clientId: 3, isDefault: true }),
+      ],
+    });
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <ProjectHeader
+          project={makeProject({ id: 7, clientId: 3 })}
+          clients={[]}
+          onUpdate={onUpdate}
+          saving={false}
+        />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(await screen.findByText("Edit"));
+    await screen.findByLabelText("Client rate sheet");
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 7, rateSheetId: 2 }),
+      ),
+    );
+  });
+
+  it("defaults to the client's sole rate sheet even when it is not marked isDefault", async () => {
+    gqlFetch.mockResolvedValue({
+      translationRates: [],
+      clientRates: [],
+      rateSheets: [makeRateSheet({ id: 5, clientId: 3, isDefault: false })],
+    });
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <ProjectHeader
+          project={makeProject({ id: 7, clientId: 3 })}
+          clients={[]}
+          onUpdate={onUpdate}
+          saving={false}
+        />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(await screen.findByText("Edit"));
+    await screen.findByLabelText("Client rate sheet");
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 7, rateSheetId: 5 }),
+      ),
+    );
+  });
+
+  it("lets the user pick a non-default rate sheet from the client's list", async () => {
+    gqlFetch.mockResolvedValue({
+      translationRates: [],
+      clientRates: [],
+      rateSheets: [
+        makeRateSheet({
+          id: 1,
+          clientId: 3,
+          name: "Default sheet",
+          isDefault: true,
+        }),
+        makeRateSheet({
+          id: 2,
+          clientId: 3,
+          name: "Alt sheet",
+          isDefault: false,
+        }),
+      ],
+    });
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <ProjectHeader
+          project={makeProject({ id: 7, clientId: 3 })}
+          clients={[]}
+          onUpdate={onUpdate}
+          saving={false}
+        />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(await screen.findByText("Edit"));
+    fireEvent.click(screen.getByLabelText("Client rate sheet"));
+    fireEvent.click(await screen.findByRole("option", { name: /Alt sheet/ }));
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 7, rateSheetId: 2 }),
+      ),
+    );
+  });
+
+  it("resets the rate sheet default when the client changes", async () => {
+    gqlFetch.mockResolvedValue({
+      translationRates: [],
+      clientRates: [],
+      rateSheets: [
+        makeRateSheet({ id: 10, clientId: 1, isDefault: true }),
+        makeRateSheet({ id: 20, clientId: 2, isDefault: true }),
+      ],
+    });
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <MemoryRouter>
+          <ProjectHeader
+            project={makeProject({ id: 7, clientId: 1 })}
+            clients={[
+              makeClient({ id: 1, name: "Alpha" }),
+              makeClient({ id: 2, name: "Beta" }),
+            ]}
+            onUpdate={onUpdate}
+            saving={false}
+          />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    fireEvent.click(await screen.findByText("Edit"));
+    await screen.findByLabelText("Client rate sheet");
+    fireEvent.click(screen.getByLabelText("Client"));
+    fireEvent.click(await screen.findByRole("option", { name: "Beta" }));
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 7, clientId: 2, rateSheetId: 20 }),
+      ),
+    );
   });
 
   it("checking 'Use custom rate' reveals monetization inputs and saves useCustomRate", async () => {
@@ -475,6 +632,7 @@ describe("ProjectHeader", () => {
       makeProject({
         id: 7,
         useCustomRate: true,
+        rateSheetId: null,
         fixedFee: 100,
         hourlyRate: 25,
         perWordRate: 0.1,

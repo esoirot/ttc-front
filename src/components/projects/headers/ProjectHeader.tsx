@@ -20,7 +20,10 @@ import type { ClientRate } from "@/types/client-rates.types";
 import { useRates } from "@/hooks/rates/useRates";
 import { useClientRates } from "@/hooks/clients/useClientRates";
 import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
-import { findClientRateSheet } from "@/lib/projectRate";
+import {
+  defaultClientRateSheetId,
+  resolveProjectRateSheet,
+} from "@/lib/projectRate";
 import { STATUSES } from "@/constants/projects";
 import { LANGUAGES } from "@/constants/languages";
 
@@ -71,6 +74,11 @@ function buildFormState(project: ProjectHeaderProps["project"]) {
     hourlyRate: project.hourlyRate != null ? String(project.hourlyRate) : "",
     perWordRate: project.perWordRate != null ? String(project.perWordRate) : "",
     useCustomRate: project.useCustomRate,
+    // undefined = user hasn't explicitly picked one yet; the effective value
+    // is then computed live each render from the current client's rate
+    // sheets, so it can't go stale if that data loads after this form does.
+    rateSheetId:
+      project.rateSheetId != null ? String(project.rateSheetId) : undefined,
     deadline: project.deadline?.slice(0, 10) ?? "",
     startDate: project.startDate?.slice(0, 10) ?? "",
   };
@@ -86,7 +94,7 @@ export function ProjectHeader({
   const clientIdNum = project.clientId;
   const { clientRates } = useClientRates(clientIdNum);
   const { rateSheets } = useRateSheets();
-  const clientRateSheet = findClientRateSheet(rateSheets, project);
+  const resolvedRateSheet = resolveProjectRateSheet(rateSheets, project);
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(() => buildFormState(project));
@@ -104,6 +112,22 @@ export function ProjectHeader({
     return str ? Number(str) : null;
   }
 
+  function handleClientChange(val: string) {
+    setForm((prev) => ({ ...prev, clientId: val, rateSheetId: undefined }));
+  }
+
+  const formClientId =
+    form.clientId === "__none__" ? null : Number(form.clientId);
+  const formClientRateSheets = rateSheets.filter(
+    (s) => s.clientId === formClientId,
+  );
+  const formDefaultRateSheetId = defaultClientRateSheetId(formClientRateSheets);
+  const effectiveRateSheetId =
+    form.rateSheetId ??
+    (formDefaultRateSheetId != null
+      ? String(formDefaultRateSheetId)
+      : "__none__");
+
   async function handleSave(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     await onUpdate({
@@ -120,6 +144,10 @@ export function ProjectHeader({
       hourlyRate: parseNonNegative(form.hourlyRate),
       perWordRate: parseNonNegative(form.perWordRate),
       useCustomRate: form.useCustomRate,
+      rateSheetId:
+        effectiveRateSheetId === "__none__"
+          ? null
+          : Number(effectiveRateSheetId),
       deadline: form.deadline || undefined,
       startDate: form.startDate || undefined,
     });
@@ -188,12 +216,7 @@ export function ProjectHeader({
           </div>
           <div className="col-span-2 flex flex-col gap-1">
             <Label htmlFor="pj-client">Client</Label>
-            <Select
-              value={form.clientId}
-              onValueChange={(val) =>
-                setForm((prev) => ({ ...prev, clientId: val }))
-              }
-            >
+            <Select value={form.clientId} onValueChange={handleClientChange}>
               <SelectTrigger id="pj-client">
                 <SelectValue placeholder="No client" />
               </SelectTrigger>
@@ -309,11 +332,41 @@ export function ProjectHeader({
             </Label>
           </div>
           {!form.useCustomRate && (
-            <p className="text-sm text-muted-foreground">
-              {clientRateSheet
-                ? `Using client rate sheet "${clientRateSheet.name}" — ${clientRateSheet.pricePerWord} ${clientRateSheet.currency}/word`
-                : 'No client rate sheet found for this client and language pair. Add one in Rates, or check "Use custom rate" above.'}
-            </p>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="pj-rate-sheet">Client rate sheet</Label>
+              {formClientRateSheets.length > 0 ? (
+                <Select
+                  value={effectiveRateSheetId}
+                  onValueChange={(val) => {
+                    // Radix can fire a spurious "" change when the item
+                    // list underneath a controlled value swaps out (e.g.
+                    // right after switching clients) — never a real
+                    // selection, so ignore it.
+                    if (!val) return;
+                    setForm((prev) => ({ ...prev, rateSheetId: val }));
+                  }}
+                >
+                  <SelectTrigger id="pj-rate-sheet">
+                    <SelectValue placeholder="Select a rate sheet…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">None</SelectItem>
+                    {formClientRateSheets.map((s) => (
+                      <SelectItem key={s.id} value={String(s.id)}>
+                        {s.name} — {s.pricePerWord} {s.currency}/word
+                        {s.isDefault ? " (default)" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {formClientId == null
+                    ? "Select a client to choose a rate sheet."
+                    : 'No rate sheets for this client yet. Add one in Rates, or check "Use custom rate" above.'}
+                </p>
+              )}
+            </div>
           )}
           {form.useCustomRate && (
             <div className="grid grid-cols-2 gap-3">
@@ -427,11 +480,11 @@ export function ProjectHeader({
         project.perWordRate != null &&
           `${project.perWordRate}/word ${project.currency}`,
       ].filter(Boolean)
-    : clientRateSheet
+    : resolvedRateSheet
       ? [
-          `Client rate: ${clientRateSheet.pricePerWord} ${clientRateSheet.currency}/word (${clientRateSheet.name})`,
+          `Client rate: ${resolvedRateSheet.pricePerWord} ${resolvedRateSheet.currency}/word (${resolvedRateSheet.name})`,
         ]
-      : ["No client rate sheet for this language pair"];
+      : ["No client rate sheet for this project"];
 
   return (
     <div className="mb-6">

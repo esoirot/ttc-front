@@ -19,3 +19,24 @@ export function findClientRateSheet(
       normalizeLanguage(sheet.targetLanguage) === projectTarget,
   );
 }
+
+export function defaultClientRateSheetId(
+  clientRateSheets: RateSheet[],
+): number | null {
+  const explicitDefault = clientRateSheets.find((s) => s.isDefault);
+  if (explicitDefault) return explicitDefault.id;
+  return clientRateSheets.length === 1 ? clientRateSheets[0].id : null;
+}
+
+export function resolveProjectRateSheet(
+  rateSheets: RateSheet[],
+  project: Pick<
+    Project,
+    "clientId" | "sourceLanguage" | "targetLanguage" | "rateSheetId"
+  >,
+): RateSheet | undefined {
+  if (project.rateSheetId != null) {
+    return rateSheets.find((s) => s.id === project.rateSheetId);
+  }
+  return findClientRateSheet(rateSheets, project);
+}
