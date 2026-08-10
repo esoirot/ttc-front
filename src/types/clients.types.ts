@@ -230,12 +230,7 @@ export interface AddressFieldsProps {
   postalCode: string;
   onChange: (
     field:
-      | "address"
-      | "addressLine2"
-      | "city"
-      | "country"
-      | "state"
-      | "postalCode",
+      "address" | "addressLine2" | "city" | "country" | "state" | "postalCode",
     value: string,
   ) => void;
   idPrefix?: string;

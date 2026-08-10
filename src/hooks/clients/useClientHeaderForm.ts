@@ -79,12 +79,7 @@ export function useClientHeaderForm(
 
   function handleAddressChange(
     field:
-      | "address"
-      | "addressLine2"
-      | "city"
-      | "country"
-      | "state"
-      | "postalCode",
+      "address" | "addressLine2" | "city" | "country" | "state" | "postalCode",
     value: string,
   ) {
     setForm((prev) => ({ ...prev, [field]: value }));

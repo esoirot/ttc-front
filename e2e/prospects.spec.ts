@@ -110,8 +110,7 @@ async function mockProspectsApi(page: Page, initial: MockClient[]) {
 
     if (operationName === "UpdateClient") {
       const input = variables?.["input"] as
-        | (Partial<MockClient> & { id: number })
-        | undefined;
+        (Partial<MockClient> & { id: number }) | undefined;
       if (input) {
         clients = clients.map((c) =>
           c.id === input.id ? { ...c, ...input } : c,

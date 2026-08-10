@@ -61,9 +61,7 @@ export interface CustomActivity extends Activity {
 }
 
 export type AnyActivity =
-  | TranslatorActivity
-  | CorrectorActivity
-  | CustomActivity;
+  TranslatorActivity | CorrectorActivity | CustomActivity;
 
 export interface LanguagePairDraft {
   fromLanguage: string;

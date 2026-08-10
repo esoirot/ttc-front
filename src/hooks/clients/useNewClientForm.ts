@@ -30,12 +30,7 @@ export function useNewClientForm(
 
   function handleAddressChange(
     field:
-      | "address"
-      | "addressLine2"
-      | "city"
-      | "country"
-      | "state"
-      | "postalCode",
+      "address" | "addressLine2" | "city" | "country" | "state" | "postalCode",
     value: string,
   ) {
     setField(field, value);
