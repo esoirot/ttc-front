@@ -2,19 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useActivity } from "@/hooks/activities/useActivities";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { ChargeRow } from "./ChargeRow";
 import { AddChargeForm } from "./AddChargeForm";
 import { ObjectivesForm } from "./ObjectivesForm";
@@ -23,16 +11,26 @@ import { TagsSection } from "./TagsSection";
 import { LanguagePairsSection } from "./LanguagePairsSection";
 import { isTranslatorActivity } from "@/types/activities.types";
 import { RateForm } from "@/components/rates/forms/RateForm";
-import { useCreateRate, useDeleteRate } from "@/hooks/rates/useRates";
+import { RateRow } from "@/components/rates/rows/RateRow";
+import { RateSheetForm } from "@/components/rates/forms/RateSheetForm";
+import { RateSheetRow } from "@/components/rates/rows/RateSheetRow";
+import {
+  useCreateRate,
+  useUpdateRate,
+  useDeleteRate,
+} from "@/hooks/rates/useRates";
 import {
   useRateSheets,
+  useUpdateRateSheet,
   useDeleteRateSheet,
 } from "@/hooks/rate-sheets/useRateSheets";
+import { useClients } from "@/hooks/clients/useClients";
 import type {
   TranslationRateFormData,
   TranslationRateType,
   TranslationRate,
 } from "@/types/rates.types";
+import type { CreateRateSheetInput } from "@/types/rate-sheets.types";
 
 const RATE_TYPE_LABELS: Record<TranslationRateType, string> = {
   HOURLY: "Hourly",
@@ -54,17 +52,43 @@ export function ActivityDetail() {
   const { activity, loading } = useActivity(activityId);
   const [showRateForm, setShowRateForm] = useState(false);
   const [newRateType, setNewRateType] = useState<TranslationRateType>("HOURLY");
-  const { createRate, loading: creatingRate } = useCreateRate(activityId);
-  const { deleteRate } = useDeleteRate(activityId);
+  const [editingRateId, setEditingRateId] = useState<number | null>(null);
+  const { createRate, loading: creatingRate } = useCreateRate();
+  const { updateRate, loading: updatingRate } = useUpdateRate();
+  const { deleteRate } = useDeleteRate();
   const { rateSheets } = useRateSheets();
+  const { updateRateSheet, loading: updatingRateSheet } = useUpdateRateSheet();
   const { deleteRateSheet } = useDeleteRateSheet();
+  const { clients } = useClients();
+  const [editingRateSheetId, setEditingRateSheetId] = useState<number | null>(
+    null,
+  );
   const activityRateSheets = rateSheets.filter(
     (rs) => rs.activityId === activityId,
   );
 
+  function clientName(clientId: number | null): string | undefined {
+    if (clientId == null) return undefined;
+    return clients.find((c) => c.id === clientId)?.name;
+  }
+
   async function handleCreateRate(data: TranslationRateFormData) {
     await createRate({ type: newRateType, ...data });
     setShowRateForm(false);
+  }
+
+  async function handleUpdateRate(
+    id: number,
+    type: TranslationRateType,
+    data: TranslationRateFormData,
+  ) {
+    await updateRate({ id, type, ...data });
+    setEditingRateId(null);
+  }
+
+  async function handleUpdateRateSheet(id: number, data: CreateRateSheetInput) {
+    await updateRateSheet({ id, ...data });
+    setEditingRateSheetId(null);
   }
 
   if (!loading && !activity) {
@@ -177,7 +201,10 @@ export function ActivityDetail() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => setShowRateForm(true)}
+                  onClick={() => {
+                    setEditingRateId(null);
+                    setShowRateForm(true);
+                  }}
                 >
                   + Add Rate
                 </Button>
@@ -208,6 +235,7 @@ export function ActivityDetail() {
                   </div>
                   <RateForm
                     type={newRateType}
+                    defaultActivityId={activityId}
                     onSave={handleCreateRate}
                     onCancel={() => setShowRateForm(false)}
                     saving={creatingRate}
@@ -228,67 +256,36 @@ export function ActivityDetail() {
                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                           {RATE_TYPE_LABELS[rateType]}
                         </p>
-                        <div className="divide-y divide-border">
-                          {group.map((rate) => (
-                            <div
-                              key={rate.id}
-                              className="flex items-center justify-between py-2"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">
-                                  {rate.name}
-                                </span>
-                                {rate.description && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {rate.description}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <span className="text-sm font-mono">
-                                  {rate.amount.toFixed(
-                                    rate.type === "PER_WORD" ? 4 : 2,
-                                  )}{" "}
-                                  <Badge variant="outline" className="text-xs">
-                                    {rate.currency}
-                                  </Badge>
-                                </span>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="text-destructive hover:text-destructive"
-                                    >
-                                      ✕
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>
-                                        Delete rate?
-                                      </AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Delete &quot;{rate.name}&quot;? This
-                                        cannot be undone.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>
-                                        Cancel
-                                      </AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => deleteRate(rate.id)}
-                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                      >
-                                        Delete
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </div>
-                          ))}
+                        <div>
+                          {group.map((rate) =>
+                            editingRateId === rate.id ? (
+                              <RateForm
+                                key={rate.id}
+                                type={rate.type}
+                                initial={rate}
+                                defaultActivityId={activityId}
+                                onSave={(data) =>
+                                  void handleUpdateRate(
+                                    rate.id,
+                                    rate.type,
+                                    data,
+                                  )
+                                }
+                                onCancel={() => setEditingRateId(null)}
+                                saving={updatingRate}
+                              />
+                            ) : (
+                              <RateRow
+                                key={rate.id}
+                                rate={rate}
+                                onEdit={() => {
+                                  setShowRateForm(false);
+                                  setEditingRateId(rate.id);
+                                }}
+                                onDelete={() => void deleteRate(rate.id)}
+                              />
+                            ),
+                          )}
                         </div>
                       </div>
                     );
@@ -301,66 +298,32 @@ export function ActivityDetail() {
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                       Rate Sheets
                     </p>
-                    <div className="divide-y divide-border">
-                      {activityRateSheets.map((rs) => (
-                        <div
-                          key={rs.id}
-                          className="flex items-center justify-between py-2"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">
-                              {rs.name}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {rs.sourceLanguage} → {rs.targetLanguage}
-                            </span>
-                            {rs.description && (
-                              <span className="text-xs text-muted-foreground">
-                                {rs.description}
-                              </span>
-                            )}
+                    <div>
+                      {activityRateSheets.map((rs) =>
+                        editingRateSheetId === rs.id ? (
+                          <div
+                            key={rs.id}
+                            className="py-4 border-b border-border"
+                          >
+                            <RateSheetForm
+                              initial={rs}
+                              onSave={(data) =>
+                                void handleUpdateRateSheet(rs.id, data)
+                              }
+                              onCancel={() => setEditingRateSheetId(null)}
+                              saving={updatingRateSheet}
+                            />
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-mono">
-                              {rs.pricePerWord.toFixed(4)}{" "}
-                              <Badge variant="outline" className="text-xs">
-                                {rs.currency}
-                              </Badge>
-                            </span>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  ✕
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    Delete rate sheet?
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Delete &quot;{rs.name}&quot;? This cannot be
-                                    undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => deleteRateSheet(rs.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </div>
-                      ))}
+                        ) : (
+                          <RateSheetRow
+                            key={rs.id}
+                            sheet={rs}
+                            clientName={clientName(rs.clientId)}
+                            onEdit={() => setEditingRateSheetId(rs.id)}
+                            onDelete={() => void deleteRateSheet(rs.id)}
+                          />
+                        ),
+                      )}
                     </div>
                   </div>
                 )}

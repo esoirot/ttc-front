@@ -99,12 +99,14 @@ describe("useCreateRate", () => {
     ]);
   });
 
-  it("invalidates the activity cache when an activityId is given", async () => {
-    gqlMutate.mockResolvedValueOnce({ createTranslationRate: makeRate() });
+  it("invalidates the activity cache when the created rate has an activityId", async () => {
+    gqlMutate.mockResolvedValueOnce({
+      createTranslationRate: makeRate({ activityId: 42 }),
+    });
     const queryClient = createQueryClient();
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
-    const { result } = renderHook(() => useCreateRate(42), {
+    const { result } = renderHook(() => useCreateRate(), {
       wrapper: createQueryWrapper(queryClient),
     });
 
@@ -153,6 +155,21 @@ describe("useUpdateRate", () => {
         "HOURLY",
       ]),
     ).toEqual([updated]);
+  });
+
+  it("invalidates the activity cache when the updated rate has an activityId", async () => {
+    const updated = makeRate({ id: 3, type: "HOURLY", activityId: 42 });
+    gqlMutate.mockResolvedValueOnce({ updateTranslationRate: updated });
+    const queryClient = createQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useUpdateRate(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    await result.current.updateRate({ id: 3, sourceLanguage: "EN" });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["activity", 42] });
   });
 });
 

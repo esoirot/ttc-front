@@ -36,6 +36,7 @@ export interface OverviewSectionProps {
 export interface TranslationRateFormProps {
   type: TranslationRateType;
   initial?: TranslationRate;
+  defaultActivityId?: number;
   onSave: (data: TranslationRateFormData) => void;
   onCancel: () => void;
   saving: boolean;

@@ -28,7 +28,7 @@ export function useRates(type?: TranslationRateType) {
   return { rates: data ?? [], loading: isLoading };
 }
 
-export function useCreateRate(activityId?: number) {
+export function useCreateRate() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useGqlMutation({
     mutation: CREATE_TRANSLATION_RATE_MUTATION,
@@ -40,9 +40,9 @@ export function useCreateRate(activityId?: number) {
         ["translationRates", created.type],
         created,
       );
-      if (activityId != null) {
+      if (created.activityId != null) {
         void queryClient.invalidateQueries({
-          queryKey: ["activity", activityId],
+          queryKey: ["activity", created.activityId],
         });
       }
     },
@@ -71,6 +71,11 @@ export function useUpdateRate() {
         updated,
         (r) => r.id,
       );
+      if (updated.activityId != null) {
+        void queryClient.invalidateQueries({
+          queryKey: ["activity", updated.activityId],
+        });
+      }
     },
   });
   return {
@@ -79,7 +84,7 @@ export function useUpdateRate() {
   };
 }
 
-export function useDeleteRate(activityId?: number) {
+export function useDeleteRate() {
   const queryClient = useQueryClient();
   const { mutateAsync } = useGqlMutation({
     mutation: DELETE_TRANSLATION_RATE_MUTATION,
@@ -93,6 +98,7 @@ export function useDeleteRate(activityId?: number) {
       );
       for (const type of [
         "HOURLY",
+        "DAY",
         "PER_WORD",
         "FIXED",
       ] as TranslationRateType[]) {
@@ -103,11 +109,7 @@ export function useDeleteRate(activityId?: number) {
           (r: TranslationRate) => r.id,
         );
       }
-      if (activityId != null) {
-        void queryClient.invalidateQueries({
-          queryKey: ["activity", activityId],
-        });
-      }
+      void queryClient.invalidateQueries({ queryKey: ["activity"] });
     },
   });
   return { deleteRate: (id: number) => mutateAsync({ id }) };

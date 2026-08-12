@@ -84,11 +84,15 @@ function makeRateSheet(overrides: Partial<RateSheet> = {}): RateSheet {
 }
 
 function mockGql(responses: Record<string, unknown>) {
+  const merged: Record<string, unknown> = {
+    Clients: { clients: { items: [], nextCursor: null, total: 0 } },
+    ...responses,
+  };
   gqlFetch.mockImplementation(
     (doc: { definitions: { kind: string; name?: { value: string } }[] }) => {
       const op = doc.definitions.find((d) => d.kind === "OperationDefinition");
       const name = op?.name?.value ?? "";
-      if (name in responses) return Promise.resolve(responses[name]);
+      if (name in merged) return Promise.resolve(merged[name]);
       return Promise.resolve({});
     },
   );

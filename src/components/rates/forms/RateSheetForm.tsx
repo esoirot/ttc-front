@@ -186,9 +186,9 @@ export function RateSheetForm({
 
         {showLanguageFields && (
           <div className="flex flex-col gap-1.5">
-            <Label>Source language</Label>
+            <Label htmlFor="rs-source-lang">Source language</Label>
             <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-              <SelectTrigger>
+              <SelectTrigger id="rs-source-lang">
                 <SelectValue placeholder="Select…" />
               </SelectTrigger>
               <SelectContent>
@@ -204,9 +204,9 @@ export function RateSheetForm({
 
         {showLanguageFields && (
           <div className="flex flex-col gap-1.5">
-            <Label>Target language</Label>
+            <Label htmlFor="rs-target-lang">Target language</Label>
             <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-              <SelectTrigger>
+              <SelectTrigger id="rs-target-lang">
                 <SelectValue placeholder="Select…" />
               </SelectTrigger>
               <SelectContent>

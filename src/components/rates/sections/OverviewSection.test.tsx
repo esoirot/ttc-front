@@ -96,8 +96,9 @@ describe("OverviewSection", () => {
     );
 
     expect(screen.getByText("General")).toBeInTheDocument();
-    expect(screen.getByText(/0\.1000€/)).toBeInTheDocument();
-    expect(screen.getByText("EUR /word")).toBeInTheDocument();
+    expect(screen.getByText(/0\.1000 €/)).toBeInTheDocument();
+    expect(screen.getByText("EUR")).toBeInTheDocument();
+    expect(screen.getByText("/word")).toBeInTheDocument();
   });
 
   it("shows a language badge only when source/target languages are set", () => {

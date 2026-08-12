@@ -56,9 +56,21 @@ export function ClientsList() {
           onValueChange={(v) => setTypeFilter(v as ClientType | "ALL")}
         >
           <TabsList>
-            <TabsTrigger value="ALL">All</TabsTrigger>
-            <TabsTrigger value="COMPANY">Companies</TabsTrigger>
-            <TabsTrigger value="INDIVIDUAL">Individuals</TabsTrigger>
+            <TabsTrigger value="ALL" className="data-[state=active]:text-white">
+              All
+            </TabsTrigger>
+            <TabsTrigger
+              value="COMPANY"
+              className="data-[state=active]:text-white"
+            >
+              Companies
+            </TabsTrigger>
+            <TabsTrigger
+              value="INDIVIDUAL"
+              className="data-[state=active]:text-white"
+            >
+              Individuals
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

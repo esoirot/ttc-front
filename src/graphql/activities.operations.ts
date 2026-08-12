@@ -38,6 +38,8 @@ const ACTIVITY_FIELDS = gql`
       amount
       currency
       description
+      sourceLanguage
+      targetLanguage
     }
     createdAt
     updatedAt

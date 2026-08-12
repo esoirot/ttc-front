@@ -50,10 +50,13 @@ export function RateSheetRow({
         <span className="font-mono text-sm tabular-nums text-muted-foreground">
           {priceDisplay}
         </span>
+        <Badge variant="outline" className="text-xs font-mono">
+          {sheet.currency}
+        </Badge>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-7 px-2 text-xs"
+          className="h-7 px-2 text-xs border-blue-600 dark:border-blue-400 text-foreground hover:bg-blue-500/30 hover:text-foreground dark:hover:bg-blue-400/30 dark:hover:text-foreground"
           onClick={onEdit}
         >
           Edit

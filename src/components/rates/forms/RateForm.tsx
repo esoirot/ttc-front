@@ -21,6 +21,7 @@ import { useMyActivities } from "@/hooks/activities/useActivities";
 export function RateForm({
   type,
   initial,
+  defaultActivityId,
   onSave,
   onCancel,
   saving,
@@ -32,7 +33,11 @@ export function RateForm({
 
   const [name, setName] = useState(initial?.name ?? "");
   const [activityId, setActivityId] = useState<string>(
-    initial?.activityId != null ? String(initial.activityId) : "__none__",
+    initial?.activityId != null
+      ? String(initial.activityId)
+      : defaultActivityId != null
+        ? String(defaultActivityId)
+        : "__none__",
   );
   const [clientId, setClientId] = useState<string>(
     initial?.clientId != null ? String(initial.clientId) : "__none__",
@@ -161,9 +166,9 @@ export function RateForm({
 
         {showLanguageFields && (
           <div className="flex flex-col gap-1.5">
-            <Label>Source language</Label>
+            <Label htmlFor="rate-source-lang">Source language</Label>
             <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-              <SelectTrigger>
+              <SelectTrigger id="rate-source-lang">
                 <SelectValue placeholder="Select…" />
               </SelectTrigger>
               <SelectContent>
@@ -179,9 +184,9 @@ export function RateForm({
 
         {showLanguageFields && (
           <div className="flex flex-col gap-1.5">
-            <Label>Target language</Label>
+            <Label htmlFor="rate-target-lang">Target language</Label>
             <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-              <SelectTrigger>
+              <SelectTrigger id="rate-target-lang">
                 <SelectValue placeholder="Select…" />
               </SelectTrigger>
               <SelectContent>

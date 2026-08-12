@@ -11,6 +11,7 @@ import {
   useUpdateRateSheet,
 } from "@/hooks/rate-sheets/useRateSheets";
 import { CURRENCY_SYMBOLS } from "@/constants/rates";
+import { useClients } from "@/hooks/clients/useClients";
 import { OverviewSection } from "../sections/OverviewSection";
 import { RateList } from "../lists/RateList";
 import { RateSheetList } from "../lists/RateSheetList";
@@ -21,8 +22,14 @@ export function RatesTabs() {
   const { rateSheets } = useRateSheets();
   const { createRateSheet, loading: creating } = useCreateRateSheet();
   const { updateRateSheet, loading: updating } = useUpdateRateSheet();
+  const { clients } = useClients();
   const [showSheetForm, setShowSheetForm] = useState(false);
   const [editingSheetId, setEditingSheetId] = useState<number | null>(null);
+
+  function clientName(clientId: number | null): string | undefined {
+    if (clientId == null) return undefined;
+    return clients.find((c) => c.id === clientId)?.name;
+  }
 
   const hourly = allRates.filter((r) => r.type === "HOURLY");
   const day = allRates.filter((r) => r.type === "DAY");
@@ -150,20 +157,43 @@ export function RatesTabs() {
                           >
                             {sheet.sourceLanguage} → {sheet.targetLanguage}
                           </Badge>
+                          {clientName(sheet.clientId) && (
+                            <span className="text-xs text-muted-foreground">
+                              {clientName(sheet.clientId)}
+                            </span>
+                          )}
+                          {sheet.isDefault && clientName(sheet.clientId) && (
+                            <Badge variant="secondary" className="text-xs">
+                              Default
+                            </Badge>
+                          )}
+                          {sheet.description && (
+                            <span className="text-xs text-muted-foreground truncate hidden sm:inline">
+                              — {sheet.description}
+                            </span>
+                          )}
                         </span>
                         <div className="flex items-center gap-2 ml-4 shrink-0">
-                          <span className="font-mono font-semibold">
-                            {sheet.pricePerWord.toFixed(4)}
-                            {CURRENCY_SYMBOLS[sheet.currency] ??
-                              sheet.currency}{" "}
-                            <span className="font-normal text-muted-foreground text-xs">
-                              {sheet.currency} /word
-                            </span>
+                          <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                            {sheet.pricePerWord.toFixed(4)}{" "}
+                            {CURRENCY_SYMBOLS[sheet.currency] ?? sheet.currency}
                           </span>
+                          <Badge
+                            variant="outline"
+                            className="text-xs font-mono"
+                          >
+                            {sheet.currency}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className="text-xs font-mono"
+                          >
+                            /word
+                          </Badge>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            className="h-6 px-2 text-xs"
+                            className="h-6 px-2 text-xs border-blue-600 dark:border-blue-400 text-foreground hover:bg-blue-500/30 hover:text-foreground dark:hover:bg-blue-400/30 dark:hover:text-foreground"
                             onClick={() => {
                               setShowSheetForm(false);
                               setEditingSheetId(sheet.id);

@@ -533,7 +533,12 @@ export function ProjectHeader({
             </p>
           )}
         </div>
-        <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-blue-600 dark:border-blue-400 text-foreground hover:bg-blue-500/30 hover:text-foreground dark:hover:bg-blue-400/30 dark:hover:text-foreground"
+          onClick={() => setEditing(true)}
+        >
           Edit
         </Button>
       </div>

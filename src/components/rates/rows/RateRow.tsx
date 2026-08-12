@@ -12,8 +12,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { TranslationRateRowProps } from "@/types/rates.types";
+import { CURRENCY_SYMBOLS } from "@/constants/rates";
 
 export function RateRow({ rate, onEdit, onDelete }: TranslationRateRowProps) {
+  const sym = CURRENCY_SYMBOLS[rate.currency] ?? rate.currency;
+  const priceDisplay = `${rate.amount.toFixed(rate.type === "PER_WORD" ? 4 : 2)} ${sym}`;
   return (
     <div className="flex items-center justify-between py-3 border-b border-border last:border-0 gap-4">
       <div className="flex-1 min-w-0">
@@ -32,16 +35,16 @@ export function RateRow({ rate, onEdit, onDelete }: TranslationRateRowProps) {
         </div>
       </div>
       <div className="flex items-center gap-3 shrink-0">
-        <span className="font-mono text-sm font-semibold tabular-nums">
-          {rate.amount.toFixed(rate.type === "PER_WORD" ? 4 : 2)}
+        <span className="font-mono text-sm tabular-nums text-muted-foreground">
+          {priceDisplay}
         </span>
-        <Badge variant="secondary" className="text-xs font-mono">
+        <Badge variant="outline" className="text-xs font-mono">
           {rate.currency}
         </Badge>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-7 px-2 text-xs"
+          className="h-7 px-2 text-xs border-blue-600 dark:border-blue-400 text-foreground hover:bg-blue-500/30 hover:text-foreground dark:hover:bg-blue-400/30 dark:hover:text-foreground"
           onClick={onEdit}
         >
           Edit

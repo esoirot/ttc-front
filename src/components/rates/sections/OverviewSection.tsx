@@ -87,17 +87,20 @@ export function OverviewSection({
                   )}
                 </span>
                 <div className="flex items-center gap-2 ml-4 shrink-0">
-                  <span className="font-mono font-semibold">
-                    {rate.amount.toFixed(type === "PER_WORD" ? 4 : 2)}
-                    {CURRENCY_SYMBOLS[rate.currency] ?? rate.currency}{" "}
-                    <span className="font-normal text-muted-foreground text-xs">
-                      {rate.currency} {unit}
-                    </span>
+                  <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                    {rate.amount.toFixed(type === "PER_WORD" ? 4 : 2)}{" "}
+                    {CURRENCY_SYMBOLS[rate.currency] ?? rate.currency}
                   </span>
+                  <Badge variant="outline" className="text-xs font-mono">
+                    {rate.currency}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs font-mono">
+                    {unit}
+                  </Badge>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="h-6 px-2 text-xs"
+                    className="h-6 px-2 text-xs border-blue-600 dark:border-blue-400 text-foreground hover:bg-blue-500/30 hover:text-foreground dark:hover:bg-blue-400/30 dark:hover:text-foreground"
                     onClick={() => {
                       startTransition(() => {
                         setShowForm(false);

@@ -31,7 +31,7 @@ describe("RateRow", () => {
         onDelete={vi.fn()}
       />,
     );
-    expect(screen.getByText("40.00")).toBeInTheDocument();
+    expect(screen.getByText("40.00 €")).toBeInTheDocument();
   });
 
   it("formats PER_WORD amounts to 4 decimals", () => {
@@ -42,7 +42,7 @@ describe("RateRow", () => {
         onDelete={vi.fn()}
       />,
     );
-    expect(screen.getByText("0.1200")).toBeInTheDocument();
+    expect(screen.getByText("0.1200 €")).toBeInTheDocument();
   });
 
   it("shows the language pair badge when both languages are set", () => {
