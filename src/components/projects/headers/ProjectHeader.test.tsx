@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -12,6 +18,14 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
+
+let activityChipsProps: Record<string, unknown> = {};
+vi.mock("@/components/activities/ActivityChips", () => ({
+  ActivityChips: (props: Record<string, unknown>) => {
+    activityChipsProps = props;
+    return <div data-testid="activity-chips" />;
+  },
+}));
 
 import { ProjectHeader } from "./ProjectHeader";
 
@@ -139,7 +153,22 @@ describe("ProjectHeader", () => {
       }),
     );
     expect(screen.getByText("Due 2026-12-31")).toBeInTheDocument();
-    expect(screen.getByText("2,500 words")).toBeInTheDocument();
+    expect(screen.getByText("0 / 2,500 words")).toBeInTheDocument();
+  });
+
+  it("shows the wordsProcessed sum over the wordCount target", () => {
+    renderHeader(makeProject({ wordCount: 2500, totalWordsProcessed: 1200 }));
+    expect(screen.getByText("1,200 / 2,500 words")).toBeInTheDocument();
+  });
+
+  it("shows just the logged sum when no wordCount target is set", () => {
+    renderHeader(makeProject({ wordCount: null, totalWordsProcessed: 400 }));
+    expect(screen.getByText("400 words logged")).toBeInTheDocument();
+  });
+
+  it("shows no word count badge when neither wordCount nor totalWordsProcessed is set", () => {
+    renderHeader(makeProject({ wordCount: null, totalWordsProcessed: null }));
+    expect(screen.queryByText(/words/)).not.toBeInTheDocument();
   });
 
   it("shows the client name prefix when linked", () => {
@@ -267,7 +296,37 @@ describe("ProjectHeader", () => {
     );
     expect(screen.getByText("EN → FR")).toBeInTheDocument();
     expect(screen.getByText("Due 2026-12-31")).toBeInTheDocument();
-    expect(screen.getByText("2,500 words")).toBeInTheDocument();
+    expect(screen.getByText("0 / 2,500 words")).toBeInTheDocument();
+  });
+
+  it("wires activity chip onChange to the edit form's activityIds, seeded from project.activities", () => {
+    renderHeader(
+      makeProject({
+        activities: [
+          { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        ],
+      }),
+    );
+    fireEvent.click(screen.getByText("Edit"));
+    expect(activityChipsProps.activityIds).toEqual([1]);
+
+    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([1, 2]));
+    expect(activityChipsProps.activityIds).toEqual([1, 2]);
+  });
+
+  it("saves the edited activityIds", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(makeProject({ id: 7 }), [], onUpdate);
+
+    fireEvent.click(screen.getByText("Edit"));
+    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([3, 4]));
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ activityIds: [3, 4] }),
+      ),
+    );
   });
 
   it("joins multiple pricing lines with a plus sign", () => {

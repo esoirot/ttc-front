@@ -24,6 +24,14 @@ vi.mock("@/components/time/tags/TtcTagChips", () => ({
   },
 }));
 
+let activityChipsProps: Record<string, unknown> = {};
+vi.mock("@/components/activities/ActivityChips", () => ({
+  ActivityChips: (props: Record<string, unknown>) => {
+    activityChipsProps = props;
+    return <div data-testid="activity-chips" />;
+  },
+}));
+
 import { NewClientForm } from "./NewClientForm";
 
 function renderForm(
@@ -340,5 +348,35 @@ describe("NewClientForm", () => {
     act(() => (tagChipsProps.onChange as (ids: number[]) => void)([4]));
 
     expect(tagChipsProps.tagIds).toEqual([4]);
+  });
+
+  it("shows the Activities section label", () => {
+    renderForm();
+    expect(screen.getByText("Activities")).toBeInTheDocument();
+  });
+
+  it("wires activity chip onChange to the activityIds state", () => {
+    renderForm();
+    expect(activityChipsProps.activityIds).toEqual([]);
+
+    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([7]));
+
+    expect(activityChipsProps.activityIds).toEqual([7]);
+  });
+
+  it("includes activityIds in the create payload", async () => {
+    gqlMutate.mockResolvedValueOnce({ createClient: { id: 9, name: "Acme" } });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText("Company name *"), {
+      target: { value: "Acme" },
+    });
+    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([1, 2]));
+    fireEvent.click(screen.getByText("Create client"));
+
+    await waitFor(() => expect(gqlMutate).toHaveBeenCalled());
+    expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+      input: { activityIds: [1, 2] },
+    });
   });
 });

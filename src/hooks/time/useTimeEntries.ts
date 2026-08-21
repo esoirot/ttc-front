@@ -76,6 +76,8 @@ type CreateTimeEntryInput = {
   billable?: boolean;
   clockifyEntryId?: string;
   tagIds?: number[];
+  activityId?: number | null;
+  wordsProcessed?: number | null;
 };
 
 export function useCreateTimeEntry() {
@@ -86,6 +88,8 @@ export function useCreateTimeEntry() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
       void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
+      void queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
   return {
@@ -102,6 +106,8 @@ type StartTimerInput = {
   description?: string;
   billable?: boolean;
   tagIds?: number[];
+  activityId?: number | null;
+  wordsProcessed?: number | null;
 };
 
 export function useStartTimer() {
@@ -129,6 +135,8 @@ export function useStopTimer() {
       queryClient.setQueryData(["activeTimer"], null);
       void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
       void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
+      void queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
   return {
@@ -146,6 +154,8 @@ export function useUpdateTimeEntry() {
     onSuccess: (updated) => {
       patchConnection(queryClient, ["timeEntries"], updated, (e) => e.id);
       void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
+      void queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
   return {
@@ -164,6 +174,8 @@ export function useResumeTimeEntry() {
       queryClient.setQueryData(["activeTimer"], resumed);
       void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
       void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
+      void queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
   return {
@@ -186,6 +198,8 @@ export function useDeleteTimeEntry() {
         (e: TimeEntry) => e.id,
       );
       void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
+      void queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
   return {

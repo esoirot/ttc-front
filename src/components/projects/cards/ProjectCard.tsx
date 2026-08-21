@@ -48,10 +48,18 @@ export function ProjectCard({
               Due {project.deadline.slice(0, 10)}
             </Badge>
           )}
-          {project.wordCount != null && (
+          {project.wordCount != null ? (
             <Badge variant="outline" className="text-xs">
+              {(project.totalWordsProcessed ?? 0).toLocaleString()} /{" "}
               {project.wordCount.toLocaleString()} words
             </Badge>
+          ) : (
+            project.totalWordsProcessed != null &&
+            project.totalWordsProcessed > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {project.totalWordsProcessed.toLocaleString()} words logged
+              </Badge>
+            )
           )}
           <Badge
             variant={STATUS_VARIANTS[project.status] ?? "outline"}

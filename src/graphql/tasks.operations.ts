@@ -18,7 +18,13 @@ export const TASKS_QUERY: TypedDocumentNode<
 > = gql`
   query Tasks($projectId: Int!, $pagination: PaginationInput) {
     tasks(projectId: $projectId, pagination: $pagination) {
-      items { ${TASK_FIELDS} }
+      items {
+        ${TASK_FIELDS}
+        activities {
+          id taskId userId type payload createdAt
+          user { id name }
+        }
+      }
       nextCursor
       total
     }

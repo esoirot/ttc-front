@@ -26,6 +26,8 @@ import {
 } from "@/lib/projectRate";
 import { STATUSES } from "@/constants/projects";
 import { LANGUAGES } from "@/constants/languages";
+import { useMyActivities } from "@/hooks/activities/useActivities";
+import { ActivityChips } from "@/components/activities/ActivityChips";
 
 type RateOption = TranslationRate | ClientRate;
 
@@ -81,6 +83,7 @@ function buildFormState(project: ProjectHeaderProps["project"]) {
       project.rateSheetId != null ? String(project.rateSheetId) : undefined,
     deadline: project.deadline?.slice(0, 10) ?? "",
     startDate: project.startDate?.slice(0, 10) ?? "",
+    activityIds: (project.activities ?? []).map((a) => a.id),
   };
 }
 
@@ -91,6 +94,7 @@ export function ProjectHeader({
   saving,
 }: ProjectHeaderProps) {
   const { rates: userRates } = useRates();
+  const { activities } = useMyActivities();
   const clientIdNum = project.clientId;
   const { clientRates } = useClientRates(clientIdNum);
   const { rateSheets } = useRateSheets();
@@ -150,6 +154,7 @@ export function ProjectHeader({
           : Number(effectiveRateSheetId),
       deadline: form.deadline || undefined,
       startDate: form.startDate || undefined,
+      activityIds: form.activityIds,
     });
     setEditing(false);
   }
@@ -304,6 +309,16 @@ export function ProjectHeader({
               min={0}
               value={form.wordCount}
               onChange={set("wordCount")}
+            />
+          </div>
+          <div className="col-span-2 flex flex-col gap-2">
+            <Label>Activities</Label>
+            <ActivityChips
+              activityIds={form.activityIds}
+              activities={activities}
+              onChange={(activityIds) =>
+                setForm((prev) => ({ ...prev, activityIds }))
+              }
             />
           </div>
         </div>
@@ -521,10 +536,18 @@ export function ProjectHeader({
                 Due {project.deadline.slice(0, 10)}
               </Badge>
             )}
-            {project.wordCount != null && (
+            {project.wordCount != null ? (
               <Badge variant="outline">
+                {(project.totalWordsProcessed ?? 0).toLocaleString()} /{" "}
                 {project.wordCount.toLocaleString()} words
               </Badge>
+            ) : (
+              project.totalWordsProcessed != null &&
+              project.totalWordsProcessed > 0 && (
+                <Badge variant="outline">
+                  {project.totalWordsProcessed.toLocaleString()} words logged
+                </Badge>
+              )
             )}
           </div>
           {pricing.length > 0 && (

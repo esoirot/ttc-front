@@ -2,6 +2,7 @@ import type { Client } from "./clients.types";
 import type { Task, TaskStatus } from "./tasks.types";
 import type { Member } from "./users.types";
 import type { Connection } from "./common.types";
+import type { ActivityRef } from "./activities.types";
 
 export type ProjectStatus =
   | "DRAFT"
@@ -32,6 +33,8 @@ export interface Project {
   deadline: string | null;
   startDate: string | null;
   totalTimeSeconds?: number | null;
+  totalWordsProcessed?: number | null;
+  activities?: ActivityRef[];
   createdAt: string;
   updatedAt: string;
 }
@@ -76,6 +79,7 @@ export interface ProjectHeaderProps {
     currency?: string;
     deadline?: string;
     startDate?: string;
+    activityIds?: number[];
   }) => Promise<unknown>;
   saving: boolean;
 }
@@ -108,6 +112,11 @@ export interface SortableTaskProps {
   memberMap: Record<number, string>;
 }
 
+export interface ProjectActivityTabProps {
+  tasks: Task[];
+  tasksLoading: boolean;
+}
+
 export interface TasksTabProps {
   projectId: number;
   tasks: Task[];
@@ -135,6 +144,7 @@ export type ProjectInput = {
   currency?: string;
   deadline?: string;
   startDate?: string;
+  activityIds?: number[];
 };
 
 export type ProjectsVars = {

@@ -91,5 +91,6 @@ describe("ProjectDetail", () => {
     expect(screen.getByText("Tasks")).toBeInTheDocument();
     expect(screen.getByText("Kanban")).toBeInTheDocument();
     expect(screen.getByText("Time")).toBeInTheDocument();
+    expect(screen.getByText("Activity")).toBeInTheDocument();
   });
 });

@@ -17,6 +17,7 @@ const CLIENT_FIELDS = `
   notes hubspotId
   clientType firstName lastName paymentDelayDays taxRate billingEndOfMonth
   website industry status contactedAt tags { id name }
+  activities { id name activityType }
   createdAt updatedAt
   contacts { ${CONTACT_FIELDS} }
 `;
@@ -86,6 +87,7 @@ type ClientInput = {
   status?: ClientStatus;
   contactedAt?: string | null;
   tagIds?: number[];
+  activityIds?: number[];
 };
 
 export const CREATE_CLIENT_MUTATION: TypedDocumentNode<

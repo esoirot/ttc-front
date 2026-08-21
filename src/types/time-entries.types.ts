@@ -1,5 +1,8 @@
 import type { Tag } from "./tags.types";
 import type { Connection } from "./common.types";
+import type { ActivityRef } from "./activities.types";
+
+export type InvoicingStatus = "NO" | "INVOICED";
 
 export interface TimeEntry {
   id: number;
@@ -15,6 +18,10 @@ export interface TimeEntry {
   durationSeconds: number | null;
   billable: boolean;
   clockifyEntryId: string | null;
+  activityId?: number | null;
+  activity?: ActivityRef | null;
+  wordsProcessed?: number | null;
+  invoicingStatus?: InvoicingStatus;
   tags: { id: number; name: string }[];
   createdAt: string;
   updatedAt: string;
@@ -32,6 +39,8 @@ export type TtcUpdateInput = {
   tagIds?: number[];
   startTime?: string;
   endTime?: string;
+  activityId?: number | null;
+  wordsProcessed?: number | null;
 };
 
 export interface ActiveTimerBannerProps {
@@ -96,4 +105,6 @@ export type UpdateTimeEntryInput = {
   endTime?: string;
   billable?: boolean;
   tagIds?: number[];
+  activityId?: number | null;
+  wordsProcessed?: number | null;
 };

@@ -9,7 +9,8 @@ import type {
 const PROJECT_FIELDS = `
   id userId clientId title description status
   sourceLanguage targetLanguage wordCount unitPrice fixedFee hourlyRate perWordRate useCustomRate rateSheetId currency
-  deadline startDate totalTimeSeconds createdAt updatedAt
+  deadline startDate totalTimeSeconds totalWordsProcessed createdAt updatedAt
+  activities { id name activityType }
 `;
 
 export const PROJECTS_QUERY: TypedDocumentNode<
@@ -55,6 +56,7 @@ type ProjectInput = {
   currency?: string;
   deadline?: string;
   startDate?: string;
+  activityIds?: number[];
 };
 
 export const CREATE_PROJECT_MUTATION: TypedDocumentNode<

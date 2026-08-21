@@ -40,3 +40,31 @@ export function resolveProjectRateSheet(
   }
   return findClientRateSheet(rateSheets, project);
 }
+
+export function calculateProjectRevenue(
+  project: Pick<
+    Project,
+    | "fixedFee"
+    | "hourlyRate"
+    | "perWordRate"
+    | "useCustomRate"
+    | "totalWordsProcessed"
+  >,
+  totalSeconds: number,
+  clientRateSheet: RateSheet | undefined,
+): number {
+  const perWordPrice = project.useCustomRate
+    ? project.perWordRate
+    : (clientRateSheet?.pricePerWord ?? null);
+  const words = project.totalWordsProcessed ?? 0;
+
+  let revenue = 0;
+  if (perWordPrice != null) revenue += words * perWordPrice;
+  if (project.useCustomRate && project.hourlyRate != null) {
+    revenue += (totalSeconds / 3600) * project.hourlyRate;
+  }
+  if (project.useCustomRate && project.fixedFee != null) {
+    revenue += project.fixedFee;
+  }
+  return revenue;
+}

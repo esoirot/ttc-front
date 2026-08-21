@@ -139,11 +139,23 @@ describe("OverviewTab", () => {
       />,
       { wrapper: createQueryWrapper() },
     );
-    expect(screen.getByText("1,000")).toBeInTheDocument();
+    expect(screen.getByText("0 / 1,000")).toBeInTheDocument();
     expect(screen.getByText("Pricing")).toBeInTheDocument();
     expect(screen.queryByText(/^Fixed /)).not.toBeInTheDocument();
     expect(screen.getByText("50 USD/hr")).toBeInTheDocument();
     expect(screen.getByText("0.1 USD/word")).toBeInTheDocument();
+  });
+
+  it("shows the wordsProcessed sum over the wordCount target", () => {
+    render(
+      <OverviewTab
+        project={makeProject({ wordCount: 1000, totalWordsProcessed: 400 })}
+        totalSeconds={0}
+        tasks={[]}
+      />,
+      { wrapper: createQueryWrapper() },
+    );
+    expect(screen.getByText("400 / 1,000")).toBeInTheDocument();
   });
 
   it("shows the client rate sheet price per word when useCustomRate is off and a sheet matches", async () => {
@@ -253,6 +265,108 @@ describe("OverviewTab", () => {
     expect(
       screen.getByText("Client rate sheet — Explicitly chosen sheet"),
     ).toBeInTheDocument();
+  });
+
+  it("hides the Revenue card when the project has no TRANSLATOR activity", () => {
+    render(
+      <OverviewTab
+        project={makeProject({
+          activities: [
+            { id: 1, name: "Correction", activityType: "CORRECTOR" },
+          ],
+          totalWordsProcessed: 1000,
+          useCustomRate: true,
+          perWordRate: 0.1,
+        })}
+        totalSeconds={0}
+        tasks={[]}
+      />,
+      { wrapper: createQueryWrapper() },
+    );
+    expect(screen.queryByText("Revenue")).not.toBeInTheDocument();
+  });
+
+  it("hides the Revenue card when totalWordsProcessed is 0", () => {
+    render(
+      <OverviewTab
+        project={makeProject({
+          activities: [
+            { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          ],
+          totalWordsProcessed: 0,
+          useCustomRate: true,
+          perWordRate: 0.1,
+        })}
+        totalSeconds={0}
+        tasks={[]}
+      />,
+      { wrapper: createQueryWrapper() },
+    );
+    expect(screen.queryByText("Revenue")).not.toBeInTheDocument();
+  });
+
+  it("shows Revenue summing fixed + hourly + per-word custom rates", () => {
+    render(
+      <OverviewTab
+        project={makeProject({
+          activities: [
+            { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          ],
+          totalWordsProcessed: 1000,
+          useCustomRate: true,
+          fixedFee: 300,
+          hourlyRate: 50,
+          perWordRate: 0.1,
+          currency: "USD",
+        })}
+        totalSeconds={7200}
+        tasks={[]}
+      />,
+      { wrapper: createQueryWrapper() },
+    );
+    expect(screen.getByText("Revenue")).toBeInTheDocument();
+    expect(screen.getByText("500.00 USD")).toBeInTheDocument();
+  });
+
+  it("shows Revenue from the client rate sheet price per word when useCustomRate is off", async () => {
+    gqlFetch.mockResolvedValue({
+      rateSheets: [
+        {
+          id: 1,
+          userId: 1,
+          activityId: null,
+          clientId: 5,
+          name: "EN-FR standard",
+          description: null,
+          sourceLanguage: "EN",
+          targetLanguage: "FR",
+          currency: "EUR",
+          pricePerWord: 0.12,
+          matchRates: {},
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    });
+    render(
+      <OverviewTab
+        project={makeProject({
+          activities: [
+            { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          ],
+          clientId: 5,
+          sourceLanguage: "EN",
+          targetLanguage: "FR",
+          useCustomRate: false,
+          totalWordsProcessed: 1000,
+        })}
+        totalSeconds={0}
+        tasks={[]}
+      />,
+      { wrapper: createQueryWrapper() },
+    );
+    expect(await screen.findByText("120.00 EUR")).toBeInTheDocument();
+    expect(screen.getByText("Revenue")).toBeInTheDocument();
   });
 
   it("shows a pie breakdown with an Untracked slice when tasks don't cover total time", () => {

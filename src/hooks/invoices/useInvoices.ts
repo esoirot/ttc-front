@@ -96,6 +96,7 @@ export function useGenerateInvoice() {
     unwrap: (d) => d.generateInvoice,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
     },
   });
   return {
@@ -172,6 +173,7 @@ export function useAddInvoiceItem(invoiceId: number) {
         (i) => i.id,
         "add",
       );
+      void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
     },
   });
   return {

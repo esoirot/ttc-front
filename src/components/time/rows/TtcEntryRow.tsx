@@ -43,6 +43,9 @@ export function TtcEntryRow({
   const [editingProject, setEditingProject] = useState(false);
   const [editingTask, setEditingTask] = useState(false);
   const [editingSubtask, setEditingSubtask] = useState(false);
+  const [editingActivity, setEditingActivity] = useState(false);
+  const [editingWords, setEditingWords] = useState(false);
+  const [wordsValue, setWordsValue] = useState("");
   const descInputRef = useRef<HTMLInputElement>(null);
 
   const project = projects.find((p) => p.id === entry.projectId) ?? null;
@@ -71,6 +74,27 @@ export function TtcEntryRow({
   function handleDescKey(e: React.KeyboardEvent) {
     if (e.key === "Enter") commitDesc();
     if (e.key === "Escape") setEditingDesc(false);
+  }
+
+  function startEditWords() {
+    setWordsValue(
+      entry.wordsProcessed != null ? String(entry.wordsProcessed) : "",
+    );
+    setEditingWords(true);
+  }
+
+  function commitWords() {
+    setEditingWords(false);
+    const trimmed = wordsValue.trim();
+    const parsed = trimmed ? Number(trimmed) : null;
+    if (parsed !== (entry.wordsProcessed ?? null)) {
+      onUpdate({ id: entry.id, wordsProcessed: parsed });
+    }
+  }
+
+  function handleWordsKey(e: React.KeyboardEvent) {
+    if (e.key === "Enter") commitWords();
+    if (e.key === "Escape") setEditingWords(false);
   }
 
   return (
@@ -290,6 +314,62 @@ export function TtcEntryRow({
                 No subtask
               </Button>
             ))}
+          {entry.projectId != null &&
+            (editingActivity ? (
+              <Select
+                open
+                onOpenChange={(o) => !o && setEditingActivity(false)}
+                value={
+                  entry.activityId != null
+                    ? String(entry.activityId)
+                    : "__none__"
+                }
+                onValueChange={(v) => {
+                  onUpdate({
+                    id: entry.id,
+                    activityId: v === "__none__" ? null : Number(v),
+                  });
+                  setEditingActivity(false);
+                }}
+              >
+                <SelectTrigger className="h-6 text-xs w-[160px]">
+                  <SelectValue placeholder="No activity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">No activity</SelectItem>
+                  {(project?.activities ?? []).map((a) => (
+                    <SelectItem key={a.id} value={String(a.id)}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : entry.activity ? (
+              <Badge
+                variant="outline"
+                className="h-5 px-1.5 text-xs font-normal cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingActivity(true);
+                }}
+                title="Edit activity"
+              >
+                {entry.activity.name}
+              </Badge>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingActivity(true);
+                }}
+                className="h-5 px-1.5 text-xs font-normal text-muted-foreground border-dashed"
+                title="Link activity"
+              >
+                No activity
+              </Button>
+            ))}
           <TtcTagChips
             tagIds={entry.tags.map((t) => t.id)}
             tags={tags}
@@ -312,6 +392,45 @@ export function TtcEntryRow({
           >
             $
           </Button>
+          {entry.invoicingStatus === "INVOICED" && (
+            <Badge
+              variant="secondary"
+              className="h-5 px-1.5 text-xs font-normal bg-blue-100 text-blue-700 border-blue-200"
+            >
+              Invoiced
+            </Badge>
+          )}
+          {entry.activity?.activityType === "TRANSLATOR" &&
+            (editingWords ? (
+              <Input
+                type="number"
+                min={0}
+                autoFocus
+                value={wordsValue}
+                onChange={(e) => setWordsValue(e.target.value)}
+                onBlur={commitWords}
+                onKeyDown={handleWordsKey}
+                onClick={(e) => e.stopPropagation()}
+                placeholder="Words"
+                aria-label="Words processed"
+                className="h-5 w-20 px-1.5 text-xs"
+              />
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startEditWords();
+                }}
+                className="h-5 px-1.5 text-xs font-normal text-muted-foreground"
+                title="Edit words processed"
+              >
+                {entry.wordsProcessed != null
+                  ? `${entry.wordsProcessed.toLocaleString()} words`
+                  : "+ words"}
+              </Button>
+            ))}
         </div>
         {(() => {
           const startField = (

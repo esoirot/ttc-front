@@ -17,6 +17,7 @@ import {
   useAddInvoiceItem,
   useCreateInvoice,
   useDeleteInvoice,
+  useGenerateInvoice,
   useInvoice,
   useInvoices,
   useRemoveInvoiceItem,
@@ -123,6 +124,30 @@ describe("useCreateInvoice", () => {
   });
 });
 
+describe("useGenerateInvoice", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+    gqlMutate.mockReset();
+  });
+
+  it("invalidates the invoices list and time entries on success", async () => {
+    gqlMutate.mockResolvedValueOnce({
+      generateInvoice: makeInvoice({ id: 6 }),
+    });
+    const queryClient = createQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useGenerateInvoice(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    await result.current.generateInvoice({ projectId: 1 });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["invoices"] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["timeEntries"] });
+  });
+});
+
 describe("useUpdateInvoice", () => {
   beforeEach(() => {
     gqlFetch.mockReset();
@@ -197,6 +222,7 @@ describe("useAddInvoiceItem", () => {
     gqlMutate.mockResolvedValueOnce({ addInvoiceItem: item });
     const queryClient = createQueryClient();
     queryClient.setQueryData(["invoice", 4], makeInvoice({ id: 4 }));
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
     const { result } = renderHook(() => useAddInvoiceItem(4), {
       wrapper: createQueryWrapper(queryClient),
@@ -210,6 +236,7 @@ describe("useAddInvoiceItem", () => {
 
     const invoice = queryClient.getQueryData<Invoice>(["invoice", 4]);
     expect(invoice?.items).toEqual([item]);
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["timeEntries"] });
   });
 });
 

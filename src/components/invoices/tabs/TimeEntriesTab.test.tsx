@@ -106,6 +106,30 @@ describe("TimeEntriesTab", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 
+  it("shows word count instead of duration for translation entries", () => {
+    renderTab({
+      billableEntries: [
+        makeEntry({
+          wordsProcessed: 1234,
+          activity: { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        }),
+      ],
+    });
+    expect(screen.getByText("1234 words")).toBeInTheDocument();
+  });
+
+  it("shows 0 words for a translation entry missing wordsProcessed", () => {
+    renderTab({
+      billableEntries: [
+        makeEntry({
+          wordsProcessed: null,
+          activity: { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        }),
+      ],
+    });
+    expect(screen.getByText("0 words")).toBeInTheDocument();
+  });
+
   it("shows start date extracted from startTime", () => {
     renderTab({
       billableEntries: [makeEntry({ startTime: "2026-06-24T09:00:00.000Z" })],

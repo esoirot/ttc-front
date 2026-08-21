@@ -58,6 +58,7 @@ export interface Task {
   reminderOffset: string | null;
   sortOrder: number;
   totalTimeSeconds?: number | null;
+  activities?: TaskActivity[];
   createdAt: string;
   updatedAt: string;
 }

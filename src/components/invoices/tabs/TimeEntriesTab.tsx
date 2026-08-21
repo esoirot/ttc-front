@@ -14,6 +14,7 @@ import {
 import type { TimeEntriesTabProps as Props } from "@/types/invoices.types";
 import { useTimeEntriesTab } from "@/hooks/invoices/useTimeEntriesTab";
 import { secsToHms } from "@/components/time/ttcHelpers";
+import { isTranslationEntry } from "@/lib/translationPricing";
 
 export function TimeEntriesTab({
   invoiceId,
@@ -147,9 +148,11 @@ export function TimeEntriesTab({
                       </Badge>
                     )}
                     <span className="text-xs font-mono text-muted-foreground">
-                      {entry.durationSeconds != null
-                        ? secsToHms(entry.durationSeconds)
-                        : "—"}
+                      {isTranslationEntry(entry)
+                        ? `${entry.wordsProcessed ?? 0} words`
+                        : entry.durationSeconds != null
+                          ? secsToHms(entry.durationSeconds)
+                          : "—"}
                     </span>
                   </div>
                 </div>

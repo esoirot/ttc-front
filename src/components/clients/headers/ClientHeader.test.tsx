@@ -25,6 +25,14 @@ vi.mock("@/components/time/tags/TtcTagChips", () => ({
   },
 }));
 
+let activityChipsProps: Record<string, unknown> = {};
+vi.mock("@/components/activities/ActivityChips", () => ({
+  ActivityChips: (props: Record<string, unknown>) => {
+    activityChipsProps = props;
+    return <div data-testid="activity-chips" />;
+  },
+}));
+
 import { ClientHeader } from "./ClientHeader";
 
 function makeClient(overrides: Partial<Client> = {}): Client {
@@ -516,5 +524,46 @@ describe("ClientHeader", () => {
 
     act(() => (tagChipsProps.onChange as (ids: number[]) => void)([2]));
     expect(tagChipsProps.tagIds).toEqual([2]);
+  });
+
+  it("wires activity chip onChange to the edit form's activityIds, seeded from client.activities", () => {
+    renderHeader(
+      makeClient({
+        activities: [
+          { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        ],
+      }),
+    );
+    fireEvent.click(screen.getByText("Edit"));
+    expect(activityChipsProps.activityIds).toEqual([1]);
+
+    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([1, 2]));
+    expect(activityChipsProps.activityIds).toEqual([1, 2]);
+  });
+
+  it("saves the edited activityIds", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(makeClient(), onUpdate);
+    fireEvent.click(screen.getByText("Edit"));
+
+    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([3, 4]));
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ activityIds: [3, 4] }),
+      ),
+    );
+  });
+
+  it("shows activity badges in view mode when the client has activities", () => {
+    renderHeader(
+      makeClient({
+        activities: [
+          { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        ],
+      }),
+    );
+    expect(screen.getByText("Translation")).toBeInTheDocument();
   });
 });

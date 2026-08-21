@@ -370,6 +370,30 @@ describe("TtcEntryRow", () => {
     expect(onUpdate).toHaveBeenCalledWith({ id: 1, billable: false });
   });
 
+  it("shows an Invoiced badge when invoicingStatus is INVOICED", () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({ invoicingStatus: "INVOICED" }),
+          })}
+        />,
+      ),
+    );
+    expect(screen.getByText("Invoiced")).toBeInTheDocument();
+  });
+
+  it("does not show an Invoiced badge when invoicingStatus is NO or unset", () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({ entry: makeEntry({ invoicingStatus: "NO" }) })}
+        />,
+      ),
+    );
+    expect(screen.queryByText("Invoiced")).not.toBeInTheDocument();
+  });
+
   it("wires tag chip onChange to onUpdate with the given tagIds list", () => {
     const onUpdate = vi.fn();
     render(
@@ -669,5 +693,172 @@ describe("TtcEntryRow", () => {
     fireEvent.click(options[options.length - 1]);
 
     expect(onUpdate).toHaveBeenCalledWith({ id: 1, subtaskId: null });
+  });
+
+  it("does not render the activity control when the entry has no project", () => {
+    render(wrap(<TtcEntryRow {...baseProps()} />));
+    expect(screen.queryByTitle("Link activity")).not.toBeInTheDocument();
+  });
+
+  it("shows 'No activity' when unset, or the linked activity's name, scoped to the entry's project", () => {
+    const project = makeProject({
+      id: 1,
+      activities: [
+        { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        { id: 2, name: "Proofreading", activityType: "CORRECTOR" },
+      ],
+    });
+    const { rerender } = render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({ projectId: 1 }),
+            projects: [project],
+          })}
+        />,
+      ),
+    );
+    expect(screen.getByText("No activity")).toBeInTheDocument();
+
+    rerender(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              projectId: 1,
+              activityId: 1,
+              activity: {
+                id: 1,
+                name: "Translation",
+                activityType: "TRANSLATOR",
+              },
+            }),
+            projects: [project],
+          })}
+        />,
+      ),
+    );
+    expect(screen.getByText("Translation")).toBeInTheDocument();
+  });
+
+  it("selecting an activity from the edit Select calls onUpdate with its id", () => {
+    const onUpdate = vi.fn();
+    const project = makeProject({
+      id: 1,
+      activities: [{ id: 1, name: "Translation", activityType: "TRANSLATOR" }],
+    });
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({ projectId: 1 }),
+            projects: [project],
+            onUpdate,
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Link activity"));
+    fireEvent.click(screen.getByText("Translation"));
+
+    expect(onUpdate).toHaveBeenCalledWith({ id: 1, activityId: 1 });
+  });
+
+  it("does not show a words-processed control when the entry has no activity or a non-Translator one", () => {
+    const { rerender } = render(wrap(<TtcEntryRow {...baseProps()} />));
+    expect(screen.queryByLabelText("Words processed")).not.toBeInTheDocument();
+
+    rerender(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              activity: {
+                id: 2,
+                name: "Proofreading",
+                activityType: "CORRECTOR",
+              },
+            }),
+          })}
+        />,
+      ),
+    );
+    expect(screen.queryByLabelText("Words processed")).not.toBeInTheDocument();
+  });
+
+  it("shows a words-processed control when the entry's activity is Translator", () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              activity: {
+                id: 1,
+                name: "Translation",
+                activityType: "TRANSLATOR",
+              },
+              wordsProcessed: 1200,
+            }),
+          })}
+        />,
+      ),
+    );
+    expect(screen.getByText("1,200 words")).toBeInTheDocument();
+  });
+
+  it("commits a words-processed edit on Enter", () => {
+    const onUpdate = vi.fn();
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              activity: {
+                id: 1,
+                name: "Translation",
+                activityType: "TRANSLATOR",
+              },
+            }),
+            onUpdate,
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Edit words processed"));
+    const input = screen.getByLabelText("Words processed");
+    fireEvent.change(input, { target: { value: "500" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(onUpdate).toHaveBeenCalledWith({ id: 1, wordsProcessed: 500 });
+  });
+
+  it("clearing the words-processed field commits null", () => {
+    const onUpdate = vi.fn();
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              activity: {
+                id: 1,
+                name: "Translation",
+                activityType: "TRANSLATOR",
+              },
+              wordsProcessed: 500,
+            }),
+            onUpdate,
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Edit words processed"));
+    const input = screen.getByLabelText("Words processed");
+    fireEvent.change(input, { target: { value: "" } });
+    fireEvent.blur(input);
+
+    expect(onUpdate).toHaveBeenCalledWith({ id: 1, wordsProcessed: null });
   });
 });

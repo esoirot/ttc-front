@@ -1,6 +1,6 @@
 export const MATCH_RATE_ITEMS = [
   { key: "perfectMatch", label: "Perfect Match" },
-  { key: "cm", label: "CM" },
+  { key: "cm", label: "Context Match / Context Translation Memory" },
   { key: "repetitions", label: "Répétitions" },
   { key: "repetitionsBetweenFiles", label: "Répétitions entre fichiers" },
   { key: "match100", label: "100%" },

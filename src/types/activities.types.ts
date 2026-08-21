@@ -63,6 +63,15 @@ export interface CustomActivity extends Activity {
 export type AnyActivity =
   TranslatorActivity | CorrectorActivity | CustomActivity;
 
+// Minimal shape used wherever a Client/Project/TimeEntry references an
+// Activity — those queries only ever select { id name activityType }, not
+// the full Activity interface's charges/translationRates/etc.
+export interface ActivityRef {
+  id: number;
+  name: string;
+  activityType: ActivityType;
+}
+
 export interface LanguagePairDraft {
   fromLanguage: string;
   toLanguage: string;

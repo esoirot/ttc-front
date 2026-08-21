@@ -1,6 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDuration } from "@/lib/time";
-import { resolveProjectRateSheet } from "@/lib/projectRate";
+import {
+  calculateProjectRevenue,
+  resolveProjectRateSheet,
+} from "@/lib/projectRate";
 import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
 import type { OverviewTabProps } from "@/types/projects.types";
 import {
@@ -38,6 +41,14 @@ export function OverviewTab({
     project.hourlyRate != null ||
     project.perWordRate != null;
 
+  const isTranslationActivity =
+    project.activities?.some((a) => a.activityType === "TRANSLATOR") ?? false;
+  const wordsProcessed = project.totalWordsProcessed ?? 0;
+  const showRevenue = isTranslationActivity && wordsProcessed > 0;
+  const revenue = showRevenue
+    ? calculateProjectRevenue(project, totalSeconds, clientRateSheet)
+    : 0;
+
   const tasksWithTime = tasks.filter((t) => (t.totalTimeSeconds ?? 0) > 0);
   const taskTotal = tasksWithTime.reduce(
     (sum, t) => sum + (t.totalTimeSeconds ?? 0),
@@ -72,7 +83,10 @@ export function OverviewTab({
               <CardTitle className="text-sm">Word count</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl">{project.wordCount.toLocaleString()}</p>
+              <p className="text-2xl">
+                {(project.totalWordsProcessed ?? 0).toLocaleString()} /{" "}
+                {project.wordCount.toLocaleString()}
+              </p>
             </CardContent>
           </Card>
         )}
@@ -115,6 +129,18 @@ export function OverviewTab({
                   No client rate sheet for this project
                 </p>
               )}
+            </CardContent>
+          </Card>
+        )}
+        {showRevenue && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Revenue</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-mono">
+                {revenue.toFixed(2)} {project.currency}
+              </p>
             </CardContent>
           </Card>
         )}

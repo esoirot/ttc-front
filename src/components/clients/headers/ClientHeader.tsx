@@ -24,6 +24,7 @@ import { BillingFields } from "../form-fields/BillingFields";
 import { AddressFields } from "../form-fields/AddressFields";
 import { ColorField } from "../form-fields/ColorField";
 import { TtcTagChips } from "@/components/time/tags/TtcTagChips";
+import { ActivityChips } from "@/components/activities/ActivityChips";
 import { toSafeHref } from "@/lib/schemas";
 
 export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
@@ -31,6 +32,7 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
     editing,
     setEditing,
     tags,
+    activities,
     form,
     setForm,
     resetForm,
@@ -297,6 +299,19 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
               onChange={(tagIds) => setForm((prev) => ({ ...prev, tagIds }))}
             />
           </div>
+
+          <div className="pt-4 border-t border-border flex flex-col gap-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Activities
+            </p>
+            <ActivityChips
+              activityIds={form.activityIds}
+              activities={activities}
+              onChange={(activityIds) =>
+                setForm((prev) => ({ ...prev, activityIds }))
+              }
+            />
+          </div>
         </div>
 
         <div className="flex gap-2">
@@ -449,6 +464,16 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
           {client.tags.map((t) => (
             <Badge key={t.id} variant="secondary" className="text-xs">
               {t.name}
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {client.activities && client.activities.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {client.activities.map((a) => (
+            <Badge key={a.id} variant="outline" className="text-xs">
+              {a.name}
             </Badge>
           ))}
         </div>

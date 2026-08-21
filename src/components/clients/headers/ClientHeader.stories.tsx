@@ -34,6 +34,7 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     status: "CLIENT",
     contactedAt: "2026-05-01T00:00:00.000Z",
     tags: [{ id: 1, name: "VIP" }],
+    activities: [{ id: 1, name: "Translation", activityType: "TRANSLATOR" }],
     contacts: [],
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
@@ -77,6 +78,7 @@ export const Individual: Story = {
       taxRate: null,
       billingEndOfMonth: false,
       tags: [],
+      activities: [],
     }),
   },
 };

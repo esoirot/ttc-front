@@ -24,6 +24,7 @@ const project: Project = {
   deadline: null,
   startDate: null,
   totalTimeSeconds: null,
+  totalWordsProcessed: 4800,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
@@ -83,5 +84,20 @@ export const MinimalProject: Story = {
   args: {
     project: { ...project, wordCount: null, perWordRate: null },
     tasks: [],
+  },
+};
+
+export const WithRevenue: Story = {
+  args: {
+    project: {
+      ...project,
+      useCustomRate: true,
+      fixedFee: 300,
+      hourlyRate: 50,
+      perWordRate: 0.1,
+      activities: [{ id: 1, name: "Translation", activityType: "TRANSLATOR" }],
+    },
+    totalSeconds: 7200,
+    tasks,
   },
 };

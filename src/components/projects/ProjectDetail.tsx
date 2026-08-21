@@ -14,6 +14,7 @@ import { OverviewTab } from "./tabs/OverviewTab";
 import { ProjectTaskList } from "./lists/ProjectTaskList";
 import { TasksTab } from "./tabs/TasksTab";
 import { TimeTab } from "./tabs/TimeTab";
+import { ActivityTab } from "./tabs/ActivityTab";
 import { TaskDetailModal } from "./modals/TaskDetailModal";
 
 export function ProjectDetail() {
@@ -77,6 +78,7 @@ export function ProjectDetail() {
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="kanban">Kanban</TabsTrigger>
           <TabsTrigger value="time">Time</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="mt-4">
@@ -123,6 +125,10 @@ export function ProjectDetail() {
               initialProjectId: projectId,
             }}
           />
+        </TabsContent>
+
+        <TabsContent value="activity" className="mt-4">
+          <ActivityTab tasks={tasks} tasksLoading={tasksLoading} />
         </TabsContent>
       </Tabs>
 

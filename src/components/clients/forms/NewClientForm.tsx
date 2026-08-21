@@ -23,6 +23,7 @@ import { AddressFields } from "../form-fields/AddressFields";
 import { BillingFields } from "../form-fields/BillingFields";
 import { ColorField } from "../form-fields/ColorField";
 import { TtcTagChips } from "@/components/time/tags/TtcTagChips";
+import { ActivityChips } from "@/components/activities/ActivityChips";
 
 export function NewClientForm({ onClose, defaultStatus, title }: Props) {
   const {
@@ -30,9 +31,12 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
     setField,
     tagIds,
     setTagIds,
+    activityIds,
+    setActivityIds,
     error,
     loading,
     tags,
+    activities,
     handleAddressChange,
     handleBillingChange,
     handleSubmit,
@@ -219,6 +223,17 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
                 Tags
               </p>
               <TtcTagChips tagIds={tagIds} tags={tags} onChange={setTagIds} />
+            </div>
+
+            <div className="col-span-2 pt-4 border-t border-border flex flex-col gap-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Activities
+              </p>
+              <ActivityChips
+                activityIds={activityIds}
+                activities={activities}
+                onChange={setActivityIds}
+              />
             </div>
           </div>
 

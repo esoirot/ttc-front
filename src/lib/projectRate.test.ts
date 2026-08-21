@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculateProjectRevenue,
   defaultClientRateSheetId,
   findClientRateSheet,
   resolveProjectRateSheet,
@@ -148,5 +149,116 @@ describe("resolveProjectRateSheet", () => {
     expect(
       resolveProjectRateSheet([sheet], makeProject({ rateSheetId: null })),
     ).toBe(sheet);
+  });
+});
+
+type RevenueProject = Pick<
+  Project,
+  | "fixedFee"
+  | "hourlyRate"
+  | "perWordRate"
+  | "useCustomRate"
+  | "totalWordsProcessed"
+>;
+
+function makeRevenueProject(
+  overrides: Partial<RevenueProject> = {},
+): RevenueProject {
+  return {
+    fixedFee: null,
+    hourlyRate: null,
+    perWordRate: null,
+    useCustomRate: true,
+    totalWordsProcessed: 0,
+    ...overrides,
+  };
+}
+
+describe("calculateProjectRevenue", () => {
+  it("returns 0 when no pricing is set", () => {
+    expect(calculateProjectRevenue(makeRevenueProject(), 0, undefined)).toBe(0);
+  });
+
+  it("computes words processed times custom per-word rate", () => {
+    expect(
+      calculateProjectRevenue(
+        makeRevenueProject({ perWordRate: 0.1, totalWordsProcessed: 1000 }),
+        0,
+        undefined,
+      ),
+    ).toBeCloseTo(100);
+  });
+
+  it("computes total time times custom hourly rate", () => {
+    expect(
+      calculateProjectRevenue(
+        makeRevenueProject({ hourlyRate: 50 }),
+        7200,
+        undefined,
+      ),
+    ).toBeCloseTo(100);
+  });
+
+  it("always adds the fixed fee regardless of words or time", () => {
+    expect(
+      calculateProjectRevenue(
+        makeRevenueProject({ fixedFee: 300 }),
+        0,
+        undefined,
+      ),
+    ).toBeCloseTo(300);
+  });
+
+  it("sums fixed + hourly + per-word when all three are set", () => {
+    expect(
+      calculateProjectRevenue(
+        makeRevenueProject({
+          fixedFee: 300,
+          hourlyRate: 50,
+          perWordRate: 0.1,
+          totalWordsProcessed: 1000,
+        }),
+        7200,
+        undefined,
+      ),
+    ).toBeCloseTo(300 + 100 + 100);
+  });
+
+  it("uses the client rate sheet's price per word when useCustomRate is off", () => {
+    const sheet = makeSheet({ pricePerWord: 0.12 });
+    expect(
+      calculateProjectRevenue(
+        makeRevenueProject({
+          useCustomRate: false,
+          totalWordsProcessed: 1000,
+        }),
+        0,
+        sheet,
+      ),
+    ).toBeCloseTo(120);
+  });
+
+  it("ignores hourly/fixed fields when useCustomRate is off, even if set", () => {
+    expect(
+      calculateProjectRevenue(
+        makeRevenueProject({
+          useCustomRate: false,
+          fixedFee: 300,
+          hourlyRate: 50,
+        }),
+        7200,
+        undefined,
+      ),
+    ).toBe(0);
+  });
+
+  it("returns 0 when useCustomRate is off and no client rate sheet matches", () => {
+    expect(
+      calculateProjectRevenue(
+        makeRevenueProject({ useCustomRate: false, totalWordsProcessed: 1000 }),
+        0,
+        undefined,
+      ),
+    ).toBe(0);
   });
 });
