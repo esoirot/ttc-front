@@ -63,6 +63,26 @@ describe("ActivityChips", () => {
     expect(screen.getByText("Proofreading")).toBeInTheDocument();
   });
 
+  it("shows a committed chip's name from linkedActivities even when the catalog hasn't loaded it yet", () => {
+    renderChips({
+      activities: [],
+      activityIds: [1],
+      linkedActivities: [{ id: 1, name: "Translation" }],
+    });
+
+    expect(screen.getByText("Translation")).toBeInTheDocument();
+  });
+
+  it("prefers the live catalog name over linkedActivities when both have the id", () => {
+    renderChips({
+      activityIds: [1],
+      linkedActivities: [{ id: 1, name: "Stale Name" }],
+    });
+
+    expect(screen.getByText("Translation")).toBeInTheDocument();
+    expect(screen.queryByText("Stale Name")).not.toBeInTheDocument();
+  });
+
   it("removes a committed chip instantly via its x, without opening the editor", () => {
     const onChange = vi.fn();
     renderChips({ activityIds: [1, 2], onChange });

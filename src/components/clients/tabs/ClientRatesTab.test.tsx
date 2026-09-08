@@ -1,8 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
 import type { ClientRate } from "@/types/client-rates.types";
+import type { RateSheet } from "@/types/rate-sheets.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -29,10 +31,57 @@ function makeRate(overrides: Partial<ClientRate> = {}): ClientRate {
   };
 }
 
+function makeRateSheet(overrides: Partial<RateSheet> = {}): RateSheet {
+  return {
+    id: 1,
+    userId: 1,
+    activityId: null,
+    clientId: 5,
+    name: "EN-FR standard",
+    description: null,
+    sourceLanguage: "EN",
+    targetLanguage: "FR",
+    currency: "EUR",
+    pricePerWord: 0.12,
+    matchRates: {} as RateSheet["matchRates"],
+    isDefault: false,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function setupGqlFetch(
+  overrides: {
+    clientRates?: ClientRate[];
+    rateSheets?: RateSheet[];
+  } = {},
+) {
+  gqlFetch.mockImplementation((query: unknown) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const doc = query as any;
+    const op = doc?.definitions?.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (d: any) => d.kind === "OperationDefinition",
+    );
+    const opName = op?.name?.value ?? String(query);
+    switch (opName) {
+      case "ClientRates":
+        return Promise.resolve({ clientRates: overrides.clientRates ?? [] });
+      case "RateSheets":
+        return Promise.resolve({ rateSheets: overrides.rateSheets ?? [] });
+      default:
+        return Promise.resolve({});
+    }
+  });
+}
+
 function renderTab(clientId = 5) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <ClientRatesTab clientId={clientId} />
+      <MemoryRouter>
+        <ClientRatesTab clientId={clientId} />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }
@@ -41,11 +90,10 @@ describe("ClientRatesTab", () => {
   beforeEach(() => {
     gqlFetch.mockReset();
     gqlMutate.mockReset();
+    setupGqlFetch();
   });
 
   it("shows an empty state when there are no rates", async () => {
-    gqlFetch.mockResolvedValueOnce({ clientRates: [] });
-
     renderTab();
 
     expect(
@@ -54,7 +102,7 @@ describe("ClientRatesTab", () => {
   });
 
   it("renders each rate's type, name, amount, and currency", async () => {
-    gqlFetch.mockResolvedValueOnce({
+    setupGqlFetch({
       clientRates: [makeRate({ name: "Discounted", amount: 35.5 })],
     });
 
@@ -66,8 +114,6 @@ describe("ClientRatesTab", () => {
   });
 
   it("opens and cancels the add-rate form", async () => {
-    gqlFetch.mockResolvedValueOnce({ clientRates: [] });
-
     renderTab();
     await screen.findByText("No rates defined for this client yet.");
 
@@ -79,7 +125,6 @@ describe("ClientRatesTab", () => {
   });
 
   it("creates a new rate with the parsed amount", async () => {
-    gqlFetch.mockResolvedValueOnce({ clientRates: [] });
     gqlMutate.mockResolvedValueOnce({ createClientRate: makeRate({ id: 2 }) });
 
     renderTab();
@@ -107,7 +152,7 @@ describe("ClientRatesTab", () => {
   });
 
   it("switches a rate to inline edit mode", async () => {
-    gqlFetch.mockResolvedValueOnce({
+    setupGqlFetch({
       clientRates: [makeRate({ id: 3, name: "Editable" })],
     });
 
@@ -120,7 +165,7 @@ describe("ClientRatesTab", () => {
   });
 
   it("deletes a rate after confirming", async () => {
-    gqlFetch.mockResolvedValueOnce({
+    setupGqlFetch({
       clientRates: [makeRate({ id: 4, name: "ToDelete" })],
     });
     gqlMutate.mockResolvedValueOnce({ deleteClientRate: true });
@@ -134,5 +179,52 @@ describe("ClientRatesTab", () => {
     await waitFor(() =>
       expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), { id: 4 }),
     );
+  });
+
+  it("shows a link to manage rate sheets", async () => {
+    renderTab();
+
+    await screen.findByText("No rates defined for this client yet.");
+    expect(
+      screen.getByRole("link", { name: /manage rate sheets/i }),
+    ).toHaveAttribute("href", "/rates");
+  });
+
+  it("shows an empty state when the client has no rate sheets", async () => {
+    renderTab();
+
+    expect(
+      await screen.findByText("No rate sheets for this client yet."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows only rate sheets belonging to this client, with language pair, price, and Default badge", async () => {
+    setupGqlFetch({
+      rateSheets: [
+        makeRateSheet({
+          id: 1,
+          clientId: 5,
+          name: "EN-FR standard",
+          sourceLanguage: "EN",
+          targetLanguage: "FR",
+          pricePerWord: 0.12,
+          currency: "EUR",
+          isDefault: true,
+        }),
+        makeRateSheet({
+          id: 2,
+          clientId: 99,
+          name: "Other client sheet",
+        }),
+      ],
+    });
+
+    renderTab(5);
+
+    expect(await screen.findByText("EN-FR standard")).toBeInTheDocument();
+    expect(screen.getByText("EN → FR")).toBeInTheDocument();
+    expect(screen.getByText("0.1200 €")).toBeInTheDocument();
+    expect(screen.getByText("Default")).toBeInTheDocument();
+    expect(screen.queryByText("Other client sheet")).not.toBeInTheDocument();
   });
 });

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryWrapper } from "@/test/queryClientWrapper";
 import type { Project } from "@/types/projects.types";
-import type { Task } from "@/types/tasks.types";
+import type { TimeEntry } from "@/types/time-entries.types";
 import { formatDuration } from "@/lib/time";
 
 const { gqlFetch } = vi.hoisted(() => ({ gqlFetch: vi.fn() }));
@@ -76,50 +76,118 @@ function makeProject(overrides: Partial<Project> = {}): Project {
   };
 }
 
-function makeTask(overrides: Partial<Task> = {}): Task {
+function makeTimeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
   return {
     id: 1,
+    userId: 1,
     projectId: 1,
-    assigneeId: null,
-    title: "Translate doc",
+    taskId: null,
+    task: null,
+    subtaskId: null,
+    subtask: null,
     description: null,
-    status: "TODO",
-    dueDate: null,
-    startDate: null,
-    recurring: null,
-    reminderOffset: null,
-    sortOrder: 0,
-    totalTimeSeconds: 0,
-    createdAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: "2026-01-01T00:00:00.000Z",
+    startTime: "2026-06-10T00:00:00.000Z",
+    endTime: "2026-06-10T01:00:00.000Z",
+    durationSeconds: 1000,
+    billable: true,
+    clockifyEntryId: null,
+    activityId: null,
+    activity: null,
+    tags: [],
+    createdAt: "2026-06-10T00:00:00.000Z",
+    updatedAt: "2026-06-10T00:00:00.000Z",
     ...overrides,
-  } as Task;
+  };
+}
+
+function setupGqlFetch(
+  overrides: {
+    rateSheets?: unknown[];
+    timeEntries?: TimeEntry[];
+  } = {},
+) {
+  gqlFetch.mockImplementation((query: unknown) => {
+    const opName =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (query as any)?.definitions?.[0]?.name?.value ?? String(query);
+    switch (opName) {
+      case "RateSheets":
+        return Promise.resolve({ rateSheets: overrides.rateSheets ?? [] });
+      case "TimeEntries":
+        return Promise.resolve({
+          timeEntries: {
+            items: overrides.timeEntries ?? [],
+            nextCursor: null,
+            total: (overrides.timeEntries ?? []).length,
+          },
+        });
+      default:
+        return Promise.resolve({});
+    }
+  });
 }
 
 describe("OverviewTab", () => {
   beforeEach(() => {
     gqlFetch.mockReset();
-    gqlFetch.mockResolvedValue({ rateSheets: [] });
+    setupGqlFetch();
   });
 
   it("always shows time logged, formatted", () => {
-    render(
-      <OverviewTab project={makeProject()} totalSeconds={3661} tasks={[]} />,
-      { wrapper: createQueryWrapper() },
-    );
+    render(<OverviewTab project={makeProject()} totalSeconds={3661} />, {
+      wrapper: createQueryWrapper(),
+    });
     expect(screen.getByText("1:01:01")).toBeInTheDocument();
   });
 
-  it("hides word count card and shows the no-rate-sheet fallback when unset", () => {
-    render(
-      <OverviewTab project={makeProject()} totalSeconds={0} tasks={[]} />,
-      {
-        wrapper: createQueryWrapper(),
+  it("does not claim 'No client rate sheet for this project' while rate sheets are still loading", async () => {
+    let resolveRateSheets!: (v: { rateSheets: unknown[] }) => void;
+    const rateSheetsPromise = new Promise<{ rateSheets: unknown[] }>(
+      (resolve) => {
+        resolveRateSheets = resolve;
       },
     );
+    gqlFetch.mockImplementation((query: unknown) => {
+      const opName =
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (query as any)?.definitions?.[0]?.name?.value ?? String(query);
+      if (opName === "RateSheets") return rateSheetsPromise;
+      return Promise.resolve({
+        timeEntries: { items: [], nextCursor: null, total: 0 },
+      });
+    });
+
+    render(
+      <OverviewTab
+        project={makeProject({
+          clientId: 3,
+          sourceLanguage: "EN",
+          targetLanguage: "FR",
+        })}
+        totalSeconds={0}
+      />,
+      { wrapper: createQueryWrapper() },
+    );
+
+    expect(
+      screen.queryByText("No client rate sheet for this project"),
+    ).not.toBeInTheDocument();
+
+    resolveRateSheets({ rateSheets: [] });
+    await rateSheetsPromise;
+
+    expect(
+      await screen.findByText("No client rate sheet for this project"),
+    ).toBeInTheDocument();
+  });
+
+  it("hides word count card and shows the no-rate-sheet fallback when unset", async () => {
+    render(<OverviewTab project={makeProject()} totalSeconds={0} />, {
+      wrapper: createQueryWrapper(),
+    });
     expect(screen.queryByText("Word count")).not.toBeInTheDocument();
     expect(
-      screen.getByText("No client rate sheet for this project"),
+      await screen.findByText("No client rate sheet for this project"),
     ).toBeInTheDocument();
   });
 
@@ -135,7 +203,6 @@ describe("OverviewTab", () => {
           currency: "USD",
         })}
         totalSeconds={0}
-        tasks={[]}
       />,
       { wrapper: createQueryWrapper() },
     );
@@ -151,7 +218,6 @@ describe("OverviewTab", () => {
       <OverviewTab
         project={makeProject({ wordCount: 1000, totalWordsProcessed: 400 })}
         totalSeconds={0}
-        tasks={[]}
       />,
       { wrapper: createQueryWrapper() },
     );
@@ -159,7 +225,7 @@ describe("OverviewTab", () => {
   });
 
   it("shows the client rate sheet price per word when useCustomRate is off and a sheet matches", async () => {
-    gqlFetch.mockResolvedValue({
+    setupGqlFetch({
       rateSheets: [
         {
           id: 1,
@@ -200,7 +266,6 @@ describe("OverviewTab", () => {
           useCustomRate: false,
         })}
         totalSeconds={0}
-        tasks={[]}
       />,
       { wrapper: createQueryWrapper() },
     );
@@ -211,7 +276,7 @@ describe("OverviewTab", () => {
   });
 
   it("prefers the explicitly selected rateSheetId over a language-pair match", async () => {
-    gqlFetch.mockResolvedValue({
+    setupGqlFetch({
       rateSheets: [
         {
           id: 1,
@@ -257,7 +322,6 @@ describe("OverviewTab", () => {
           rateSheetId: 2,
         })}
         totalSeconds={0}
-        tasks={[]}
       />,
       { wrapper: createQueryWrapper() },
     );
@@ -279,7 +343,6 @@ describe("OverviewTab", () => {
           perWordRate: 0.1,
         })}
         totalSeconds={0}
-        tasks={[]}
       />,
       { wrapper: createQueryWrapper() },
     );
@@ -298,7 +361,6 @@ describe("OverviewTab", () => {
           perWordRate: 0.1,
         })}
         totalSeconds={0}
-        tasks={[]}
       />,
       { wrapper: createQueryWrapper() },
     );
@@ -320,7 +382,6 @@ describe("OverviewTab", () => {
           currency: "USD",
         })}
         totalSeconds={7200}
-        tasks={[]}
       />,
       { wrapper: createQueryWrapper() },
     );
@@ -329,7 +390,7 @@ describe("OverviewTab", () => {
   });
 
   it("shows Revenue from the client rate sheet price per word when useCustomRate is off", async () => {
-    gqlFetch.mockResolvedValue({
+    setupGqlFetch({
       rateSheets: [
         {
           id: 1,
@@ -361,7 +422,6 @@ describe("OverviewTab", () => {
           totalWordsProcessed: 1000,
         })}
         totalSeconds={0}
-        tasks={[]}
       />,
       { wrapper: createQueryWrapper() },
     );
@@ -369,45 +429,98 @@ describe("OverviewTab", () => {
     expect(screen.getByText("Revenue")).toBeInTheDocument();
   });
 
-  it("shows a pie breakdown with an Untracked slice when tasks don't cover total time", () => {
-    render(
-      <OverviewTab
-        project={makeProject()}
-        totalSeconds={3661}
-        tasks={[
-          makeTask({ id: 1, title: "Task A", totalTimeSeconds: 1000 }),
-          makeTask({ id: 2, title: "Task B", totalTimeSeconds: 0 }),
-        ]}
-      />,
-      { wrapper: createQueryWrapper() },
-    );
-    expect(screen.getByText("Time by task")).toBeInTheDocument();
-    expect(screen.getByTestId("tooltip-preview")).toHaveTextContent("2:02:05");
-    const legend = screen.getByTestId("legend-preview");
+  it("shows a Time per task pie scoped to the current month, grouped by task title", async () => {
+    setupGqlFetch({
+      timeEntries: [
+        makeTimeEntry({
+          id: 1,
+          task: { id: 1, title: "Short title" },
+          durationSeconds: 1000,
+        }),
+        makeTimeEntry({
+          id: 2,
+          task: {
+            id: 2,
+            title: "A Very Long Task Title Exceeding Eighteen Chars",
+          },
+          durationSeconds: 2000,
+        }),
+      ],
+    });
+    render(<OverviewTab project={makeProject()} totalSeconds={3000} />, {
+      wrapper: createQueryWrapper(),
+    });
+
+    const monthLabel = new Date().toLocaleDateString(undefined, {
+      month: "long",
+      year: "numeric",
+    });
+    expect(
+      (await screen.findAllByTestId("tooltip-preview"))[0],
+    ).toHaveTextContent("2:02:05");
+    expect(screen.getByText("Time per task")).toBeInTheDocument();
+    expect(screen.getAllByText(monthLabel).length).toBeGreaterThan(0);
+    const [legend] = screen.getAllByTestId("legend-preview");
     expect(legend).toHaveTextContent(`Short title — ${formatDuration(1000)}`);
     expect(legend).toHaveTextContent(
       `A Very Long Task… — ${formatDuration(2000)}`,
     );
   });
 
-  it("omits the Untracked slice when tracked time matches total, and hides the chart with no tracked time", () => {
-    const { rerender } = render(
-      <OverviewTab
-        project={makeProject()}
-        totalSeconds={1000}
-        tasks={[makeTask({ id: 1, title: "Task A", totalTimeSeconds: 1000 })]}
-      />,
-      { wrapper: createQueryWrapper() },
-    );
-    expect(screen.getByText("Time by task")).toBeInTheDocument();
+  it("still renders the task pie when an entry has no task (grouped as 'No task')", async () => {
+    setupGqlFetch({
+      timeEntries: [makeTimeEntry({ id: 1, task: null, durationSeconds: 500 })],
+    });
+    render(<OverviewTab project={makeProject()} totalSeconds={500} />, {
+      wrapper: createQueryWrapper(),
+    });
 
-    rerender(
-      <OverviewTab
-        project={makeProject()}
-        totalSeconds={0}
-        tasks={[makeTask({ id: 1, title: "Task A", totalTimeSeconds: 0 })]}
-      />,
+    await screen.findAllByTestId("tooltip-preview");
+    expect(screen.getByText("Time per task")).toBeInTheDocument();
+    expect(
+      screen.queryByText("No time logged yet this month."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a Time per activity pie grouped by activity name", async () => {
+    setupGqlFetch({
+      timeEntries: [
+        makeTimeEntry({
+          id: 1,
+          activity: { id: 1, name: "Short title", activityType: "CUSTOM" },
+          durationSeconds: 1000,
+        }),
+        makeTimeEntry({
+          id: 2,
+          activity: {
+            id: 2,
+            name: "A Very Long Task Title Exceeding Eighteen Chars",
+            activityType: "CUSTOM",
+          },
+          durationSeconds: 2000,
+        }),
+      ],
+    });
+    render(<OverviewTab project={makeProject()} totalSeconds={3000} />, {
+      wrapper: createQueryWrapper(),
+    });
+
+    await screen.findAllByTestId("tooltip-preview");
+    expect(screen.getByText("Time per activity")).toBeInTheDocument();
+    const legends = screen.getAllByTestId("legend-preview");
+    expect(legends[legends.length - 1]).toHaveTextContent(
+      `Short title — ${formatDuration(1000)}`,
     );
-    expect(screen.queryByText("Time by task")).not.toBeInTheDocument();
+  });
+
+  it("still shows both pie cards, with an empty-state message, when there are no time entries this month", async () => {
+    render(<OverviewTab project={makeProject()} totalSeconds={0} />, {
+      wrapper: createQueryWrapper(),
+    });
+    expect(await screen.findByText("Time per task")).toBeInTheDocument();
+    expect(screen.getByText("Time per activity")).toBeInTheDocument();
+    expect(screen.getAllByText("No time logged yet this month.")).toHaveLength(
+      2,
+    );
   });
 });

@@ -11,6 +11,7 @@ import type { ProjectStatus } from "@/types/projects.types";
 import { PROJECT_STATUS_TABS } from "@/constants/projects";
 import { CreateProjectForm } from "../forms/CreateProjectForm";
 import { ProjectCard } from "../cards/ProjectCard";
+import { ProjectsOverviewCharts } from "../charts/ProjectsOverviewCharts";
 
 export function ProjectsList() {
   const navigate = useNavigate();
@@ -51,6 +52,8 @@ export function ProjectsList() {
           onClose={() => setShowForm(false)}
         />
       )}
+
+      <ProjectsOverviewCharts />
 
       <Tabs
         value={tab}

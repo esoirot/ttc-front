@@ -132,6 +132,14 @@ describe("ProjectsTab", () => {
     expect(screen.getAllByText(/1h 1m/)).not.toHaveLength(0);
   });
 
+  it("shows the total words processed on the project row", () => {
+    renderTab({
+      projects: [makeProject({ id: 5, totalWordsProcessed: 1234 })],
+      loading: false,
+    });
+    expect(screen.getByText("1,234 words")).toBeInTheDocument();
+  });
+
   it("shows a Due badge when deadline is set, and omits it when null", () => {
     const Wrapper = createQueryWrapper();
     const { rerender } = render(
@@ -172,6 +180,19 @@ describe("ProjectsTab", () => {
     });
     expect(screen.getByText("300.00")).toBeInTheDocument();
     expect(screen.getByText("USD")).toBeInTheDocument();
+  });
+
+  it("shows a Total words card summing totalWordsProcessed across all projects", () => {
+    renderTab({
+      projects: [
+        makeProject({ id: 1, totalWordsProcessed: 400 }),
+        makeProject({ id: 2, totalWordsProcessed: 600 }),
+        makeProject({ id: 3, totalWordsProcessed: null }),
+      ],
+      loading: false,
+    });
+    expect(screen.getByText("Total words")).toBeInTheDocument();
+    expect(screen.getByText("1,000")).toBeInTheDocument();
   });
 
   it("shows a Total revenue card summing all projects' revenue", () => {

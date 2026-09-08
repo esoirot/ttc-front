@@ -5,36 +5,27 @@ import {
   resolveProjectRateSheet,
 } from "@/lib/projectRate";
 import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
+import { useTimeEntries } from "@/hooks/time/useTimeEntries";
+import type { TimeEntry } from "@/types/time-entries.types";
 import type { OverviewTabProps } from "@/types/projects.types";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-  type LegendPayload,
-} from "recharts";
+import { DistributionPie } from "../charts/DistributionPie";
 
-const COLORS = [
-  "#ea580c", // orange-600
-  "#2563eb", // blue-600
-  "#16a34a", // green-600
-  "#9333ea", // purple-600
-  "#db2777", // pink-600
-  "#0891b2", // cyan-600
-  "#ca8a04", // yellow-600
-  "#dc2626", // red-600
-  "#7c3aed", // violet-600
-  "#0d9488", // teal-600
-];
+function sumSecondsByLabel(
+  entries: TimeEntry[],
+  labelOf: (e: TimeEntry) => string,
+): { name: string; value: number }[] {
+  const totals = new Map<string, number>();
+  for (const e of entries) {
+    const seconds = e.durationSeconds ?? 0;
+    if (seconds <= 0) continue;
+    const label = labelOf(e);
+    totals.set(label, (totals.get(label) ?? 0) + seconds);
+  }
+  return [...totals.entries()].map(([name, value]) => ({ name, value }));
+}
 
-export function OverviewTab({
-  project,
-  totalSeconds,
-  tasks,
-}: OverviewTabProps) {
-  const { rateSheets } = useRateSheets();
+export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
+  const { rateSheets, loading: rateSheetsLoading } = useRateSheets();
   const clientRateSheet = resolveProjectRateSheet(rateSheets, project);
   const hasCustomPricing =
     project.fixedFee != null ||
@@ -49,22 +40,40 @@ export function OverviewTab({
     ? calculateProjectRevenue(project, totalSeconds, clientRateSheet)
     : 0;
 
-  const tasksWithTime = tasks.filter((t) => (t.totalTimeSeconds ?? 0) > 0);
-  const taskTotal = tasksWithTime.reduce(
-    (sum, t) => sum + (t.totalTimeSeconds ?? 0),
+  const now = new Date();
+  const monthStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1,
+  ).toISOString();
+  const monthEnd = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
     0,
+    23,
+    59,
+    59,
+    999,
+  ).toISOString();
+  const monthLabel = now.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+  });
+
+  const { entries: monthlyEntries } = useTimeEntries({
+    projectId: project.id,
+    start: monthStart,
+    end: monthEnd,
+  });
+
+  const taskPieData = sumSecondsByLabel(
+    monthlyEntries,
+    (e) => e.task?.title ?? "No task",
   );
-  const untracked = Math.max(0, totalSeconds - taskTotal);
-
-  const pieData = [
-    ...tasksWithTime.map((t) => ({
-      name: t.title,
-      value: t.totalTimeSeconds ?? 0,
-    })),
-    ...(untracked > 0 ? [{ name: "Untracked", value: untracked }] : []),
-  ];
-
-  const showPie = pieData.length > 0 && totalSeconds > 0;
+  const activityPieData = sumSecondsByLabel(
+    monthlyEntries,
+    (e) => e.activity?.name ?? "No activity",
+  );
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -124,7 +133,7 @@ export function OverviewTab({
                     Client rate sheet — {clientRateSheet.name}
                   </p>
                 </>
-              ) : (
+              ) : rateSheetsLoading ? null : (
                 <p className="text-sm text-muted-foreground">
                   No client rate sheet for this project
                 </p>
@@ -146,63 +155,22 @@ export function OverviewTab({
         )}
       </div>
 
-      {showPie && (
-        <Card className="sm:w-72 shrink-0">
-          <CardHeader>
-            <CardTitle className="text-sm">Time by task</CardTitle>
-          </CardHeader>
-          <CardContent className="pb-4">
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {pieData.map((_, i) => (
-                    <Cell
-                      key={i}
-                      fill={
-                        i === pieData.length - 1 && untracked > 0
-                          ? "#94a3b8"
-                          : COLORS[i % COLORS.length]
-                      }
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => [formatDuration(Number(value)), ""]}
-                  contentStyle={{
-                    fontSize: "12px",
-                    borderRadius: "6px",
-                    border: "1px solid hsl(var(--border))",
-                    background: "hsl(var(--popover))",
-                    color: "hsl(var(--popover-foreground))",
-                  }}
-                />
-                <Legend
-                  iconType="circle"
-                  iconSize={8}
-                  wrapperStyle={{ fontSize: "11px" }}
-                  formatter={(value: string, entry: LegendPayload) => {
-                    const label =
-                      value.length > 18 ? value.slice(0, 16) + "…" : value;
-                    const { value: seconds } = entry.payload as {
-                      name: string;
-                      value: number;
-                    };
-                    return `${label} — ${formatDuration(seconds)}`;
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
+      <div className="flex flex-col gap-4 sm:w-72 shrink-0">
+        <DistributionPie
+          title="Time per task"
+          subtitle={monthLabel}
+          data={taskPieData}
+          formatValue={formatDuration}
+          emptyMessage="No time logged yet this month."
+        />
+        <DistributionPie
+          title="Time per activity"
+          subtitle={monthLabel}
+          data={activityPieData}
+          formatValue={formatDuration}
+          emptyMessage="No time logged yet this month."
+        />
+      </div>
     </div>
   );
 }

@@ -45,12 +45,23 @@ export function ClientCard({ client, onDelete }: ClientCardProps) {
       onClick={() => navigate(`/clients/${client.id}`)}
     >
       <CardContent className="py-3 px-4 flex items-center justify-between">
-        <div>
-          <p className="font-medium">{client.name}</p>
-          {client.legalName && client.legalName !== client.name && (
-            <p className="text-muted-foreground text-xs">{client.legalName}</p>
+        <div className="flex items-center gap-3">
+          {client.color && (
+            <span
+              data-testid="client-color-swatch"
+              className="h-4 w-4 shrink-0 rounded-sm border border-border"
+              style={{ backgroundColor: client.color }}
+            />
           )}
-          {label && <p className="text-muted-foreground text-sm">{label}</p>}
+          <div>
+            <p className="font-medium">{client.name}</p>
+            {client.legalName && client.legalName !== client.name && (
+              <p className="text-muted-foreground text-xs">
+                {client.legalName}
+              </p>
+            )}
+            {label && <p className="text-muted-foreground text-sm">{label}</p>}
+          </div>
         </div>
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           {(client.city ?? client.country) && (

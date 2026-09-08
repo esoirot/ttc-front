@@ -9,7 +9,7 @@ function formatDuration(seconds: number): string {
 
 export function StatsGrid({ dashboard }: Props) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
       <Card>
         <CardHeader className="pb-1">
           <CardTitle className="text-xs text-muted-foreground font-normal">
@@ -58,6 +58,18 @@ export function StatsGrid({ dashboard }: Props) {
             <span className="text-sm font-normal text-muted-foreground ml-1">
               EUR
             </span>
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-1">
+          <CardTitle className="text-xs text-muted-foreground font-normal">
+            Words This Year
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-3xl font-semibold font-mono">
+            {dashboard.yearToDateWords.toLocaleString()}
           </p>
         </CardContent>
       </Card>

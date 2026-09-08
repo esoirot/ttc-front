@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  formatDateDDMMYYYY,
   formatDuration,
   formatDurationWithoutSeconds,
   formatTimestamp,
@@ -81,6 +82,16 @@ describe("formatTimestamp", () => {
   it("includes a date and a time joined by 'at'", () => {
     const result = formatTimestamp("2026-06-17T12:30:00.000Z");
     expect(result).toContain(" at ");
+  });
+});
+
+describe("formatDateDDMMYYYY", () => {
+  it("formats an ISO date string as DD/MM/YYYY", () => {
+    expect(formatDateDDMMYYYY("2026-12-31T00:00:00.000Z")).toBe("31/12/2026");
+  });
+
+  it("keeps zero-padded day and month", () => {
+    expect(formatDateDDMMYYYY("2026-01-05T00:00:00.000Z")).toBe("05/01/2026");
   });
 });
 

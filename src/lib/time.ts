@@ -51,6 +51,11 @@ export function formatTimestamp(iso: string) {
   return `${date} at ${time}`;
 }
 
+export function formatDateDDMMYYYY(iso: string): string {
+  const [y, m, d] = iso.slice(0, 10).split("-");
+  return `${d}/${m}/${y}`;
+}
+
 export function toLocalIso(date: string, time: string): string {
   return `${date}T${time}:00`;
 }

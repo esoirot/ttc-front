@@ -307,6 +307,7 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
             <ActivityChips
               activityIds={form.activityIds}
               activities={activities}
+              linkedActivities={client.activities}
               onChange={(activityIds) =>
                 setForm((prev) => ({ ...prev, activityIds }))
               }

@@ -1,6 +1,9 @@
 import type { Connection } from "./common.types";
 
-export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
+export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE" | "PAID";
+
+export type TaskSortField = "createdAt" | "title" | "dueDate";
+export type TaskSortDirection = "asc" | "desc";
 
 export interface Subtask {
   id: number;

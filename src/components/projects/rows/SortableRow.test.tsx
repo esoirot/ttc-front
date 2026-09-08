@@ -49,9 +49,9 @@ describe("SortableRow", () => {
     expect(screen.getByText("Todo")).toBeInTheDocument();
   });
 
-  it("shows the due date when set", () => {
+  it("shows the due date as DD/MM/YYYY when set", () => {
     renderRow({ task: makeTask({ dueDate: "2026-07-01T00:00:00.000Z" }) });
-    expect(screen.getByText("Due 2026-07-01")).toBeInTheDocument();
+    expect(screen.getByText("Due 01/07/2026")).toBeInTheDocument();
   });
 
   it("calls onOpenModal with the task id when the row is clicked", () => {

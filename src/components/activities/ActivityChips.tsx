@@ -20,21 +20,34 @@ import { cn } from "@/lib/utils";
 type ActivityChipsProps = {
   activityIds: number[];
   activities: AnyActivity[];
+  // Authoritative { id, name } pairs for activities already linked to the
+  // record being edited (e.g. client.activities / project.activities).
+  // Used as a fallback so already-committed chips still show their real
+  // name even when `activities` (the searchable catalog, loaded
+  // separately via useMyActivities()) hasn't resolved yet or is missing
+  // an entry — the catalog wins when both have the id.
+  linkedActivities?: { id: number; name: string }[];
   onChange: (activityIds: number[]) => void;
 };
 
 export function ActivityChips({
   activityIds,
   activities,
+  linkedActivities,
   onChange,
 }: ActivityChipsProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [stagedIds, setStagedIds] = useState<number[]>([]);
 
+  const nameById = new Map<number, string>(
+    (linkedActivities ?? []).map((a) => [a.id, a.name]),
+  );
+  for (const a of activities) nameById.set(a.id, a.name);
+
   const committed = activityIds
-    .map((id) => activities.find((a) => a.id === id))
-    .filter((a): a is AnyActivity => a !== undefined);
+    .filter((id) => nameById.has(id))
+    .map((id) => ({ id, name: nameById.get(id)! }));
 
   function handleOpenChange(next: boolean) {
     if (next) {

@@ -27,13 +27,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { TaskStatus } from "@/types/tasks.types";
+import type {
+  TaskStatus,
+  TaskSortField,
+  TaskSortDirection,
+} from "@/types/tasks.types";
 import type { ProjectTaskListProps } from "@/types/projects.types";
 import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
+import { compareTasks } from "@/lib/taskSort";
 import { useProjectTaskList } from "@/hooks/projects/useProjectTaskList";
 import { useTaskDragReorder } from "@/hooks/projects/useTaskDragReorder";
 import { useBulkSelection } from "@/hooks/admin/useBulkSelection";
 import { SortableRow } from "../rows/SortableRow";
+import { TaskSortControls } from "../filters/TaskSortControls";
 
 interface Props extends ProjectTaskListProps {
   onOpenModal: (taskId: number) => void;
@@ -58,10 +64,30 @@ export function ProjectTaskList({ projectId, onOpenModal }: Props) {
     (id, sortOrder) => void updateTask({ id, sortOrder }),
   );
 
-  const filtered =
+  const [dueFrom, setDueFrom] = useState("");
+  const [dueTo, setDueTo] = useState("");
+  const [sortField, setSortField] = useState<TaskSortField>("dueDate");
+  const [sortDirection, setSortDirection] = useState<TaskSortDirection>("desc");
+  const dueDateFilterActive = dueFrom !== "" || dueTo !== "";
+
+  const byStatus =
     statusFilter === "ALL"
       ? displayTasks
       : displayTasks.filter((t) => t.status === statusFilter);
+
+  const byDueDate = dueDateFilterActive
+    ? byStatus.filter((t) => {
+        if (!t.dueDate) return false;
+        const due = t.dueDate.slice(0, 10);
+        if (dueFrom && due < dueFrom) return false;
+        if (dueTo && due > dueTo) return false;
+        return true;
+      })
+    : byStatus;
+
+  const filtered = byDueDate
+    .slice()
+    .sort((a, b) => compareTasks(a, b, sortField, sortDirection));
 
   const { selected, toggle, toggleAll, clear, isAllSelected } =
     useBulkSelection(filtered.map((t) => t.id));
@@ -114,6 +140,47 @@ export function ProjectTaskList({ projectId, onOpenModal }: Props) {
               ))}
             </SelectContent>
           </Select>
+          <Label htmlFor="ptl-due-from" className="text-sm shrink-0">
+            Due from
+          </Label>
+          <Input
+            id="ptl-due-from"
+            type="date"
+            value={dueFrom}
+            onChange={(e) => setDueFrom(e.target.value)}
+            max={dueTo || undefined}
+            className="w-40"
+          />
+          <Label htmlFor="ptl-due-to" className="text-sm shrink-0">
+            Due to
+          </Label>
+          <Input
+            id="ptl-due-to"
+            type="date"
+            value={dueTo}
+            onChange={(e) => setDueTo(e.target.value)}
+            min={dueFrom || undefined}
+            className="w-40"
+          />
+          {dueDateFilterActive && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setDueFrom("");
+                setDueTo("");
+              }}
+            >
+              Clear filter
+            </Button>
+          )}
+          <TaskSortControls
+            field={sortField}
+            direction={sortDirection}
+            onFieldChange={setSortField}
+            onDirectionChange={setSortDirection}
+            idPrefix="ptl"
+          />
         </div>
         <Button variant="outline" size="sm" onClick={() => setShowCreate(true)}>
           + New task

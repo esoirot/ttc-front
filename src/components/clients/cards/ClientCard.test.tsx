@@ -84,6 +84,25 @@ describe("ClientCard", () => {
     expect(screen.queryByText("Acme Corp Ltd")).not.toBeInTheDocument();
   });
 
+  it("shows the client color swatch on the leftmost side when color is set", () => {
+    render(
+      <ClientCard
+        client={makeClient({ color: "#D2D5DA" })}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("client-color-swatch")).toHaveStyle({
+      backgroundColor: "#D2D5DA",
+    });
+  });
+
+  it("omits the color swatch when the client has no color", () => {
+    render(
+      <ClientCard client={makeClient({ color: null })} onDelete={vi.fn()} />,
+    );
+    expect(screen.queryByTestId("client-color-swatch")).not.toBeInTheDocument();
+  });
+
   it("navigates to the client detail page when the card is clicked", () => {
     render(<ClientCard client={makeClient({ id: 7 })} onDelete={vi.fn()} />);
 

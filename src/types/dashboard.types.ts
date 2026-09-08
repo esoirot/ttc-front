@@ -26,6 +26,7 @@ export interface DashboardData {
   unpaidInvoiceCount: number;
   monthToDateSeconds: number;
   monthToDateRevenue: number;
+  yearToDateWords: number;
   upcomingDeadlines: DashboardDeadline[];
   recentTimeEntries: DashboardTimeEntry[];
   prospectsToContact: DashboardProspect[];

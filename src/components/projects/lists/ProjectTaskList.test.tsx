@@ -141,6 +141,196 @@ describe("ProjectTaskList", () => {
     expect(screen.getByText("B")).toBeInTheDocument();
   });
 
+  it("shows the due date filter inputs", () => {
+    renderList();
+    expect(screen.getByLabelText("Due from")).toBeInTheDocument();
+    expect(screen.getByLabelText("Due to")).toBeInTheDocument();
+  });
+
+  it("hides tasks whose due date falls outside the from/to range", () => {
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({
+        displayTasks: [
+          makeTask({
+            id: 1,
+            title: "Early",
+            dueDate: "2026-01-05T00:00:00.000Z",
+          }),
+          makeTask({
+            id: 2,
+            title: "Late",
+            dueDate: "2026-03-05T00:00:00.000Z",
+          }),
+        ],
+      }),
+    );
+    renderList();
+
+    fireEvent.change(screen.getByLabelText("Due from"), {
+      target: { value: "2026-02-01" },
+    });
+
+    expect(screen.queryByText("Early")).not.toBeInTheDocument();
+    expect(screen.getByText("Late")).toBeInTheDocument();
+  });
+
+  it("hides tasks with no due date once a due date filter is active", () => {
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({
+        displayTasks: [
+          makeTask({ id: 1, title: "No due date", dueDate: null }),
+          makeTask({
+            id: 2,
+            title: "Has due date",
+            dueDate: "2026-01-05T00:00:00.000Z",
+          }),
+        ],
+      }),
+    );
+    renderList();
+
+    fireEvent.change(screen.getByLabelText("Due from"), {
+      target: { value: "2026-01-01" },
+    });
+
+    expect(screen.queryByText("No due date")).not.toBeInTheDocument();
+    expect(screen.getByText("Has due date")).toBeInTheDocument();
+  });
+
+  it("shows the due date sort option", () => {
+    renderList();
+    expect(screen.getByLabelText("Sort")).toBeInTheDocument();
+  });
+
+  it("orders tasks by due date (latest first, undated last) by default", () => {
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({
+        displayTasks: [
+          makeTask({ id: 1, title: "No due date", dueDate: null }),
+          makeTask({
+            id: 2,
+            title: "Due later",
+            dueDate: "2026-05-01T00:00:00.000Z",
+          }),
+          makeTask({
+            id: 3,
+            title: "Due soonest",
+            dueDate: "2026-01-01T00:00:00.000Z",
+          }),
+        ],
+      }),
+    );
+    renderList();
+
+    const order = screen
+      .getAllByText(/^select-\d$/)
+      .map((el) => el.textContent);
+    expect(order).toEqual(["select-2", "select-3", "select-1"]);
+  });
+
+  it("sorts tasks by due date (latest first, undated last) when Due date sort is chosen explicitly", () => {
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({
+        displayTasks: [
+          makeTask({ id: 1, title: "No due date", dueDate: null }),
+          makeTask({
+            id: 2,
+            title: "Due later",
+            dueDate: "2026-05-01T00:00:00.000Z",
+          }),
+          makeTask({
+            id: 3,
+            title: "Due soonest",
+            dueDate: "2026-01-01T00:00:00.000Z",
+          }),
+        ],
+      }),
+    );
+    renderList();
+
+    fireEvent.click(screen.getByLabelText("Sort"));
+    fireEvent.click(screen.getByRole("option", { name: "Due date" }));
+
+    const order = screen
+      .getAllByText(/^select-\d$/)
+      .map((el) => el.textContent);
+    expect(order).toEqual(["select-2", "select-3", "select-1"]);
+  });
+
+  it("sorts tasks alphabetically by title when Task name + Ascending is chosen", () => {
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({
+        displayTasks: [
+          makeTask({ id: 1, title: "Zebra task" }),
+          makeTask({ id: 2, title: "apple task" }),
+          makeTask({ id: 3, title: "Mango task" }),
+        ],
+      }),
+    );
+    renderList();
+
+    fireEvent.click(screen.getByLabelText("Sort"));
+    fireEvent.click(screen.getByRole("option", { name: "Task name" }));
+    fireEvent.click(screen.getByLabelText("Order"));
+    fireEvent.click(screen.getByRole("option", { name: "Ascending" }));
+
+    const order = screen
+      .getAllByText(/^select-\d$/)
+      .map((el) => el.textContent);
+    expect(order).toEqual(["select-2", "select-3", "select-1"]);
+  });
+
+  it("sorts tasks in reverse alphabetical order when Task name + Descending is chosen", () => {
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({
+        displayTasks: [
+          makeTask({ id: 1, title: "Zebra task" }),
+          makeTask({ id: 2, title: "apple task" }),
+          makeTask({ id: 3, title: "Mango task" }),
+        ],
+      }),
+    );
+    renderList();
+
+    fireEvent.click(screen.getByLabelText("Sort"));
+    fireEvent.click(screen.getByRole("option", { name: "Task name" }));
+
+    const order = screen
+      .getAllByText(/^select-\d$/)
+      .map((el) => el.textContent);
+    expect(order).toEqual(["select-1", "select-3", "select-2"]);
+  });
+
+  it("clears the due date filter when Clear filter is clicked", () => {
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({
+        displayTasks: [
+          makeTask({
+            id: 1,
+            title: "Early",
+            dueDate: "2026-01-05T00:00:00.000Z",
+          }),
+          makeTask({
+            id: 2,
+            title: "Late",
+            dueDate: "2026-03-05T00:00:00.000Z",
+          }),
+        ],
+      }),
+    );
+    renderList();
+
+    fireEvent.change(screen.getByLabelText("Due from"), {
+      target: { value: "2026-02-01" },
+    });
+    expect(screen.queryByText("Early")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Clear filter"));
+
+    expect(screen.getByText("Early")).toBeInTheDocument();
+    expect(screen.getByText("Late")).toBeInTheDocument();
+  });
+
   it("toggles the create form via '+ New task'", () => {
     renderList();
 

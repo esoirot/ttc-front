@@ -38,6 +38,7 @@ function makeDashboard(overrides: Partial<DashboardData> = {}): DashboardData {
     activeProjectCount: 1,
     unpaidInvoiceCount: 0,
     monthToDateSeconds: 0,
+    yearToDateWords: 0,
     monthToDateRevenue: 0,
     upcomingDeadlines: [],
     recentTimeEntries: [],

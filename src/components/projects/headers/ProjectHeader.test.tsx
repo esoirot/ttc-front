@@ -349,6 +349,67 @@ describe("ProjectHeader", () => {
     expect(screen.queryByText(/Fixed|\/hr|\/word/)).not.toBeInTheDocument();
   });
 
+  it("does not claim 'No client rate sheet for this project' while rate sheets are still loading", async () => {
+    let resolveRateSheets!: (v: {
+      rateSheets: ReturnType<typeof makeRateSheet>[];
+    }) => void;
+    const rateSheetsPromise = new Promise<{
+      rateSheets: ReturnType<typeof makeRateSheet>[];
+    }>((resolve) => {
+      resolveRateSheets = resolve;
+    });
+    gqlFetch.mockImplementation((query: unknown) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const doc = query as any;
+      const op = doc?.definitions?.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (d: any) => d.kind === "OperationDefinition",
+      );
+      const opName = op?.name?.value ?? String(query);
+      if (opName === "RateSheets") return rateSheetsPromise;
+      return Promise.resolve({ translationRates: [], clientRates: [] });
+    });
+
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <ProjectHeader
+          project={makeProject({
+            clientId: 3,
+            sourceLanguage: "EN",
+            targetLanguage: "FR",
+          })}
+          clients={[]}
+          onUpdate={vi.fn()}
+          saving={false}
+        />
+      </QueryClientProvider>,
+    );
+
+    expect(
+      screen.queryByText("No client rate sheet for this project"),
+    ).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveRateSheets({
+        rateSheets: [
+          makeRateSheet({
+            clientId: 3,
+            sourceLanguage: "EN",
+            targetLanguage: "FR",
+            pricePerWord: 0.12,
+            currency: "EUR",
+            name: "EN-FR standard",
+          }),
+        ],
+      });
+      await rateSheetsPromise;
+    });
+
+    expect(
+      await screen.findByText(/Client rate: 0\.12 EUR\/word/),
+    ).toBeInTheDocument();
+  });
+
   it("shows the client rate sheet price when a matching sheet is loaded", async () => {
     gqlFetch.mockResolvedValue({
       translationRates: [],

@@ -1,5 +1,10 @@
 import type { Client } from "./clients.types";
-import type { Task, TaskStatus } from "./tasks.types";
+import type {
+  Task,
+  TaskStatus,
+  TaskSortField,
+  TaskSortDirection,
+} from "./tasks.types";
 import type { Member } from "./users.types";
 import type { Connection } from "./common.types";
 import type { ActivityRef } from "./activities.types";
@@ -49,7 +54,27 @@ export interface CreateProjectFormProps {
 export interface OverviewTabProps {
   project: Project;
   totalSeconds: number;
-  tasks: import("./tasks.types").Task[];
+}
+
+export interface DistributionPieDatum {
+  name: string;
+  value: number;
+}
+
+export interface DistributionPieProps {
+  title: string;
+  subtitle?: string;
+  data: DistributionPieDatum[];
+  formatValue: (value: number) => string;
+  emptyMessage?: string;
+}
+
+export interface TaskSortControlsProps {
+  field: TaskSortField;
+  direction: TaskSortDirection;
+  onFieldChange: (field: TaskSortField) => void;
+  onDirectionChange: (direction: TaskSortDirection) => void;
+  idPrefix: string;
 }
 
 export interface ProjectCardProps {

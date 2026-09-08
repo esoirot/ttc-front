@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ import {
 
 import {
   CURRENCIES,
+  CURRENCY_SYMBOLS,
   TRANSLATION_RATE_TYPES as RATE_TYPES,
   TYPE_LABELS,
   TYPE_UNIT,
@@ -40,6 +42,7 @@ import {
   useDeleteClientRate,
   useUpdateClientRate,
 } from "@/hooks/clients/useClientRates";
+import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
 
 function ClientRateForm({
   clientId,
@@ -180,6 +183,8 @@ export function ClientRatesTab({ clientId }: { clientId: number }) {
   const { createClientRate, loading: creating } = useCreateClientRate(clientId);
   const { updateClientRate, loading: updating } = useUpdateClientRate(clientId);
   const { deleteClientRate } = useDeleteClientRate(clientId);
+  const { rateSheets, loading: rateSheetsLoading } = useRateSheets();
+  const clientRateSheets = rateSheets.filter((s) => s.clientId === clientId);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -207,129 +212,181 @@ export function ClientRatesTab({ clientId }: { clientId: number }) {
     setEditingId(null);
   }
 
-  if (loading) {
-    return (
-      <div className="flex flex-col gap-2 mt-4">
-        {[1, 2].map((i) => (
-          <Skeleton key={i} className="h-12 w-full" />
-        ))}
-      </div>
-    );
-  }
-
   return (
     <div>
-      {clientRates.length === 0 && !showForm ? (
-        <p className="text-sm text-muted-foreground mt-4">
-          No rates defined for this client yet.
-        </p>
-      ) : (
-        <div className="mt-0">
-          {clientRates.map((rate) =>
-            editingId === rate.id ? (
-              <ClientRateForm
-                key={rate.id}
-                clientId={clientId}
-                initial={rate}
-                onSave={(data) => void handleUpdate(rate.id, data)}
-                onCancel={() => setEditingId(null)}
-                saving={updating}
-              />
-            ) : (
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <h3 className="text-sm font-semibold">Rate Sheets</h3>
+          {clientRateSheets.length > 0 && (
+            <Badge variant="secondary" className="text-xs">
+              {clientRateSheets.length}
+            </Badge>
+          )}
+          <Link
+            to="/rates"
+            className="ml-auto text-xs text-primary hover:underline"
+          >
+            Manage rate sheets →
+          </Link>
+        </div>
+        {rateSheetsLoading ? (
+          <Skeleton className="h-12 w-full" />
+        ) : clientRateSheets.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            No rate sheets for this client yet.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {clientRateSheets.map((sheet) => (
               <div
-                key={rate.id}
-                className="flex items-center justify-between py-3 border-b border-border last:border-0 gap-4"
+                key={sheet.id}
+                className="flex items-center justify-between text-sm px-3 py-1.5 rounded bg-muted/40"
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs shrink-0">
-                      {TYPE_LABELS[rate.type]}
-                    </Badge>
-                    <span className="font-medium text-sm truncate">
-                      {rate.name}
-                    </span>
-                    {rate.description && (
-                      <span className="text-xs text-muted-foreground truncate">
-                        — {rate.description}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="font-mono text-sm font-semibold tabular-nums">
-                    {rate.amount.toFixed(rate.type === "PER_WORD" ? 4 : 2)}
-                  </span>
-                  <Badge variant="secondary" className="text-xs font-mono">
-                    {rate.currency}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => {
-                      setShowForm(false);
-                      setEditingId(rate.id);
-                    }}
+                <span className="flex items-center gap-2 truncate">
+                  <span className="truncate">{sheet.name}</span>
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-mono shrink-0"
                   >
-                    Edit
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                    {sheet.sourceLanguage} → {sheet.targetLanguage}
+                  </Badge>
+                  {sheet.isDefault && (
+                    <Badge variant="secondary" className="text-xs">
+                      Default
+                    </Badge>
+                  )}
+                </span>
+                <span className="font-mono text-sm tabular-nums text-muted-foreground shrink-0">
+                  {sheet.pricePerWord.toFixed(4)}{" "}
+                  {CURRENCY_SYMBOLS[sheet.currency] ?? sheet.currency}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col gap-2 mt-4">
+          {[1, 2].map((i) => (
+            <Skeleton key={i} className="h-12 w-full" />
+          ))}
+        </div>
+      ) : (
+        <>
+          {clientRates.length === 0 && !showForm ? (
+            <p className="text-sm text-muted-foreground mt-4">
+              No rates defined for this client yet.
+            </p>
+          ) : (
+            <div className="mt-0">
+              {clientRates.map((rate) =>
+                editingId === rate.id ? (
+                  <ClientRateForm
+                    key={rate.id}
+                    clientId={clientId}
+                    initial={rate}
+                    onSave={(data) => void handleUpdate(rate.id, data)}
+                    onCancel={() => setEditingId(null)}
+                    saving={updating}
+                  />
+                ) : (
+                  <div
+                    key={rate.id}
+                    className="flex items-center justify-between py-3 border-b border-border last:border-0 gap-4"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          {TYPE_LABELS[rate.type]}
+                        </Badge>
+                        <span className="font-medium text-sm truncate">
+                          {rate.name}
+                        </span>
+                        {rate.description && (
+                          <span className="text-xs text-muted-foreground truncate">
+                            — {rate.description}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="font-mono text-sm font-semibold tabular-nums">
+                        {rate.amount.toFixed(rate.type === "PER_WORD" ? 4 : 2)}
+                      </span>
+                      <Badge variant="secondary" className="text-xs font-mono">
+                        {rate.currency}
+                      </Badge>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-xs text-destructive hover:text-destructive"
-                        onClick={(e) => e.stopPropagation()}
+                        className="h-7 px-2 text-xs"
+                        onClick={() => {
+                          setShowForm(false);
+                          setEditingId(rate.id);
+                        }}
                       >
-                        ✕
+                        Edit
                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Delete &ldquo;{rate.name}&rdquo;?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This client rate will be permanently deleted.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          onClick={() => void deleteClientRate(rate.id)}
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </div>
-            ),
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            ✕
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Delete &ldquo;{rate.name}&rdquo;?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This client rate will be permanently deleted.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => void deleteClientRate(rate.id)}
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                ),
+              )}
+            </div>
           )}
-        </div>
-      )}
 
-      {showForm ? (
-        <ClientRateForm
-          clientId={clientId}
-          onSave={(data) => void handleCreate(data)}
-          onCancel={() => setShowForm(false)}
-          saving={creating}
-        />
-      ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-4"
-          onClick={() => {
-            setEditingId(null);
-            setShowForm(true);
-          }}
-        >
-          + Add Rate
-        </Button>
+          {showForm ? (
+            <ClientRateForm
+              clientId={clientId}
+              onSave={(data) => void handleCreate(data)}
+              onCancel={() => setShowForm(false)}
+              saving={creating}
+            />
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={() => {
+                setEditingId(null);
+                setShowForm(true);
+              }}
+            >
+              + Add Rate
+            </Button>
+          )}
+        </>
       )}
     </div>
   );

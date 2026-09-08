@@ -97,7 +97,7 @@ export function ProjectHeader({
   const { activities } = useMyActivities();
   const clientIdNum = project.clientId;
   const { clientRates } = useClientRates(clientIdNum);
-  const { rateSheets } = useRateSheets();
+  const { rateSheets, loading: rateSheetsLoading } = useRateSheets();
   const resolvedRateSheet = resolveProjectRateSheet(rateSheets, project);
 
   const [editing, setEditing] = useState(false);
@@ -316,6 +316,7 @@ export function ProjectHeader({
             <ActivityChips
               activityIds={form.activityIds}
               activities={activities}
+              linkedActivities={project.activities}
               onChange={(activityIds) =>
                 setForm((prev) => ({ ...prev, activityIds }))
               }
@@ -499,7 +500,9 @@ export function ProjectHeader({
       ? [
           `Client rate: ${resolvedRateSheet.pricePerWord} ${resolvedRateSheet.currency}/word (${resolvedRateSheet.name})`,
         ]
-      : ["No client rate sheet for this project"];
+      : rateSheetsLoading
+        ? []
+        : ["No client rate sheet for this project"];
 
   return (
     <div className="mb-6">

@@ -119,10 +119,152 @@ describe("TasksTab", () => {
     expect(screen.getByText("C")).toBeInTheDocument();
   });
 
+  it("orders tasks within a column by due date, latest first and undated last, by default", () => {
+    renderTab({
+      tasks: [
+        makeTask({
+          id: 1,
+          title: "No due date",
+          status: "TODO",
+          dueDate: null,
+        }),
+        makeTask({
+          id: 2,
+          title: "Due later",
+          status: "TODO",
+          dueDate: "2026-05-01T00:00:00.000Z",
+        }),
+        makeTask({
+          id: 3,
+          title: "Due soonest",
+          status: "TODO",
+          dueDate: "2026-01-01T00:00:00.000Z",
+        }),
+      ],
+    });
+
+    const titles = screen
+      .getAllByText(/^(No due date|Due later|Due soonest)$/)
+      .map((el) => el.textContent);
+    expect(titles).toEqual(["Due later", "Due soonest", "No due date"]);
+  });
+
+  it("orders tasks within a column newest-created first when Created + Descending is chosen", () => {
+    renderTab({
+      tasks: [
+        makeTask({
+          id: 1,
+          title: "Oldest",
+          status: "TODO",
+          createdAt: "2026-01-01T00:00:00.000Z",
+        }),
+        makeTask({
+          id: 2,
+          title: "Newest",
+          status: "TODO",
+          createdAt: "2026-03-01T00:00:00.000Z",
+        }),
+        makeTask({
+          id: 3,
+          title: "Middle",
+          status: "TODO",
+          createdAt: "2026-02-01T00:00:00.000Z",
+        }),
+      ],
+    });
+
+    fireEvent.click(screen.getByLabelText("Sort"));
+    fireEvent.click(screen.getByRole("option", { name: "Created" }));
+
+    const titles = screen
+      .getAllByText(/^(Oldest|Newest|Middle)$/)
+      .map((el) => el.textContent);
+    expect(titles).toEqual(["Newest", "Middle", "Oldest"]);
+  });
+
+  it("sorts tasks alphabetically within a column when Task name + Ascending is chosen", () => {
+    renderTab({
+      tasks: [
+        makeTask({ id: 1, title: "Zebra task", status: "TODO" }),
+        makeTask({ id: 2, title: "apple task", status: "TODO" }),
+        makeTask({ id: 3, title: "Mango task", status: "TODO" }),
+      ],
+    });
+
+    fireEvent.click(screen.getByLabelText("Sort"));
+    fireEvent.click(screen.getByRole("option", { name: "Task name" }));
+    fireEvent.click(screen.getByLabelText("Order"));
+    fireEvent.click(screen.getByRole("option", { name: "Ascending" }));
+
+    const titles = screen
+      .getAllByText(/^(apple|Mango|Zebra) task$/)
+      .map((el) => el.textContent);
+    expect(titles).toEqual(["apple task", "Mango task", "Zebra task"]);
+  });
+
+  it("sorts tasks in reverse alphabetical order when Task name + Descending is chosen", () => {
+    renderTab({
+      tasks: [
+        makeTask({ id: 1, title: "Zebra task", status: "TODO" }),
+        makeTask({ id: 2, title: "apple task", status: "TODO" }),
+        makeTask({ id: 3, title: "Mango task", status: "TODO" }),
+      ],
+    });
+
+    fireEvent.click(screen.getByLabelText("Sort"));
+    fireEvent.click(screen.getByRole("option", { name: "Task name" }));
+
+    const titles = screen
+      .getAllByText(/^(apple|Mango|Zebra) task$/)
+      .map((el) => el.textContent);
+    expect(titles).toEqual(["Zebra task", "Mango task", "apple task"]);
+  });
+
+  it("sorts tasks by due date (latest first, undated last) when Due date sort is chosen explicitly", () => {
+    renderTab({
+      tasks: [
+        makeTask({
+          id: 1,
+          title: "No due date",
+          status: "TODO",
+          dueDate: null,
+        }),
+        makeTask({
+          id: 2,
+          title: "Due later",
+          status: "TODO",
+          dueDate: "2026-05-01T00:00:00.000Z",
+        }),
+        makeTask({
+          id: 3,
+          title: "Due soonest",
+          status: "TODO",
+          dueDate: "2026-01-01T00:00:00.000Z",
+        }),
+      ],
+    });
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Sort" }));
+    fireEvent.click(screen.getByRole("option", { name: "Due date" }));
+
+    const titles = screen
+      .getAllByText(/^(No due date|Due later|Due soonest)$/)
+      .map((el) => el.textContent);
+    expect(titles).toEqual(["Due later", "Due soonest", "No due date"]);
+  });
+
   it("shows 'Empty' for columns with no tasks", () => {
     renderTab({ tasks: [] });
     const emptyLabels = screen.getAllByText("Empty");
-    expect(emptyLabels).toHaveLength(3);
+    expect(emptyLabels).toHaveLength(4);
+  });
+
+  it("renders a Paid column alongside Todo/In Progress/Done", () => {
+    renderTab({
+      tasks: [makeTask({ id: 1, title: "Settled", status: "PAID" })],
+    });
+    expect(screen.getByText("Paid")).toBeInTheDocument();
+    expect(screen.getByText("Settled")).toBeInTheDocument();
   });
 
   it("shows a Load more tasks button when taskHasMore is true", () => {
@@ -373,5 +515,94 @@ describe("TasksTab", () => {
     });
 
     expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("shows the due date filter inputs", () => {
+    renderTab();
+    expect(screen.getByLabelText("Due from")).toBeInTheDocument();
+    expect(screen.getByLabelText("Due to")).toBeInTheDocument();
+  });
+
+  it("hides tasks whose due date falls before the from filter", () => {
+    renderTab({
+      tasks: [
+        makeTask({
+          id: 1,
+          title: "Early",
+          dueDate: "2026-01-05T00:00:00.000Z",
+        }),
+        makeTask({ id: 2, title: "Late", dueDate: "2026-03-05T00:00:00.000Z" }),
+      ],
+    });
+
+    fireEvent.change(screen.getByLabelText("Due from"), {
+      target: { value: "2026-02-01" },
+    });
+
+    expect(screen.queryByText("Early")).not.toBeInTheDocument();
+    expect(screen.getByText("Late")).toBeInTheDocument();
+  });
+
+  it("hides tasks whose due date falls after the to filter", () => {
+    renderTab({
+      tasks: [
+        makeTask({
+          id: 1,
+          title: "Early",
+          dueDate: "2026-01-05T00:00:00.000Z",
+        }),
+        makeTask({ id: 2, title: "Late", dueDate: "2026-03-05T00:00:00.000Z" }),
+      ],
+    });
+
+    fireEvent.change(screen.getByLabelText("Due to"), {
+      target: { value: "2026-02-01" },
+    });
+
+    expect(screen.getByText("Early")).toBeInTheDocument();
+    expect(screen.queryByText("Late")).not.toBeInTheDocument();
+  });
+
+  it("hides tasks with no due date once a due date filter is active", () => {
+    renderTab({
+      tasks: [
+        makeTask({ id: 1, title: "No due date", dueDate: null }),
+        makeTask({
+          id: 2,
+          title: "Has due date",
+          dueDate: "2026-01-05T00:00:00.000Z",
+        }),
+      ],
+    });
+
+    fireEvent.change(screen.getByLabelText("Due from"), {
+      target: { value: "2026-01-01" },
+    });
+
+    expect(screen.queryByText("No due date")).not.toBeInTheDocument();
+    expect(screen.getByText("Has due date")).toBeInTheDocument();
+  });
+
+  it("clears the due date filter when Clear filter is clicked", () => {
+    renderTab({
+      tasks: [
+        makeTask({
+          id: 1,
+          title: "Early",
+          dueDate: "2026-01-05T00:00:00.000Z",
+        }),
+        makeTask({ id: 2, title: "Late", dueDate: "2026-03-05T00:00:00.000Z" }),
+      ],
+    });
+
+    fireEvent.change(screen.getByLabelText("Due from"), {
+      target: { value: "2026-02-01" },
+    });
+    expect(screen.queryByText("Early")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Clear filter"));
+
+    expect(screen.getByText("Early")).toBeInTheDocument();
+    expect(screen.getByText("Late")).toBeInTheDocument();
   });
 });

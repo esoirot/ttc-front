@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useClientDetail } from "@/hooks/clients/useClientDetail";
+import { useClientRates } from "@/hooks/clients/useClientRates";
+import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
 import { ContactsTab } from "./tabs/ContactsTab";
 import { ProjectsTab } from "./tabs/ProjectsTab";
 import { ActivityTab } from "./tabs/ActivityTab";
@@ -31,6 +33,10 @@ export function ClientDetail() {
     updatingContact,
     deleteContact,
   } = useClientDetail(clientId);
+  const { clientRates } = useClientRates(clientId);
+  const { rateSheets } = useRateSheets();
+  const clientRateSheets = rateSheets.filter((s) => s.clientId === clientId);
+  const ratesCount = clientRates.length + clientRateSheets.length;
 
   if (clientLoading) {
     return (
@@ -83,7 +89,14 @@ export function ClientDetail() {
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="rates">Rates</TabsTrigger>
+          <TabsTrigger value="rates">
+            Rates
+            {ratesCount > 0 && (
+              <Badge variant="secondary" className="ml-1.5 text-xs">
+                {ratesCount}
+              </Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="contacts" className="mt-4">

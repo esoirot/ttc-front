@@ -16,12 +16,21 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Task, TaskStatus } from "@/types/tasks.types";
+import type {
+  Task,
+  TaskStatus,
+  TaskSortField,
+  TaskSortDirection,
+} from "@/types/tasks.types";
 import type { TasksTabProps } from "@/types/projects.types";
 import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
+import { compareTasks } from "@/lib/taskSort";
 import { useDeleteTask, useUpdateTask } from "@/hooks/tasks/useTasks";
 import { SortableTask } from "../sortables/SortableTask";
+import { TaskSortControls } from "../filters/TaskSortControls";
 
 export function DroppableColumn({
   id,
@@ -57,6 +66,24 @@ export function TasksTab({
   const [localOrders, setLocalOrders] = useState<
     Partial<Record<TaskStatus, number[]>>
   >({});
+  const [dueFrom, setDueFrom] = useState("");
+  const [dueTo, setDueTo] = useState("");
+  const [sortField, setSortField] = useState<TaskSortField>("dueDate");
+  const [sortDirection, setSortDirection] = useState<TaskSortDirection>("desc");
+  const dueDateFilterActive = dueFrom !== "" || dueTo !== "";
+  const filteredTasks = (
+    dueDateFilterActive
+      ? tasks.filter((t) => {
+          if (!t.dueDate) return false;
+          const due = t.dueDate.slice(0, 10);
+          if (dueFrom && due < dueFrom) return false;
+          if (dueTo && due > dueTo) return false;
+          return true;
+        })
+      : tasks
+  )
+    .slice()
+    .sort((a, b) => compareTasks(a, b, sortField, sortDirection));
   const activeTask =
     activeId !== null ? (tasks.find((t) => t.id === activeId) ?? null) : null;
 
@@ -94,8 +121,11 @@ export function TasksTab({
   }
 
   const tasksByStatus = TASK_STATUSES.reduce<Record<TaskStatus, Task[]>>(
-    (acc, s) => ({ ...acc, [s]: tasks.filter((t) => t.status === s) }),
-    { TODO: [], IN_PROGRESS: [], DONE: [] },
+    (acc, s) => ({
+      ...acc,
+      [s]: filteredTasks.filter((t) => t.status === s),
+    }),
+    { TODO: [], IN_PROGRESS: [], DONE: [], PAID: [] },
   );
 
   function orderedTasksForStatus(status: TaskStatus): Task[] {
@@ -112,7 +142,50 @@ export function TasksTab({
 
   return (
     <>
-      <div className="flex justify-end mb-4">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-3">
+          <Label htmlFor="task-due-from" className="text-sm shrink-0">
+            Due from
+          </Label>
+          <Input
+            id="task-due-from"
+            type="date"
+            value={dueFrom}
+            onChange={(e) => setDueFrom(e.target.value)}
+            max={dueTo || undefined}
+            className="w-40"
+          />
+          <Label htmlFor="task-due-to" className="text-sm shrink-0">
+            Due to
+          </Label>
+          <Input
+            id="task-due-to"
+            type="date"
+            value={dueTo}
+            onChange={(e) => setDueTo(e.target.value)}
+            min={dueFrom || undefined}
+            className="w-40"
+          />
+          {dueDateFilterActive && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setDueFrom("");
+                setDueTo("");
+              }}
+            >
+              Clear filter
+            </Button>
+          )}
+          <TaskSortControls
+            field={sortField}
+            direction={sortDirection}
+            onFieldChange={setSortField}
+            onDirectionChange={setSortDirection}
+            idPrefix="task"
+          />
+        </div>
         <Button
           variant="outline"
           size="sm"
@@ -132,7 +205,7 @@ export function TasksTab({
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               {TASK_STATUSES.map((status) => (
                 <div key={status}>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">

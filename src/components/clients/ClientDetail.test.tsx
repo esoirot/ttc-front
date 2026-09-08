@@ -1,11 +1,19 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
 import type { Client } from "@/types/clients.types";
 import type { Project } from "@/types/projects.types";
 import type { Invoice } from "@/types/invoices.types";
+import type { ClientRate } from "@/types/client-rates.types";
+import type { RateSheet } from "@/types/rate-sheets.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -106,6 +114,101 @@ function renderAt(
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <MemoryRouter initialEntries={[`/clients/${id}`]}>
+        <Routes>
+          <Route path="/clients/:id" element={<ClientDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+function makeClientRate(overrides: Partial<ClientRate> = {}): ClientRate {
+  return {
+    id: 1,
+    clientId: 1,
+    userId: 1,
+    type: "HOURLY",
+    name: "Standard",
+    amount: 40,
+    currency: "EUR",
+    description: null,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function makeRateSheet(overrides: Partial<RateSheet> = {}): RateSheet {
+  return {
+    id: 1,
+    userId: 1,
+    activityId: null,
+    clientId: 1,
+    name: "EN-FR standard",
+    description: null,
+    sourceLanguage: "EN",
+    targetLanguage: "FR",
+    currency: "EUR",
+    pricePerWord: 0.12,
+    matchRates: {} as RateSheet["matchRates"],
+    isDefault: false,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function renderNavigable(
+  clientsById: Record<number, Client>,
+  opts: { clientRates?: ClientRate[]; rateSheets?: RateSheet[] } = {},
+) {
+  gqlFetch.mockImplementation(
+    (query: unknown, vars: Record<string, unknown> = {}) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const doc = query as any;
+      const op = doc?.definitions?.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (d: any) => d.kind === "OperationDefinition",
+      );
+      const opName = op?.name?.value ?? String(query);
+      switch (opName) {
+        case "Client":
+          return Promise.resolve({
+            client: clientsById[vars.id as number] ?? null,
+          });
+        case "MyActivities":
+          return Promise.resolve({
+            myActivities: [
+              { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+              { id: 2, name: "Correction", activityType: "CORRECTOR" },
+            ],
+          });
+        case "Projects":
+          return Promise.resolve({
+            projects: { items: [], nextCursor: null, total: 0 },
+          });
+        case "Invoices":
+          return Promise.resolve({
+            invoices: { items: [], nextCursor: null, total: 0 },
+          });
+        case "TimeEntries":
+          return Promise.resolve({
+            timeEntries: { items: [], nextCursor: null, total: 0 },
+          });
+        case "ClientRates":
+          return Promise.resolve({ clientRates: opts.clientRates ?? [] });
+        case "RateSheets":
+          return Promise.resolve({ rateSheets: opts.rateSheets ?? [] });
+        default:
+          return Promise.resolve({ tags: [] });
+      }
+    },
+  );
+
+  return render(
+    <QueryClientProvider client={createQueryClient()}>
+      <MemoryRouter initialEntries={["/clients/1"]}>
+        <Link to="/clients/2">Go to client 2</Link>
         <Routes>
           <Route path="/clients/:id" element={<ClientDetail />} />
         </Routes>
@@ -226,5 +329,64 @@ describe("ClientDetail", () => {
       const activityTab = screen.getByRole("tab", { name: /Activity/ });
       expect(within(activityTab).getByText("2")).toBeInTheDocument();
     });
+  });
+
+  it("shows the newly-navigated client's own linked activities in the edit form, not the previous client's", async () => {
+    renderNavigable({
+      1: makeClient({
+        id: 1,
+        name: "Acme",
+        activities: [
+          { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        ],
+      }),
+      2: makeClient({
+        id: 2,
+        name: "Globex",
+        activities: [{ id: 2, name: "Correction", activityType: "CORRECTOR" }],
+      }),
+    });
+
+    await screen.findByText("Acme");
+
+    fireEvent.click(screen.getByText("Go to client 2"));
+    await screen.findByText("Globex");
+
+    fireEvent.click(screen.getByText("Edit"));
+
+    expect(await screen.findByText("Correction")).toBeInTheDocument();
+    expect(screen.queryByText("Translation")).not.toBeInTheDocument();
+  });
+
+  it("shows the Rates tab badge counting both client rates and this client's rate sheets", async () => {
+    renderNavigable(
+      { 1: makeClient({ id: 1, name: "Acme" }) },
+      {
+        clientRates: [
+          makeClientRate({ id: 1, clientId: 1 }),
+          makeClientRate({ id: 2, clientId: 1 }),
+        ],
+        rateSheets: [
+          makeRateSheet({ id: 1, clientId: 1 }),
+          makeRateSheet({ id: 2, clientId: 99 }),
+        ],
+      },
+    );
+
+    await screen.findByText("Acme");
+
+    await waitFor(() => {
+      const ratesTab = screen.getByRole("tab", { name: /Rates/ });
+      expect(within(ratesTab).getByText("3")).toBeInTheDocument();
+    });
+  });
+
+  it("hides the Rates tab badge when there are no client rates or rate sheets", async () => {
+    renderNavigable({ 1: makeClient({ id: 1, name: "Acme" }) });
+
+    await screen.findByText("Acme");
+
+    const ratesTab = screen.getByRole("tab", { name: "Rates" });
+    expect(within(ratesTab).queryByText(/\d/)).not.toBeInTheDocument();
   });
 });

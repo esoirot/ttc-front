@@ -9,6 +9,7 @@ function makeDashboard(overrides: Partial<DashboardData> = {}): DashboardData {
     unpaidInvoiceCount: 2,
     monthToDateSeconds: 5400,
     monthToDateRevenue: 1234.5,
+    yearToDateWords: 12345,
     upcomingDeadlines: [],
     recentTimeEntries: [],
     prospectsToContact: [],
@@ -17,13 +18,14 @@ function makeDashboard(overrides: Partial<DashboardData> = {}): DashboardData {
 }
 
 describe("StatsGrid", () => {
-  it("renders all four stat values", () => {
+  it("renders all five stat values", () => {
     render(<StatsGrid dashboard={makeDashboard()} />);
 
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getByText("1h 30m")).toBeInTheDocument();
     expect(screen.getByText("1234.50")).toBeInTheDocument();
+    expect(screen.getByText("12,345")).toBeInTheDocument();
   });
 
   it("formats minutes-only durations without an hours prefix", () => {

@@ -64,6 +64,7 @@ describe("ProjectsList", () => {
     gqlFetch.mockResolvedValue({
       projects: emptyConnection(),
       clients: emptyConnection(),
+      timeEntries: emptyConnection(),
     });
 
     renderList();
@@ -75,6 +76,7 @@ describe("ProjectsList", () => {
     gqlFetch.mockResolvedValue({
       projects: { items: [makeProject()], nextCursor: null, total: 1 },
       clients: emptyConnection(),
+      timeEntries: emptyConnection(),
     });
 
     renderList();
@@ -87,6 +89,7 @@ describe("ProjectsList", () => {
     gqlFetch.mockResolvedValue({
       projects: emptyConnection(),
       clients: emptyConnection(),
+      timeEntries: emptyConnection(),
     });
 
     renderList();
@@ -104,6 +107,7 @@ describe("ProjectsList", () => {
     gqlFetch.mockResolvedValue({
       projects: emptyConnection(),
       clients: emptyConnection(),
+      timeEntries: emptyConnection(),
     });
 
     renderList();

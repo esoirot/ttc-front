@@ -24,6 +24,7 @@ export const DASHBOARD_QUERY: TypedDocumentNode<
       unpaidInvoiceCount
       monthToDateSeconds
       monthToDateRevenue
+      yearToDateWords
       upcomingDeadlines {
         id
         title

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { secsToHms } from "@/lib/time";
+import { formatDateDDMMYYYY, secsToHms } from "@/lib/time";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -59,7 +59,7 @@ export function SortableRow({
         <p className="font-medium truncate">{task.title}</p>
         {task.dueDate && (
           <p className="text-xs text-muted-foreground">
-            Due {task.dueDate.slice(0, 10)}
+            Due {formatDateDDMMYYYY(task.dueDate)}
           </p>
         )}
       </div>

@@ -56,10 +56,14 @@ export function ProjectsTab({
     (sum, p) => sum + (p.totalTimeSeconds ?? 0),
     0,
   );
+  const totalWords = projects.reduce(
+    (sum, p) => sum + (p.totalWordsProcessed ?? 0),
+    0,
+  );
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">Projects</CardTitle>
@@ -74,6 +78,14 @@ export function ProjectsTab({
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-mono">{secsToHms(totalTimeSeconds)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Total words</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-mono">{totalWords.toLocaleString()}</p>
           </CardContent>
         </Card>
         <Card>
@@ -120,6 +132,9 @@ export function ProjectsTab({
             <div className="flex items-center gap-3 shrink-0">
               <span className="text-xs font-mono text-muted-foreground tabular-nums">
                 ⏱ {secsToHms(p.totalTimeSeconds ?? 0)}
+              </span>
+              <span className="text-xs font-mono text-muted-foreground tabular-nums">
+                {(p.totalWordsProcessed ?? 0).toLocaleString()} words
               </span>
               <span className="font-mono text-sm tabular-nums text-muted-foreground">
                 {(revenueByProject.get(p.id) ?? 0).toFixed(2)}
