@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
@@ -78,7 +79,9 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-xs text-muted-foreground">From:</span>
+        <span className="text-xs text-muted-foreground">
+          <FormattedMessage id="time.trackerView.from" defaultMessage="From:" />
+        </span>
         <input
           type="date"
           value={startDate}
@@ -88,7 +91,9 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
           }}
           className="text-xs rounded border border-border bg-background text-foreground px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
         />
-        <span className="text-xs text-muted-foreground">To:</span>
+        <span className="text-xs text-muted-foreground">
+          <FormattedMessage id="time.trackerView.to" defaultMessage="To:" />
+        </span>
         <input
           type="date"
           value={endDate}
@@ -103,7 +108,12 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
 
       {projects.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-muted-foreground">Project:</span>
+          <span className="text-xs text-muted-foreground">
+            <FormattedMessage
+              id="time.trackerView.project"
+              defaultMessage="Project:"
+            />
+          </span>
           <Button
             size="xs"
             variant="ghost"
@@ -115,7 +125,7 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
                 : "text-muted-foreground",
             )}
           >
-            All
+            <FormattedMessage id="time.trackerView.all" defaultMessage="All" />
           </Button>
           {projects.map((p) => (
             <Button
@@ -146,10 +156,18 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
 
       <div>
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Entries
+          <FormattedMessage
+            id="time.trackerView.entries"
+            defaultMessage="Entries"
+          />
         </h2>
         {grouped.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No entries yet.</p>
+          <p className="text-sm text-muted-foreground">
+            <FormattedMessage
+              id="time.trackerView.noEntriesYet"
+              defaultMessage="No entries yet."
+            />
+          </p>
         ) : (
           <div className="flex flex-col gap-2">
             {grouped.map(([day, dayEntries]) => (

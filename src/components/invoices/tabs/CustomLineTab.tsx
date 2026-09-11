@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,9 +12,10 @@ import {
 
 import type { CustomLineTabProps as Props } from "@/types/invoices.types";
 import { useCustomLineTab } from "@/hooks/invoices/useCustomLineTab";
-import { QTY_LABEL } from "@/constants/invoices";
+import { QTY_LABEL_MESSAGES } from "@/constants/invoices";
 
 export function CustomLineTab({ invoiceId, onAdd, adding }: Props) {
+  const intl = useIntl();
   const {
     rates,
     selectedRate,
@@ -28,7 +30,9 @@ export function CustomLineTab({ invoiceId, onAdd, adding }: Props) {
     handleAdd,
   } = useCustomLineTab(invoiceId, onAdd);
 
-  const qtyLabel = selectedRate ? QTY_LABEL[selectedRate.type] : "Qty";
+  const qtyLabel = selectedRate
+    ? intl.formatMessage(QTY_LABEL_MESSAGES[selectedRate.type])
+    : "Qty";
 
   return (
     <div className="flex flex-col gap-4">

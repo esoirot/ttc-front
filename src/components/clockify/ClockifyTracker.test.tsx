@@ -1,6 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { ClockifyWorkspace } from "@/types/clockify.types";
+
+const wrapper = createIntlWrapper();
 
 const useClockifyStatusMock = vi.fn();
 const useClockifyWorkspacesMock = vi.fn();
@@ -46,7 +49,7 @@ describe("ClockifyTracker", () => {
 
   it("shows loading skeleton and no heading while loading", () => {
     useClockifyStatusMock.mockReturnValue({ data: undefined, isLoading: true });
-    render(<ClockifyTracker />);
+    render(<ClockifyTracker />, { wrapper });
     expect(screen.queryByText("Time Tracker")).not.toBeInTheDocument();
     expect(screen.queryByTestId("connect-form")).not.toBeInTheDocument();
   });
@@ -56,7 +59,7 @@ describe("ClockifyTracker", () => {
       data: { connected: false, workspaceId: null },
       isLoading: false,
     });
-    render(<ClockifyTracker />);
+    render(<ClockifyTracker />, { wrapper });
     expect(
       screen.getByRole("heading", { name: "Time Tracker" }),
     ).toBeInTheDocument();
@@ -67,7 +70,7 @@ describe("ClockifyTracker", () => {
       data: { connected: false, workspaceId: null },
       isLoading: false,
     });
-    render(<ClockifyTracker />);
+    render(<ClockifyTracker />, { wrapper });
     expect(screen.getByTestId("connect-form")).toBeInTheDocument();
     expect(screen.queryByTestId("workspace-picker")).not.toBeInTheDocument();
     expect(screen.queryByTestId("tracker-view")).not.toBeInTheDocument();
@@ -78,7 +81,7 @@ describe("ClockifyTracker", () => {
       data: { connected: true, workspaceId: null },
       isLoading: false,
     });
-    render(<ClockifyTracker />);
+    render(<ClockifyTracker />, { wrapper });
     expect(screen.getByTestId("workspace-picker")).toBeInTheDocument();
     expect(screen.queryByTestId("connect-form")).not.toBeInTheDocument();
     expect(screen.queryByTestId("tracker-view")).not.toBeInTheDocument();
@@ -89,7 +92,7 @@ describe("ClockifyTracker", () => {
       data: { connected: true, workspaceId: "ws-42" },
       isLoading: false,
     });
-    render(<ClockifyTracker />);
+    render(<ClockifyTracker />, { wrapper });
     const view = screen.getByTestId("tracker-view");
     expect(view).toBeInTheDocument();
     expect(view).toHaveAttribute("data-workspace", "ws-42");
@@ -105,7 +108,7 @@ describe("ClockifyTracker", () => {
     useClockifyWorkspacesMock.mockReturnValue({
       data: [makeWorkspace({ id: "ws-1", featureSubscriptionType: "PRO" })],
     });
-    render(<ClockifyTracker />);
+    render(<ClockifyTracker />, { wrapper });
     expect(screen.getByText("PRO")).toBeInTheDocument();
   });
 
@@ -117,7 +120,7 @@ describe("ClockifyTracker", () => {
     useClockifyWorkspacesMock.mockReturnValue({
       data: [makeWorkspace({ id: "ws-1", featureSubscriptionType: null })],
     });
-    render(<ClockifyTracker />);
+    render(<ClockifyTracker />, { wrapper });
     expect(screen.queryByText("PRO")).not.toBeInTheDocument();
     expect(screen.queryByText("FREE")).not.toBeInTheDocument();
   });
@@ -127,7 +130,7 @@ describe("ClockifyTracker", () => {
       data: { connected: false, workspaceId: null },
       isLoading: false,
     });
-    render(<ClockifyTracker />);
+    render(<ClockifyTracker />, { wrapper });
     expect(
       screen.getByText("Connect your Clockify account to start tracking time."),
     ).toBeInTheDocument();
@@ -138,9 +141,20 @@ describe("ClockifyTracker", () => {
       data: { connected: true, workspaceId: null },
       isLoading: false,
     });
-    render(<ClockifyTracker />);
+    render(<ClockifyTracker />, { wrapper });
     expect(
       screen.getByText("Choose a workspace to track time in."),
+    ).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    useClockifyStatusMock.mockReturnValue({
+      data: { connected: false, workspaceId: null },
+      isLoading: false,
+    });
+    render(<ClockifyTracker />, { wrapper: createIntlWrapper("fr") });
+    expect(
+      screen.getByRole("heading", { name: "Suivi du temps" }),
     ).toBeInTheDocument();
   });
 });

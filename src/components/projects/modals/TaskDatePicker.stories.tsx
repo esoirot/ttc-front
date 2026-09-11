@@ -1,9 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { TaskDatePicker } from "./TaskDatePicker";
 
 const meta: Meta<typeof TaskDatePicker> = {
   component: TaskDatePicker,
   title: "Molecules/TaskDatePicker",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     startDate: null,
     dueDate: null,

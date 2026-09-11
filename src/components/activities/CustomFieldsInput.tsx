@@ -1,3 +1,4 @@
+import { FormattedMessage, useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { CustomFieldsInputProps } from "@/types/activities.types";
@@ -8,24 +9,39 @@ export function CustomFieldsInput({
   onUpdate,
   onRemove,
 }: CustomFieldsInputProps) {
+  const intl = useIntl();
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">Custom fields</span>
+        <span className="text-sm font-medium">
+          <FormattedMessage
+            id="activities.customFields.title"
+            defaultMessage="Custom fields"
+          />
+        </span>
         <Button type="button" variant="ghost" size="sm" onClick={onAdd}>
-          + Add field
+          <FormattedMessage
+            id="activities.customFields.addField"
+            defaultMessage="+ Add field"
+          />
         </Button>
       </div>
       {fields.map((cf, i) => (
         <div key={i} className="flex items-center gap-2">
           <Input
-            placeholder="Field name"
+            placeholder={intl.formatMessage({
+              id: "activities.customFields.fieldName",
+              defaultMessage: "Field name",
+            })}
             value={cf.key}
             onChange={(e) => onUpdate(i, "key", e.target.value)}
             className="flex-1"
           />
           <Input
-            placeholder="Value"
+            placeholder={intl.formatMessage({
+              id: "activities.customFields.fieldValue",
+              defaultMessage: "Value",
+            })}
             value={cf.value}
             onChange={(e) => onUpdate(i, "value", e.target.value)}
             className="flex-1"
@@ -34,7 +50,10 @@ export function CustomFieldsInput({
             type="button"
             onClick={() => onRemove(i)}
             className="text-xs text-muted-foreground hover:text-destructive transition-colors"
-            aria-label="Remove field"
+            aria-label={intl.formatMessage({
+              id: "activities.customFields.removeField",
+              defaultMessage: "Remove field",
+            })}
           >
             ✕
           </button>

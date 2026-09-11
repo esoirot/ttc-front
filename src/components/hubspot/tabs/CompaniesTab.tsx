@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,6 +28,7 @@ function CompanyRow({ company }: { company: HubspotCompany }) {
 }
 
 export function CompaniesTab() {
+  const intl = useIntl();
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -74,7 +76,10 @@ export function CompaniesTab() {
       <div className="flex items-center gap-3">
         <Input
           type="search"
-          placeholder="Search companies…"
+          placeholder={intl.formatMessage({
+            id: "hubspot.companiesTab.searchPlaceholder",
+            defaultMessage: "Search companies…",
+          })}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1"
@@ -85,45 +90,84 @@ export function CompaniesTab() {
           size="sm"
           onClick={() => setShowForm((v) => !v)}
         >
-          {showForm ? "Cancel" : "+ New company"}
+          {showForm ? (
+            <FormattedMessage
+              id="common.actions.cancel"
+              defaultMessage="Cancel"
+            />
+          ) : (
+            <FormattedMessage
+              id="hubspot.companiesTab.newCompany"
+              defaultMessage="+ New company"
+            />
+          )}
         </Button>
       </div>
       <span className="text-sm text-muted-foreground">
         {isSearching
-          ? `${companies.length} result${companies.length !== 1 ? "s" : ""} for "${debouncedSearch}"`
-          : `${companies.length} ${companies.length !== 1 ? "companies" : "company"} loaded`}
+          ? intl.formatMessage(
+              {
+                id: "hubspot.tab.resultCount",
+                defaultMessage:
+                  '{count, plural, one {# result} other {# results}} for "{query}"',
+              },
+              { count: companies.length, query: debouncedSearch },
+            )
+          : intl.formatMessage(
+              {
+                id: "hubspot.companiesTab.loadedCount",
+                defaultMessage:
+                  "{count, plural, one {# company loaded} other {# companies loaded}}",
+              },
+              { count: companies.length },
+            )}
       </span>
 
       {showForm && (
         <div className="grid grid-cols-2 gap-3 p-4 bg-muted/50 rounded-lg border">
           <Input
             type="text"
-            placeholder="Company name *"
+            placeholder={intl.formatMessage({
+              id: "hubspot.companiesTab.namePlaceholder",
+              defaultMessage: "Company name *",
+            })}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="col-span-2"
           />
           <Input
             type="text"
-            placeholder="Domain (e.g. acme.com)"
+            placeholder={intl.formatMessage({
+              id: "hubspot.companiesTab.domainPlaceholder",
+              defaultMessage: "Domain (e.g. acme.com)",
+            })}
             value={domain}
             onChange={(e) => setDomain(e.target.value)}
           />
           <Input
             type="tel"
-            placeholder="Phone"
+            placeholder={intl.formatMessage({
+              id: "hubspot.companiesTab.phonePlaceholder",
+              defaultMessage: "Phone",
+            })}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
           />
           <Input
             type="text"
-            placeholder="City"
+            placeholder={intl.formatMessage({
+              id: "hubspot.companiesTab.cityPlaceholder",
+              defaultMessage: "City",
+            })}
             value={city}
             onChange={(e) => setCity(e.target.value)}
           />
           <Input
             type="text"
-            placeholder="Country"
+            placeholder={intl.formatMessage({
+              id: "hubspot.companiesTab.countryPlaceholder",
+              defaultMessage: "Country",
+            })}
             value={country}
             onChange={(e) => setCountry(e.target.value)}
           />
@@ -139,30 +183,57 @@ export function CompaniesTab() {
               onClick={() => void handleCreate()}
               disabled={!name.trim() || createCompany.isPending}
             >
-              {createCompany.isPending ? "Saving…" : "Create"}
+              {createCompany.isPending ? (
+                <FormattedMessage
+                  id="hubspot.tab.saving"
+                  defaultMessage="Saving…"
+                />
+              ) : (
+                <FormattedMessage
+                  id="hubspot.tab.create"
+                  defaultMessage="Create"
+                />
+              )}
             </Button>
           </div>
         </div>
       )}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground py-4">Loading…</p>
+        <p className="text-sm text-muted-foreground py-4">
+          <FormattedMessage
+            id="hubspot.tab.loading"
+            defaultMessage="Loading…"
+          />
+        </p>
       ) : (
         <>
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
                 <th className="pb-2 pr-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Name
+                  <FormattedMessage
+                    id="hubspot.companiesTab.colName"
+                    defaultMessage="Name"
+                  />
                 </th>
                 <th className="pb-2 pr-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Domain
+                  <FormattedMessage
+                    id="hubspot.companiesTab.colDomain"
+                    defaultMessage="Domain"
+                  />
                 </th>
                 <th className="pb-2 pr-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Phone
+                  <FormattedMessage
+                    id="hubspot.companiesTab.colPhone"
+                    defaultMessage="Phone"
+                  />
                 </th>
                 <th className="pb-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Location
+                  <FormattedMessage
+                    id="hubspot.companiesTab.colLocation"
+                    defaultMessage="Location"
+                  />
                 </th>
               </tr>
             </thead>
@@ -173,7 +244,17 @@ export function CompaniesTab() {
                     colSpan={4}
                     className="py-8 text-center text-sm text-muted-foreground"
                   >
-                    {isSearching ? "No companies found" : "No companies yet"}
+                    {isSearching ? (
+                      <FormattedMessage
+                        id="hubspot.companiesTab.noResults"
+                        defaultMessage="No companies found"
+                      />
+                    ) : (
+                      <FormattedMessage
+                        id="hubspot.companiesTab.noCompanies"
+                        defaultMessage="No companies yet"
+                      />
+                    )}
                   </td>
                 </tr>
               )}
@@ -191,7 +272,17 @@ export function CompaniesTab() {
                 onClick={() => void infinite.fetchNextPage()}
                 disabled={infinite.isFetchingNextPage}
               >
-                {infinite.isFetchingNextPage ? "Loading…" : "Load more"}
+                {infinite.isFetchingNextPage ? (
+                  <FormattedMessage
+                    id="hubspot.tab.loading"
+                    defaultMessage="Loading…"
+                  />
+                ) : (
+                  <FormattedMessage
+                    id="hubspot.tab.loadMore"
+                    defaultMessage="Load more"
+                  />
+                )}
               </Button>
             </div>
           )}

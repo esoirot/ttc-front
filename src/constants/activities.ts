@@ -1,9 +1,16 @@
+import type { MessageDescriptor } from "react-intl";
 import type { ActivityType } from "@/types/activities.types";
 
-export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
-  TRANSLATOR: "Translator",
-  CORRECTOR: "Corrector",
-  CUSTOM: "Custom",
+export const ACTIVITY_TYPE_LABEL_MESSAGES: Record<
+  ActivityType,
+  MessageDescriptor
+> = {
+  TRANSLATOR: {
+    id: "activities.type.translator",
+    defaultMessage: "Translator",
+  },
+  CORRECTOR: { id: "activities.type.corrector", defaultMessage: "Corrector" },
+  CUSTOM: { id: "activities.type.custom", defaultMessage: "Custom" },
 };
 
 export const LEGAL_FORMS = [

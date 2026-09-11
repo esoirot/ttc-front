@@ -1,9 +1,24 @@
 import { render, screen } from "@testing-library/react";
+import { IntlProvider } from "react-intl";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryWrapper } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { Project } from "@/types/projects.types";
 import type { TimeEntry } from "@/types/time-entries.types";
 import { formatDuration } from "@/lib/time";
+
+function createIntlQueryWrapper(locale: Locale = "en") {
+  const QueryWrapper = createQueryWrapper();
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <QueryWrapper>{children}</QueryWrapper>
+      </IntlProvider>
+    );
+  };
+}
 
 const { gqlFetch } = vi.hoisted(() => ({ gqlFetch: vi.fn() }));
 vi.mock("@/lib/apollo", () => ({ gqlFetch }));
@@ -135,7 +150,7 @@ describe("OverviewTab", () => {
 
   it("always shows time logged, formatted", () => {
     render(<OverviewTab project={makeProject()} totalSeconds={3661} />, {
-      wrapper: createQueryWrapper(),
+      wrapper: createIntlQueryWrapper(),
     });
     expect(screen.getByText("1:01:01")).toBeInTheDocument();
   });
@@ -166,7 +181,7 @@ describe("OverviewTab", () => {
         })}
         totalSeconds={0}
       />,
-      { wrapper: createQueryWrapper() },
+      { wrapper: createIntlQueryWrapper() },
     );
 
     expect(
@@ -183,7 +198,7 @@ describe("OverviewTab", () => {
 
   it("hides word count card and shows the no-rate-sheet fallback when unset", async () => {
     render(<OverviewTab project={makeProject()} totalSeconds={0} />, {
-      wrapper: createQueryWrapper(),
+      wrapper: createIntlQueryWrapper(),
     });
     expect(screen.queryByText("Word count")).not.toBeInTheDocument();
     expect(
@@ -204,7 +219,7 @@ describe("OverviewTab", () => {
         })}
         totalSeconds={0}
       />,
-      { wrapper: createQueryWrapper() },
+      { wrapper: createIntlQueryWrapper() },
     );
     expect(screen.getByText("0 / 1,000")).toBeInTheDocument();
     expect(screen.getByText("Pricing")).toBeInTheDocument();
@@ -219,7 +234,7 @@ describe("OverviewTab", () => {
         project={makeProject({ wordCount: 1000, totalWordsProcessed: 400 })}
         totalSeconds={0}
       />,
-      { wrapper: createQueryWrapper() },
+      { wrapper: createIntlQueryWrapper() },
     );
     expect(screen.getByText("400 / 1,000")).toBeInTheDocument();
   });
@@ -267,7 +282,7 @@ describe("OverviewTab", () => {
         })}
         totalSeconds={0}
       />,
-      { wrapper: createQueryWrapper() },
+      { wrapper: createIntlQueryWrapper() },
     );
     expect(await screen.findByText("0.12 EUR/word")).toBeInTheDocument();
     expect(
@@ -323,7 +338,7 @@ describe("OverviewTab", () => {
         })}
         totalSeconds={0}
       />,
-      { wrapper: createQueryWrapper() },
+      { wrapper: createIntlQueryWrapper() },
     );
     expect(await screen.findByText("0.2 USD/word")).toBeInTheDocument();
     expect(
@@ -344,7 +359,7 @@ describe("OverviewTab", () => {
         })}
         totalSeconds={0}
       />,
-      { wrapper: createQueryWrapper() },
+      { wrapper: createIntlQueryWrapper() },
     );
     expect(screen.queryByText("Revenue")).not.toBeInTheDocument();
   });
@@ -362,7 +377,7 @@ describe("OverviewTab", () => {
         })}
         totalSeconds={0}
       />,
-      { wrapper: createQueryWrapper() },
+      { wrapper: createIntlQueryWrapper() },
     );
     expect(screen.queryByText("Revenue")).not.toBeInTheDocument();
   });
@@ -383,7 +398,7 @@ describe("OverviewTab", () => {
         })}
         totalSeconds={7200}
       />,
-      { wrapper: createQueryWrapper() },
+      { wrapper: createIntlQueryWrapper() },
     );
     expect(screen.getByText("Revenue")).toBeInTheDocument();
     expect(screen.getByText("500.00 USD")).toBeInTheDocument();
@@ -423,7 +438,7 @@ describe("OverviewTab", () => {
         })}
         totalSeconds={0}
       />,
-      { wrapper: createQueryWrapper() },
+      { wrapper: createIntlQueryWrapper() },
     );
     expect(await screen.findByText("120.00 EUR")).toBeInTheDocument();
     expect(screen.getByText("Revenue")).toBeInTheDocument();
@@ -448,7 +463,7 @@ describe("OverviewTab", () => {
       ],
     });
     render(<OverviewTab project={makeProject()} totalSeconds={3000} />, {
-      wrapper: createQueryWrapper(),
+      wrapper: createIntlQueryWrapper(),
     });
 
     const monthLabel = new Date().toLocaleDateString(undefined, {
@@ -472,7 +487,7 @@ describe("OverviewTab", () => {
       timeEntries: [makeTimeEntry({ id: 1, task: null, durationSeconds: 500 })],
     });
     render(<OverviewTab project={makeProject()} totalSeconds={500} />, {
-      wrapper: createQueryWrapper(),
+      wrapper: createIntlQueryWrapper(),
     });
 
     await screen.findAllByTestId("tooltip-preview");
@@ -502,7 +517,7 @@ describe("OverviewTab", () => {
       ],
     });
     render(<OverviewTab project={makeProject()} totalSeconds={3000} />, {
-      wrapper: createQueryWrapper(),
+      wrapper: createIntlQueryWrapper(),
     });
 
     await screen.findAllByTestId("tooltip-preview");
@@ -515,12 +530,22 @@ describe("OverviewTab", () => {
 
   it("still shows both pie cards, with an empty-state message, when there are no time entries this month", async () => {
     render(<OverviewTab project={makeProject()} totalSeconds={0} />, {
-      wrapper: createQueryWrapper(),
+      wrapper: createIntlQueryWrapper(),
     });
     expect(await screen.findByText("Time per task")).toBeInTheDocument();
     expect(screen.getByText("Time per activity")).toBeInTheDocument();
     expect(screen.getAllByText("No time logged yet this month.")).toHaveLength(
       2,
     );
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    render(<OverviewTab project={makeProject()} totalSeconds={0} />, {
+      wrapper: createIntlQueryWrapper("fr"),
+    });
+    expect(await screen.findByText("Temps par tâche")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Aucun temps enregistré ce mois-ci."),
+    ).toHaveLength(2);
   });
 });

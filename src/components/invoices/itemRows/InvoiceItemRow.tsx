@@ -1,4 +1,5 @@
 import { Clock } from "lucide-react";
+import { useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { InvoiceItemRowProps as Props } from "@/types/invoices.types";
@@ -15,11 +16,15 @@ export function InvoiceItemRow({
   onCancel,
   onRemove,
 }: Props) {
+  const intl = useIntl();
   if (editing) {
     return (
       <div className="grid grid-cols-[1fr_80px_100px_100px_64px] gap-2 py-1.5 border-b border-border last:border-0 items-center">
         <Input
-          aria-label="Description"
+          aria-label={intl.formatMessage({
+            id: "invoices.itemRow.description",
+            defaultMessage: "Description",
+          })}
           value={editState.desc}
           onChange={(e) => onChangeDesc(e.target.value)}
           className="h-7 text-sm"
@@ -28,7 +33,10 @@ export function InvoiceItemRow({
           }}
         />
         <Input
-          aria-label="Quantity"
+          aria-label={intl.formatMessage({
+            id: "invoices.itemRow.quantity",
+            defaultMessage: "Quantity",
+          })}
           type="number"
           value={editState.qty}
           onChange={(e) => onChangeQty(e.target.value)}
@@ -40,7 +48,10 @@ export function InvoiceItemRow({
           }}
         />
         <Input
-          aria-label="Unit price"
+          aria-label={intl.formatMessage({
+            id: "invoices.timeEntriesTab.unitPrice",
+            defaultMessage: "Unit price",
+          })}
           type="number"
           value={editState.price}
           onChange={(e) => onChangePrice(e.target.value)}
@@ -80,7 +91,10 @@ export function InvoiceItemRow({
       <span
         className="cursor-pointer hover:text-primary flex items-center gap-1.5"
         onClick={onStartEdit}
-        title="Click to edit"
+        title={intl.formatMessage({
+          id: "invoices.itemRow.clickToEdit",
+          defaultMessage: "Click to edit",
+        })}
       >
         {item.timeEntryId != null && (
           <Clock className="size-3 text-muted-foreground shrink-0" />
@@ -105,7 +119,10 @@ export function InvoiceItemRow({
         size="sm"
         className="h-auto p-0 text-muted-foreground hover:text-destructive text-xs"
         onClick={onRemove}
-        aria-label="Remove item"
+        aria-label={intl.formatMessage({
+          id: "invoices.itemRow.removeItem",
+          defaultMessage: "Remove item",
+        })}
       >
         ✕
       </Button>

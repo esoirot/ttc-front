@@ -9,6 +9,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "./index.css";
 import App from "./App.tsx";
 import { ApiError } from "./lib/api.ts";
+import { IntlRoot } from "./i18n/IntlRoot.tsx";
 
 const PUBLIC_PATHS = [
   "/login",
@@ -48,8 +49,10 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      <IntlRoot>
+        <App />
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      </IntlRoot>
     </QueryClientProvider>
   </StrictMode>,
 );

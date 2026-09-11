@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { TaskActivity } from "@/types/tasks.types";
 import { TaskActivityGroup } from "./TaskActivityGroup";
 
@@ -37,9 +39,11 @@ const meta: Meta<typeof TaskActivityGroup> = {
   title: "Organisms/TaskActivityGroup",
   decorators: [
     (Story) => (
-      <div className="max-w-2xl border border-border rounded-md">
-        <Story />
-      </div>
+      <IntlProvider locale="en" messages={messages.en}>
+        <div className="max-w-2xl border border-border rounded-md">
+          <Story />
+        </div>
+      </IntlProvider>
     ),
   ],
   args: {

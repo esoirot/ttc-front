@@ -1,7 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryWrapper } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { Project } from "@/types/projects.types";
 import { ProjectsTab } from "./ProjectsTab";
 
@@ -34,14 +37,19 @@ function makeProject(overrides: Partial<Project> = {}): Project {
   };
 }
 
-function renderTab(props: { projects: Project[]; loading: boolean }) {
+function renderTab(
+  props: { projects: Project[]; loading: boolean },
+  locale: Locale = "en",
+) {
   const Wrapper = createQueryWrapper();
   return render(
-    <Wrapper>
-      <MemoryRouter>
-        <ProjectsTab {...props} />
-      </MemoryRouter>
-    </Wrapper>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <Wrapper>
+        <MemoryRouter>
+          <ProjectsTab {...props} />
+        </MemoryRouter>
+      </Wrapper>
+    </IntlProvider>,
   );
 }
 
@@ -143,26 +151,30 @@ describe("ProjectsTab", () => {
   it("shows a Due badge when deadline is set, and omits it when null", () => {
     const Wrapper = createQueryWrapper();
     const { rerender } = render(
-      <Wrapper>
-        <MemoryRouter>
-          <ProjectsTab
-            projects={[makeProject({ deadline: "2026-09-01T00:00:00.000Z" })]}
-            loading={false}
-          />
-        </MemoryRouter>
-      </Wrapper>,
+      <IntlProvider locale="en" messages={messages.en}>
+        <Wrapper>
+          <MemoryRouter>
+            <ProjectsTab
+              projects={[makeProject({ deadline: "2026-09-01T00:00:00.000Z" })]}
+              loading={false}
+            />
+          </MemoryRouter>
+        </Wrapper>
+      </IntlProvider>,
     );
     expect(screen.getByText("Due 2026-09-01")).toBeInTheDocument();
 
     rerender(
-      <Wrapper>
-        <MemoryRouter>
-          <ProjectsTab
-            projects={[makeProject({ deadline: null })]}
-            loading={false}
-          />
-        </MemoryRouter>
-      </Wrapper>,
+      <IntlProvider locale="en" messages={messages.en}>
+        <Wrapper>
+          <MemoryRouter>
+            <ProjectsTab
+              projects={[makeProject({ deadline: null })]}
+              loading={false}
+            />
+          </MemoryRouter>
+        </Wrapper>
+      </IntlProvider>,
     );
     expect(screen.queryByText(/^Due /)).not.toBeInTheDocument();
   });
@@ -215,5 +227,12 @@ describe("ProjectsTab", () => {
     });
     expect(screen.getByText("Total revenue")).toBeInTheDocument();
     expect(screen.getByText("500.00 USD")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderTab({ projects: [], loading: false }, "fr");
+    expect(
+      screen.getByText("Aucun projet lié à ce client."),
+    ).toBeInTheDocument();
   });
 });

@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import {
   Popover,
   PopoverContent,
@@ -19,18 +20,28 @@ export function ColorField({
   value,
   onChange,
   id,
-  label = "Color",
+  label,
   placeholder = "#D2D5DA",
 }: ColorFieldProps) {
+  const intl = useIntl();
+  const resolvedLabel =
+    label ??
+    intl.formatMessage({
+      id: "clients.colorField.label",
+      defaultMessage: "Color",
+    });
   return (
     <div className="flex flex-col gap-1">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id}>{resolvedLabel}</Label>
       <div className="flex items-center gap-2">
         <Popover>
           <PopoverTrigger asChild>
             <button
               type="button"
-              aria-label="Pick color"
+              aria-label={intl.formatMessage({
+                id: "clients.colorField.pickColor",
+                defaultMessage: "Pick color",
+              })}
               className="h-9 w-9 shrink-0 rounded-md border border-border"
               style={{ backgroundColor: value || "transparent" }}
             />

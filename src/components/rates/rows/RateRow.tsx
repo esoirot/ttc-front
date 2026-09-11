@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,6 +16,7 @@ import type { TranslationRateRowProps } from "@/types/rates.types";
 import { CURRENCY_SYMBOLS } from "@/constants/rates";
 
 export function RateRow({ rate, onEdit, onDelete }: TranslationRateRowProps) {
+  const intl = useIntl();
   const sym = CURRENCY_SYMBOLS[rate.currency] ?? rate.currency;
   const priceDisplay = `${rate.amount.toFixed(rate.type === "PER_WORD" ? 4 : 2)} ${sym}`;
   return (
@@ -47,7 +49,10 @@ export function RateRow({ rate, onEdit, onDelete }: TranslationRateRowProps) {
           className="h-7 px-2 text-xs border-blue-600 dark:border-blue-400 text-foreground hover:bg-blue-500/30 hover:text-foreground dark:hover:bg-blue-400/30 dark:hover:text-foreground"
           onClick={onEdit}
         >
-          Edit
+          {intl.formatMessage({
+            id: "common.actions.edit",
+            defaultMessage: "Edit",
+          })}
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -63,19 +68,36 @@ export function RateRow({ rate, onEdit, onDelete }: TranslationRateRowProps) {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                Delete &ldquo;{rate.name}&rdquo;?
+                {intl.formatMessage(
+                  {
+                    id: "rates.rateRow.deleteConfirmTitle",
+                    defaultMessage: 'Delete "{name}"?',
+                  },
+                  { name: rate.name },
+                )}
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This rate will be permanently deleted.
+                {intl.formatMessage({
+                  id: "rates.rateRow.deleteConfirmDescription",
+                  defaultMessage: "This rate will be permanently deleted.",
+                })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>
+                {intl.formatMessage({
+                  id: "common.actions.cancel",
+                  defaultMessage: "Cancel",
+                })}
+              </AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={onDelete}
               >
-                Delete
+                {intl.formatMessage({
+                  id: "common.actions.delete",
+                  defaultMessage: "Delete",
+                })}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

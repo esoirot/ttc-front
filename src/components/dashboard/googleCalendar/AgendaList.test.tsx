@@ -2,6 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { GoogleCalendarEvent } from "@/types/google-calendar.types";
 import { AgendaList } from "./AgendaList";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeEvent(
   overrides: Partial<GoogleCalendarEvent> = {},
@@ -18,7 +21,9 @@ function makeEvent(
 
 describe("AgendaList", () => {
   it("shows an empty state when there are no events", () => {
-    render(<AgendaList selectedDate={new Date(2026, 6, 10)} events={[]} />);
+    render(<AgendaList selectedDate={new Date(2026, 6, 10)} events={[]} />, {
+      wrapper,
+    });
     expect(screen.getByText("No events")).toBeInTheDocument();
   });
 
@@ -28,6 +33,7 @@ describe("AgendaList", () => {
         selectedDate={new Date(2026, 6, 10)}
         events={[makeEvent()]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("Client call")).toBeInTheDocument();
     expect(screen.getByRole("link")).toHaveAttribute(
@@ -44,6 +50,7 @@ describe("AgendaList", () => {
           makeEvent({ start: { date: "2026-07-10" }, summary: "Offsite" }),
         ]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("All day")).toBeInTheDocument();
   });
@@ -54,7 +61,15 @@ describe("AgendaList", () => {
         selectedDate={new Date(2026, 6, 10)}
         events={[makeEvent({ summary: undefined })]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("(no title)")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<AgendaList selectedDate={new Date(2026, 6, 10)} events={[]} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    expect(screen.getByText("Aucun événement")).toBeInTheDocument();
   });
 });

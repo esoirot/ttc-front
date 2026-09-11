@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { DescriptionCombobox } from "./DescriptionCombobox";
 
 const recentDescriptions = ["Translation", "Proofreading", "Editing"];
@@ -6,6 +8,13 @@ const recentDescriptions = ["Translation", "Proofreading", "Editing"];
 const meta: Meta<typeof DescriptionCombobox> = {
   component: DescriptionCombobox,
   title: "Molecules/DescriptionCombobox",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     value: "",
     onChange: () => {},

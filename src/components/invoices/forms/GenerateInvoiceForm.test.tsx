@@ -1,5 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { Client } from "@/types/clients.types";
 import type { Project } from "@/types/projects.types";
 
@@ -74,15 +77,18 @@ function renderForm(
     onClose: () => void;
     onGenerated: (id: number) => void;
   }> = {},
+  locale: Locale = "en",
 ) {
   return render(
-    <GenerateInvoiceForm
-      clients={[]}
-      projects={[]}
-      onClose={vi.fn()}
-      onGenerated={vi.fn()}
-      {...overrides}
-    />,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <GenerateInvoiceForm
+        clients={[]}
+        projects={[]}
+        onClose={vi.fn()}
+        onGenerated={vi.fn()}
+        {...overrides}
+      />
+    </IntlProvider>,
   );
 }
 
@@ -151,5 +157,13 @@ describe("GenerateInvoiceForm", () => {
     const [projectSelect, clientSelect] = screen.getAllByRole("combobox");
     expect(projectSelect).toHaveTextContent("Select project");
     expect(clientSelect).toHaveTextContent("No client");
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm({}, "fr");
+    expect(screen.getByText("Projet *")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Générer la facture" }),
+    ).toBeInTheDocument();
   });
 });

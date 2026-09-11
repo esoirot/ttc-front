@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl } from "react-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +23,7 @@ export function TimerStartInput({
   initialTaskId,
   initialTaskTitle,
 }: Props) {
+  const intl = useIntl();
   const { startTimer, loading: starting } = useStartTimer();
   const [desc, setDesc] = useState("");
   const [projectId, setProjectId] = useState<string | null>(
@@ -53,13 +55,27 @@ export function TimerStartInput({
           className="flex-1"
         />
         <Button onClick={handleStart} disabled={starting}>
-          {starting ? "Starting…" : "▶ Start"}
+          {starting
+            ? intl.formatMessage({
+                id: "time.timerStartInput.starting",
+                defaultMessage: "Starting…",
+              })
+            : intl.formatMessage({
+                id: "time.timerStartInput.start",
+                defaultMessage: "▶ Start",
+              })}
         </Button>
       </div>
       <div className="flex items-center gap-3 flex-wrap">
         {initialTaskId != null && initialTaskTitle && (
           <Badge variant="secondary" className="text-xs font-normal">
-            Task: {initialTaskTitle}
+            {intl.formatMessage(
+              {
+                id: "time.timerStartInput.task",
+                defaultMessage: "Task: {title}",
+              },
+              { title: initialTaskTitle },
+            )}
           </Badge>
         )}
         <Select
@@ -67,10 +83,20 @@ export function TimerStartInput({
           onValueChange={(v) => setProjectId(v === "__none__" ? null : v)}
         >
           <SelectTrigger className="h-6 text-xs w-auto min-w-[100px] border-dashed">
-            <SelectValue placeholder="No project" />
+            <SelectValue
+              placeholder={intl.formatMessage({
+                id: "time.entryRow.noProject",
+                defaultMessage: "No project",
+              })}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__none__">No project</SelectItem>
+            <SelectItem value="__none__">
+              {intl.formatMessage({
+                id: "time.entryRow.noProject",
+                defaultMessage: "No project",
+              })}
+            </SelectItem>
             {projects.map((p) => (
               <SelectItem key={p.id} value={String(p.id)}>
                 {p.title}
@@ -84,7 +110,10 @@ export function TimerStartInput({
           variant="outline"
           size="sm"
           onClick={() => setBillable((b) => !b)}
-          aria-label="Toggle billable"
+          aria-label={intl.formatMessage({
+            id: "time.entryRow.toggleBillable",
+            defaultMessage: "Toggle billable",
+          })}
           className={cn(
             "h-5 px-1.5 text-xs font-mono",
             billable

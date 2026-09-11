@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { STATUS_LABELS } from "@/constants/clients";
+import { STATUS_LABEL_MESSAGES } from "@/constants/clients";
 import type {
   DashboardProspect,
   ProspectsToContactProps as Props,
@@ -9,15 +10,24 @@ import type {
 import { formatTimeSinceContact } from "./formatTimeSinceContact";
 
 export function ProspectsToContact({ prospects }: Props) {
+  const intl = useIntl();
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">Prospects to contact</CardTitle>
+        <CardTitle className="text-sm">
+          <FormattedMessage
+            id="dashboard.prospectsToContact.title"
+            defaultMessage="Prospects to contact"
+          />
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {prospects.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No prospects need follow-up right now.
+            <FormattedMessage
+              id="dashboard.prospectsToContact.empty"
+              defaultMessage="No prospects need follow-up right now."
+            />
           </p>
         ) : (
           <div className="flex flex-col gap-2">
@@ -30,11 +40,11 @@ export function ProspectsToContact({ prospects }: Props) {
                 <div>
                   <p className="text-sm font-medium">{p.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatTimeSinceContact(p.contactedAt)}
+                    {formatTimeSinceContact(p.contactedAt, intl)}
                   </p>
                 </div>
                 <Badge variant="secondary" className="text-xs">
-                  {STATUS_LABELS[p.status]}
+                  {intl.formatMessage(STATUS_LABEL_MESSAGES[p.status])}
                 </Badge>
               </Link>
             ))}

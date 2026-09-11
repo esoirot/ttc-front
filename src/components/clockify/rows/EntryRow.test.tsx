@@ -1,6 +1,9 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { ClockifyTimeEntry } from "@/types/clockify.types";
+
+const wrapper = createIntlWrapper();
 
 vi.mock("../forms-inputs/ProjectSelect", () => ({
   ProjectSelect: ({ onChange }: { onChange: (id: string | null) => void }) => (
@@ -64,7 +67,7 @@ const baseProps = {
 
 describe("EntryRow", () => {
   it("shows the description, time range, and duration", () => {
-    render(<EntryRow {...baseProps} entry={makeEntry()} />);
+    render(<EntryRow {...baseProps} entry={makeEntry()} />, { wrapper });
     expect(screen.getByText("Translate")).toBeInTheDocument();
     expect(screen.getByText("01:30:00")).toBeInTheDocument();
   });
@@ -72,6 +75,7 @@ describe("EntryRow", () => {
   it("shows No description for an entry with no description", () => {
     render(
       <EntryRow {...baseProps} entry={makeEntry({ description: null })} />,
+      { wrapper },
     );
     expect(screen.getByText("No description")).toBeInTheDocument();
   });
@@ -88,6 +92,7 @@ describe("EntryRow", () => {
           },
         })}
       />,
+      { wrapper },
     );
     expect(screen.getByText("running")).toBeInTheDocument();
     expect(screen.getByText("—")).toBeInTheDocument();
@@ -105,6 +110,7 @@ describe("EntryRow", () => {
           },
         })}
       />,
+      { wrapper },
     );
     expect(
       screen.queryByTitle("Click to edit end time"),
@@ -113,7 +119,12 @@ describe("EntryRow", () => {
 
   it("clicking the start time enters edit mode and commits a new start on Enter", () => {
     const onUpdate = vi.fn();
-    render(<EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />);
+    render(
+      <EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />,
+      {
+        wrapper,
+      },
+    );
 
     fireEvent.click(screen.getByTitle("Click to edit start time"));
     const input = screen.getByDisplayValue(/\d{2}:\d{2}/);
@@ -133,7 +144,12 @@ describe("EntryRow", () => {
 
   it("clicking the end time enters edit mode and commits a new end on Enter", () => {
     const onUpdate = vi.fn();
-    render(<EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />);
+    render(
+      <EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />,
+      {
+        wrapper,
+      },
+    );
 
     fireEvent.click(screen.getByTitle("Click to edit end time"));
     const input = screen.getByDisplayValue(/\d{2}:\d{2}/);
@@ -153,7 +169,12 @@ describe("EntryRow", () => {
 
   it("rejects a start time that would land after the current end time", () => {
     const onUpdate = vi.fn();
-    render(<EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />);
+    render(
+      <EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />,
+      {
+        wrapper,
+      },
+    );
 
     fireEvent.click(screen.getByTitle("Click to edit start time"));
     const input = screen.getByDisplayValue(/\d{2}:\d{2}/);
@@ -166,7 +187,9 @@ describe("EntryRow", () => {
   it("calls onResume with the entry when the resume button is clicked", () => {
     const onResume = vi.fn();
     const entry = makeEntry();
-    render(<EntryRow {...baseProps} entry={entry} onResume={onResume} />);
+    render(<EntryRow {...baseProps} entry={entry} onResume={onResume} />, {
+      wrapper,
+    });
     fireEvent.click(screen.getByLabelText("Resume entry"));
     expect(onResume).toHaveBeenCalledWith(entry);
   });
@@ -179,6 +202,7 @@ describe("EntryRow", () => {
         entry={makeEntry({ id: "e9" })}
         onDelete={onDelete}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByLabelText("Delete entry"));
     expect(onDelete).toHaveBeenCalledWith("e9");
@@ -193,6 +217,7 @@ describe("EntryRow", () => {
         entry={makeEntry({ description: "Old" })}
         onUpdate={onUpdate}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByText("Old"));
     act(() => vi.runAllTimers());
@@ -218,6 +243,7 @@ describe("EntryRow", () => {
         entry={makeEntry({ description: "Same" })}
         onUpdate={onUpdate}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByText("Same"));
     const input = screen.getByPlaceholderText("Description");
@@ -233,6 +259,7 @@ describe("EntryRow", () => {
         entry={makeEntry({ description: "Old" })}
         onUpdate={onUpdate}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByText("Old"));
     const input = screen.getByPlaceholderText("Description");
@@ -251,6 +278,7 @@ describe("EntryRow", () => {
         entry={makeEntry({ description: "Old" })}
         onUpdate={onUpdate}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByText("Old"));
     const input = screen.getByPlaceholderText("Description");
@@ -262,7 +290,12 @@ describe("EntryRow", () => {
 
   it("patches projectId via ProjectSelect", () => {
     const onUpdate = vi.fn();
-    render(<EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />);
+    render(
+      <EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />,
+      {
+        wrapper,
+      },
+    );
     fireEvent.click(screen.getByTestId("project-select"));
     expect(onUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ projectId: "p2" }),
@@ -277,6 +310,7 @@ describe("EntryRow", () => {
         entry={makeEntry({ tagIds: ["t1"] })}
         onUpdate={onUpdate}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByText("add-tag"));
     expect(onUpdate).toHaveBeenLastCalledWith(
@@ -290,7 +324,12 @@ describe("EntryRow", () => {
 
   it("patches billable via BillableToggle", () => {
     const onUpdate = vi.fn();
-    render(<EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />);
+    render(
+      <EntryRow {...baseProps} entry={makeEntry()} onUpdate={onUpdate} />,
+      {
+        wrapper,
+      },
+    );
     fireEvent.click(screen.getByText("billable-toggle"));
     expect(onUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ billable: true }),
@@ -305,7 +344,9 @@ describe("EntryRow", () => {
       billable: true,
       tagIds: ["t1"],
     });
-    render(<EntryRow {...baseProps} entry={entry} onUpdate={onUpdate} />);
+    render(<EntryRow {...baseProps} entry={entry} onUpdate={onUpdate} />, {
+      wrapper,
+    });
     fireEvent.click(screen.getByText("billable-toggle"));
     expect(onUpdate).toHaveBeenCalledWith({
       entryId: "e1",
@@ -316,5 +357,13 @@ describe("EntryRow", () => {
       billable: true,
       tagIds: ["t1"],
     });
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <EntryRow {...baseProps} entry={makeEntry({ description: null })} />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+    expect(screen.getByText("Aucune description")).toBeInTheDocument();
   });
 });

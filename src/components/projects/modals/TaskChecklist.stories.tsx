@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Subtask } from "@/types/tasks.types";
 import { TaskChecklist } from "./TaskChecklist";
 
@@ -40,9 +42,11 @@ const meta: Meta<typeof TaskChecklist> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <div className="max-w-md">
-          <Story />
-        </div>
+        <IntlProvider locale="en" messages={messages.en}>
+          <div className="max-w-md">
+            <Story />
+          </div>
+        </IntlProvider>
       </QueryClientProvider>
     ),
   ],

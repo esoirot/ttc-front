@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { FormattedMessage } from "react-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInvoiceDetail } from "@/hooks/invoices/useInvoiceDetail";
 
@@ -36,7 +37,12 @@ export function InvoiceDetail() {
   if (!invoice) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <p className="text-muted-foreground">Invoice not found.</p>
+        <p className="text-muted-foreground">
+          <FormattedMessage
+            id="invoices.detail.notFound"
+            defaultMessage="Invoice not found."
+          />
+        </p>
       </div>
     );
   }

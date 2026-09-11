@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { TwoFactorEnabledView } from "./TwoFactorEnabledView";
 
 const meta: Meta<typeof TwoFactorEnabledView> = {
@@ -7,11 +9,13 @@ const meta: Meta<typeof TwoFactorEnabledView> = {
   title: "Organisms/TwoFactorEnabledView",
   decorators: [
     (Story) => (
-      <QueryClientProvider client={new QueryClient()}>
-        <div className="max-w-sm">
-          <Story />
-        </div>
-      </QueryClientProvider>
+      <IntlProvider locale="en" messages={messages.en}>
+        <QueryClientProvider client={new QueryClient()}>
+          <div className="max-w-sm">
+            <Story />
+          </div>
+        </QueryClientProvider>
+      </IntlProvider>
     ),
   ],
   parameters: {

@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -12,11 +15,13 @@ vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { TwoFactorEnabledView } from "./TwoFactorEnabledView";
 
-function renderView(onCodesRegenerated = vi.fn()) {
+function renderView(onCodesRegenerated = vi.fn(), locale: Locale = "en") {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <TwoFactorEnabledView onCodesRegenerated={onCodesRegenerated} />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <TwoFactorEnabledView onCodesRegenerated={onCodesRegenerated} />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -113,5 +118,14 @@ describe("TwoFactorEnabledView", () => {
     fireEvent.click(screen.getByText("Regenerate codes"));
 
     expect(await screen.findByText("Invalid code")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    gqlFetch.mockResolvedValueOnce({ backupCodeCount: 5 });
+    renderView(vi.fn(), "fr");
+
+    expect(
+      await screen.findByText("5 codes de secours restants"),
+    ).toBeInTheDocument();
   });
 });

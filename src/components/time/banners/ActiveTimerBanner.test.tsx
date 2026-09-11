@@ -8,6 +8,9 @@ vi.mock("@/hooks/time/useElapsedTimer", () => ({
 
 import type { TimeEntry } from "@/types/time-entries.types";
 import { ActiveTimerBanner } from "./ActiveTimerBanner";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeTimer(overrides: Partial<TimeEntry> = {}): TimeEntry {
   return {
@@ -41,6 +44,7 @@ describe("ActiveTimerBanner", () => {
         stopping={false}
         refetch={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Translating")).toBeInTheDocument();
@@ -56,6 +60,7 @@ describe("ActiveTimerBanner", () => {
         stopping={false}
         refetch={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("No description")).toBeInTheDocument();
@@ -74,6 +79,7 @@ describe("ActiveTimerBanner", () => {
         stopping={false}
         refetch={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Urgent")).toBeInTheDocument();
@@ -89,6 +95,7 @@ describe("ActiveTimerBanner", () => {
         stopping={false}
         refetch={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.queryByText(/^\d+:\d{2}:\d{2}$/)).not.toBeInTheDocument();
@@ -104,6 +111,7 @@ describe("ActiveTimerBanner", () => {
         stopping={false}
         refetch={refetch}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("⏹ Stop"));
@@ -120,8 +128,23 @@ describe("ActiveTimerBanner", () => {
         stopping={true}
         refetch={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByRole("button", { name: "Stopping…" })).toBeDisabled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <ActiveTimerBanner
+        activeTimer={makeTimer()}
+        stopTimer={vi.fn()}
+        stopping={false}
+        refetch={vi.fn()}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+
+    expect(screen.getByText("En cours")).toBeInTheDocument();
   });
 });

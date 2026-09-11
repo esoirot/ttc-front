@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import { EditableTimeField } from "./EditableTimeField";
+
+const wrapper = createIntlWrapper();
 
 const ISO = "2026-06-01T08:30:15.000Z";
 
@@ -8,6 +11,7 @@ describe("EditableTimeField", () => {
   it("shows the formatted time (with seconds) and enters edit mode on click", () => {
     render(
       <EditableTimeField iso={ISO} label="start time" onCommit={vi.fn()} />,
+      { wrapper },
     );
 
     const local = new Date(ISO);
@@ -29,6 +33,7 @@ describe("EditableTimeField", () => {
     const onCommit = vi.fn();
     render(
       <EditableTimeField iso={ISO} label="start time" onCommit={onCommit} />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByTitle("Click to edit start time"));
@@ -52,6 +57,7 @@ describe("EditableTimeField", () => {
     const onCommit = vi.fn();
     render(
       <EditableTimeField iso={ISO} label="start time" onCommit={onCommit} />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByTitle("Click to edit start time"));
@@ -67,6 +73,7 @@ describe("EditableTimeField", () => {
     const onCommit = vi.fn();
     render(
       <EditableTimeField iso={ISO} label="start time" onCommit={onCommit} />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByTitle("Click to edit start time"));
@@ -81,6 +88,7 @@ describe("EditableTimeField", () => {
     const onCommit = vi.fn();
     render(
       <EditableTimeField iso={ISO} label="start time" onCommit={onCommit} />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByTitle("Click to edit start time"));
@@ -99,6 +107,7 @@ describe("EditableTimeField", () => {
         onCommit={onCommit}
         isValid={() => false}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByTitle("Click to edit start time"));
@@ -113,6 +122,7 @@ describe("EditableTimeField", () => {
     const onCommit = vi.fn();
     render(
       <EditableTimeField iso={ISO} label="start time" onCommit={onCommit} />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByTitle("Click to edit start time"));
@@ -125,5 +135,16 @@ describe("EditableTimeField", () => {
     expect(newDate.getHours()).toBe(9);
     expect(newDate.getMinutes()).toBe(0);
     expect(newDate.getSeconds()).toBe(0);
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <EditableTimeField iso={ISO} label="start time" onCommit={vi.fn()} />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+
+    expect(
+      screen.getByTitle("Cliquer pour modifier start time"),
+    ).toBeInTheDocument();
   });
 });

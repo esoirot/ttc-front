@@ -1,9 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  createQueryClient,
-  createQueryWrapper,
-} from "@/test/queryClientWrapper";
+import type { ReactNode } from "react";
+import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { AuthUser } from "@/types/auth.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -32,10 +34,19 @@ function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
   } as AuthUser;
 }
 
-function renderTab(user: AuthUser = makeUser()) {
+function renderTab(user: AuthUser = makeUser(), locale: Locale = "en") {
   const queryClient = createQueryClient();
   queryClient.setQueryData(["me"], user);
-  return render(<SecurityTab />, { wrapper: createQueryWrapper(queryClient) });
+  function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <IntlProvider locale={locale} messages={messages[locale]}>
+          {children}
+        </IntlProvider>
+      </QueryClientProvider>
+    );
+  }
+  return render(<SecurityTab />, { wrapper: Wrapper });
 }
 
 describe("SecurityTab — 2FA setup (not yet enabled)", () => {
@@ -274,5 +285,26 @@ describe("SecurityTab — delete account", () => {
     fireEvent.click(screen.getByText("Cancel"));
 
     expect(gqlMutate).not.toHaveBeenCalled();
+  });
+});
+
+describe("SecurityTab — locale", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+    gqlMutate.mockReset();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderTab(makeUser({ twoFactorEnabled: false }), "fr");
+
+    expect(
+      screen.getByText("Authentification à deux facteurs"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Configurer la 2FA" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Supprimer le compte" }),
+    ).toBeInTheDocument();
   });
 });

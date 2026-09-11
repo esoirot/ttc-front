@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { Client } from "@/types/clients.types";
 import { ClientCard } from "./ClientCard";
+
+const wrapper = createIntlWrapper();
 
 const navigateMock = vi.fn();
 vi.mock("react-router-dom", async () => {
@@ -49,7 +52,9 @@ describe("ClientCard", () => {
   });
 
   it("renders the client name and a Company badge", () => {
-    render(<ClientCard client={makeClient()} onDelete={vi.fn()} />);
+    render(<ClientCard client={makeClient()} onDelete={vi.fn()} />, {
+      wrapper,
+    });
 
     expect(screen.getByText("Acme")).toBeInTheDocument();
     expect(screen.getByText("Company")).toBeInTheDocument();
@@ -61,6 +66,7 @@ describe("ClientCard", () => {
         client={makeClient({ clientType: "INDIVIDUAL" })}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Individual")).toBeInTheDocument();
@@ -72,6 +78,7 @@ describe("ClientCard", () => {
         client={makeClient({ legalName: "Acme Corp Ltd" })}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText("Acme Corp Ltd")).toBeInTheDocument();
 
@@ -90,6 +97,7 @@ describe("ClientCard", () => {
         client={makeClient({ color: "#D2D5DA" })}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByTestId("client-color-swatch")).toHaveStyle({
       backgroundColor: "#D2D5DA",
@@ -99,12 +107,15 @@ describe("ClientCard", () => {
   it("omits the color swatch when the client has no color", () => {
     render(
       <ClientCard client={makeClient({ color: null })} onDelete={vi.fn()} />,
+      { wrapper },
     );
     expect(screen.queryByTestId("client-color-swatch")).not.toBeInTheDocument();
   });
 
   it("navigates to the client detail page when the card is clicked", () => {
-    render(<ClientCard client={makeClient({ id: 7 })} onDelete={vi.fn()} />);
+    render(<ClientCard client={makeClient({ id: 7 })} onDelete={vi.fn()} />, {
+      wrapper,
+    });
 
     fireEvent.click(screen.getByText("Acme"));
 
@@ -149,6 +160,7 @@ describe("ClientCard", () => {
         })}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("2 contacts")).toBeInTheDocument();
@@ -157,7 +169,9 @@ describe("ClientCard", () => {
 
   it("calls onDelete with the client id after confirming the delete dialog", () => {
     const onDelete = vi.fn();
-    render(<ClientCard client={makeClient({ id: 3 })} onDelete={onDelete} />);
+    render(<ClientCard client={makeClient({ id: 3 })} onDelete={onDelete} />, {
+      wrapper,
+    });
 
     fireEvent.click(screen.getByText("✕"));
     fireEvent.click(screen.getByText("Delete"));
@@ -167,7 +181,9 @@ describe("ClientCard", () => {
 
   it("does not navigate to the (now-deleted) client's detail page after confirming delete", () => {
     const onDelete = vi.fn();
-    render(<ClientCard client={makeClient({ id: 3 })} onDelete={onDelete} />);
+    render(<ClientCard client={makeClient({ id: 3 })} onDelete={onDelete} />, {
+      wrapper,
+    });
 
     fireEvent.click(screen.getByText("✕"));
     fireEvent.click(screen.getByText("Delete"));

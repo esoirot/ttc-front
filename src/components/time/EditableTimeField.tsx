@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useIntl } from "react-intl";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ export function EditableTimeField({
   isValid?: (candidateIso: string) => boolean;
   className?: string;
 }) {
+  const intl = useIntl();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -78,7 +80,13 @@ export function EditableTimeField({
         e.stopPropagation();
         startEdit();
       }}
-      title={`Click to edit ${label}`}
+      title={intl.formatMessage(
+        {
+          id: "time.editableTimeField.clickToEdit",
+          defaultMessage: "Click to edit {label}",
+        },
+        { label },
+      )}
     >
       {formatTimeWithSeconds(iso)}
     </span>

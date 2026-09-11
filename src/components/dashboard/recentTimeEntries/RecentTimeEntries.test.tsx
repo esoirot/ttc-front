@@ -1,8 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { describe, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 const { gqlMutate } = vi.hoisted(() => ({ gqlMutate: vi.fn() }));
 vi.mock("@/lib/apollo", () => ({ gqlFetch: vi.fn(), gqlMutate }));
@@ -10,9 +13,13 @@ vi.mock("@/lib/apollo", () => ({ gqlFetch: vi.fn(), gqlMutate }));
 import type { DashboardTimeEntry } from "@/types/dashboard.types";
 import { RecentTimeEntries } from "./RecentTimeEntries";
 
-function wrap(el: ReactElement) {
+function wrap(el: ReactElement, locale: Locale = "en") {
   return (
-    <QueryClientProvider client={createQueryClient()}>{el}</QueryClientProvider>
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        {el}
+      </QueryClientProvider>
+    </IntlProvider>
   );
 }
 
@@ -83,5 +90,12 @@ describe("RecentTimeEntries", () => {
     ];
     expect(vars.input.id).toBe(1);
     expect(new Date(vars.input.startTime).getHours()).toBe(7);
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(wrap(<RecentTimeEntries entries={[]} />, "fr"));
+    expect(
+      screen.getByText("Aucune entrée de temps pour l'instant."),
+    ).toBeInTheDocument();
   });
 });

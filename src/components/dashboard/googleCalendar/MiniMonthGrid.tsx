@@ -1,9 +1,16 @@
+import { useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { buildMonthMatrix, isSameDay, toDateKey } from "@/lib/calendarGrid";
 import type { GoogleCalendarEvent } from "@/types/google-calendar.types";
 
-const WEEKDAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+function weekdayLabels(locale: string): string[] {
+  // 1970-01-04 was a Sunday; days 4-10 give one full Sun-Sat reference week.
+  const fmt = new Intl.DateTimeFormat(locale, { weekday: "narrow" });
+  return Array.from({ length: 7 }, (_, i) =>
+    fmt.format(new Date(1970, 0, 4 + i)),
+  );
+}
 
 function eventDateKey(event: GoogleCalendarEvent): string | null {
   if (event.start.date) return event.start.date;
@@ -26,6 +33,8 @@ export function MiniMonthGrid({
   onSelectDate,
   events,
 }: Props) {
+  const intl = useIntl();
+  const weekdays = weekdayLabels(intl.locale);
   const today = new Date();
   const weeks = buildMonthMatrix(
     visibleMonth.getFullYear(),
@@ -42,7 +51,10 @@ export function MiniMonthGrid({
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label="Previous month"
+          aria-label={intl.formatMessage({
+            id: "dashboard.miniMonthGrid.previousMonth",
+            defaultMessage: "Previous month",
+          })}
           onClick={() =>
             onVisibleMonthChange(
               new Date(
@@ -56,7 +68,7 @@ export function MiniMonthGrid({
           ‹
         </Button>
         <span className="text-sm font-medium">
-          {visibleMonth.toLocaleDateString(undefined, {
+          {intl.formatDate(visibleMonth, {
             month: "long",
             year: "numeric",
           })}
@@ -65,7 +77,10 @@ export function MiniMonthGrid({
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label="Next month"
+          aria-label={intl.formatMessage({
+            id: "dashboard.miniMonthGrid.nextMonth",
+            defaultMessage: "Next month",
+          })}
           onClick={() =>
             onVisibleMonthChange(
               new Date(
@@ -81,8 +96,8 @@ export function MiniMonthGrid({
       </div>
 
       <div className="grid grid-cols-7 gap-0.5 text-center">
-        {WEEKDAY_LABELS.map((label) => (
-          <span key={label} className="text-[11px] text-muted-foreground py-1">
+        {weekdays.map((label, i) => (
+          <span key={i} className="text-[11px] text-muted-foreground py-1">
             {label}
           </span>
         ))}

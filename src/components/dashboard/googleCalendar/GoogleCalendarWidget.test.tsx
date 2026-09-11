@@ -1,6 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { describe, expect, it, vi } from "vitest";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 const useGoogleCalendarStatusMock = vi.fn();
 const useGoogleCalendarEventsMock = vi.fn();
@@ -22,11 +25,13 @@ vi.mock("./CreateEventDialog", () => ({
 
 import { GoogleCalendarWidget } from "./GoogleCalendarWidget";
 
-function renderWidget() {
+function renderWidget(locale: Locale = "en") {
   return render(
-    <MemoryRouter>
-      <GoogleCalendarWidget />
-    </MemoryRouter>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <MemoryRouter>
+        <GoogleCalendarWidget />
+      </MemoryRouter>
+    </IntlProvider>,
   );
 }
 
@@ -75,5 +80,19 @@ describe("GoogleCalendarWidget", () => {
     expect(screen.getByText("Mini month grid")).toBeInTheDocument();
     expect(screen.getByText("Agenda list")).toBeInTheDocument();
     expect(screen.getByText("Create event dialog")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    useGoogleCalendarStatusMock.mockReturnValue({
+      data: { connected: false, email: null },
+      isLoading: false,
+    });
+    useGoogleCalendarEventsMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    });
+    renderWidget("fr");
+    expect(screen.getByText("Calendrier")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Connecter" })).toBeInTheDocument();
   });
 });

@@ -1,5 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 const mutateAsyncMock = vi.fn().mockResolvedValue({ id: "e-new" });
 const useCreateGoogleCalendarEventMock = vi.fn(() => ({
@@ -18,7 +21,9 @@ describe("CreateEventDialog", () => {
   });
 
   it("opens the dialog and pre-fills start/end around the default date", () => {
-    render(<CreateEventDialog defaultDate={new Date(2026, 6, 10)} />);
+    render(<CreateEventDialog defaultDate={new Date(2026, 6, 10)} />, {
+      wrapper,
+    });
 
     fireEvent.click(screen.getByRole("button", { name: "+ Add event" }));
 
@@ -30,7 +35,9 @@ describe("CreateEventDialog", () => {
   });
 
   it("submits the form and creates an event", async () => {
-    render(<CreateEventDialog defaultDate={new Date(2026, 6, 10)} />);
+    render(<CreateEventDialog defaultDate={new Date(2026, 6, 10)} />, {
+      wrapper,
+    });
 
     fireEvent.click(screen.getByRole("button", { name: "+ Add event" }));
     fireEvent.change(screen.getByLabelText("Title"), {
@@ -48,12 +55,27 @@ describe("CreateEventDialog", () => {
   });
 
   it("does not submit when the title is empty", () => {
-    render(<CreateEventDialog defaultDate={new Date(2026, 6, 10)} />);
+    render(<CreateEventDialog defaultDate={new Date(2026, 6, 10)} />, {
+      wrapper,
+    });
 
     fireEvent.click(screen.getByRole("button", { name: "+ Add event" }));
     // Title input has `required` — native validation blocks submit.
     fireEvent.click(screen.getByRole("button", { name: "Create event" }));
 
     expect(mutateAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<CreateEventDialog defaultDate={new Date(2026, 6, 10)} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "+ Ajouter un événement" }),
+    );
+
+    expect(screen.getByText("Nouvel événement")).toBeInTheDocument();
+    expect(screen.getByLabelText("Titre")).toBeInTheDocument();
   });
 });

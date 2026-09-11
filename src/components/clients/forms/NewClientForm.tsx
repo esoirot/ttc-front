@@ -1,3 +1,4 @@
+import { useIntl, FormattedMessage } from "react-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useNewClientForm } from "@/hooks/clients/useNewClientForm";
-import { INDUSTRY_LABELS } from "@/constants/clients";
+import { INDUSTRY_LABEL_MESSAGES } from "@/constants/clients";
 import type {
   ClientType,
   ClientIndustry,
@@ -26,6 +27,7 @@ import { TtcTagChips } from "@/components/time/tags/TtcTagChips";
 import { ActivityChips } from "@/components/activities/ActivityChips";
 
 export function NewClientForm({ onClose, defaultStatus, title }: Props) {
+  const intl = useIntl();
   const {
     form,
     setField,
@@ -46,7 +48,14 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="text-base">{title ?? "New client"}</CardTitle>
+        <CardTitle className="text-base">
+          {title ?? (
+            <FormattedMessage
+              id="clients.newClientForm.title"
+              defaultMessage="New client"
+            />
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -55,8 +64,18 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
             onValueChange={(v) => setField("clientType", v as ClientType)}
           >
             <TabsList>
-              <TabsTrigger value="COMPANY">Company</TabsTrigger>
-              <TabsTrigger value="INDIVIDUAL">Individual</TabsTrigger>
+              <TabsTrigger value="COMPANY">
+                <FormattedMessage
+                  id="clients.newClientForm.company"
+                  defaultMessage="Company"
+                />
+              </TabsTrigger>
+              <TabsTrigger value="INDIVIDUAL">
+                <FormattedMessage
+                  id="clients.newClientForm.individual"
+                  defaultMessage="Individual"
+                />
+              </TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -64,7 +83,12 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
             {isCompany ? (
               <>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="ncf-name">Company name *</Label>
+                  <Label htmlFor="ncf-name">
+                    <FormattedMessage
+                      id="clients.newClientForm.companyName"
+                      defaultMessage="Company name *"
+                    />
+                  </Label>
                   <Input
                     id="ncf-name"
                     value={form.name}
@@ -73,7 +97,12 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="ncf-legalName">Legal name</Label>
+                  <Label htmlFor="ncf-legalName">
+                    <FormattedMessage
+                      id="clients.newClientForm.legalName"
+                      defaultMessage="Legal name"
+                    />
+                  </Label>
                   <Input
                     id="ncf-legalName"
                     value={form.legalName}
@@ -82,7 +111,12 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="ncf-vatNumber">VAT number</Label>
+                  <Label htmlFor="ncf-vatNumber">
+                    <FormattedMessage
+                      id="clients.newClientForm.vatNumber"
+                      defaultMessage="VAT number"
+                    />
+                  </Label>
                   <Input
                     id="ncf-vatNumber"
                     value={form.vatNumber}
@@ -91,7 +125,12 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="ncf-legalForm">Legal form</Label>
+                  <Label htmlFor="ncf-legalForm">
+                    <FormattedMessage
+                      id="clients.newClientForm.legalForm"
+                      defaultMessage="Legal form"
+                    />
+                  </Label>
                   <Input
                     id="ncf-legalForm"
                     value={form.legalForm}
@@ -103,7 +142,12 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
             ) : (
               <>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="ncf-firstName">First name *</Label>
+                  <Label htmlFor="ncf-firstName">
+                    <FormattedMessage
+                      id="clients.newClientForm.firstName"
+                      defaultMessage="First name *"
+                    />
+                  </Label>
                   <Input
                     id="ncf-firstName"
                     value={form.firstName}
@@ -112,7 +156,12 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="ncf-lastName">Last name</Label>
+                  <Label htmlFor="ncf-lastName">
+                    <FormattedMessage
+                      id="clients.newClientForm.lastName"
+                      defaultMessage="Last name"
+                    />
+                  </Label>
                   <Input
                     id="ncf-lastName"
                     value={form.lastName}
@@ -124,7 +173,12 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
             )}
 
             <div className="col-span-2 flex flex-col gap-1">
-              <Label htmlFor="ncf-website">Website</Label>
+              <Label htmlFor="ncf-website">
+                <FormattedMessage
+                  id="clients.newClientForm.website"
+                  defaultMessage="Website"
+                />
+              </Label>
               <Input
                 id="ncf-website"
                 value={form.website}
@@ -133,7 +187,12 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="ncf-industry">Industry</Label>
+              <Label htmlFor="ncf-industry">
+                <FormattedMessage
+                  id="clients.newClientForm.industry"
+                  defaultMessage="Industry"
+                />
+              </Label>
               <Select
                 value={form.industry ?? ""}
                 onValueChange={(v) =>
@@ -141,17 +200,19 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
                 }
               >
                 <SelectTrigger id="ncf-industry">
-                  <SelectValue placeholder="Select industry" />
+                  <SelectValue
+                    placeholder={intl.formatMessage({
+                      id: "clients.newClientForm.industryPlaceholder",
+                      defaultMessage: "Select industry",
+                    })}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {(
-                    Object.entries(INDUSTRY_LABELS) as [
-                      ClientIndustry,
-                      string,
-                    ][]
-                  ).map(([val, label]) => (
+                    Object.keys(INDUSTRY_LABEL_MESSAGES) as ClientIndustry[]
+                  ).map((val) => (
                     <SelectItem key={val} value={val}>
-                      {label}
+                      {intl.formatMessage(INDUSTRY_LABEL_MESSAGES[val])}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -165,7 +226,17 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
 
             <div className="flex flex-col gap-1">
               <Label htmlFor="ncf-email">
-                {isCompany ? "Company email" : "Email"}
+                {intl.formatMessage(
+                  isCompany
+                    ? {
+                        id: "clients.newClientForm.companyEmail",
+                        defaultMessage: "Company email",
+                      }
+                    : {
+                        id: "clients.newClientForm.email",
+                        defaultMessage: "Email",
+                      },
+                )}
               </Label>
               <Input
                 id="ncf-email"
@@ -179,7 +250,17 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
             </div>
             <div className="flex flex-col gap-1">
               <Label htmlFor="ncf-phone">
-                {isCompany ? "Company phone" : "Phone"}
+                {intl.formatMessage(
+                  isCompany
+                    ? {
+                        id: "clients.newClientForm.companyPhone",
+                        defaultMessage: "Company phone",
+                      }
+                    : {
+                        id: "clients.newClientForm.phone",
+                        defaultMessage: "Phone",
+                      },
+                )}
               </Label>
               <Input
                 id="ncf-phone"
@@ -209,25 +290,39 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
             />
 
             <div className="col-span-2 flex flex-col gap-1">
-              <Label htmlFor="ncf-notes">Notes</Label>
+              <Label htmlFor="ncf-notes">
+                <FormattedMessage
+                  id="clients.newClientForm.notes"
+                  defaultMessage="Notes"
+                />
+              </Label>
               <Textarea
                 id="ncf-notes"
                 value={form.notes}
                 onChange={(e) => setField("notes", e.target.value)}
-                placeholder="Internal notes about this client…"
+                placeholder={intl.formatMessage({
+                  id: "clients.newClientForm.notesPlaceholder",
+                  defaultMessage: "Internal notes about this client…",
+                })}
               />
             </div>
 
             <div className="col-span-2 pt-4 border-t border-border flex flex-col gap-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Tags
+                <FormattedMessage
+                  id="clients.newClientForm.tags"
+                  defaultMessage="Tags"
+                />
               </p>
               <TtcTagChips tagIds={tagIds} tags={tags} onChange={setTagIds} />
             </div>
 
             <div className="col-span-2 pt-4 border-t border-border flex flex-col gap-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Activities
+                <FormattedMessage
+                  id="clients.newClientForm.activities"
+                  defaultMessage="Activities"
+                />
               </p>
               <ActivityChips
                 activityIds={activityIds}
@@ -239,10 +334,23 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
 
           {error && <p className="text-destructive text-sm">{error}</p>}
           <p className="text-xs text-muted-foreground">
-            Add contacts from the client detail page after creation.
+            <FormattedMessage
+              id="clients.newClientForm.contactsHint"
+              defaultMessage="Add contacts from the client detail page after creation."
+            />
           </p>
           <Button type="submit" disabled={loading} className="self-end">
-            {loading ? "Creating…" : "Create client"}
+            {loading ? (
+              <FormattedMessage
+                id="clients.newClientForm.creating"
+                defaultMessage="Creating…"
+              />
+            ) : (
+              <FormattedMessage
+                id="clients.newClientForm.createClient"
+                defaultMessage="Create client"
+              />
+            )}
           </Button>
         </form>
       </CardContent>

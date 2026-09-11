@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useIntl, FormattedMessage } from "react-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,6 +39,7 @@ function RatePicker({
   allRates: RateOption[];
   onPick: (amount: number, currency: string) => void;
 }) {
+  const intl = useIntl();
   if (allRates.length === 0) return null;
   return (
     <Select
@@ -49,7 +51,12 @@ function RatePicker({
       }}
     >
       <SelectTrigger className="h-6 text-xs w-auto border-0 shadow-none text-muted-foreground hover:text-foreground px-1 gap-1">
-        <SelectValue placeholder="From rate…" />
+        <SelectValue
+          placeholder={intl.formatMessage({
+            id: "projects.header.ratePicker.placeholder",
+            defaultMessage: "From rate…",
+          })}
+        />
       </SelectTrigger>
       <SelectContent>
         {allRates.map((r) => (
@@ -93,6 +100,7 @@ export function ProjectHeader({
   onUpdate,
   saving,
 }: ProjectHeaderProps) {
+  const intl = useIntl();
   const { rates: userRates } = useRates();
   const { activities } = useMyActivities();
   const clientIdNum = project.clientId;
@@ -174,7 +182,12 @@ export function ProjectHeader({
       <form onSubmit={handleSave} className="mb-6 flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="pj-title">Title</Label>
+            <Label htmlFor="pj-title">
+              <FormattedMessage
+                id="projects.header.field.title"
+                defaultMessage="Title"
+              />
+            </Label>
             <Input
               id="pj-title"
               value={form.title}
@@ -183,7 +196,12 @@ export function ProjectHeader({
             />
           </div>
           <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="pj-description">Description</Label>
+            <Label htmlFor="pj-description">
+              <FormattedMessage
+                id="projects.header.field.description"
+                defaultMessage="Description"
+              />
+            </Label>
             <Input
               id="pj-description"
               value={form.description}
@@ -191,7 +209,12 @@ export function ProjectHeader({
             />
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="pj-status">Status</Label>
+            <Label htmlFor="pj-status">
+              <FormattedMessage
+                id="projects.header.field.status"
+                defaultMessage="Status"
+              />
+            </Label>
             <Select
               value={form.status}
               onValueChange={(val) =>
@@ -211,7 +234,12 @@ export function ProjectHeader({
             </Select>
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="pj-currency">Currency</Label>
+            <Label htmlFor="pj-currency">
+              <FormattedMessage
+                id="projects.header.field.currency"
+                defaultMessage="Currency"
+              />
+            </Label>
             <Input
               id="pj-currency"
               value={form.currency}
@@ -220,13 +248,28 @@ export function ProjectHeader({
             />
           </div>
           <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="pj-client">Client</Label>
+            <Label htmlFor="pj-client">
+              <FormattedMessage
+                id="projects.header.field.client"
+                defaultMessage="Client"
+              />
+            </Label>
             <Select value={form.clientId} onValueChange={handleClientChange}>
               <SelectTrigger id="pj-client">
-                <SelectValue placeholder="No client" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "projects.header.field.noClient",
+                    defaultMessage: "No client",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">No client</SelectItem>
+                <SelectItem value="__none__">
+                  <FormattedMessage
+                    id="projects.header.field.noClient"
+                    defaultMessage="No client"
+                  />
+                </SelectItem>
                 {clients.map((c) => (
                   <SelectItem key={c.id} value={String(c.id)}>
                     {c.name}
@@ -236,7 +279,12 @@ export function ProjectHeader({
             </Select>
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="pj-src">Source language</Label>
+            <Label htmlFor="pj-src">
+              <FormattedMessage
+                id="projects.header.field.sourceLanguage"
+                defaultMessage="Source language"
+              />
+            </Label>
             <Select
               value={form.sourceLanguage || "__none__"}
               onValueChange={(val) =>
@@ -247,7 +295,12 @@ export function ProjectHeader({
               }
             >
               <SelectTrigger id="pj-src">
-                <SelectValue placeholder="Select…" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "projects.header.field.languagePlaceholder",
+                    defaultMessage: "Select…",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">—</SelectItem>
@@ -260,7 +313,12 @@ export function ProjectHeader({
             </Select>
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="pj-tgt">Target language</Label>
+            <Label htmlFor="pj-tgt">
+              <FormattedMessage
+                id="projects.header.field.targetLanguage"
+                defaultMessage="Target language"
+              />
+            </Label>
             <Select
               value={form.targetLanguage || "__none__"}
               onValueChange={(val) =>
@@ -271,7 +329,12 @@ export function ProjectHeader({
               }
             >
               <SelectTrigger id="pj-tgt">
-                <SelectValue placeholder="Select…" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "projects.header.field.languagePlaceholder",
+                    defaultMessage: "Select…",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">—</SelectItem>
@@ -284,7 +347,12 @@ export function ProjectHeader({
             </Select>
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="pj-start">Start date</Label>
+            <Label htmlFor="pj-start">
+              <FormattedMessage
+                id="projects.header.field.startDate"
+                defaultMessage="Start date"
+              />
+            </Label>
             <Input
               id="pj-start"
               type="date"
@@ -293,7 +361,12 @@ export function ProjectHeader({
             />
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="pj-deadline">Deadline</Label>
+            <Label htmlFor="pj-deadline">
+              <FormattedMessage
+                id="projects.header.field.deadline"
+                defaultMessage="Deadline"
+              />
+            </Label>
             <Input
               id="pj-deadline"
               type="date"
@@ -302,7 +375,12 @@ export function ProjectHeader({
             />
           </div>
           <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="pj-wc">Word count</Label>
+            <Label htmlFor="pj-wc">
+              <FormattedMessage
+                id="projects.header.field.wordCount"
+                defaultMessage="Word count"
+              />
+            </Label>
             <Input
               id="pj-wc"
               type="number"
@@ -312,7 +390,12 @@ export function ProjectHeader({
             />
           </div>
           <div className="col-span-2 flex flex-col gap-2">
-            <Label>Activities</Label>
+            <Label>
+              <FormattedMessage
+                id="projects.header.field.activities"
+                defaultMessage="Activities"
+              />
+            </Label>
             <ActivityChips
               activityIds={form.activityIds}
               activities={activities}
@@ -327,7 +410,10 @@ export function ProjectHeader({
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Monetization
+              <FormattedMessage
+                id="projects.header.section.monetization"
+                defaultMessage="Monetization"
+              />
             </p>
             <Separator className="flex-1" />
           </div>
@@ -343,13 +429,20 @@ export function ProjectHeader({
               }
             />
             <Label htmlFor="pj-custom-rate" className="text-sm font-normal">
-              Use custom rate for this project instead of the client&apos;s rate
-              sheet
+              <FormattedMessage
+                id="projects.header.useCustomRate"
+                defaultMessage="Use custom rate for this project instead of the client's rate sheet"
+              />
             </Label>
           </div>
           {!form.useCustomRate && (
             <div className="flex flex-col gap-1">
-              <Label htmlFor="pj-rate-sheet">Client rate sheet</Label>
+              <Label htmlFor="pj-rate-sheet">
+                <FormattedMessage
+                  id="projects.header.field.clientRateSheet"
+                  defaultMessage="Client rate sheet"
+                />
+              </Label>
               {formClientRateSheets.length > 0 ? (
                 <Select
                   value={effectiveRateSheetId}
@@ -363,23 +456,46 @@ export function ProjectHeader({
                   }}
                 >
                   <SelectTrigger id="pj-rate-sheet">
-                    <SelectValue placeholder="Select a rate sheet…" />
+                    <SelectValue
+                      placeholder={intl.formatMessage({
+                        id: "projects.header.field.rateSheetPlaceholder",
+                        defaultMessage: "Select a rate sheet…",
+                      })}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">None</SelectItem>
+                    <SelectItem value="__none__">
+                      <FormattedMessage
+                        id="projects.header.field.rateSheetNone"
+                        defaultMessage="None"
+                      />
+                    </SelectItem>
                     {formClientRateSheets.map((s) => (
                       <SelectItem key={s.id} value={String(s.id)}>
                         {s.name} — {s.pricePerWord} {s.currency}/word
-                        {s.isDefault ? " (default)" : ""}
+                        {s.isDefault
+                          ? ` (${intl.formatMessage({
+                              id: "projects.header.field.rateSheetDefault",
+                              defaultMessage: "default",
+                            })})`
+                          : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  {formClientId == null
-                    ? "Select a client to choose a rate sheet."
-                    : 'No rate sheets for this client yet. Add one in Rates, or check "Use custom rate" above.'}
+                  {formClientId == null ? (
+                    <FormattedMessage
+                      id="projects.header.field.selectClientForRateSheet"
+                      defaultMessage="Select a client to choose a rate sheet."
+                    />
+                  ) : (
+                    <FormattedMessage
+                      id="projects.header.field.noRateSheets"
+                      defaultMessage='No rate sheets for this client yet. Add one in Rates, or check "Use custom rate" above.'
+                    />
+                  )}
                 </p>
               )}
             </div>
@@ -387,11 +503,19 @@ export function ProjectHeader({
           {form.useCustomRate && (
             <div className="grid grid-cols-2 gap-3">
               <p className="col-span-2 text-xs text-muted-foreground -mb-1">
-                Leave blank to disable
+                <FormattedMessage
+                  id="projects.header.leaveBlankToDisable"
+                  defaultMessage="Leave blank to disable"
+                />
               </p>
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="pj-fixed">Fixed fee</Label>
+                  <Label htmlFor="pj-fixed">
+                    <FormattedMessage
+                      id="projects.header.field.fixedFee"
+                      defaultMessage="Fixed fee"
+                    />
+                  </Label>
                   <RatePicker
                     allRates={fixedRates}
                     onPick={(amount, currency) =>
@@ -415,7 +539,12 @@ export function ProjectHeader({
               </div>
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="pj-hourly">Hourly rate</Label>
+                  <Label htmlFor="pj-hourly">
+                    <FormattedMessage
+                      id="projects.header.field.hourlyRate"
+                      defaultMessage="Hourly rate"
+                    />
+                  </Label>
                   <RatePicker
                     allRates={hourlyRates}
                     onPick={(amount, currency) =>
@@ -439,7 +568,12 @@ export function ProjectHeader({
               </div>
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="pj-word">Per-word rate</Label>
+                  <Label htmlFor="pj-word">
+                    <FormattedMessage
+                      id="projects.header.field.perWordRate"
+                      defaultMessage="Per-word rate"
+                    />
+                  </Label>
                   <RatePicker
                     allRates={perWordRates}
                     onPick={(amount, currency) =>
@@ -467,7 +601,17 @@ export function ProjectHeader({
 
         <div className="flex gap-2">
           <Button type="submit" size="sm" disabled={saving}>
-            {saving ? "Saving…" : "Save"}
+            {saving ? (
+              <FormattedMessage
+                id="projects.header.saving"
+                defaultMessage="Saving…"
+              />
+            ) : (
+              <FormattedMessage
+                id="common.actions.save"
+                defaultMessage="Save"
+              />
+            )}
           </Button>
           <Button
             type="button"
@@ -478,7 +622,10 @@ export function ProjectHeader({
               setEditing(false);
             }}
           >
-            Cancel
+            <FormattedMessage
+              id="common.actions.cancel"
+              defaultMessage="Cancel"
+            />
           </Button>
         </div>
       </form>
@@ -490,19 +637,52 @@ export function ProjectHeader({
   const pricing = project.useCustomRate
     ? [
         project.fixedFee != null &&
-          `Fixed ${project.fixedFee} ${project.currency}`,
+          intl.formatMessage(
+            {
+              id: "projects.header.pricing.fixed",
+              defaultMessage: "Fixed {fee} {currency}",
+            },
+            { fee: project.fixedFee, currency: project.currency },
+          ),
         project.hourlyRate != null &&
-          `${project.hourlyRate}/hr ${project.currency}`,
+          intl.formatMessage(
+            {
+              id: "projects.header.pricing.hourly",
+              defaultMessage: "{rate}/hr {currency}",
+            },
+            { rate: project.hourlyRate, currency: project.currency },
+          ),
         project.perWordRate != null &&
-          `${project.perWordRate}/word ${project.currency}`,
+          intl.formatMessage(
+            {
+              id: "projects.header.pricing.perWord",
+              defaultMessage: "{rate}/word {currency}",
+            },
+            { rate: project.perWordRate, currency: project.currency },
+          ),
       ].filter(Boolean)
     : resolvedRateSheet
       ? [
-          `Client rate: ${resolvedRateSheet.pricePerWord} ${resolvedRateSheet.currency}/word (${resolvedRateSheet.name})`,
+          intl.formatMessage(
+            {
+              id: "projects.header.pricing.clientRate",
+              defaultMessage: "Client rate: {price} {currency}/word ({name})",
+            },
+            {
+              price: resolvedRateSheet.pricePerWord,
+              currency: resolvedRateSheet.currency,
+              name: resolvedRateSheet.name,
+            },
+          ),
         ]
       : rateSheetsLoading
         ? []
-        : ["No client rate sheet for this project"];
+        : [
+            intl.formatMessage({
+              id: "projects.header.pricing.noRateSheet",
+              defaultMessage: "No client rate sheet for this project",
+            }),
+          ];
 
   return (
     <div className="mb-6">
@@ -536,19 +716,37 @@ export function ProjectHeader({
             )}
             {project.deadline && (
               <Badge variant="outline">
-                Due {project.deadline.slice(0, 10)}
+                <FormattedMessage
+                  id="projects.header.due"
+                  defaultMessage="Due {date}"
+                  values={{ date: project.deadline.slice(0, 10) }}
+                />
               </Badge>
             )}
             {project.wordCount != null ? (
               <Badge variant="outline">
-                {(project.totalWordsProcessed ?? 0).toLocaleString()} /{" "}
-                {project.wordCount.toLocaleString()} words
+                <FormattedMessage
+                  id="projects.header.wordsProgress"
+                  defaultMessage="{processed} / {total} words"
+                  values={{
+                    processed: intl.formatNumber(
+                      project.totalWordsProcessed ?? 0,
+                    ),
+                    total: intl.formatNumber(project.wordCount),
+                  }}
+                />
               </Badge>
             ) : (
               project.totalWordsProcessed != null &&
               project.totalWordsProcessed > 0 && (
                 <Badge variant="outline">
-                  {project.totalWordsProcessed.toLocaleString()} words logged
+                  <FormattedMessage
+                    id="projects.header.wordsLogged"
+                    defaultMessage="{total} words logged"
+                    values={{
+                      total: intl.formatNumber(project.totalWordsProcessed),
+                    }}
+                  />
                 </Badge>
               )
             )}
@@ -565,7 +763,7 @@ export function ProjectHeader({
           className="border-blue-600 dark:border-blue-400 text-foreground hover:bg-blue-500/30 hover:text-foreground dark:hover:bg-blue-400/30 dark:hover:text-foreground"
           onClick={() => setEditing(true)}
         >
-          Edit
+          <FormattedMessage id="common.actions.edit" defaultMessage="Edit" />
         </Button>
       </div>
     </div>

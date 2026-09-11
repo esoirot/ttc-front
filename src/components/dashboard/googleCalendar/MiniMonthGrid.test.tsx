@@ -2,6 +2,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { GoogleCalendarEvent } from "@/types/google-calendar.types";
 import { MiniMonthGrid } from "./MiniMonthGrid";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeEvent(
   overrides: Partial<GoogleCalendarEvent> = {},
@@ -25,6 +28,7 @@ describe("MiniMonthGrid", () => {
         onSelectDate={vi.fn()}
         events={[]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("July 2026")).toBeInTheDocument();
   });
@@ -39,6 +43,7 @@ describe("MiniMonthGrid", () => {
         onSelectDate={onSelectDate}
         events={[]}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByRole("button", { name: "15" }));
@@ -59,6 +64,7 @@ describe("MiniMonthGrid", () => {
         onSelectDate={vi.fn()}
         events={[]}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Previous month" }));
@@ -77,6 +83,7 @@ describe("MiniMonthGrid", () => {
         onSelectDate={vi.fn()}
         events={[]}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Next month" }));
@@ -94,7 +101,25 @@ describe("MiniMonthGrid", () => {
         onSelectDate={vi.fn()}
         events={[makeEvent({ start: {} })]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("July 2026")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <MiniMonthGrid
+        visibleMonth={new Date(2026, 6, 1)}
+        onVisibleMonthChange={vi.fn()}
+        selectedDate={new Date(2026, 6, 5)}
+        onSelectDate={vi.fn()}
+        events={[]}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+    expect(screen.getByText("juillet 2026")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Mois précédent" }),
+    ).toBeInTheDocument();
   });
 });

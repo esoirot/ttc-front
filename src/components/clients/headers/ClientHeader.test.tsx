@@ -8,6 +8,8 @@ import {
 import { QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Client } from "@/types/clients.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -72,11 +74,18 @@ function makeClient(overrides: Partial<Client> = {}): Client {
   } as Client;
 }
 
-function renderHeader(client: Client, onUpdate = vi.fn(), saving = false) {
+function renderHeader(
+  client: Client,
+  onUpdate = vi.fn(),
+  saving = false,
+  locale: "en" | "fr" = "en",
+) {
   gqlFetch.mockResolvedValue({ tags: [] });
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <ClientHeader client={client} onUpdate={onUpdate} saving={saving} />
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <ClientHeader client={client} onUpdate={onUpdate} saving={saving} />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -286,7 +295,13 @@ describe("ClientHeader", () => {
     fireEvent.click(screen.getByText("Edit"));
     rerender(
       <QueryClientProvider client={createQueryClient()}>
-        <ClientHeader client={makeClient()} onUpdate={vi.fn()} saving={true} />
+        <IntlProvider locale="en" messages={messages.en}>
+          <ClientHeader
+            client={makeClient()}
+            onUpdate={vi.fn()}
+            saving={true}
+          />
+        </IntlProvider>
       </QueryClientProvider>,
     );
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
@@ -565,5 +580,16 @@ describe("ClientHeader", () => {
       }),
     );
     expect(screen.getByText("Translation")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderHeader(makeClient({ paymentDelayDays: 30 }), vi.fn(), false, "fr");
+
+    expect(screen.getByText("Modifier")).toBeInTheDocument();
+    expect(
+      screen.getByText("Entreprise", { selector: "span" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Facturation")).toBeInTheDocument();
+    expect(screen.getByText("Paiement : 30 jours")).toBeInTheDocument();
   });
 });

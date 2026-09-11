@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 import type { TaskDetail } from "@/types/tasks.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -82,12 +84,14 @@ function renderSection(
     activeTimer?: TimeEntryLike | null;
     timeEntries?: TimeEntryLike[];
   } = {},
+  locale: Locale = "en",
 ) {
   setupGqlFetch(overrides);
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <TaskTimeSection taskId={4} projectId={1} taskTitle="Translate doc" />
     </QueryClientProvider>,
+    { wrapper: createIntlWrapper(locale) },
   );
 }
 
@@ -208,5 +212,18 @@ describe("TaskTimeSection", () => {
     fireEvent.click(screen.getByText("show ▼"));
 
     expect(await screen.findByText("Translated pages")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    renderSection({}, "fr");
+    await waitFor(() =>
+      expect(screen.getByText("afficher ▼")).toBeInTheDocument(),
+    );
+
+    expect(screen.getByText(/Démarrer/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText("afficher ▼"));
+    expect(
+      await screen.findByText("Aucun temps enregistré."),
+    ).toBeInTheDocument();
   });
 });

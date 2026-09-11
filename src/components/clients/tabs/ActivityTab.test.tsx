@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { describe, expect, it, vi } from "vitest";
+import { messages } from "@/i18n/messages";
 import type { Invoice } from "@/types/invoices.types";
 import { ActivityTab } from "./ActivityTab";
 
@@ -34,17 +36,19 @@ function makeInvoice(overrides: Partial<Invoice> = {}): Invoice {
 
 function renderTab(props: Partial<Parameters<typeof ActivityTab>[0]> = {}) {
   return render(
-    <MemoryRouter>
-      <ActivityTab
-        invoices={[]}
-        invoicesLoading={false}
-        totalSeconds={0}
-        timeLoading={false}
-        hasProjects={true}
-        statusHistory={[]}
-        {...props}
-      />
-    </MemoryRouter>,
+    <IntlProvider locale="en" messages={messages.en}>
+      <MemoryRouter>
+        <ActivityTab
+          invoices={[]}
+          invoicesLoading={false}
+          totalSeconds={0}
+          timeLoading={false}
+          hasProjects={true}
+          statusHistory={[]}
+          {...props}
+        />
+      </MemoryRouter>
+    </IntlProvider>,
   );
 }
 
@@ -72,5 +76,25 @@ describe("ActivityTab", () => {
   it("shows the formatted duration when time has been logged", () => {
     renderTab({ hasProjects: true, totalSeconds: 5400 });
     expect(screen.getByText("1h 30m")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <IntlProvider locale="fr" messages={messages.fr}>
+        <MemoryRouter>
+          <ActivityTab
+            invoices={[]}
+            invoicesLoading={false}
+            totalSeconds={0}
+            timeLoading={false}
+            hasProjects={true}
+            statusHistory={[]}
+          />
+        </MemoryRouter>
+      </IntlProvider>,
+    );
+    expect(
+      screen.getByText("Aucune facture pour l'instant."),
+    ).toBeInTheDocument();
   });
 });

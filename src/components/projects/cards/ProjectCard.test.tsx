@@ -2,6 +2,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { Project } from "@/types/projects.types";
 import { ProjectCard } from "./ProjectCard";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeProject(overrides: Partial<Project> = {}): Project {
   return {
@@ -38,6 +41,7 @@ describe("ProjectCard", () => {
         onDelete={vi.fn()}
         onClick={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText(/No client/)).toBeInTheDocument();
   });
@@ -50,6 +54,7 @@ describe("ProjectCard", () => {
         onDelete={vi.fn()}
         onClick={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText(/Acme/)).toBeInTheDocument();
   });
@@ -67,6 +72,7 @@ describe("ProjectCard", () => {
         onDelete={vi.fn()}
         onClick={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText(/EN → FR/)).toBeInTheDocument();
     expect(screen.getByText("Due 2026-07-01")).toBeInTheDocument();
@@ -81,6 +87,7 @@ describe("ProjectCard", () => {
         onDelete={vi.fn()}
         onClick={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText("900 / 1,500 words")).toBeInTheDocument();
   });
@@ -93,6 +100,7 @@ describe("ProjectCard", () => {
         onDelete={vi.fn()}
         onClick={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText("300 words logged")).toBeInTheDocument();
   });
@@ -105,6 +113,7 @@ describe("ProjectCard", () => {
         onDelete={vi.fn()}
         onClick={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.queryByText(/→/)).not.toBeInTheDocument();
     expect(screen.queryByText(/^Due /)).not.toBeInTheDocument();
@@ -120,6 +129,7 @@ describe("ProjectCard", () => {
         onDelete={vi.fn()}
         onClick={onClick}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByText("Translate manual"));
     expect(onClick).toHaveBeenCalled();
@@ -135,11 +145,25 @@ describe("ProjectCard", () => {
         onDelete={onDelete}
         onClick={onClick}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("✕"));
     fireEvent.click(screen.getByText("Delete"));
 
     expect(onDelete).toHaveBeenCalledWith(7);
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <ProjectCard
+        project={makeProject()}
+        clientName={undefined}
+        onDelete={vi.fn()}
+        onClick={vi.fn()}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+    expect(screen.getByText(/Aucun client/)).toBeInTheDocument();
   });
 });

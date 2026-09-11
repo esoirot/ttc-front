@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { AnyActivity } from "@/types/activities.types";
 import { ActivityCard } from "./ActivityCard";
 
@@ -25,11 +27,13 @@ const meta: Meta<typeof ActivityCard> = {
   title: "Organisms/ActivityCard",
   decorators: [
     (Story) => (
-      <MemoryRouter initialEntries={["/activities"]}>
-        <div className="max-w-md">
-          <Story />
-        </div>
-      </MemoryRouter>
+      <IntlProvider locale="en" messages={messages.en}>
+        <MemoryRouter initialEntries={["/activities"]}>
+          <div className="max-w-md">
+            <Story />
+          </div>
+        </MemoryRouter>
+      </IntlProvider>
     ),
   ],
   args: {

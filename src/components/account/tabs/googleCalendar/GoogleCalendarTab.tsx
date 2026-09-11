@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import {
   useGoogleCalendarStatus,
   useDisconnectGoogleCalendar,
@@ -8,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { GOOGLE_CALENDAR_AUTH_URL } from "@/constants/googleCalendar";
 
 export function GoogleCalendarTab() {
+  const intl = useIntl();
   const { data: status, isLoading } = useGoogleCalendarStatus();
   const disconnect = useDisconnectGoogleCalendar();
 
@@ -24,8 +26,11 @@ export function GoogleCalendarTab() {
     return (
       <div className="flex flex-col items-start gap-4">
         <p className="text-sm text-muted-foreground">
-          Connect your Google account to see your events on the dashboard and
-          create new ones.
+          {intl.formatMessage({
+            id: "account.googleCalendarTab.connectPrompt",
+            defaultMessage:
+              "Connect your Google account to see your events on the dashboard and create new ones.",
+          })}
         </p>
         <Button
           type="button"
@@ -33,7 +38,10 @@ export function GoogleCalendarTab() {
             window.location.href = GOOGLE_CALENDAR_AUTH_URL;
           }}
         >
-          Connect Google Calendar
+          {intl.formatMessage({
+            id: "account.googleCalendarTab.connectGoogleCalendar",
+            defaultMessage: "Connect Google Calendar",
+          })}
         </Button>
       </div>
     );
@@ -46,7 +54,10 @@ export function GoogleCalendarTab() {
           variant="secondary"
           className="text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30"
         >
-          ✓ Connected
+          {intl.formatMessage({
+            id: "account.googleCalendarTab.connected",
+            defaultMessage: "✓ Connected",
+          })}
         </Badge>
         <span className="text-xs text-muted-foreground">
           {status.email ?? "—"}
@@ -62,8 +73,14 @@ export function GoogleCalendarTab() {
           disabled={disconnect.isPending}
         >
           {disconnect.isPending
-            ? "Disconnecting…"
-            : "Disconnect Google Calendar"}
+            ? intl.formatMessage({
+                id: "account.googleCalendarTab.disconnecting",
+                defaultMessage: "Disconnecting…",
+              })
+            : intl.formatMessage({
+                id: "account.googleCalendarTab.disconnectGoogleCalendar",
+                defaultMessage: "Disconnect Google Calendar",
+              })}
         </Button>
       </div>
     </div>

@@ -18,13 +18,18 @@ vi.mock("react-router-dom", async () => {
 });
 
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import { CreateActivityForm } from "./CreateActivityForm";
 
-function renderForm(onCancel = vi.fn()) {
+function renderForm(onCancel = vi.fn(), locale: Locale = "en") {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <CreateActivityForm onCancel={onCancel} />
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <CreateActivityForm onCancel={onCancel} />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -235,5 +240,13 @@ describe("CreateActivityForm", () => {
 
     resolveMutate({ createActivity: { id: 1, name: "X" } });
     await waitFor(() => expect(navigateMock).toHaveBeenCalled());
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm(vi.fn(), "fr");
+
+    expect(screen.getByText("Type d'activité")).toBeInTheDocument();
+    expect(screen.getByLabelText("Nom de l'activité")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Créer" })).toBeInTheDocument();
   });
 });

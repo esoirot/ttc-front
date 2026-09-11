@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { Invoice } from "@/types/invoices.types";
+
+const IntlWrapper = createIntlWrapper();
 
 const useInvoicesPageMock = vi.fn();
 vi.mock("@/hooks/invoices/useInvoicesPage", () => ({
@@ -82,7 +85,7 @@ function renderList(
     ...defaultPageState(),
     ...stateOverrides,
   });
-  return render(<InvoicesList />);
+  return render(<InvoicesList />, { wrapper: IntlWrapper });
 }
 
 describe("InvoicesList", () => {

@@ -19,6 +19,8 @@ vi.mock("react-router-dom", async () => {
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { AnyActivity } from "@/types/activities.types";
 import { Activities } from "./Activities";
 
@@ -39,10 +41,12 @@ function makeActivity(overrides: Partial<AnyActivity> = {}): AnyActivity {
   } as AnyActivity;
 }
 
-function renderActivities() {
+function renderActivities(locale: "en" | "fr" = "en") {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <Activities />
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <Activities />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -108,5 +112,16 @@ describe("Activities", () => {
     await waitFor(() =>
       expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), { id: 5 }),
     );
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    gqlFetch.mockResolvedValueOnce({ myActivities: [] });
+    renderActivities("fr");
+
+    expect(
+      await screen.findByText(
+        "Aucune activité pour l'instant. Créez-en une pour commencer.",
+      ),
+    ).toBeInTheDocument();
   });
 });

@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { CompanyContact } from "@/types/clients.types";
 import { ContactsTab } from "./ContactsTab";
+
+const wrapper = createIntlWrapper();
 
 function makeContact(overrides: Partial<CompanyContact> = {}): CompanyContact {
   return {
@@ -28,6 +31,7 @@ describe("ContactsTab", () => {
         onEdit={vi.fn()}
         onAdd={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("No contacts yet.")).toBeInTheDocument();
@@ -44,6 +48,7 @@ describe("ContactsTab", () => {
         onEdit={vi.fn()}
         onAdd={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Jane Doe")).toBeInTheDocument();
@@ -58,6 +63,7 @@ describe("ContactsTab", () => {
         onEdit={vi.fn()}
         onAdd={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("+ Add contact"));
@@ -76,6 +82,7 @@ describe("ContactsTab", () => {
         onEdit={vi.fn()}
         onAdd={onAdd}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("+ Add contact"));
@@ -93,6 +100,7 @@ describe("ContactsTab", () => {
         onEdit={vi.fn()}
         onAdd={onAdd}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("+ Add contact"));
@@ -122,6 +130,7 @@ describe("ContactsTab", () => {
         onEdit={vi.fn()}
         onAdd={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("+ Add contact"));
@@ -138,6 +147,7 @@ describe("ContactsTab", () => {
         onEdit={vi.fn()}
         onAdd={onAdd}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("+ Add contact"));
@@ -168,11 +178,45 @@ describe("ContactsTab", () => {
         onEdit={vi.fn()}
         onAdd={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("✕"));
     fireEvent.click(screen.getByText("Delete"));
 
     expect(onDelete).toHaveBeenCalledWith(9);
+  });
+
+  it("renders French copy for the translated ContactRow child when locale is fr", () => {
+    render(
+      <ContactsTab
+        contacts={[makeContact({ id: 1 })]}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+        onAdd={vi.fn()}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+
+    fireEvent.click(screen.getByText("✎"));
+    expect(screen.getByLabelText("Prénom")).toBeInTheDocument();
+  });
+
+  it("renders French copy for the ContactsTab's own strings when locale is fr", () => {
+    render(
+      <ContactsTab
+        contacts={[]}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+        onAdd={vi.fn()}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+
+    expect(
+      screen.getByText("Aucun contact pour l'instant."),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByText("+ Ajouter un contact"));
+    expect(screen.getByLabelText("Poste")).toBeInTheDocument();
   });
 });

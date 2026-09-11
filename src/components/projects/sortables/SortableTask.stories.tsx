@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Task } from "@/types/tasks.types";
 import { SortableTask } from "./SortableTask";
 
@@ -29,13 +31,15 @@ const meta: Meta<typeof SortableTask> = {
   title: "Organisms/SortableTask",
   decorators: [
     (Story) => (
-      <DndContext>
-        <SortableContext items={[1]}>
-          <div className="max-w-xs">
-            <Story />
-          </div>
-        </SortableContext>
-      </DndContext>
+      <IntlProvider locale="en" messages={messages.en}>
+        <DndContext>
+          <SortableContext items={[1]}>
+            <div className="max-w-xs">
+              <Story />
+            </div>
+          </SortableContext>
+        </DndContext>
+      </IntlProvider>
     ),
   ],
   args: {

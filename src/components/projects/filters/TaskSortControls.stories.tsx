@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { TaskSortField, TaskSortDirection } from "@/types/tasks.types";
 import { TaskSortControls } from "./TaskSortControls";
 
@@ -22,6 +24,13 @@ function Interactive() {
 const meta: Meta<typeof TaskSortControls> = {
   component: TaskSortControls,
   title: "Molecules/TaskSortControls",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof TaskSortControls>;

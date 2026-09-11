@@ -14,17 +14,26 @@ vi.mock("@/lib/api", async () => {
 });
 
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import { ClockifyImportForm } from "./ClockifyImportForm";
 
-function renderForm(refetch = vi.fn(), onClose = vi.fn()) {
+function renderForm(
+  refetch = vi.fn(),
+  onClose = vi.fn(),
+  locale: Locale = "en",
+) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <ClockifyImportForm
-        workspaceId="ws-1"
-        refetch={refetch}
-        onClose={onClose}
-      />
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <ClockifyImportForm
+          workspaceId="ws-1"
+          refetch={refetch}
+          onClose={onClose}
+        />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -112,5 +121,16 @@ describe("ClockifyImportForm", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Import" })).not.toBeDisabled(),
     );
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm(vi.fn(), vi.fn(), "fr");
+
+    expect(
+      screen.getByText("Importer les entrées Clockify dans TTC"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Importer" }),
+    ).toBeInTheDocument();
   });
 });

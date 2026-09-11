@@ -1,5 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 vi.mock("../tabs/TimeEntriesTab", () => ({
   TimeEntriesTab: () => <div>Time entries tab</div>,
@@ -10,7 +13,7 @@ vi.mock("../tabs/CustomLineTab", () => ({
 
 import { AddItemDialog } from "./AddItemDialog";
 
-function renderDialog(open = true) {
+function renderDialog(open = true, locale: "en" | "fr" = "en") {
   return render(
     <AddItemDialog
       invoiceId={1}
@@ -20,6 +23,7 @@ function renderDialog(open = true) {
       open={open}
       onOpenChange={vi.fn()}
     />,
+    { wrapper: locale === "en" ? wrapper : createIntlWrapper("fr") },
   );
 }
 
@@ -43,5 +47,10 @@ describe("AddItemDialog", () => {
   it("renders nothing when closed", () => {
     renderDialog(false);
     expect(screen.queryByText("Add line item")).not.toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderDialog(true, "fr");
+    expect(screen.getByText("Ajouter une ligne")).toBeInTheDocument();
   });
 });

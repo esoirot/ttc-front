@@ -2,6 +2,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Invoice } from "@/types/invoices.types";
 import { InvoiceListCard } from "./InvoiceListCard";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 const navigateMock = vi.fn();
 vi.mock("react-router-dom", async () => {
@@ -48,7 +51,9 @@ describe("InvoiceListCard", () => {
   });
 
   it("shows 'No client' when clientName is not provided", () => {
-    render(<InvoiceListCard inv={makeInvoice()} clientName={undefined} />);
+    render(<InvoiceListCard inv={makeInvoice()} clientName={undefined} />, {
+      wrapper,
+    });
     expect(screen.getByText(/No client/)).toBeInTheDocument();
   });
 
@@ -58,20 +63,32 @@ describe("InvoiceListCard", () => {
         inv={makeInvoice({ dueDate: "2026-07-01T00:00:00.000Z" })}
         clientName="Acme"
       />,
+      { wrapper },
     );
     expect(screen.getByText(/Acme/)).toBeInTheDocument();
     expect(screen.getByText(/Due 2026-07-01/)).toBeInTheDocument();
   });
 
   it("sums item totals and shows the status badge", () => {
-    render(<InvoiceListCard inv={makeInvoice()} clientName="Acme" />);
+    render(<InvoiceListCard inv={makeInvoice()} clientName="Acme" />, {
+      wrapper,
+    });
     expect(screen.getByText("50.00 EUR")).toBeInTheDocument();
     expect(screen.getByText("DRAFT")).toBeInTheDocument();
   });
 
   it("navigates to the invoice detail page when clicked", () => {
-    render(<InvoiceListCard inv={makeInvoice({ id: 8 })} clientName="Acme" />);
+    render(<InvoiceListCard inv={makeInvoice({ id: 8 })} clientName="Acme" />, {
+      wrapper,
+    });
     fireEvent.click(screen.getByText("INV-0001"));
     expect(navigateMock).toHaveBeenCalledWith("/invoices/8");
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<InvoiceListCard inv={makeInvoice()} clientName={undefined} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    expect(screen.getByText(/Aucun client/)).toBeInTheDocument();
   });
 });

@@ -1,3 +1,4 @@
+import { FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,13 +15,19 @@ export function BackupCodesDisplay({ codes, onDone }: BackupCodesDisplayProps) {
         variant="secondary"
         className="w-fit text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30"
       >
-        ✓ Enabled
+        ✓{" "}
+        <FormattedMessage
+          id="auth.backupCodes.enabled"
+          defaultMessage="Enabled"
+        />
       </Badge>
       <Alert>
         <AlertDescription className="flex flex-col gap-3">
           <p className="font-medium text-sm">
-            Save these backup codes — they won't be shown again. Each code can
-            only be used once.
+            <FormattedMessage
+              id="auth.backupCodes.description"
+              defaultMessage="Save these backup codes — they won't be shown again. Each code can only be used once."
+            />
           </p>
           <div className="grid grid-cols-2 gap-1.5">
             {codes.map((c) => (
@@ -38,12 +45,15 @@ export function BackupCodesDisplay({ codes, onDone }: BackupCodesDisplayProps) {
             className="self-start"
             onClick={copyAll}
           >
-            Copy all codes
+            <FormattedMessage
+              id="auth.backupCodes.copyAll"
+              defaultMessage="Copy all codes"
+            />
           </Button>
         </AlertDescription>
       </Alert>
       <Button variant="ghost" size="sm" className="self-start" onClick={onDone}>
-        Done
+        <FormattedMessage id="auth.backupCodes.done" defaultMessage="Done" />
       </Button>
     </div>
   );

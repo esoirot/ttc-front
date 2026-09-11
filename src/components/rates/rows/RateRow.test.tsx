@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { TranslationRate } from "@/types/rates.types";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import { RateRow } from "./RateRow";
+
+const wrapper = createIntlWrapper();
 
 function makeRate(overrides: Partial<TranslationRate> = {}): TranslationRate {
   return {
@@ -30,6 +33,7 @@ describe("RateRow", () => {
         onEdit={vi.fn()}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText("40.00 €")).toBeInTheDocument();
   });
@@ -41,6 +45,7 @@ describe("RateRow", () => {
         onEdit={vi.fn()}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText("0.1200 €")).toBeInTheDocument();
   });
@@ -52,13 +57,16 @@ describe("RateRow", () => {
         onEdit={vi.fn()}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText("EN → FR")).toBeInTheDocument();
   });
 
   it("calls onEdit when Edit is clicked", () => {
     const onEdit = vi.fn();
-    render(<RateRow rate={makeRate()} onEdit={onEdit} onDelete={vi.fn()} />);
+    render(<RateRow rate={makeRate()} onEdit={onEdit} onDelete={vi.fn()} />, {
+      wrapper,
+    });
     fireEvent.click(screen.getByText("Edit"));
     expect(onEdit).toHaveBeenCalled();
   });
@@ -71,9 +79,17 @@ describe("RateRow", () => {
         onEdit={vi.fn()}
         onDelete={onDelete}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByText("✕"));
     fireEvent.click(screen.getByText("Delete"));
     expect(onDelete).toHaveBeenCalled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<RateRow rate={makeRate()} onEdit={vi.fn()} onDelete={vi.fn()} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    expect(screen.getByText("Modifier")).toBeInTheDocument();
   });
 });

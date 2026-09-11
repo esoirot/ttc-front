@@ -1,9 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { InvoiceDetailHeader } from "./InvoiceDetailHeader";
 
 const meta: Meta<typeof InvoiceDetailHeader> = {
   component: InvoiceDetailHeader,
   title: "Organisms/InvoiceDetailHeader",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     number: "INV-0001",
     status: "DRAFT",

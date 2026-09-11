@@ -1,3 +1,4 @@
+import { FormattedMessage, useIntl } from "react-intl";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AddressFieldsProps } from "@/types/clients.types";
@@ -12,60 +13,109 @@ export function AddressFields({
   onChange,
   idPrefix = "addr",
 }: AddressFieldsProps) {
+  const intl = useIntl();
   return (
     <>
       <div className="col-span-2 flex flex-col gap-1">
-        <Label htmlFor={`${idPrefix}-address`}>Address</Label>
+        <Label htmlFor={`${idPrefix}-address`}>
+          <FormattedMessage
+            id="clients.addressFields.address"
+            defaultMessage="Address"
+          />
+        </Label>
         <Input
           id={`${idPrefix}-address`}
           value={address}
           onChange={(e) => onChange("address", e.target.value)}
-          placeholder="123 Main St"
+          placeholder={intl.formatMessage({
+            id: "clients.addressFields.addressPlaceholder",
+            defaultMessage: "123 Main St",
+          })}
         />
       </div>
       <div className="col-span-2 flex flex-col gap-1">
-        <Label htmlFor={`${idPrefix}-addressLine2`}>Address line 2</Label>
+        <Label htmlFor={`${idPrefix}-addressLine2`}>
+          <FormattedMessage
+            id="clients.addressFields.addressLine2"
+            defaultMessage="Address line 2"
+          />
+        </Label>
         <Input
           id={`${idPrefix}-addressLine2`}
           value={addressLine2}
           onChange={(e) => onChange("addressLine2", e.target.value)}
-          placeholder="Suite 100"
+          placeholder={intl.formatMessage({
+            id: "clients.addressFields.addressLine2Placeholder",
+            defaultMessage: "Suite 100",
+          })}
         />
       </div>
       <div className="flex flex-col gap-1">
-        <Label htmlFor={`${idPrefix}-city`}>City</Label>
+        <Label htmlFor={`${idPrefix}-city`}>
+          <FormattedMessage
+            id="clients.addressFields.city"
+            defaultMessage="City"
+          />
+        </Label>
         <Input
           id={`${idPrefix}-city`}
           value={city}
           onChange={(e) => onChange("city", e.target.value)}
-          placeholder="Paris"
+          placeholder={intl.formatMessage({
+            id: "clients.addressFields.cityPlaceholder",
+            defaultMessage: "Paris",
+          })}
         />
       </div>
       <div className="flex flex-col gap-1">
-        <Label htmlFor={`${idPrefix}-postalCode`}>Postal code</Label>
+        <Label htmlFor={`${idPrefix}-postalCode`}>
+          <FormattedMessage
+            id="clients.addressFields.postalCode"
+            defaultMessage="Postal code"
+          />
+        </Label>
         <Input
           id={`${idPrefix}-postalCode`}
           value={postalCode}
           onChange={(e) => onChange("postalCode", e.target.value)}
-          placeholder="75001"
+          placeholder={intl.formatMessage({
+            id: "clients.addressFields.postalCodePlaceholder",
+            defaultMessage: "75001",
+          })}
         />
       </div>
       <div className="flex flex-col gap-1">
-        <Label htmlFor={`${idPrefix}-state`}>State / Province</Label>
+        <Label htmlFor={`${idPrefix}-state`}>
+          <FormattedMessage
+            id="clients.addressFields.state"
+            defaultMessage="State / Province"
+          />
+        </Label>
         <Input
           id={`${idPrefix}-state`}
           value={state}
           onChange={(e) => onChange("state", e.target.value)}
-          placeholder="Quebec"
+          placeholder={intl.formatMessage({
+            id: "clients.addressFields.statePlaceholder",
+            defaultMessage: "Quebec",
+          })}
         />
       </div>
       <div className="flex flex-col gap-1">
-        <Label htmlFor={`${idPrefix}-country`}>Country</Label>
+        <Label htmlFor={`${idPrefix}-country`}>
+          <FormattedMessage
+            id="clients.addressFields.country"
+            defaultMessage="Country"
+          />
+        </Label>
         <Input
           id={`${idPrefix}-country`}
           value={country}
           onChange={(e) => onChange("country", e.target.value)}
-          placeholder="France"
+          placeholder={intl.formatMessage({
+            id: "clients.addressFields.countryPlaceholder",
+            defaultMessage: "France",
+          })}
         />
       </div>
     </>

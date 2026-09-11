@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { useUpdateActivity } from "@/hooks/activities/useActivities";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,7 @@ export function LanguagePairsSection({
   activityId,
   initialPairs,
 }: LanguagePairsSectionProps) {
+  const intl = useIntl();
   const { updateActivity, loading: saving } = useUpdateActivity();
   const [pairs, setPairs] = useState<LanguagePairDraft[]>(
     initialPairs.map(({ fromLanguage, toLanguage }) => ({
@@ -81,7 +83,12 @@ export function LanguagePairsSection({
               onValueChange={(v) => updatePair(i, "fromLanguage", v)}
             >
               <SelectTrigger className="flex-1">
-                <SelectValue placeholder="From" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "activities.languagePairs.from",
+                    defaultMessage: "From",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGES.map((lang) => (
@@ -97,7 +104,12 @@ export function LanguagePairsSection({
               onValueChange={(v) => updatePair(i, "toLanguage", v)}
             >
               <SelectTrigger className="flex-1">
-                <SelectValue placeholder="To" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "activities.languagePairs.to",
+                    defaultMessage: "To",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGES.map((lang) => (
@@ -111,24 +123,38 @@ export function LanguagePairsSection({
               type="button"
               onClick={() => removePair(i)}
               className="text-xs text-muted-foreground hover:text-destructive transition-colors"
-              aria-label="Remove pair"
+              aria-label={intl.formatMessage({
+                id: "activities.languagePairs.removePair",
+                defaultMessage: "Remove pair",
+              })}
             >
               ✕
             </button>
             {sameLanguage && (
-              <span className="text-xs text-destructive">Same language</span>
+              <span className="text-xs text-destructive">
+                <FormattedMessage
+                  id="activities.languagePairs.sameLanguage"
+                  defaultMessage="Same language"
+                />
+              </span>
             )}
           </div>
         );
       })}
       <div className="flex items-center justify-between">
         <Button type="button" variant="ghost" size="sm" onClick={addPair}>
-          + Add pair
+          <FormattedMessage
+            id="activities.languagePairs.addPair"
+            defaultMessage="+ Add pair"
+          />
         </Button>
         <div className="flex items-center gap-2">
           {saved && (
             <span className="text-sm text-emerald-600 dark:text-emerald-400">
-              Saved.
+              <FormattedMessage
+                id="activities.infoForm.saved"
+                defaultMessage="Saved."
+              />
             </span>
           )}
           <Button
@@ -136,7 +162,17 @@ export function LanguagePairsSection({
             size="sm"
             disabled={saving || pairs.length === 0 || !isValid()}
           >
-            {saving ? "Saving…" : "Save"}
+            {saving ? (
+              <FormattedMessage
+                id="clients.header.saving"
+                defaultMessage="Saving…"
+              />
+            ) : (
+              <FormattedMessage
+                id="common.actions.save"
+                defaultMessage="Save"
+              />
+            )}
           </Button>
         </div>
       </div>

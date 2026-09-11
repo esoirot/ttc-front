@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
+import { IntlProvider } from "react-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { Task } from "@/types/tasks.types";
 import { SortableTask } from "./SortableTask";
 
@@ -24,20 +27,25 @@ function makeTask(overrides: Partial<Task> = {}): Task {
   } as Task;
 }
 
-function renderTask(props: Partial<Parameters<typeof SortableTask>[0]> = {}) {
+function renderTask(
+  props: Partial<Parameters<typeof SortableTask>[0]> = {},
+  locale: Locale = "en",
+) {
   const task = props.task ?? makeTask();
   return render(
-    <DndContext>
-      <SortableContext items={[task.id]}>
-        <SortableTask
-          task={task}
-          onDelete={vi.fn()}
-          onOpenModal={vi.fn()}
-          memberMap={{}}
-          {...props}
-        />
-      </SortableContext>
-    </DndContext>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <DndContext>
+        <SortableContext items={[task.id]}>
+          <SortableTask
+            task={task}
+            onDelete={vi.fn()}
+            onOpenModal={vi.fn()}
+            memberMap={{}}
+            {...props}
+          />
+        </SortableContext>
+      </DndContext>
+    </IntlProvider>,
   );
 }
 
@@ -87,5 +95,11 @@ describe("SortableTask", () => {
     fireEvent.click(screen.getByLabelText("Delete task"));
     fireEvent.click(screen.getByText("Delete"));
     expect(onDelete).toHaveBeenCalledWith(6);
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderTask({ task: makeTask({ id: 6 }) }, "fr");
+    fireEvent.click(screen.getByLabelText("Supprimer la tâche"));
+    expect(screen.getByText("Supprimer la tâche ?")).toBeInTheDocument();
   });
 });

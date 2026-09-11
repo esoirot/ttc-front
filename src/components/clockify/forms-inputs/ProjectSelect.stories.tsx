@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { ProjectSelect } from "./ProjectSelect";
 import type { ClockifyProject } from "@/types/clockify.types";
 
@@ -29,6 +31,13 @@ const projects: ClockifyProject[] = [
 const meta: Meta<typeof ProjectSelect> = {
   component: ProjectSelect,
   title: "Molecules/ProjectSelect",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     projectId: "p2",
     projects,

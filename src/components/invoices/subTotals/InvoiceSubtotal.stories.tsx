@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 
 const items = [
@@ -27,6 +29,13 @@ const items = [
 const meta: Meta<typeof InvoiceSubtotal> = {
   component: InvoiceSubtotal,
   title: "Molecules/InvoiceSubtotal",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     items,
     currency: "USD",

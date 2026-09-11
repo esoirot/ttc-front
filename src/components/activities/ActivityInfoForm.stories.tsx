@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { ActivityInfoForm } from "./ActivityInfoForm";
 
 const meta: Meta<typeof ActivityInfoForm> = {
@@ -8,7 +10,9 @@ const meta: Meta<typeof ActivityInfoForm> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <Story />
+        <IntlProvider locale="en" messages={messages.en}>
+          <Story />
+        </IntlProvider>
       </QueryClientProvider>
     ),
   ],

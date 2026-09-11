@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import { useProjects } from "@/hooks/projects/useProjects";
 import { useTimeEntries } from "@/hooks/time/useTimeEntries";
 import { formatDuration } from "@/lib/time";
@@ -20,6 +21,7 @@ function sumByProject(
 }
 
 export function ProjectsOverviewCharts() {
+  const intl = useIntl();
   const { projects } = useProjects();
 
   const now = new Date();
@@ -37,7 +39,7 @@ export function ProjectsOverviewCharts() {
     59,
     999,
   ).toISOString();
-  const monthLabel = now.toLocaleDateString(undefined, {
+  const monthLabel = intl.formatDate(now, {
     month: "long",
     year: "numeric",
   });
@@ -47,11 +49,19 @@ export function ProjectsOverviewCharts() {
     end: monthEnd,
   });
 
+  const unknownProject = intl.formatMessage({
+    id: "projects.overviewCharts.unknownProject",
+    defaultMessage: "Unknown project",
+  });
+  const noProject = intl.formatMessage({
+    id: "projects.overviewCharts.noProject",
+    defaultMessage: "No project",
+  });
   const projectTitleById = new Map(projects.map((p) => [p.id, p.title]));
   const titleOf = (projectId: number | null) =>
     projectId != null
-      ? (projectTitleById.get(projectId) ?? "Unknown project")
-      : "No project";
+      ? (projectTitleById.get(projectId) ?? unknownProject)
+      : noProject;
 
   const monthlyTimeData = sumByProject(
     monthlyEntries,
@@ -74,32 +84,62 @@ export function ProjectsOverviewCharts() {
   return (
     <div className="flex flex-wrap gap-4 mb-6">
       <DistributionPie
-        title="Time per project"
+        title={intl.formatMessage({
+          id: "projects.overviewCharts.timePerProject",
+          defaultMessage: "Time per project",
+        })}
         subtitle={monthLabel}
         data={monthlyTimeData}
         formatValue={formatDuration}
-        emptyMessage="No time logged yet this month."
+        emptyMessage={intl.formatMessage({
+          id: "projects.overviewCharts.noTimeThisMonth",
+          defaultMessage: "No time logged yet this month.",
+        })}
       />
       <DistributionPie
-        title="Time per project"
-        subtitle="All time"
+        title={intl.formatMessage({
+          id: "projects.overviewCharts.timePerProject",
+          defaultMessage: "Time per project",
+        })}
+        subtitle={intl.formatMessage({
+          id: "projects.overviewCharts.allTime",
+          defaultMessage: "All time",
+        })}
         data={overallTimeData}
         formatValue={formatDuration}
-        emptyMessage="No time logged yet."
+        emptyMessage={intl.formatMessage({
+          id: "projects.overviewCharts.noTimeAllTime",
+          defaultMessage: "No time logged yet.",
+        })}
       />
       <DistributionPie
-        title="Words per project"
+        title={intl.formatMessage({
+          id: "projects.overviewCharts.wordsPerProject",
+          defaultMessage: "Words per project",
+        })}
         subtitle={monthLabel}
         data={monthlyWordsData}
-        formatValue={(v) => v.toLocaleString()}
-        emptyMessage="No words logged yet this month."
+        formatValue={(v) => intl.formatNumber(v)}
+        emptyMessage={intl.formatMessage({
+          id: "projects.overviewCharts.noWordsThisMonth",
+          defaultMessage: "No words logged yet this month.",
+        })}
       />
       <DistributionPie
-        title="Words per project"
-        subtitle="All time"
+        title={intl.formatMessage({
+          id: "projects.overviewCharts.wordsPerProject",
+          defaultMessage: "Words per project",
+        })}
+        subtitle={intl.formatMessage({
+          id: "projects.overviewCharts.allTime",
+          defaultMessage: "All time",
+        })}
         data={overallWordsData}
-        formatValue={(v) => v.toLocaleString()}
-        emptyMessage="No words logged yet."
+        formatValue={(v) => intl.formatNumber(v)}
+        emptyMessage={intl.formatMessage({
+          id: "projects.overviewCharts.noWordsAllTime",
+          defaultMessage: "No words logged yet.",
+        })}
       />
     </div>
   );

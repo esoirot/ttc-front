@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ export function ContactsTab({
   saving,
   adding,
 }: ContactsTabProps) {
+  const intl = useIntl();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_CONTACT);
   const [emailTouched, setEmailTouched] = useState(false);
@@ -27,7 +29,10 @@ export function ContactsTab({
 
   const emailError =
     emailTouched && !isValidOptionalEmail(form.email)
-      ? "Enter a valid email address."
+      ? intl.formatMessage({
+          id: "auth.login.emailError",
+          defaultMessage: "Enter a valid email address.",
+        })
       : "";
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
@@ -55,7 +60,12 @@ export function ContactsTab({
   return (
     <>
       {contacts.length === 0 && !showForm ? (
-        <p className="text-muted-foreground text-sm mb-3">No contacts yet.</p>
+        <p className="text-muted-foreground text-sm mb-3">
+          <FormattedMessage
+            id="clients.contactsTab.noContactsYet"
+            defaultMessage="No contacts yet."
+          />
+        </p>
       ) : (
         <div className="flex flex-col mb-4">
           {contacts.map((contact) => (
@@ -76,32 +86,56 @@ export function ContactsTab({
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="cfn">First name</Label>
+                  <Label htmlFor="cfn">
+                    <FormattedMessage
+                      id="clients.header.field.firstName"
+                      defaultMessage="First name"
+                    />
+                  </Label>
                   <Input
                     id="cfn"
                     value={form.firstName}
                     onChange={(e) => setField("firstName", e.target.value)}
-                    placeholder="Jane"
+                    placeholder={intl.formatMessage({
+                      id: "clients.contactsTab.firstNamePlaceholder",
+                      defaultMessage: "Jane",
+                    })}
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="cln">Last name</Label>
+                  <Label htmlFor="cln">
+                    <FormattedMessage
+                      id="clients.header.field.lastName"
+                      defaultMessage="Last name"
+                    />
+                  </Label>
                   <Input
                     id="cln"
                     value={form.lastName}
                     onChange={(e) => setField("lastName", e.target.value)}
-                    placeholder="Smith"
+                    placeholder={intl.formatMessage({
+                      id: "clients.contactsTab.lastNamePlaceholder",
+                      defaultMessage: "Smith",
+                    })}
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="cem">Email</Label>
+                  <Label htmlFor="cem">
+                    <FormattedMessage
+                      id="clients.header.field.email"
+                      defaultMessage="Email"
+                    />
+                  </Label>
                   <Input
                     id="cem"
                     type="email"
                     value={form.email}
                     onChange={(e) => setField("email", e.target.value)}
                     onBlur={() => setEmailTouched(true)}
-                    placeholder="jane@acme.com"
+                    placeholder={intl.formatMessage({
+                      id: "clients.contactsTab.emailPlaceholder",
+                      defaultMessage: "jane@acme.com",
+                    })}
                   />
                   {emailError && (
                     <span className="text-xs text-destructive">
@@ -110,21 +144,37 @@ export function ContactsTab({
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="cph">Phone</Label>
+                  <Label htmlFor="cph">
+                    <FormattedMessage
+                      id="clients.header.field.phone"
+                      defaultMessage="Phone"
+                    />
+                  </Label>
                   <Input
                     id="cph"
                     value={form.phone}
                     onChange={(e) => setField("phone", e.target.value)}
-                    placeholder="+33 1 00 00 00 00"
+                    placeholder={intl.formatMessage({
+                      id: "clients.contactsTab.phonePlaceholder",
+                      defaultMessage: "+33 1 00 00 00 00",
+                    })}
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="cjt">Job title</Label>
+                  <Label htmlFor="cjt">
+                    <FormattedMessage
+                      id="clients.contactRow.jobTitle"
+                      defaultMessage="Job title"
+                    />
+                  </Label>
                   <Input
                     id="cjt"
                     value={form.jobTitle}
                     onChange={(e) => setField("jobTitle", e.target.value)}
-                    placeholder="Project Manager"
+                    placeholder={intl.formatMessage({
+                      id: "clients.contactsTab.jobTitlePlaceholder",
+                      defaultMessage: "Project Manager",
+                    })}
                   />
                 </div>
                 <ColorField
@@ -143,10 +193,23 @@ export function ContactsTab({
                     setForm(EMPTY_CONTACT);
                   }}
                 >
-                  Cancel
+                  <FormattedMessage
+                    id="common.actions.cancel"
+                    defaultMessage="Cancel"
+                  />
                 </Button>
                 <Button type="submit" size="sm" disabled={adding}>
-                  {adding ? "Adding…" : "Add contact"}
+                  {adding ? (
+                    <FormattedMessage
+                      id="clients.contactsTab.adding"
+                      defaultMessage="Adding…"
+                    />
+                  ) : (
+                    <FormattedMessage
+                      id="clients.contactsTab.addContact"
+                      defaultMessage="Add contact"
+                    />
+                  )}
                 </Button>
               </div>
             </form>
@@ -154,7 +217,10 @@ export function ContactsTab({
         </Card>
       ) : (
         <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
-          + Add contact
+          <FormattedMessage
+            id="clients.contactsTab.addContactCta"
+            defaultMessage="+ Add contact"
+          />
         </Button>
       )}
     </>

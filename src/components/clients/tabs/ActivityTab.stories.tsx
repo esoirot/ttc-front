@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Invoice } from "@/types/invoices.types";
 import type { ClientStatusHistory } from "@/types/clients.types";
 import { ActivityTab } from "./ActivityTab";
@@ -39,11 +41,13 @@ const meta: Meta<typeof ActivityTab> = {
   title: "Organisms/ActivityTab",
   decorators: [
     (Story) => (
-      <MemoryRouter>
-        <div className="max-w-lg">
-          <Story />
-        </div>
-      </MemoryRouter>
+      <IntlProvider locale="en" messages={messages.en}>
+        <MemoryRouter>
+          <div className="max-w-lg">
+            <Story />
+          </div>
+        </MemoryRouter>
+      </IntlProvider>
     ),
   ],
   args: {

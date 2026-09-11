@@ -1,8 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 let tagChipsProps: Record<string, unknown> = {};
 vi.mock("../tags/TtcTagChips", () => ({
@@ -25,9 +28,17 @@ function formatLocalHHmmss(iso: string): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-function wrap(el: ReactElement) {
+function wrap(el: ReactElement, locale: Locale = "en") {
   return (
-    <QueryClientProvider client={createQueryClient()}>{el}</QueryClientProvider>
+    <QueryClientProvider client={createQueryClient()}>
+      <IntlProvider
+        locale={locale}
+        defaultLocale="en"
+        messages={messages[locale]}
+      >
+        {el}
+      </IntlProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -860,5 +871,20 @@ describe("TtcEntryRow", () => {
     fireEvent.blur(input);
 
     expect(onUpdate).toHaveBeenCalledWith({ id: 1, wordsProcessed: null });
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({ entry: makeEntry({ description: null }) })}
+        />,
+        "fr",
+      ),
+    );
+
+    expect(screen.getByText("Aucune description")).toBeInTheDocument();
+    expect(screen.getByText("Aucun projet")).toBeInTheDocument();
+    expect(screen.getByLabelText("Basculer facturable")).toBeInTheDocument();
   });
 });

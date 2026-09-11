@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { DateRangeFilter } from "./DateRangeFilter";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 describe("DateRangeFilter", () => {
   it("renders the start/end date values and the count/total/duration summary", () => {
@@ -14,6 +17,7 @@ describe("DateRangeFilter", () => {
         total={12}
         totalSeconds={3661}
       />,
+      { wrapper },
     );
 
     expect(screen.getByLabelText("From")).toHaveValue("2026-06-01");
@@ -34,6 +38,7 @@ describe("DateRangeFilter", () => {
         total={0}
         totalSeconds={0}
       />,
+      { wrapper },
     );
 
     fireEvent.change(screen.getByLabelText("From"), {
@@ -58,9 +63,28 @@ describe("DateRangeFilter", () => {
         total={0}
         totalSeconds={0}
       />,
+      { wrapper },
     );
 
     expect(screen.getByLabelText("From")).toHaveAttribute("max", "2026-06-30");
     expect(screen.getByLabelText("To")).toHaveAttribute("min", "2026-06-01");
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <DateRangeFilter
+        startDate="2026-06-01"
+        setStartDate={vi.fn()}
+        endDate="2026-06-30"
+        setEndDate={vi.fn()}
+        count={5}
+        total={12}
+        totalSeconds={3661}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+
+    expect(screen.getByLabelText("Du")).toBeInTheDocument();
+    expect(screen.getByLabelText("Au")).toBeInTheDocument();
   });
 });

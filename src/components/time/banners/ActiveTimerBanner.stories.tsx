@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { TimeEntry } from "@/types/time-entries.types";
 import { ActiveTimerBanner } from "./ActiveTimerBanner";
 
@@ -23,6 +25,13 @@ function makeActiveTimer(overrides: Partial<TimeEntry> = {}): TimeEntry {
 const meta: Meta<typeof ActiveTimerBanner> = {
   component: ActiveTimerBanner,
   title: "Organisms/ActiveTimerBanner",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     activeTimer: makeActiveTimer(),
     stopTimer: () => Promise.resolve(),

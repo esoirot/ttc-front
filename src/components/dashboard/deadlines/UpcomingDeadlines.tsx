@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FormattedMessage } from "react-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
@@ -23,12 +24,20 @@ export function UpcomingDeadlines({ deadlines }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">Upcoming Deadlines</CardTitle>
+        <CardTitle className="text-sm">
+          <FormattedMessage
+            id="dashboard.upcomingDeadlines.title"
+            defaultMessage="Upcoming Deadlines"
+          />
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {deadlines.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No deadlines in the next 7 days.
+            <FormattedMessage
+              id="dashboard.upcomingDeadlines.empty"
+              defaultMessage="No deadlines in the next 7 days."
+            />
           </p>
         ) : (
           <div className="flex flex-col gap-2">
@@ -41,7 +50,11 @@ export function UpcomingDeadlines({ deadlines }: Props) {
                 <div>
                   <p className="text-sm font-medium">{d.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    Due {d.deadline.slice(0, 10)}
+                    <FormattedMessage
+                      id="dashboard.upcomingDeadlines.due"
+                      defaultMessage="Due {date}"
+                      values={{ date: d.deadline.slice(0, 10) }}
+                    />
                   </p>
                 </div>
                 <Badge

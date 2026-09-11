@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
 import { useUpdateActivity } from "@/hooks/activities/useActivities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ export function ActivityInfoForm({
   activityId,
   initial,
 }: ActivityInfoFormProps) {
+  const intl = useIntl();
   const { updateActivity, loading: saving } = useUpdateActivity();
   const [name, setName] = useState(initial.name);
   const [companyName, setCompanyName] = useState(initial.companyName ?? "");
@@ -43,11 +45,21 @@ export function ActivityInfoForm({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!isValidOptionalEmail(professionalEmail.trim())) {
-      setValidationError("Enter a valid professional email address");
+      setValidationError(
+        intl.formatMessage({
+          id: "activities.infoForm.invalidEmail",
+          defaultMessage: "Enter a valid professional email address",
+        }),
+      );
       return;
     }
     if (!isValidHttpUrl(website.trim())) {
-      setValidationError("Enter a valid website URL");
+      setValidationError(
+        intl.formatMessage({
+          id: "activities.infoForm.invalidWebsite",
+          defaultMessage: "Enter a valid website URL",
+        }),
+      );
       return;
     }
     setValidationError(null);
@@ -70,7 +82,12 @@ export function ActivityInfoForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="act-name">Activity name</Label>
+          <Label htmlFor="act-name">
+            <FormattedMessage
+              id="activities.createForm.activityName"
+              defaultMessage="Activity name"
+            />
+          </Label>
           <Input
             id="act-name"
             value={name}
@@ -79,7 +96,12 @@ export function ActivityInfoForm({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="act-company">Registered company name</Label>
+          <Label htmlFor="act-company">
+            <FormattedMessage
+              id="activities.infoForm.registeredCompanyName"
+              defaultMessage="Registered company name"
+            />
+          </Label>
           <Input
             id="act-company"
             value={companyName}
@@ -87,10 +109,20 @@ export function ActivityInfoForm({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="act-legal">Legal form</Label>
+          <Label htmlFor="act-legal">
+            <FormattedMessage
+              id="activities.infoForm.legalForm"
+              defaultMessage="Legal form"
+            />
+          </Label>
           <Select value={legalForm} onValueChange={setLegalForm}>
             <SelectTrigger id="act-legal">
-              <SelectValue placeholder="Select…" />
+              <SelectValue
+                placeholder={intl.formatMessage({
+                  id: "rates.form.selectEllipsis",
+                  defaultMessage: "Select…",
+                })}
+              />
             </SelectTrigger>
             <SelectContent>
               {LEGAL_FORMS.map((f) => (
@@ -102,7 +134,12 @@ export function ActivityInfoForm({
           </Select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="act-email">Professional email</Label>
+          <Label htmlFor="act-email">
+            <FormattedMessage
+              id="activities.infoForm.professionalEmail"
+              defaultMessage="Professional email"
+            />
+          </Label>
           <Input
             id="act-email"
             type="email"
@@ -111,7 +148,12 @@ export function ActivityInfoForm({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="act-phone">Professional phone</Label>
+          <Label htmlFor="act-phone">
+            <FormattedMessage
+              id="activities.infoForm.professionalPhone"
+              defaultMessage="Professional phone"
+            />
+          </Label>
           <Input
             id="act-phone"
             value={professionalPhone}
@@ -119,7 +161,12 @@ export function ActivityInfoForm({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="act-website">Website</Label>
+          <Label htmlFor="act-website">
+            <FormattedMessage
+              id="clients.header.field.website"
+              defaultMessage="Website"
+            />
+          </Label>
           <Input
             id="act-website"
             value={website}
@@ -127,10 +174,20 @@ export function ActivityInfoForm({
           />
         </div>
         <div className="col-span-2 flex flex-col gap-1.5">
-          <Label htmlFor="act-timezone">Timezone</Label>
+          <Label htmlFor="act-timezone">
+            <FormattedMessage
+              id="activities.infoForm.timezone"
+              defaultMessage="Timezone"
+            />
+          </Label>
           <Select value={timezone} onValueChange={setTimezone}>
             <SelectTrigger id="act-timezone">
-              <SelectValue placeholder="Select timezone…" />
+              <SelectValue
+                placeholder={intl.formatMessage({
+                  id: "activities.infoForm.selectTimezone",
+                  defaultMessage: "Select timezone…",
+                })}
+              />
             </SelectTrigger>
             <SelectContent>
               {TIMEZONES.map((tz) => (
@@ -146,10 +203,22 @@ export function ActivityInfoForm({
         <p className="text-sm text-destructive">{validationError}</p>
       )}
       {saved && (
-        <p className="text-sm text-emerald-600 dark:text-emerald-400">Saved.</p>
+        <p className="text-sm text-emerald-600 dark:text-emerald-400">
+          <FormattedMessage
+            id="activities.infoForm.saved"
+            defaultMessage="Saved."
+          />
+        </p>
       )}
       <Button type="submit" className="self-start" disabled={saving}>
-        {saving ? "Saving…" : "Save"}
+        {saving ? (
+          <FormattedMessage
+            id="clients.header.saving"
+            defaultMessage="Saving…"
+          />
+        ) : (
+          <FormattedMessage id="common.actions.save" defaultMessage="Save" />
+        )}
       </Button>
     </form>
   );

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ export function ContactRow({
   onEdit: (input: EditInput) => Promise<unknown>;
   saving?: boolean;
 }) {
+  const intl = useIntl();
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(EMPTY_EDIT);
   const [emailTouched, setEmailTouched] = useState(false);
@@ -49,7 +51,10 @@ export function ContactRow({
 
   const emailError =
     emailTouched && !isValidOptionalEmail(editForm.email)
-      ? "Enter a valid email address."
+      ? intl.formatMessage({
+          id: "auth.login.emailError",
+          defaultMessage: "Enter a valid email address.",
+        })
       : "";
 
   async function handleSave(e: React.SubmitEvent<HTMLFormElement>) {
@@ -81,7 +86,12 @@ export function ContactRow({
           <form onSubmit={handleSave} className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
-                <Label htmlFor={`efn-${contact.id}`}>First name</Label>
+                <Label htmlFor={`efn-${contact.id}`}>
+                  <FormattedMessage
+                    id="clients.header.field.firstName"
+                    defaultMessage="First name"
+                  />
+                </Label>
                 <Input
                   id={`efn-${contact.id}`}
                   value={editForm.firstName}
@@ -92,7 +102,12 @@ export function ContactRow({
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <Label htmlFor={`eln-${contact.id}`}>Last name</Label>
+                <Label htmlFor={`eln-${contact.id}`}>
+                  <FormattedMessage
+                    id="clients.header.field.lastName"
+                    defaultMessage="Last name"
+                  />
+                </Label>
                 <Input
                   id={`eln-${contact.id}`}
                   value={editForm.lastName}
@@ -103,7 +118,12 @@ export function ContactRow({
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <Label htmlFor={`eem-${contact.id}`}>Email</Label>
+                <Label htmlFor={`eem-${contact.id}`}>
+                  <FormattedMessage
+                    id="clients.header.field.email"
+                    defaultMessage="Email"
+                  />
+                </Label>
                 <Input
                   id={`eem-${contact.id}`}
                   type="email"
@@ -119,7 +139,12 @@ export function ContactRow({
                 )}
               </div>
               <div className="flex flex-col gap-1">
-                <Label htmlFor={`eph-${contact.id}`}>Phone</Label>
+                <Label htmlFor={`eph-${contact.id}`}>
+                  <FormattedMessage
+                    id="clients.header.field.phone"
+                    defaultMessage="Phone"
+                  />
+                </Label>
                 <Input
                   id={`eph-${contact.id}`}
                   value={editForm.phone}
@@ -130,7 +155,12 @@ export function ContactRow({
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <Label htmlFor={`ejt-${contact.id}`}>Job title</Label>
+                <Label htmlFor={`ejt-${contact.id}`}>
+                  <FormattedMessage
+                    id="clients.contactRow.jobTitle"
+                    defaultMessage="Job title"
+                  />
+                </Label>
                 <Input
                   id={`ejt-${contact.id}`}
                   value={editForm.jobTitle}
@@ -153,10 +183,23 @@ export function ContactRow({
                 size="sm"
                 onClick={() => setEditing(false)}
               >
-                Cancel
+                <FormattedMessage
+                  id="common.actions.cancel"
+                  defaultMessage="Cancel"
+                />
               </Button>
               <Button type="submit" size="sm" disabled={saving}>
-                {saving ? "Saving…" : "Save"}
+                {saving ? (
+                  <FormattedMessage
+                    id="clients.header.saving"
+                    defaultMessage="Saving…"
+                  />
+                ) : (
+                  <FormattedMessage
+                    id="common.actions.save"
+                    defaultMessage="Save"
+                  />
+                )}
               </Button>
             </div>
           </form>
@@ -208,22 +251,44 @@ export function ContactRow({
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete contact?</AlertDialogTitle>
+              <AlertDialogTitle>
+                <FormattedMessage
+                  id="clients.contactRow.deleteConfirmTitle"
+                  defaultMessage="Delete contact?"
+                />
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                Remove{" "}
-                <strong>
-                  {displayName || contact.email || "this contact"}
-                </strong>
-                ? This cannot be undone.
+                <FormattedMessage
+                  id="clients.contactRow.deleteConfirmDescription"
+                  defaultMessage="Remove <b>{name}</b>? This cannot be undone."
+                  values={{
+                    name:
+                      displayName ||
+                      contact.email ||
+                      intl.formatMessage({
+                        id: "clients.contactRow.thisContact",
+                        defaultMessage: "this contact",
+                      }),
+                    b: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+                  }}
+                />
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>
+                <FormattedMessage
+                  id="common.actions.cancel"
+                  defaultMessage="Cancel"
+                />
+              </AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={onDelete}
               >
-                Delete
+                <FormattedMessage
+                  id="common.actions.delete"
+                  defaultMessage="Delete"
+                />
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

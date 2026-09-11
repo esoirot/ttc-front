@@ -6,8 +6,10 @@ import {
   within,
 } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
 import type { AdminInvoice } from "@/types/admin.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -63,7 +65,9 @@ function makeConnection(items: AdminInvoice[]) {
 function renderTable() {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <AdminInvoicesTable />
+      <IntlProvider locale="en" messages={messages.en}>
+        <AdminInvoicesTable />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }

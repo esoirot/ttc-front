@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { HubspotContact } from "@/types/hubspot.types";
+
+const wrapper = createIntlWrapper();
 
 const useInfiniteHubspotContactsMock = vi.fn();
 const useSearchHubspotContactsMock = vi.fn();
@@ -77,12 +80,12 @@ describe("ContactsTab", () => {
       ...defaultInfinite(),
       isLoading: true,
     });
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     expect(screen.getByText("Loading…")).toBeInTheDocument();
   });
 
   it("shows No contacts yet when the list is empty", () => {
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     expect(screen.getByText("No contacts yet")).toBeInTheDocument();
   });
 
@@ -91,7 +94,7 @@ describe("ContactsTab", () => {
       ...defaultInfinite(),
       data: { pages: [{ results: [makeContact()] }] },
     });
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     expect(screen.getByText("Jane Doe")).toBeInTheDocument();
     expect(screen.getByText("jane@example.com")).toBeInTheDocument();
     expect(screen.getByText("Acme")).toBeInTheDocument();
@@ -117,7 +120,7 @@ describe("ContactsTab", () => {
         ],
       },
     });
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     expect(screen.getAllByText("—").length).toBe(4);
   });
 
@@ -128,7 +131,7 @@ describe("ContactsTab", () => {
         pages: [{ results: [makeContact({}, "1"), makeContact({}, "2")] }],
       },
     });
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     expect(screen.getByText("2 contacts loaded")).toBeInTheDocument();
   });
 
@@ -139,13 +142,13 @@ describe("ContactsTab", () => {
       hasNextPage: true,
       fetchNextPage,
     });
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "Load more" }));
     expect(fetchNextPage).toHaveBeenCalled();
   });
 
   it("toggles the new contact form", () => {
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New contact" }));
     expect(screen.getByPlaceholderText("Email *")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -153,7 +156,7 @@ describe("ContactsTab", () => {
   });
 
   it("Create button is disabled until email is filled", () => {
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New contact" }));
     expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
     fireEvent.change(screen.getByPlaceholderText("Email *"), {
@@ -170,7 +173,7 @@ describe("ContactsTab", () => {
       isPending: false,
       error: null,
     });
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New contact" }));
     fireEvent.change(screen.getByPlaceholderText("Email *"), {
       target: { value: " a@b.com " },
@@ -195,7 +198,7 @@ describe("ContactsTab", () => {
       isPending: true,
       error: new Error("Contact exists"),
     });
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New contact" }));
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     expect(screen.getByText("Contact exists")).toBeInTheDocument();
@@ -207,7 +210,7 @@ describe("ContactsTab", () => {
       data: { results: [makeContact({}, "9")] },
       isLoading: false,
     });
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     fireEvent.change(screen.getByPlaceholderText("Search contacts…"), {
       target: { value: "jane" },
     });
@@ -219,7 +222,7 @@ describe("ContactsTab", () => {
 
   it("shows No contacts found for an empty search result", async () => {
     vi.useFakeTimers();
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     fireEvent.change(screen.getByPlaceholderText("Search contacts…"), {
       target: { value: "zzz" },
     });
@@ -241,7 +244,7 @@ describe("ContactsTab", () => {
       ...defaultInfinite(),
       data: { pages: [{ results: [makeContact({}, "5")] }] },
     });
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "Import as client" }));
     expect(mutateAsync).toHaveBeenCalledWith("5");
     expect(await screen.findByText("Imported")).toBeInTheDocument();
@@ -258,7 +261,21 @@ describe("ContactsTab", () => {
       ...defaultInfinite(),
       data: { pages: [{ results: [makeContact()] }] },
     });
-    render(<ContactsTab />);
+    render(<ContactsTab />, { wrapper });
     expect(screen.getByRole("button", { name: "Importing…" })).toBeDisabled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    useInfiniteHubspotContactsMock.mockReturnValue({
+      ...defaultInfinite(),
+      data: {
+        pages: [{ results: [makeContact({}, "1"), makeContact({}, "2")] }],
+      },
+    });
+    render(<ContactsTab />, { wrapper: createIntlWrapper("fr") });
+    expect(
+      screen.getByRole("button", { name: "+ Nouveau contact" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("2 contacts chargés")).toBeInTheDocument();
   });
 });

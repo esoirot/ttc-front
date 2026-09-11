@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { TaskActivityFeed } from "./TaskActivityFeed";
 import type { TaskActivity } from "@/types/tasks.types";
 
@@ -44,6 +46,13 @@ const activities: TaskActivity[] = [
 const meta: Meta<typeof TaskActivityFeed> = {
   component: TaskActivityFeed,
   title: "Molecules/TaskActivityFeed",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     activities,
   },

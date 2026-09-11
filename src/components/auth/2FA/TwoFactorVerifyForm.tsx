@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate, Navigate } from "react-router-dom";
+import { useIntl } from "react-intl";
 import {
   useVerifyTwoFactor,
   useVerifyTwoFactorBackup,
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { AuthLayout } from "../layouts/AuthLayout";
 
 export function TwoFactorVerifyForm() {
+  const intl = useIntl();
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as { tempToken?: string; from?: string } | null;
@@ -57,13 +59,26 @@ export function TwoFactorVerifyForm() {
 
   if (useBackup) {
     return (
-      <AuthLayout title="Backup code">
+      <AuthLayout
+        title={intl.formatMessage({
+          id: "auth.twoFactorVerify.backupCodeTitle",
+          defaultMessage: "Backup code",
+        })}
+      >
         <p className="text-sm text-muted-foreground mb-4">
-          Enter one of your saved backup codes.
+          {intl.formatMessage({
+            id: "auth.twoFactorVerify.enterBackupCode",
+            defaultMessage: "Enter one of your saved backup codes.",
+          })}
         </p>
         <form onSubmit={handleBackupSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="backup-code">Backup code</Label>
+            <Label htmlFor="backup-code">
+              {intl.formatMessage({
+                id: "auth.twoFactorVerify.backupCodeLabel",
+                defaultMessage: "Backup code",
+              })}
+            </Label>
             <Input
               id="backup-code"
               type="text"
@@ -83,7 +98,15 @@ export function TwoFactorVerifyForm() {
             className="w-full"
             disabled={backupLoading || backupCode.trim().length === 0}
           >
-            {backupLoading ? "Verifying…" : "Verify backup code"}
+            {backupLoading
+              ? intl.formatMessage({
+                  id: "auth.twoFactorVerify.verifying",
+                  defaultMessage: "Verifying…",
+                })
+              : intl.formatMessage({
+                  id: "auth.twoFactorVerify.verifyBackupCode",
+                  defaultMessage: "Verify backup code",
+                })}
           </Button>
 
           <Button
@@ -92,7 +115,10 @@ export function TwoFactorVerifyForm() {
             className="w-full text-muted-foreground"
             onClick={() => setUseBackup(false)}
           >
-            Use authenticator code instead
+            {intl.formatMessage({
+              id: "auth.twoFactorVerify.useAuthenticatorInstead",
+              defaultMessage: "Use authenticator code instead",
+            })}
           </Button>
         </form>
       </AuthLayout>
@@ -100,13 +126,26 @@ export function TwoFactorVerifyForm() {
   }
 
   return (
-    <AuthLayout title="Two-factor authentication">
+    <AuthLayout
+      title={intl.formatMessage({
+        id: "auth.twoFactorSetupCard.title",
+        defaultMessage: "Two-factor authentication",
+      })}
+    >
       <p className="text-sm text-muted-foreground mb-4">
-        Enter the 6-digit code from your authenticator app.
+        {intl.formatMessage({
+          id: "auth.twoFactorVerify.enterCode",
+          defaultMessage: "Enter the 6-digit code from your authenticator app.",
+        })}
       </p>
       <form onSubmit={handleTotpSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="code">Authenticator code</Label>
+          <Label htmlFor="code">
+            {intl.formatMessage({
+              id: "auth.twoFactorVerify.authenticatorCodeLabel",
+              defaultMessage: "Authenticator code",
+            })}
+          </Label>
           <Input
             id="code"
             type="text"
@@ -130,7 +169,15 @@ export function TwoFactorVerifyForm() {
           className="w-full"
           disabled={totpLoading || code.length !== 6}
         >
-          {totpLoading ? "Verifying…" : "Verify"}
+          {totpLoading
+            ? intl.formatMessage({
+                id: "auth.twoFactorVerify.verifying",
+                defaultMessage: "Verifying…",
+              })
+            : intl.formatMessage({
+                id: "auth.twoFactorVerify.verify",
+                defaultMessage: "Verify",
+              })}
         </Button>
 
         <Button
@@ -139,7 +186,10 @@ export function TwoFactorVerifyForm() {
           className="w-full text-muted-foreground text-sm"
           onClick={() => setUseBackup(true)}
         >
-          Lost access to authenticator? Use backup code
+          {intl.formatMessage({
+            id: "auth.twoFactorVerify.lostAccess",
+            defaultMessage: "Lost access to authenticator? Use backup code",
+          })}
         </Button>
       </form>
     </AuthLayout>

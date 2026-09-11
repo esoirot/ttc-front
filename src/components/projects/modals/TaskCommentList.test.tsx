@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { TaskComment } from "@/types/tasks.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -27,11 +30,19 @@ function makeComment(overrides: Partial<TaskComment> = {}): TaskComment {
 
 function renderList(
   props: Partial<Parameters<typeof TaskCommentList>[0]> = {},
+  locale: Locale = "en",
 ) {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <TaskCommentList taskId={4} comments={[]} currentUserId={1} {...props} />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <TaskCommentList
+          taskId={4}
+          comments={[]}
+          currentUserId={1}
+          {...props}
+        />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -114,5 +125,13 @@ describe("TaskCommentList", () => {
     await waitFor(() =>
       expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), { id: 3 }),
     );
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderList({}, "fr");
+    expect(screen.getByText("Commentaires")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Écrire un commentaire…"),
+    ).toBeInTheDocument();
   });
 });

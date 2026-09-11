@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { CompanyContact } from "@/types/clients.types";
 import { ContactRow } from "./ContactRow";
+
+const wrapper = createIntlWrapper();
 
 function makeContact(overrides: Partial<CompanyContact> = {}): CompanyContact {
   return {
@@ -27,6 +30,7 @@ describe("ContactRow", () => {
         onDelete={vi.fn()}
         onEdit={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Jane Doe")).toBeInTheDocument();
@@ -41,6 +45,7 @@ describe("ContactRow", () => {
         onDelete={vi.fn()}
         onEdit={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Project Manager")).toBeInTheDocument();
@@ -53,6 +58,7 @@ describe("ContactRow", () => {
         onDelete={vi.fn()}
         onEdit={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("✎"));
@@ -68,6 +74,7 @@ describe("ContactRow", () => {
         onDelete={vi.fn()}
         onEdit={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("✎"));
@@ -84,6 +91,7 @@ describe("ContactRow", () => {
         onDelete={vi.fn()}
         onEdit={onEdit}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("✎"));
@@ -114,6 +122,7 @@ describe("ContactRow", () => {
         onDelete={vi.fn()}
         onEdit={onEdit}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("✎"));
@@ -140,6 +149,7 @@ describe("ContactRow", () => {
     const onEdit = vi.fn();
     render(
       <ContactRow contact={makeContact()} onDelete={vi.fn()} onEdit={onEdit} />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("✎"));
@@ -160,11 +170,29 @@ describe("ContactRow", () => {
         onDelete={onDelete}
         onEdit={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("✕"));
     fireEvent.click(screen.getByText("Delete"));
 
     expect(onDelete).toHaveBeenCalled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <ContactRow
+        contact={makeContact()}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+
+    fireEvent.click(screen.getByText("✎"));
+    expect(screen.getByLabelText("Prénom")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Enregistrer" }),
+    ).toBeInTheDocument();
   });
 });

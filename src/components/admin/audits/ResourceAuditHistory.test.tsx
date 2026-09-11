@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { AuditLogEntry } from "@/types/hubspot.types";
+
+const wrapper = createIntlWrapper();
 
 const useAuditLogMock = vi.fn();
 vi.mock("@/hooks/integrations/useHubspot", () => ({
@@ -45,6 +48,7 @@ describe("ResourceAuditHistory", () => {
         onClose={vi.fn()}
         resourceName="Acme"
       />,
+      { wrapper },
     );
     expect(useAuditLogMock).toHaveBeenCalledWith(undefined, 20);
   });
@@ -56,6 +60,7 @@ describe("ResourceAuditHistory", () => {
         onClose={vi.fn()}
         resourceName="Acme"
       />,
+      { wrapper },
     );
     expect(screen.getByText("History — Acme")).toBeInTheDocument();
   });
@@ -67,6 +72,7 @@ describe("ResourceAuditHistory", () => {
         onClose={vi.fn()}
         resourceName="Acme"
       />,
+      { wrapper },
     );
     expect(screen.queryByText("History — Acme")).not.toBeInTheDocument();
   });
@@ -79,6 +85,7 @@ describe("ResourceAuditHistory", () => {
         onClose={vi.fn()}
         resourceName="Acme"
       />,
+      { wrapper },
     );
     expect(screen.queryByText("No history found.")).not.toBeInTheDocument();
   });
@@ -90,6 +97,7 @@ describe("ResourceAuditHistory", () => {
         onClose={vi.fn()}
         resourceName="Acme"
       />,
+      { wrapper },
     );
     expect(screen.getByText("No history found.")).toBeInTheDocument();
   });
@@ -104,6 +112,7 @@ describe("ResourceAuditHistory", () => {
         onClose={vi.fn()}
         resourceName="Acme"
       />,
+      { wrapper },
     );
     expect(screen.getByText("CREATE")).toBeInTheDocument();
     expect(screen.getByText("Client#1")).toBeInTheDocument();
@@ -124,6 +133,7 @@ describe("ResourceAuditHistory", () => {
         onClose={vi.fn()}
         resourceName="Acme"
       />,
+      { wrapper },
     );
     expect(document.querySelectorAll(".bg-border.mt-1").length).toBe(1);
   });
@@ -139,6 +149,7 @@ describe("ResourceAuditHistory", () => {
         onClose={vi.fn()}
         resourceName="Acme"
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByRole("button", { name: "Load more" }));
     expect(fetchNextPage).toHaveBeenCalled();
@@ -152,6 +163,7 @@ describe("ResourceAuditHistory", () => {
         onClose={onClose}
         resourceName="Acme"
       />,
+      { wrapper },
     );
     fireEvent.keyDown(document.body, { key: "Escape" });
     expect(onClose).toHaveBeenCalled();

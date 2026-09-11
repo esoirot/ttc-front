@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +29,7 @@ function DealRow({ deal }: { deal: HubspotDeal }) {
 }
 
 export function DealsTab() {
+  const intl = useIntl();
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -72,7 +74,10 @@ export function DealsTab() {
       <div className="flex items-center gap-3">
         <Input
           type="search"
-          placeholder="Search deals…"
+          placeholder={intl.formatMessage({
+            id: "hubspot.dealsTab.searchPlaceholder",
+            defaultMessage: "Search deals…",
+          })}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1"
@@ -83,38 +88,76 @@ export function DealsTab() {
           size="sm"
           onClick={() => setShowForm((v) => !v)}
         >
-          {showForm ? "Cancel" : "+ New deal"}
+          {showForm ? (
+            <FormattedMessage
+              id="common.actions.cancel"
+              defaultMessage="Cancel"
+            />
+          ) : (
+            <FormattedMessage
+              id="hubspot.dealsTab.newDeal"
+              defaultMessage="+ New deal"
+            />
+          )}
         </Button>
       </div>
       <span className="text-sm text-muted-foreground">
         {isSearching
-          ? `${deals.length} result${deals.length !== 1 ? "s" : ""} for "${debouncedSearch}"`
-          : `${deals.length} ${deals.length !== 1 ? "deals" : "deal"} loaded`}
+          ? intl.formatMessage(
+              {
+                id: "hubspot.tab.resultCount",
+                defaultMessage:
+                  '{count, plural, one {# result} other {# results}} for "{query}"',
+              },
+              { count: deals.length, query: debouncedSearch },
+            )
+          : intl.formatMessage(
+              {
+                id: "hubspot.dealsTab.loadedCount",
+                defaultMessage:
+                  "{count, plural, one {# deal loaded} other {# deals loaded}}",
+              },
+              { count: deals.length },
+            )}
       </span>
 
       {showForm && (
         <div className="grid grid-cols-2 gap-3 p-4 bg-muted/50 rounded-lg border">
           <Input
             type="text"
-            placeholder="Deal name *"
+            placeholder={intl.formatMessage({
+              id: "hubspot.dealsTab.dealNamePlaceholder",
+              defaultMessage: "Deal name *",
+            })}
             value={dealname}
             onChange={(e) => setDealname(e.target.value)}
             className="col-span-2"
           />
           <Input
             type="text"
-            placeholder="Amount"
+            placeholder={intl.formatMessage({
+              id: "hubspot.dealsTab.amountPlaceholder",
+              defaultMessage: "Amount",
+            })}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
           <Input
             type="text"
-            placeholder="Stage"
+            placeholder={intl.formatMessage({
+              id: "hubspot.dealsTab.stagePlaceholder",
+              defaultMessage: "Stage",
+            })}
             value={dealstage}
             onChange={(e) => setDealstage(e.target.value)}
           />
           <div className="flex flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">Close date</Label>
+            <Label className="text-xs text-muted-foreground">
+              <FormattedMessage
+                id="hubspot.dealsTab.closeDateLabel"
+                defaultMessage="Close date"
+              />
+            </Label>
             <Input
               type="date"
               value={closedate}
@@ -133,30 +176,57 @@ export function DealsTab() {
               onClick={() => void handleCreate()}
               disabled={!dealname.trim() || createDeal.isPending}
             >
-              {createDeal.isPending ? "Saving…" : "Create"}
+              {createDeal.isPending ? (
+                <FormattedMessage
+                  id="hubspot.tab.saving"
+                  defaultMessage="Saving…"
+                />
+              ) : (
+                <FormattedMessage
+                  id="hubspot.tab.create"
+                  defaultMessage="Create"
+                />
+              )}
             </Button>
           </div>
         </div>
       )}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground py-4">Loading…</p>
+        <p className="text-sm text-muted-foreground py-4">
+          <FormattedMessage
+            id="hubspot.tab.loading"
+            defaultMessage="Loading…"
+          />
+        </p>
       ) : (
         <>
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
                 <th className="pb-2 pr-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Deal
+                  <FormattedMessage
+                    id="hubspot.dealsTab.colDeal"
+                    defaultMessage="Deal"
+                  />
                 </th>
                 <th className="pb-2 pr-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Amount
+                  <FormattedMessage
+                    id="hubspot.dealsTab.colAmount"
+                    defaultMessage="Amount"
+                  />
                 </th>
                 <th className="pb-2 pr-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Stage
+                  <FormattedMessage
+                    id="hubspot.dealsTab.colStage"
+                    defaultMessage="Stage"
+                  />
                 </th>
                 <th className="pb-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Close date
+                  <FormattedMessage
+                    id="hubspot.dealsTab.colCloseDate"
+                    defaultMessage="Close date"
+                  />
                 </th>
               </tr>
             </thead>
@@ -167,7 +237,17 @@ export function DealsTab() {
                     colSpan={4}
                     className="py-8 text-center text-sm text-muted-foreground"
                   >
-                    {isSearching ? "No deals found" : "No deals yet"}
+                    {isSearching ? (
+                      <FormattedMessage
+                        id="hubspot.dealsTab.noResults"
+                        defaultMessage="No deals found"
+                      />
+                    ) : (
+                      <FormattedMessage
+                        id="hubspot.dealsTab.noDeals"
+                        defaultMessage="No deals yet"
+                      />
+                    )}
                   </td>
                 </tr>
               )}
@@ -185,7 +265,17 @@ export function DealsTab() {
                 onClick={() => void infinite.fetchNextPage()}
                 disabled={infinite.isFetchingNextPage}
               >
-                {infinite.isFetchingNextPage ? "Loading…" : "Load more"}
+                {infinite.isFetchingNextPage ? (
+                  <FormattedMessage
+                    id="hubspot.tab.loading"
+                    defaultMessage="Loading…"
+                  />
+                ) : (
+                  <FormattedMessage
+                    id="hubspot.tab.loadMore"
+                    defaultMessage="Load more"
+                  />
+                )}
               </Button>
             </div>
           )}

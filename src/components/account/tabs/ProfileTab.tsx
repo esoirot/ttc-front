@@ -1,3 +1,4 @@
+import { useIntl, FormattedMessage } from "react-intl";
 import { useProfileForm } from "@/hooks/account/useProfileForm";
 import { toSafeHttpsSrc } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import {
 } from "@/constants/hubspot";
 
 export function ProfileTab() {
+  const intl = useIntl();
   const {
     user,
     firstName,
@@ -60,34 +62,60 @@ export function ProfileTab() {
     >
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Personal information</CardTitle>
+          <CardTitle className="text-base">
+            <FormattedMessage
+              id="account.profileTab.personalInfo"
+              defaultMessage="Personal information"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="profile-firstname">First name</Label>
+              <Label htmlFor="profile-firstname">
+                <FormattedMessage
+                  id="account.profileTab.firstName"
+                  defaultMessage="First name"
+                />
+              </Label>
               <Input
                 id="profile-firstname"
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="First name"
+                placeholder={intl.formatMessage({
+                  id: "account.profileTab.firstName",
+                  defaultMessage: "First name",
+                })}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="profile-lastname">Last name</Label>
+              <Label htmlFor="profile-lastname">
+                <FormattedMessage
+                  id="account.profileTab.lastName"
+                  defaultMessage="Last name"
+                />
+              </Label>
               <Input
                 id="profile-lastname"
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                placeholder="Last name"
+                placeholder={intl.formatMessage({
+                  id: "account.profileTab.lastName",
+                  defaultMessage: "Last name",
+                })}
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="profile-email">Email</Label>
+            <Label htmlFor="profile-email">
+              <FormattedMessage
+                id="account.profileTab.email"
+                defaultMessage="Email"
+              />
+            </Label>
             <Input
               id="profile-email"
               type="email"
@@ -98,7 +126,12 @@ export function ProfileTab() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="profile-phone">Mobile phone</Label>
+            <Label htmlFor="profile-phone">
+              <FormattedMessage
+                id="account.profileTab.mobilePhone"
+                defaultMessage="Mobile phone"
+              />
+            </Label>
             <Input
               id="profile-phone"
               type="tel"
@@ -109,18 +142,31 @@ export function ProfileTab() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="profile-jobtitle">Job title</Label>
+            <Label htmlFor="profile-jobtitle">
+              <FormattedMessage
+                id="account.profileTab.jobTitle"
+                defaultMessage="Job title"
+              />
+            </Label>
             <Input
               id="profile-jobtitle"
               type="text"
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
-              placeholder="e.g. Senior Translator"
+              placeholder={intl.formatMessage({
+                id: "account.profileTab.jobTitlePlaceholder",
+                defaultMessage: "e.g. Senior Translator",
+              })}
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="profile-logo">Logo URL</Label>
+            <Label htmlFor="profile-logo">
+              <FormattedMessage
+                id="account.profileTab.logoUrl"
+                defaultMessage="Logo URL"
+              />
+            </Label>
             <Input
               id="profile-logo"
               type="url"
@@ -131,14 +177,22 @@ export function ProfileTab() {
             {logoPreviewSrc && (
               <img
                 src={logoPreviewSrc}
-                alt="Logo preview"
+                alt={intl.formatMessage({
+                  id: "account.profileTab.logoPreviewAlt",
+                  defaultMessage: "Logo preview",
+                })}
                 className="mt-1 max-h-12 max-w-[110px] object-contain rounded border border-border"
               />
             )}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Default currency</Label>
+            <Label>
+              <FormattedMessage
+                id="account.profileTab.defaultCurrency"
+                defaultMessage="Default currency"
+              />
+            </Label>
             <Select value={defaultCurrency} onValueChange={setDefaultCurrency}>
               <SelectTrigger className="w-[140px]">
                 <SelectValue />
@@ -152,12 +206,20 @@ export function ProfileTab() {
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Used as the default currency for new rate sheets.
+              <FormattedMessage
+                id="account.profileTab.defaultCurrencyHint"
+                defaultMessage="Used as the default currency for new rate sheets."
+              />
             </p>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium">Role</span>
+            <span className="text-sm font-medium">
+              <FormattedMessage
+                id="account.profileTab.role"
+                defaultMessage="Role"
+              />
+            </span>
             <Badge variant="secondary" className="w-fit">
               {user?.role}
             </Badge>
@@ -167,11 +229,21 @@ export function ProfileTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Localisation</CardTitle>
+          <CardTitle className="text-base">
+            <FormattedMessage
+              id="account.profileTab.localisation"
+              defaultMessage="Localisation"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label>Interface language</Label>
+            <Label>
+              <FormattedMessage
+                id="account.profileTab.interfaceLanguage"
+                defaultMessage="Interface language"
+              />
+            </Label>
             <Select
               value={interfaceLanguage}
               onValueChange={setInterfaceLanguage}
@@ -190,7 +262,12 @@ export function ProfileTab() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Date format</Label>
+            <Label>
+              <FormattedMessage
+                id="account.profileTab.dateFormat"
+                defaultMessage="Date format"
+              />
+            </Label>
             <Select value={dateFormat} onValueChange={setDateFormat}>
               <SelectTrigger>
                 <SelectValue />
@@ -206,7 +283,12 @@ export function ProfileTab() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Hour format</Label>
+            <Label>
+              <FormattedMessage
+                id="account.profileTab.hourFormat"
+                defaultMessage="Hour format"
+              />
+            </Label>
             <Select value={hourFormat} onValueChange={setHourFormat}>
               <SelectTrigger>
                 <SelectValue />
@@ -222,7 +304,12 @@ export function ProfileTab() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Number format</Label>
+            <Label>
+              <FormattedMessage
+                id="account.profileTab.numberFormat"
+                defaultMessage="Number format"
+              />
+            </Label>
             <Select value={numberFormat} onValueChange={setNumberFormat}>
               <SelectTrigger>
                 <SelectValue />
@@ -249,12 +336,25 @@ export function ProfileTab() {
 
       {saved && (
         <p className="text-sm text-emerald-600 dark:text-emerald-400">
-          Profile saved.
+          <FormattedMessage
+            id="account.profileTab.profileSaved"
+            defaultMessage="Profile saved."
+          />
         </p>
       )}
 
       <Button type="submit" className="self-start" disabled={saving}>
-        {saving ? "Saving…" : "Save changes"}
+        {saving ? (
+          <FormattedMessage
+            id="account.profileTab.saving"
+            defaultMessage="Saving…"
+          />
+        ) : (
+          <FormattedMessage
+            id="account.profileTab.saveChanges"
+            defaultMessage="Save changes"
+          />
+        )}
       </Button>
     </form>
   );

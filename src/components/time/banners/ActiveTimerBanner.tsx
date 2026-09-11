@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ export function ActiveTimerBanner({
   stopping,
   refetch,
 }: ActiveTimerBannerProps) {
+  const intl = useIntl();
   const elapsed = useElapsedTimer(activeTimer.startTime);
 
   return (
@@ -17,10 +19,17 @@ export function ActiveTimerBanner({
       <CardContent className="py-3 px-4 flex items-center justify-between">
         <div>
           <Badge variant="default" className="text-xs mb-1">
-            Running
+            {intl.formatMessage({
+              id: "time.activeTimerBanner.running",
+              defaultMessage: "Running",
+            })}
           </Badge>
           <p className="text-sm">
-            {activeTimer.description ?? "No description"}
+            {activeTimer.description ??
+              intl.formatMessage({
+                id: "time.entryRow.noDescription",
+                defaultMessage: "No description",
+              })}
           </p>
           {activeTimer.tags.length > 0 && (
             <div className="flex items-center gap-1 mt-0.5 flex-wrap">
@@ -36,7 +45,15 @@ export function ActiveTimerBanner({
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Started {activeTimer.startTime.slice(0, 16).replace("T", " ")}
+            {intl.formatMessage(
+              {
+                id: "time.activeTimerBanner.started",
+                defaultMessage: "Started {timestamp}",
+              },
+              {
+                timestamp: activeTimer.startTime.slice(0, 16).replace("T", " "),
+              },
+            )}
           </p>
           {elapsed && (
             <p className="font-mono text-lg font-semibold tabular-nums mt-1">
@@ -50,7 +67,15 @@ export function ActiveTimerBanner({
           onClick={() => void stopTimer().then(() => refetch())}
           disabled={stopping}
         >
-          {stopping ? "Stopping…" : "⏹ Stop"}
+          {stopping
+            ? intl.formatMessage({
+                id: "time.activeTimerBanner.stopping",
+                defaultMessage: "Stopping…",
+              })
+            : intl.formatMessage({
+                id: "time.activeTimerBanner.stop",
+                defaultMessage: "⏹ Stop",
+              })}
         </Button>
       </CardContent>
     </Card>

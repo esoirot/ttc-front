@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import {
 export function TwoFactorEnabledView({
   onCodesRegenerated,
 }: TwoFactorEnabledViewProps) {
+  const intl = useIntl();
   const {
     regenerateBackupCodes,
     loading: regenLoading,
@@ -43,12 +45,19 @@ export function TwoFactorEnabledView({
           variant="secondary"
           className="w-fit text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30"
         >
-          ✓ Enabled
+          ✓{" "}
+          <FormattedMessage
+            id="auth.backupCodes.enabled"
+            defaultMessage="Enabled"
+          />
         </Badge>
         <form onSubmit={handleRegen} className="flex flex-col gap-4 max-w-xs">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="regen-code">
-              Enter your 6-digit authenticator code to regenerate backup codes
+              <FormattedMessage
+                id="auth.twoFactorEnabled.regenLabel"
+                defaultMessage="Enter your 6-digit authenticator code to regenerate backup codes"
+              />
             </Label>
             <Input
               id="regen-code"
@@ -71,7 +80,17 @@ export function TwoFactorEnabledView({
               size="sm"
               disabled={regenLoading || regenCode.length !== 6}
             >
-              {regenLoading ? "Regenerating…" : "Regenerate codes"}
+              {regenLoading ? (
+                <FormattedMessage
+                  id="auth.twoFactorEnabled.regenerating"
+                  defaultMessage="Regenerating…"
+                />
+              ) : (
+                <FormattedMessage
+                  id="auth.twoFactorEnabled.regenerateCodes"
+                  defaultMessage="Regenerate codes"
+                />
+              )}
             </Button>
             <Button
               type="button"
@@ -82,7 +101,10 @@ export function TwoFactorEnabledView({
                 setRegenCode("");
               }}
             >
-              Cancel
+              <FormattedMessage
+                id="common.actions.cancel"
+                defaultMessage="Cancel"
+              />
             </Button>
           </div>
         </form>
@@ -96,19 +118,36 @@ export function TwoFactorEnabledView({
         variant="secondary"
         className="w-fit text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30"
       >
-        ✓ Enabled
+        ✓{" "}
+        <FormattedMessage
+          id="auth.backupCodes.enabled"
+          defaultMessage="Enabled"
+        />
       </Badge>
       <p className="text-sm text-muted-foreground">
-        Your account is protected with TOTP-based 2FA.
+        <FormattedMessage
+          id="auth.twoFactorEnabled.protected"
+          defaultMessage="Your account is protected with TOTP-based 2FA."
+        />
       </p>
       {codeCount !== null && (
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
-            {codeCount} backup code{codeCount !== 1 ? "s" : ""} remaining
+            {intl.formatMessage(
+              {
+                id: "auth.twoFactorEnabled.codesRemaining",
+                defaultMessage:
+                  "{count, plural, one {# backup code remaining} other {# backup codes remaining}}",
+              },
+              { count: codeCount },
+            )}
           </span>
           {codeCount <= 2 && (
             <Badge variant="destructive" className="text-xs">
-              Low
+              <FormattedMessage
+                id="auth.twoFactorEnabled.low"
+                defaultMessage="Low"
+              />
             </Badge>
           )}
         </div>
@@ -119,7 +158,10 @@ export function TwoFactorEnabledView({
         className="self-start"
         onClick={() => setShowRegen(true)}
       >
-        Regenerate backup codes
+        <FormattedMessage
+          id="auth.twoFactorEnabled.regenerateBackupCodes"
+          defaultMessage="Regenerate backup codes"
+        />
       </Button>
     </div>
   );

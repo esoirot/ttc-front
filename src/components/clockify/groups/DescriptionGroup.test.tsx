@@ -9,6 +9,9 @@ vi.mock("../rows/EntryRow", () => ({
 }));
 
 import { DescriptionGroup } from "./DescriptionGroup";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeEntry(
   overrides: Partial<ClockifyTimeEntry> = {},
@@ -47,6 +50,7 @@ describe("DescriptionGroup", () => {
         description="Translate docs"
         entries={[makeEntry(), makeEntry({ id: "e2" })]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("Translate docs")).toBeInTheDocument();
   });
@@ -58,6 +62,7 @@ describe("DescriptionGroup", () => {
         description=""
         entries={[makeEntry(), makeEntry({ id: "e2" })]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("No description")).toBeInTheDocument();
   });
@@ -73,6 +78,7 @@ describe("DescriptionGroup", () => {
           makeEntry({ id: "e3" }),
         ]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("x3")).toBeInTheDocument();
   });
@@ -100,6 +106,7 @@ describe("DescriptionGroup", () => {
         description="Translate"
         entries={[e1, e2]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("02:00:00")).toBeInTheDocument();
   });
@@ -111,6 +118,7 @@ describe("DescriptionGroup", () => {
         description="Translate"
         entries={[makeEntry(), makeEntry({ id: "e2" })]}
       />,
+      { wrapper },
     );
     expect(screen.queryByTestId("entry-row")).not.toBeInTheDocument();
   });
@@ -122,6 +130,7 @@ describe("DescriptionGroup", () => {
         description="Translate"
         entries={[makeEntry({ id: "e1" }), makeEntry({ id: "e2" })]}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByRole("button", { name: "Expand entries" }));
     expect(screen.getAllByTestId("entry-row")).toHaveLength(2);
@@ -134,6 +143,7 @@ describe("DescriptionGroup", () => {
         description="Translate"
         entries={[makeEntry(), makeEntry({ id: "e2" })]}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByRole("button", { name: "Expand entries" }));
     fireEvent.click(screen.getByRole("button", { name: "Collapse entries" }));
@@ -163,8 +173,24 @@ describe("DescriptionGroup", () => {
         description="Translate"
         entries={[finished, running]}
       />,
+      { wrapper },
     );
     // Only the finished entry (1h) counted
     expect(screen.getByText("01:00:00")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <DescriptionGroup
+        {...baseProps}
+        description=""
+        entries={[makeEntry(), makeEntry({ id: "e2" })]}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+    expect(screen.getByText("Aucune description")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Développer les entrées" }),
+    ).toBeInTheDocument();
   });
 });

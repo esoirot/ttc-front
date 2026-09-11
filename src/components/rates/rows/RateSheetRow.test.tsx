@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { RateSheet } from "@/types/rate-sheets.types";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import { RateSheetRow } from "./RateSheetRow";
+
+const wrapper = createIntlWrapper();
 
 function makeSheet(overrides: Partial<RateSheet> = {}): RateSheet {
   return {
@@ -27,6 +30,7 @@ describe("RateSheetRow", () => {
   it("shows the name, language pair, and price with currency symbol", () => {
     render(
       <RateSheetRow sheet={makeSheet()} onEdit={vi.fn()} onDelete={vi.fn()} />,
+      { wrapper },
     );
 
     expect(screen.getByText("Standard EN-FR")).toBeInTheDocument();
@@ -41,6 +45,7 @@ describe("RateSheetRow", () => {
         onEdit={vi.fn()}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText("0.1200 XYZ")).toBeInTheDocument();
   });
@@ -53,6 +58,7 @@ describe("RateSheetRow", () => {
         onEdit={vi.fn()}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText("Acme")).toBeInTheDocument();
   });
@@ -65,6 +71,7 @@ describe("RateSheetRow", () => {
         onEdit={vi.fn()}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByText("Default")).toBeInTheDocument();
   });
@@ -76,6 +83,7 @@ describe("RateSheetRow", () => {
         onEdit={vi.fn()}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.queryByText("Default")).not.toBeInTheDocument();
   });
@@ -85,6 +93,7 @@ describe("RateSheetRow", () => {
     const onDelete = vi.fn();
     render(
       <RateSheetRow sheet={makeSheet()} onEdit={onEdit} onDelete={onDelete} />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("Edit"));
@@ -93,5 +102,18 @@ describe("RateSheetRow", () => {
     fireEvent.click(screen.getByText("✕"));
     fireEvent.click(screen.getByText("Delete"));
     expect(onDelete).toHaveBeenCalled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <RateSheetRow
+        sheet={makeSheet({ isDefault: true })}
+        clientName="Acme"
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+    expect(screen.getByText("Par défaut")).toBeInTheDocument();
   });
 });

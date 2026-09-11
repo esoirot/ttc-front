@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import {
   Select,
   SelectContent,
@@ -16,16 +17,21 @@ export function ProjectSelect({
   projects: ClockifyProject[];
   onChange: (id: string | null) => void;
 }) {
+  const intl = useIntl();
+  const noProjectLabel = intl.formatMessage({
+    id: "time.entryRow.noProject",
+    defaultMessage: "No project",
+  });
   return (
     <Select
       value={projectId ?? "__none__"}
       onValueChange={(val) => onChange(val === "__none__" ? null : val)}
     >
       <SelectTrigger size="sm" className="w-fit text-muted-foreground">
-        <SelectValue placeholder="No project" />
+        <SelectValue placeholder={noProjectLabel} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="__none__">No project</SelectItem>
+        <SelectItem value="__none__">{noProjectLabel}</SelectItem>
         {projects.map((p) => (
           <SelectItem key={p.id} value={p.id}>
             {p.name}

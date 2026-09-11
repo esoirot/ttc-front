@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 import type { Client } from "@/types/clients.types";
 
 const useClientsMock = vi.fn();
@@ -48,6 +50,7 @@ function renderCard(
     notes: string | null;
     onUpdate: (input: unknown) => Promise<unknown>;
   }> = {},
+  locale: Locale = "en",
 ) {
   return render(
     <InvoiceMetaCard
@@ -58,6 +61,7 @@ function renderCard(
       onUpdate={vi.fn().mockResolvedValue(undefined)}
       {...overrides}
     />,
+    { wrapper: createIntlWrapper(locale) },
   );
 }
 
@@ -169,5 +173,14 @@ describe("InvoiceMetaCard", () => {
         screen.queryByPlaceholderText("Internal notes…"),
       ).not.toBeInTheDocument(),
     );
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderCard({ clientId: null }, "fr");
+    expect(screen.getByText("Aucun client")).toBeInTheDocument();
+    expect(screen.getByText("Détails de la facture")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Modifier" }),
+    ).toBeInTheDocument();
   });
 });

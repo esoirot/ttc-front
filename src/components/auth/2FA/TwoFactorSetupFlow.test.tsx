@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -12,11 +15,13 @@ vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { TwoFactorSetupFlow } from "./TwoFactorSetupFlow";
 
-function renderFlow(onEnabled = vi.fn()) {
+function renderFlow(onEnabled = vi.fn(), locale: Locale = "en") {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <TwoFactorSetupFlow onEnabled={onEnabled} />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <TwoFactorSetupFlow onEnabled={onEnabled} />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -98,5 +103,11 @@ describe("TwoFactorSetupFlow", () => {
     fireEvent.click(screen.getByText("Enable 2FA"));
 
     expect(await screen.findByText("Invalid TOTP code")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderFlow(vi.fn(), "fr");
+
+    expect(screen.getByText("Configurer la 2FA")).toBeInTheDocument();
   });
 });

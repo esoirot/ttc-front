@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl } from "react-intl";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -33,7 +34,7 @@ import type {
   TaskSortDirection,
 } from "@/types/tasks.types";
 import type { ProjectTaskListProps } from "@/types/projects.types";
-import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
+import { TASK_STATUSES, STATUS_LABEL_MESSAGES } from "@/constants/tasks";
 import { compareTasks } from "@/lib/taskSort";
 import { useProjectTaskList } from "@/hooks/projects/useProjectTaskList";
 import { useTaskDragReorder } from "@/hooks/projects/useTaskDragReorder";
@@ -46,6 +47,7 @@ interface Props extends ProjectTaskListProps {
 }
 
 export function ProjectTaskList({ projectId, onOpenModal }: Props) {
+  const intl = useIntl();
   const {
     tasks,
     loading,
@@ -135,7 +137,7 @@ export function ProjectTaskList({ projectId, onOpenModal }: Props) {
               <SelectItem value="ALL">All statuses</SelectItem>
               {TASK_STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>
-                  {STATUS_LABELS[s]}
+                  {intl.formatMessage(STATUS_LABEL_MESSAGES[s])}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -250,7 +252,7 @@ export function ProjectTaskList({ projectId, onOpenModal }: Props) {
               <SelectContent>
                 {TASK_STATUSES.map((s) => (
                   <SelectItem key={s} value={s}>
-                    {STATUS_LABELS[s]}
+                    {intl.formatMessage(STATUS_LABEL_MESSAGES[s])}
                   </SelectItem>
                 ))}
               </SelectContent>

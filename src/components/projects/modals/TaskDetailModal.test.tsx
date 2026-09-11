@@ -1,7 +1,9 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
 import type { TaskDetail } from "@/types/tasks.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -89,14 +91,16 @@ function renderModal(
   setupGqlFetch(task, overrides);
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <TaskDetailModal
-        taskId={4}
-        projectId={1}
-        open={true}
-        onClose={vi.fn()}
-        currentUserId={1}
-        {...props}
-      />
+      <IntlProvider locale="en" messages={messages.en}>
+        <TaskDetailModal
+          taskId={4}
+          projectId={1}
+          open={true}
+          onClose={vi.fn()}
+          currentUserId={1}
+          {...props}
+        />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -111,13 +115,15 @@ describe("TaskDetailModal", () => {
     gqlFetch.mockReturnValue(new Promise(() => {}));
     render(
       <QueryClientProvider client={createQueryClient()}>
-        <TaskDetailModal
-          taskId={4}
-          projectId={1}
-          open={true}
-          onClose={vi.fn()}
-          currentUserId={1}
-        />
+        <IntlProvider locale="en" messages={messages.en}>
+          <TaskDetailModal
+            taskId={4}
+            projectId={1}
+            open={true}
+            onClose={vi.fn()}
+            currentUserId={1}
+          />
+        </IntlProvider>
       </QueryClientProvider>,
     );
     expect(screen.getByText("Loading task")).toBeInTheDocument();

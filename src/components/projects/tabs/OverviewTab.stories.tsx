@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Project } from "@/types/projects.types";
 import { OverviewTab } from "./OverviewTab";
 
@@ -33,9 +35,11 @@ const meta: Meta<typeof OverviewTab> = {
   title: "Organisms/OverviewTab",
   decorators: [
     (Story) => (
-      <QueryClientProvider client={new QueryClient()}>
-        <Story />
-      </QueryClientProvider>
+      <IntlProvider locale="en" messages={messages.en}>
+        <QueryClientProvider client={new QueryClient()}>
+          <Story />
+        </QueryClientProvider>
+      </IntlProvider>
     ),
   ],
   args: {

@@ -1,9 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 import { TaskDatePicker } from "./TaskDatePicker";
 
 function renderPicker(
   props: Partial<Parameters<typeof TaskDatePicker>[0]> = {},
+  locale: Locale = "en",
 ) {
   return render(
     <TaskDatePicker
@@ -14,6 +17,7 @@ function renderPicker(
       onUpdate={vi.fn()}
       {...props}
     />,
+    { wrapper: createIntlWrapper(locale) },
   );
 }
 
@@ -83,5 +87,15 @@ describe("TaskDatePicker", () => {
     fireEvent.click(screen.getByText(/No date/));
     expect(onOpenChange).toHaveBeenCalledWith(true);
     expect(screen.queryByText("Recurring")).not.toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderPicker({}, "fr");
+
+    expect(screen.getByText(/Aucune date/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText(/Aucune date/));
+    expect(screen.getByLabelText("Date de début")).toBeInTheDocument();
+    expect(screen.getByText("Récurrence")).toBeInTheDocument();
   });
 });

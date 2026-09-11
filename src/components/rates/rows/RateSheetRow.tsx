@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,6 +21,7 @@ export function RateSheetRow({
   onEdit,
   onDelete,
 }: RateSheetRowProps) {
+  const intl = useIntl();
   const sym = CURRENCY_SYMBOLS[sheet.currency] ?? sheet.currency;
   const priceDisplay = `${sheet.pricePerWord.toFixed(4)} ${sym}`;
 
@@ -36,7 +38,10 @@ export function RateSheetRow({
           )}
           {sheet.isDefault && clientName && (
             <Badge variant="secondary" className="text-xs">
-              Default
+              {intl.formatMessage({
+                id: "rates.rateSheetRow.default",
+                defaultMessage: "Default",
+              })}
             </Badge>
           )}
           {sheet.description && (
@@ -59,7 +64,10 @@ export function RateSheetRow({
           className="h-7 px-2 text-xs border-blue-600 dark:border-blue-400 text-foreground hover:bg-blue-500/30 hover:text-foreground dark:hover:bg-blue-400/30 dark:hover:text-foreground"
           onClick={onEdit}
         >
-          Edit
+          {intl.formatMessage({
+            id: "common.actions.edit",
+            defaultMessage: "Edit",
+          })}
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -75,19 +83,37 @@ export function RateSheetRow({
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                Delete &ldquo;{sheet.name}&rdquo;?
+                {intl.formatMessage(
+                  {
+                    id: "rates.rateSheetRow.deleteConfirmTitle",
+                    defaultMessage: 'Delete "{name}"?',
+                  },
+                  { name: sheet.name },
+                )}
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This rate sheet will be permanently deleted.
+                {intl.formatMessage({
+                  id: "rates.rateSheetRow.deleteConfirmDescription",
+                  defaultMessage:
+                    "This rate sheet will be permanently deleted.",
+                })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>
+                {intl.formatMessage({
+                  id: "common.actions.cancel",
+                  defaultMessage: "Cancel",
+                })}
+              </AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={onDelete}
               >
-                Delete
+                {intl.formatMessage({
+                  id: "common.actions.delete",
+                  defaultMessage: "Delete",
+                })}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

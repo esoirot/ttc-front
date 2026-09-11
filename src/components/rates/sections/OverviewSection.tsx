@@ -1,9 +1,14 @@
 import { startTransition } from "react";
+import { useIntl } from "react-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { OverviewSectionProps } from "@/types/rates.types";
-import { TYPE_LABELS, TYPE_UNIT, CURRENCY_SYMBOLS } from "@/constants/rates";
+import {
+  TYPE_LABEL_MESSAGES,
+  TYPE_UNIT_MESSAGES,
+  CURRENCY_SYMBOLS,
+} from "@/constants/rates";
 import { useRateCrud } from "@/hooks/rates/useRateCrud";
 import { RateForm } from "../forms/RateForm";
 
@@ -12,8 +17,9 @@ export function OverviewSection({
   rates,
   loading,
 }: OverviewSectionProps) {
-  const label = TYPE_LABELS[type];
-  const unit = TYPE_UNIT[type];
+  const intl = useIntl();
+  const label = intl.formatMessage(TYPE_LABEL_MESSAGES[type]);
+  const unit = intl.formatMessage(TYPE_UNIT_MESSAGES[type]);
   const {
     creating,
     updating,

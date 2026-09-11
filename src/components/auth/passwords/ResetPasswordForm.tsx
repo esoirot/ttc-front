@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { FormattedMessage, useIntl } from "react-intl";
 import { useResetPassword } from "@/hooks/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { AuthLayout } from "../layouts/AuthLayout";
 
 export function ResetPasswordForm() {
+  const intl = useIntl();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? "";
@@ -19,24 +21,43 @@ export function ResetPasswordForm() {
 
   const passwordError =
     touched.password && password.length < 8
-      ? "Password must be at least 8 characters."
+      ? intl.formatMessage({
+          id: "auth.register.passwordError",
+          defaultMessage: "Password must be at least 8 characters.",
+        })
       : "";
   const confirmError =
-    touched.confirm && confirm !== password ? "Passwords do not match." : "";
+    touched.confirm && confirm !== password
+      ? intl.formatMessage({
+          id: "auth.resetPassword.mismatch",
+          defaultMessage: "Passwords do not match.",
+        })
+      : "";
   const isValid = password.length >= 8 && password === confirm;
 
   if (!token) {
     return (
-      <AuthLayout title="Invalid link">
+      <AuthLayout
+        title={intl.formatMessage({
+          id: "auth.resetPassword.invalidLinkTitle",
+          defaultMessage: "Invalid link",
+        })}
+      >
         <p className="text-sm text-muted-foreground text-center">
-          This reset link is missing or malformed.
+          <FormattedMessage
+            id="auth.resetPassword.invalidLinkBody"
+            defaultMessage="This reset link is missing or malformed."
+          />
         </p>
         <p className="text-sm text-center mt-4 text-muted-foreground">
           <Link
             to="/forgot-password"
             className="text-primary font-medium hover:underline"
           >
-            Request a new link
+            <FormattedMessage
+              id="auth.resetPassword.requestNewLink"
+              defaultMessage="Request a new link"
+            />
           </Link>
         </p>
       </AuthLayout>
@@ -50,7 +71,12 @@ export function ResetPasswordForm() {
     try {
       await resetPassword(token, password);
       navigate("/login", {
-        state: { message: "Password updated. Sign in with your new password." },
+        state: {
+          message: intl.formatMessage({
+            id: "auth.resetPassword.successMessage",
+            defaultMessage: "Password updated. Sign in with your new password.",
+          }),
+        },
         replace: true,
       });
     } catch (err: unknown) {
@@ -58,17 +84,33 @@ export function ResetPasswordForm() {
       setServerError(
         msg.toLowerCase().includes("invalid") ||
           msg.toLowerCase().includes("expired")
-          ? "This link is invalid or has expired."
-          : "Something went wrong. Please try again.",
+          ? intl.formatMessage({
+              id: "auth.resetPassword.expiredError",
+              defaultMessage: "This link is invalid or has expired.",
+            })
+          : intl.formatMessage({
+              id: "auth.forgotPassword.genericError",
+              defaultMessage: "Something went wrong. Please try again.",
+            }),
       );
     }
   }
 
   return (
-    <AuthLayout title="Reset password">
+    <AuthLayout
+      title={intl.formatMessage({
+        id: "auth.resetPassword.title",
+        defaultMessage: "Reset password",
+      })}
+    >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">New password</Label>
+          <Label htmlFor="password">
+            <FormattedMessage
+              id="auth.resetPassword.newPasswordLabel"
+              defaultMessage="New password"
+            />
+          </Label>
           <Input
             id="password"
             type="password"
@@ -85,7 +127,12 @@ export function ResetPasswordForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="confirm">Confirm password</Label>
+          <Label htmlFor="confirm">
+            <FormattedMessage
+              id="auth.resetPassword.confirmPasswordLabel"
+              defaultMessage="Confirm password"
+            />
+          </Label>
           <Input
             id="confirm"
             type="password"
@@ -109,14 +156,27 @@ export function ResetPasswordForm() {
                 to="/forgot-password"
                 className="text-primary font-medium hover:underline"
               >
-                Request a new reset link
+                <FormattedMessage
+                  id="auth.resetPassword.requestNewResetLink"
+                  defaultMessage="Request a new reset link"
+                />
               </Link>
             </p>
           </>
         )}
 
         <Button type="submit" className="w-full" disabled={loading || !isValid}>
-          {loading ? "Updating…" : "Set new password"}
+          {loading ? (
+            <FormattedMessage
+              id="auth.resetPassword.updating"
+              defaultMessage="Updating…"
+            />
+          ) : (
+            <FormattedMessage
+              id="auth.resetPassword.submit"
+              defaultMessage="Set new password"
+            />
+          )}
         </Button>
       </form>
     </AuthLayout>

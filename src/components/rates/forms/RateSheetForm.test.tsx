@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 
 const useClientsMock = vi.fn();
 vi.mock("@/hooks/clients/useClients", () => ({
@@ -54,7 +56,10 @@ function makeInitial(overrides: Partial<RateSheet> = {}): RateSheet {
   };
 }
 
-function renderForm(props: Partial<Parameters<typeof RateSheetForm>[0]> = {}) {
+function renderForm(
+  props: Partial<Parameters<typeof RateSheetForm>[0]> = {},
+  locale: Locale = "en",
+) {
   const onSave = vi.fn();
   const onCancel = vi.fn();
   render(
@@ -64,6 +69,7 @@ function renderForm(props: Partial<Parameters<typeof RateSheetForm>[0]> = {}) {
       saving={false}
       {...props}
     />,
+    { wrapper: createIntlWrapper(locale) },
   );
   return { onSave, onCancel };
 }
@@ -276,5 +282,16 @@ describe("RateSheetForm", () => {
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({ clientId: null, isDefault: false }),
     );
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm({}, "fr");
+
+    expect(screen.getByLabelText("Nom")).toBeInTheDocument();
+    expect(screen.getByLabelText("Prix au mot")).toBeInTheDocument();
+    expect(screen.getByText("Taux de correspondance")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Enregistrer" }),
+    ).toBeInTheDocument();
   });
 });

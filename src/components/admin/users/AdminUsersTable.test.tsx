@@ -8,6 +8,8 @@ import {
 import { QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 import type { User } from "@/types/users.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -53,11 +55,12 @@ function makeUser(overrides: Partial<User> = {}): User {
   };
 }
 
-function renderTable() {
+function renderTable(locale: Locale = "en") {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <AdminUsersTable />
     </QueryClientProvider>,
+    { wrapper: createIntlWrapper(locale) },
   );
 }
 
@@ -261,5 +264,17 @@ describe("AdminUsersTable", () => {
     await waitFor(() =>
       expect(gqlMutate.mock.calls[0][1]).toMatchObject({ id: 4 }),
     );
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    gqlFetch.mockResolvedValueOnce({ users: [] });
+    renderTable("fr");
+    expect(
+      await screen.findByText("Aucun utilisateur trouvé."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Rechercher par e-mail ou nom..."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Rôle")).toBeInTheDocument();
   });
 });

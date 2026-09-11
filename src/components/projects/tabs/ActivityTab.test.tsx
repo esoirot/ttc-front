@@ -2,6 +2,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { Task, TaskActivity } from "@/types/tasks.types";
 import { ActivityTab } from "./ActivityTab";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeActivity(overrides: Partial<TaskActivity> = {}): TaskActivity {
   return {
@@ -37,7 +40,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 
 describe("ActivityTab", () => {
   it("shows a loading skeleton while tasksLoading is true", () => {
-    render(<ActivityTab tasks={[]} tasksLoading={true} />);
+    render(<ActivityTab tasks={[]} tasksLoading={true} />, { wrapper });
     expect(screen.queryByText("All activity")).not.toBeInTheDocument();
   });
 
@@ -47,6 +50,7 @@ describe("ActivityTab", () => {
         tasks={[makeTask({ activities: [] })]}
         tasksLoading={false}
       />,
+      { wrapper },
     );
     expect(screen.getByText("No activity yet.")).toBeInTheDocument();
     expect(screen.getByText("No task activity yet.")).toBeInTheDocument();
@@ -85,6 +89,7 @@ describe("ActivityTab", () => {
         ]}
         tasksLoading={false}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("All activity")).toBeInTheDocument();
@@ -112,6 +117,7 @@ describe("ActivityTab", () => {
         ]}
         tasksLoading={false}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("By task")).toBeInTheDocument();
@@ -124,5 +130,19 @@ describe("ActivityTab", () => {
 
     fireEvent.click(screen.getByText("Translate homepage"));
     expect(screen.getAllByText("created this task")).toHaveLength(2);
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <ActivityTab
+        tasks={[makeTask({ activities: [] })]}
+        tasksLoading={false}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+    expect(screen.getByText("Toute l'activité")).toBeInTheDocument();
+    expect(
+      screen.getByText("Aucune activité de tâche pour l'instant."),
+    ).toBeInTheDocument();
   });
 });

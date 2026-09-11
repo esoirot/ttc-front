@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type {
   ClockifyProject,
   ClockifyTimeEntry,
@@ -75,6 +76,8 @@ vi.mock("../groups/DayGroup", () => ({
 
 import { TrackerView } from "./TrackerView";
 
+const wrapper = createIntlWrapper();
+
 function makeEntry(
   overrides: Partial<ClockifyTimeEntry> = {},
 ): ClockifyTimeEntry {
@@ -142,19 +145,19 @@ describe("TrackerView", () => {
   });
 
   it("renders date range inputs and the ActiveTimer", () => {
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     expect(screen.getByText("From:")).toBeInTheDocument();
     expect(screen.getByText("To:")).toBeInTheDocument();
     expect(screen.getByTestId("active-timer")).toBeInTheDocument();
   });
 
   it("shows 'No entries yet.' when there are no completed entries", () => {
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     expect(screen.getByText("No entries yet.")).toBeInTheDocument();
   });
 
   it("does not render the project filter row when there are no projects", () => {
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     expect(screen.queryByText("Project:")).not.toBeInTheDocument();
   });
 
@@ -165,7 +168,7 @@ describe("TrackerView", () => {
         makeProject({ id: "p2", name: "Contracts" }),
       ],
     });
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     expect(screen.getByRole("button", { name: "All" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Docs" })).toBeInTheDocument();
     expect(
@@ -186,7 +189,7 @@ describe("TrackerView", () => {
         makeEntry({ id: "e2", projectId: "p2" }),
       ],
     });
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "Docs" }));
     const groups = screen.getAllByTestId(/^day-group-/);
     expect(groups).toHaveLength(1);
@@ -203,7 +206,7 @@ describe("TrackerView", () => {
         makeEntry({ id: "e2", projectId: null }),
       ],
     });
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "Docs" }));
     fireEvent.click(screen.getByRole("button", { name: "All" }));
     const groups = screen.getAllByTestId(/^day-group-/);
@@ -224,7 +227,7 @@ describe("TrackerView", () => {
         }),
       ],
     });
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     const groups = screen.getAllByTestId(/^day-group-/);
     expect(groups[0]).toHaveTextContent("1 entries");
   });
@@ -239,14 +242,14 @@ describe("TrackerView", () => {
         makeEntry({ id: "e5", description: "Review" }),
       ],
     });
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     expect(screen.getByTestId("active-timer")).toHaveTextContent(
       "recent:Translate,Review",
     );
   });
 
   it("marks billability locked when the workspace has no paid plan", () => {
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     expect(screen.getByTestId("active-timer")).toHaveTextContent("locked:true");
   });
 
@@ -254,7 +257,7 @@ describe("TrackerView", () => {
     useClockifyWorkspacesMock.mockReturnValue({
       data: [makeWorkspace({ featureSubscriptionType: "PRO" })],
     });
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     expect(screen.getByTestId("active-timer")).toHaveTextContent(
       "locked:false",
     );
@@ -270,7 +273,7 @@ describe("TrackerView", () => {
     useClockifyEntriesMock.mockReturnValue({
       data: [makeEntry({ id: "e1", description: "Translate", billable: true })],
     });
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
 
     fireEvent.click(screen.getByText("delete-first"));
     expect(deleteEntry).toHaveBeenCalledWith("e1");
@@ -287,14 +290,14 @@ describe("TrackerView", () => {
   });
 
   it("changes the start date input", () => {
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     const [fromInput] = screen.getAllByDisplayValue(/\d{4}-\d{2}-\d{2}/);
     fireEvent.change(fromInput, { target: { value: "2026-01-01" } });
     expect(fromInput).toHaveValue("2026-01-01");
   });
 
   it("changes the end date input", () => {
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     const inputs = screen.getAllByDisplayValue(/\d{4}-\d{2}-\d{2}/);
     const toInput = inputs[1]!;
     fireEvent.change(toInput, { target: { value: "2026-06-01" } });
@@ -302,10 +305,21 @@ describe("TrackerView", () => {
   });
 
   it("ignores an empty value change on the date inputs", () => {
-    render(<TrackerView workspaceId="ws-1" />);
+    render(<TrackerView workspaceId="ws-1" />, { wrapper });
     const [fromInput] = screen.getAllByDisplayValue(/\d{4}-\d{2}-\d{2}/);
     const before = (fromInput as HTMLInputElement).value;
     fireEvent.change(fromInput, { target: { value: "" } });
     expect(fromInput).toHaveValue(before);
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<TrackerView workspaceId="ws-1" />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+
+    expect(screen.getByText("Entrées")).toBeInTheDocument();
+    expect(
+      screen.getByText("Aucune entrée pour le moment."),
+    ).toBeInTheDocument();
   });
 });

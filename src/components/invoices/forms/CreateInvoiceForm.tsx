@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import type { CreateInvoiceFormProps as Props } from "@/types/shared-ui.types";
 import { useCreateInvoice } from "@/hooks/invoices/useInvoices";
 
 export function CreateInvoiceForm({ clients, onClose, onCreated }: Props) {
+  const intl = useIntl();
   const { createInvoice, loading } = useCreateInvoice();
   const [clientId, setClientId] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -34,7 +36,12 @@ export function CreateInvoiceForm({ clients, onClose, onCreated }: Props) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <Label htmlFor="cif-client">Client</Label>
+              <Label htmlFor="cif-client">
+                <FormattedMessage
+                  id="invoices.metaCard.client"
+                  defaultMessage="Client"
+                />
+              </Label>
               <Select
                 value={clientId || "__none__"}
                 onValueChange={(val) =>
@@ -42,10 +49,20 @@ export function CreateInvoiceForm({ clients, onClose, onCreated }: Props) {
                 }
               >
                 <SelectTrigger id="cif-client" className="w-full">
-                  <SelectValue placeholder="No client" />
+                  <SelectValue
+                    placeholder={intl.formatMessage({
+                      id: "invoices.metaCard.noClient",
+                      defaultMessage: "No client",
+                    })}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No client</SelectItem>
+                  <SelectItem value="__none__">
+                    <FormattedMessage
+                      id="invoices.metaCard.noClient"
+                      defaultMessage="No client"
+                    />
+                  </SelectItem>
                   {clients.map((c) => (
                     <SelectItem key={c.id} value={String(c.id)}>
                       {c.name}
@@ -55,7 +72,12 @@ export function CreateInvoiceForm({ clients, onClose, onCreated }: Props) {
               </Select>
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="cif-due">Due date</Label>
+              <Label htmlFor="cif-due">
+                <FormattedMessage
+                  id="invoices.metaCard.dueDate"
+                  defaultMessage="Due date"
+                />
+              </Label>
               <Input
                 id="cif-due"
                 type="date"
@@ -65,7 +87,17 @@ export function CreateInvoiceForm({ clients, onClose, onCreated }: Props) {
             </div>
           </div>
           <Button type="submit" disabled={loading} className="self-end">
-            {loading ? "Creating…" : "Create invoice"}
+            {loading ? (
+              <FormattedMessage
+                id="invoices.createForm.creating"
+                defaultMessage="Creating…"
+              />
+            ) : (
+              <FormattedMessage
+                id="invoices.createForm.submit"
+                defaultMessage="Create invoice"
+              />
+            )}
           </Button>
         </form>
       </CardContent>

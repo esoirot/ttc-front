@@ -1,3 +1,4 @@
+import { FormattedMessage } from "react-intl";
 import { useGoogleCalendarStatus } from "@/hooks/integrations/useGoogleCalendar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConnectedView } from "./views/ConnectedView";
@@ -17,7 +18,12 @@ export function GoogleCalendarIntegration() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
-      <h1 className="text-xl font-semibold mb-6">Google Calendar</h1>
+      <h1 className="text-xl font-semibold mb-6">
+        <FormattedMessage
+          id="googleCalendar.integration.title"
+          defaultMessage="Google Calendar"
+        />
+      </h1>
       {status?.connected ? <ConnectedView /> : <SetupView />}
     </div>
   );

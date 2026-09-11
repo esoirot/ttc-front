@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl } from "react-intl";
 import {
   useUpdateCharge,
   useDeleteCharge,
@@ -20,6 +21,7 @@ import { centsToEuros, eurosToCents, formatCents } from "@/lib/currency";
 import type { ChargeRowProps } from "@/types/activities.types";
 
 export function ChargeRow({ charge, activityId }: ChargeRowProps) {
+  const intl = useIntl();
   const { updateCharge, loading: updating } = useUpdateCharge(activityId);
   const { deleteCharge } = useDeleteCharge(activityId);
   const [editing, setEditing] = useState(false);
@@ -74,7 +76,7 @@ export function ChargeRow({ charge, activityId }: ChargeRowProps) {
       <span className="text-sm">{charge.name}</span>
       <div className="flex items-center gap-3">
         <span className="text-sm font-mono text-muted-foreground">
-          {formatCents(charge.amount)}
+          {formatCents(charge.amount, "EUR", intl.locale)}
         </span>
         <button
           className="text-xs text-muted-foreground hover:text-foreground"

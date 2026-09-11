@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { InvoiceItem } from "@/types/invoices.types";
 import { InvoiceItemRow } from "./InvoiceItemRow";
+
+const wrapper = createIntlWrapper();
 
 function makeItem(overrides: Partial<InvoiceItem> = {}): InvoiceItem {
   return {
@@ -32,6 +35,7 @@ describe("InvoiceItemRow", () => {
         onCancel={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Translation")).toBeInTheDocument();
@@ -55,6 +59,7 @@ describe("InvoiceItemRow", () => {
         onCancel={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("Translation"));
@@ -76,6 +81,7 @@ describe("InvoiceItemRow", () => {
         onCancel={vi.fn()}
         onRemove={onRemove}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByLabelText("Remove item"));
@@ -96,6 +102,7 @@ describe("InvoiceItemRow", () => {
         onCancel={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByLabelText("Description")).toHaveValue("Translation");
@@ -119,6 +126,7 @@ describe("InvoiceItemRow", () => {
         onCancel={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.change(screen.getByLabelText("Description"), {
@@ -152,6 +160,7 @@ describe("InvoiceItemRow", () => {
         onCancel={onCancel}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.keyDown(screen.getByLabelText("Unit price"), { key: "Enter" });
@@ -176,6 +185,7 @@ describe("InvoiceItemRow", () => {
         onCancel={onCancel}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
     fireEvent.keyDown(screen.getByLabelText("Quantity"), { key: "Escape" });
     expect(onCancel).toHaveBeenCalled();
@@ -197,6 +207,7 @@ describe("InvoiceItemRow", () => {
         onCancel={onCancel}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByText("✓"));
     expect(onSave).toHaveBeenCalled();
@@ -219,6 +230,7 @@ describe("InvoiceItemRow", () => {
         onCancel={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByText("2.00"));
     fireEvent.click(screen.getByText("25.00"));
@@ -239,7 +251,28 @@ describe("InvoiceItemRow", () => {
         onCancel={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
     expect(container.querySelector("svg")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <InvoiceItemRow
+        item={makeItem()}
+        editing={true}
+        editState={{ desc: "", qty: "", price: "" }}
+        onStartEdit={vi.fn()}
+        onChangeDesc={vi.fn()}
+        onChangeQty={vi.fn()}
+        onChangePrice={vi.fn()}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+
+    expect(screen.getByLabelText("Quantité")).toBeInTheDocument();
   });
 });

@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 import type { AnyActivity } from "@/types/activities.types";
 import { ActivityChips } from "./ActivityChips";
 
@@ -40,6 +42,7 @@ const ACTIVITIES: AnyActivity[] = [
 
 function renderChips(
   overrides: Partial<Parameters<typeof ActivityChips>[0]> = {},
+  locale: Locale = "en",
 ) {
   return render(
     <ActivityChips
@@ -48,6 +51,7 @@ function renderChips(
       onChange={vi.fn()}
       {...overrides}
     />,
+    { wrapper: createIntlWrapper(locale) },
   );
 }
 
@@ -153,5 +157,12 @@ describe("ActivityChips", () => {
     openEditor();
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(onChange).toHaveBeenCalledWith([1]);
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderChips({}, "fr");
+    expect(
+      screen.getByRole("button", { name: "+ activité" }),
+    ).toBeInTheDocument();
   });
 });

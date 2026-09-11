@@ -1,3 +1,4 @@
+import { FormattedMessage } from "react-intl";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,11 +14,19 @@ export function BillingFields({
   return (
     <div className="col-span-2 flex flex-col gap-3 pt-2 border-t border-border">
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-        Billing
+        <FormattedMessage
+          id="clients.header.section.billing"
+          defaultMessage="Billing"
+        />
       </p>
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
-          <Label htmlFor={`${idPrefix}-delay`}>Payment delay (days)</Label>
+          <Label htmlFor={`${idPrefix}-delay`}>
+            <FormattedMessage
+              id="clients.billingFields.paymentDelay"
+              defaultMessage="Payment delay (days)"
+            />
+          </Label>
           <Input
             id={`${idPrefix}-delay`}
             type="number"
@@ -28,7 +37,12 @@ export function BillingFields({
           />
         </div>
         <div className="flex flex-col gap-1">
-          <Label htmlFor={`${idPrefix}-tax`}>Tax rate (%)</Label>
+          <Label htmlFor={`${idPrefix}-tax`}>
+            <FormattedMessage
+              id="clients.billingFields.taxRate"
+              defaultMessage="Tax rate (%)"
+            />
+          </Label>
           <Input
             id={`${idPrefix}-tax`}
             type="number"
@@ -50,7 +64,10 @@ export function BillingFields({
           }
         />
         <Label htmlFor={`${idPrefix}-eom`} className="cursor-pointer">
-          Bill at end of month
+          <FormattedMessage
+            id="clients.billingFields.billEndOfMonth"
+            defaultMessage="Bill at end of month"
+          />
         </Label>
       </div>
     </div>

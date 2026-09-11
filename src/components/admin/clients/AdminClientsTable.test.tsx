@@ -1,7 +1,9 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
 import type { AdminClient } from "@/types/admin.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -71,7 +73,9 @@ function makeConnection(items: AdminClient[]) {
 function renderTable() {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <AdminClientsTable />
+      <IntlProvider locale="en" messages={messages.en}>
+        <AdminClientsTable />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }

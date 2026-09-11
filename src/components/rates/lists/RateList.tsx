@@ -1,7 +1,8 @@
 import { startTransition } from "react";
+import { useIntl } from "react-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { TYPE_LABELS } from "@/constants/rates";
+import { TYPE_LABEL_MESSAGES } from "@/constants/rates";
 
 import type { TranslationRateListProps } from "@/types/rates.types";
 import { useRates } from "@/hooks/rates/useRates";
@@ -10,6 +11,8 @@ import { RateForm } from "../forms/RateForm";
 import { RateRow } from "../rows/RateRow";
 
 export function RateList({ type }: TranslationRateListProps) {
+  const intl = useIntl();
+  const typeLabel = intl.formatMessage(TYPE_LABEL_MESSAGES[type]);
   const { rates, loading } = useRates(type);
   const {
     creating,
@@ -37,7 +40,7 @@ export function RateList({ type }: TranslationRateListProps) {
     <div>
       {rates.length === 0 && !showForm ? (
         <p className="text-sm text-muted-foreground mt-4">
-          No {TYPE_LABELS[type].toLowerCase()} rates yet.
+          No {typeLabel.toLowerCase()} rates yet.
         </p>
       ) : (
         <div className="mt-0">
@@ -87,7 +90,7 @@ export function RateList({ type }: TranslationRateListProps) {
             });
           }}
         >
-          + Add {TYPE_LABELS[type]} Rate
+          + Add {typeLabel} Rate
         </Button>
       )}
     </div>

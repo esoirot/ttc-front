@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +15,13 @@ import { Button } from "./button";
 const meta: Meta<typeof Dialog> = {
   component: Dialog,
   title: "Molecules/Dialog",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof Dialog>;

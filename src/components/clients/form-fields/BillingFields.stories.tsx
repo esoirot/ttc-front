@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { BillingFields } from "./BillingFields";
 
 const meta: Meta<typeof BillingFields> = {
@@ -11,9 +13,11 @@ const meta: Meta<typeof BillingFields> = {
     onChange: () => {},
   },
   render: (args) => (
-    <div className="grid grid-cols-2 gap-3 w-[480px]">
-      <BillingFields {...args} />
-    </div>
+    <IntlProvider locale="en" messages={messages.en}>
+      <div className="grid grid-cols-2 gap-3 w-[480px]">
+        <BillingFields {...args} />
+      </div>
+    </IntlProvider>
   ),
 };
 export default meta;

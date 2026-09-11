@@ -1,15 +1,46 @@
+import type { MessageDescriptor } from "react-intl";
 import type { ProjectStatus } from "@/types/projects.types";
 
 export const PROJECT_STATUS_TABS: {
   value: ProjectStatus | "ALL";
-  label: string;
+  labelMessage: MessageDescriptor;
 }[] = [
-  { value: "ALL", label: "All" },
-  { value: "ACTIVE", label: "Active" },
-  { value: "DRAFT", label: "Draft" },
-  { value: "COMPLETED", label: "Completed" },
-  { value: "INVOICE_SENT", label: "Invoice Sent" },
-  { value: "INVOICE_PAID", label: "Invoice Paid" },
+  {
+    value: "ALL",
+    labelMessage: { id: "projects.statusTab.all", defaultMessage: "All" },
+  },
+  {
+    value: "ACTIVE",
+    labelMessage: {
+      id: "projects.statusTab.active",
+      defaultMessage: "Active",
+    },
+  },
+  {
+    value: "DRAFT",
+    labelMessage: { id: "projects.statusTab.draft", defaultMessage: "Draft" },
+  },
+  {
+    value: "COMPLETED",
+    labelMessage: {
+      id: "projects.statusTab.completed",
+      defaultMessage: "Completed",
+    },
+  },
+  {
+    value: "INVOICE_SENT",
+    labelMessage: {
+      id: "projects.statusTab.invoiceSent",
+      defaultMessage: "Invoice Sent",
+    },
+  },
+  {
+    value: "INVOICE_PAID",
+    labelMessage: {
+      id: "projects.statusTab.invoicePaid",
+      defaultMessage: "Invoice Paid",
+    },
+  },
 ];
 
 export const STATUSES: ProjectStatus[] = [

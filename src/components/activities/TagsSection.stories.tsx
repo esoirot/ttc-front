@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { TagsSection } from "./TagsSection";
 
 const meta: Meta<typeof TagsSection> = {
@@ -7,11 +9,13 @@ const meta: Meta<typeof TagsSection> = {
   title: "Organisms/TagsSection",
   decorators: [
     (Story) => (
-      <QueryClientProvider client={new QueryClient()}>
-        <div className="max-w-md border border-border rounded-md p-4">
-          <Story />
-        </div>
-      </QueryClientProvider>
+      <IntlProvider locale="en" messages={messages.en}>
+        <QueryClientProvider client={new QueryClient()}>
+          <div className="max-w-md border border-border rounded-md p-4">
+            <Story />
+          </div>
+        </QueryClientProvider>
+      </IntlProvider>
     ),
   ],
   parameters: {

@@ -1,5 +1,8 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const IntlWrapper = createIntlWrapper();
 
 const useProjectTaskListMock = vi.fn();
 vi.mock("@/hooks/projects/useProjectTaskList", () => ({
@@ -84,6 +87,7 @@ function dragState(overrides: Record<string, unknown> = {}) {
 function renderList(onOpenModal = vi.fn()) {
   return render(
     <ProjectTaskList projectId={1} members={[]} onOpenModal={onOpenModal} />,
+    { wrapper: IntlWrapper },
   );
 }
 

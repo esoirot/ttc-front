@@ -1,5 +1,7 @@
+import { createIntl } from "react-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ClockifyTimeEntry } from "@/types/clockify.types";
+import { messages } from "@/i18n/messages";
 import {
   daysAgoStr,
   dayLabel,
@@ -48,6 +50,8 @@ describe("secsToHms", () => {
 });
 
 describe("dayLabel", () => {
+  const intl = createIntl({ locale: "en", messages: messages.en });
+
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-17T12:00:00.000Z"));
@@ -58,15 +62,20 @@ describe("dayLabel", () => {
   });
 
   it("returns 'Today' for the current date key", () => {
-    expect(dayLabel(todayStr())).toBe("Today");
+    expect(dayLabel(todayStr(), intl)).toBe("Today");
   });
 
   it("returns 'Yesterday' for yesterday's date key", () => {
-    expect(dayLabel(daysAgoStr(1))).toBe("Yesterday");
+    expect(dayLabel(daysAgoStr(1), intl)).toBe("Yesterday");
   });
 
   it("returns a formatted weekday for older dates", () => {
-    expect(dayLabel(daysAgoStr(5))).not.toMatch(/Today|Yesterday/);
+    expect(dayLabel(daysAgoStr(5), intl)).not.toMatch(/Today|Yesterday/);
+  });
+
+  it("returns French copy when the intl locale is fr", () => {
+    const frIntl = createIntl({ locale: "fr", messages: messages.fr });
+    expect(dayLabel(todayStr(), frIntl)).toBe("Aujourd'hui");
   });
 });
 

@@ -1,4 +1,5 @@
 import { useState, startTransition } from "react";
+import { useIntl } from "react-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import { RateSheetRow } from "../rows/RateSheetRow";
 import type { CreateRateSheetInput } from "@/types/rate-sheets.types";
 
 export function RateSheetList() {
+  const intl = useIntl();
   const { rateSheets, loading } = useRateSheets();
   const { createRateSheet, loading: creating } = useCreateRateSheet();
   const { updateRateSheet, loading: updating } = useUpdateRateSheet();
@@ -53,7 +55,11 @@ export function RateSheetList() {
       {rateSheets.length === 0 && !showForm ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground text-sm">
-            No rate sheets yet. Create your first translation rate sheet below.
+            {intl.formatMessage({
+              id: "rates.rateSheetList.empty",
+              defaultMessage:
+                "No rate sheets yet. Create your first translation rate sheet below.",
+            })}
           </CardContent>
         </Card>
       ) : (
@@ -106,7 +112,10 @@ export function RateSheetList() {
             });
           }}
         >
-          + New Rate Sheet
+          {intl.formatMessage({
+            id: "rates.rateSheetList.newRateSheet",
+            defaultMessage: "+ New Rate Sheet",
+          })}
         </Button>
       )}
     </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +13,11 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { TranslationRateFormProps } from "@/types/rates.types";
-import { CURRENCIES, CURRENCY_SYMBOLS, TYPE_UNIT } from "@/constants/rates";
+import {
+  CURRENCIES,
+  CURRENCY_SYMBOLS,
+  TYPE_UNIT_MESSAGES,
+} from "@/constants/rates";
 import { LANGUAGES } from "@/constants/languages";
 import { useClients } from "@/hooks/clients/useClients";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
@@ -26,6 +31,7 @@ export function RateForm({
   onCancel,
   saving,
 }: TranslationRateFormProps) {
+  const intl = useIntl();
   const { clients } = useClients();
   const { activities } = useMyActivities();
   const { user } = useCurrentUser();
@@ -70,20 +76,40 @@ export function RateForm({
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!name.trim()) {
-      setError("Name is required.");
+      setError(
+        intl.formatMessage({
+          id: "rates.form.nameRequired",
+          defaultMessage: "Name is required.",
+        }),
+      );
       return;
     }
     if (showLanguageFields && !sourceLanguage) {
-      setError("Source language is required.");
+      setError(
+        intl.formatMessage({
+          id: "rates.form.sourceLanguageRequired",
+          defaultMessage: "Source language is required.",
+        }),
+      );
       return;
     }
     if (showLanguageFields && !targetLanguage) {
-      setError("Target language is required.");
+      setError(
+        intl.formatMessage({
+          id: "rates.form.targetLanguageRequired",
+          defaultMessage: "Target language is required.",
+        }),
+      );
       return;
     }
     const parsed = parseFloat(amountStr.replace(",", "."));
     if (isNaN(parsed) || parsed < 0) {
-      setError("Amount must be a valid number ≥ 0.");
+      setError(
+        intl.formatMessage({
+          id: "rates.form.amountInvalid",
+          defaultMessage: "Amount must be a valid number ≥ 0.",
+        }),
+      );
       return;
     }
     setError(null);
@@ -103,30 +129,56 @@ export function RateForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2 flex flex-col gap-1.5">
-          <Label htmlFor="rate-name">Name</Label>
+          <Label htmlFor="rate-name">
+            <FormattedMessage id="rates.form.name" defaultMessage="Name" />
+          </Label>
           <Input
             id="rate-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={
+            placeholder={intl.formatMessage(
               type === "HOURLY" || type === "DAY"
-                ? "e.g. Standard, Technical"
+                ? {
+                    id: "rates.form.namePlaceholderHourly",
+                    defaultMessage: "e.g. Standard, Technical",
+                  }
                 : type === "FIXED"
-                  ? "e.g. Document review, Proofreading"
-                  : "e.g. General, Specialised"
-            }
+                  ? {
+                      id: "rates.form.namePlaceholderFixed",
+                      defaultMessage: "e.g. Document review, Proofreading",
+                    }
+                  : {
+                      id: "rates.form.namePlaceholderPerWord",
+                      defaultMessage: "e.g. General, Specialised",
+                    },
+            )}
             required
           />
         </div>
 
         <div className="col-span-2 flex flex-col gap-1.5">
-          <Label htmlFor="rate-activity">Activity (optional)</Label>
+          <Label htmlFor="rate-activity">
+            <FormattedMessage
+              id="rates.form.activityOptional"
+              defaultMessage="Activity (optional)"
+            />
+          </Label>
           <Select value={activityId} onValueChange={setActivityId}>
             <SelectTrigger id="rate-activity">
-              <SelectValue placeholder="No activity" />
+              <SelectValue
+                placeholder={intl.formatMessage({
+                  id: "rates.form.noActivity",
+                  defaultMessage: "No activity",
+                })}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">No activity</SelectItem>
+              <SelectItem value="__none__">
+                <FormattedMessage
+                  id="rates.form.noActivity"
+                  defaultMessage="No activity"
+                />
+              </SelectItem>
               {activities.map((a) => (
                 <SelectItem key={a.id} value={String(a.id)}>
                   {a.name}
@@ -137,13 +189,28 @@ export function RateForm({
         </div>
 
         <div className="col-span-2 flex flex-col gap-1.5">
-          <Label htmlFor="rate-client">Client (optional)</Label>
+          <Label htmlFor="rate-client">
+            <FormattedMessage
+              id="rates.form.clientOptional"
+              defaultMessage="Client (optional)"
+            />
+          </Label>
           <Select value={clientId} onValueChange={setClientId}>
             <SelectTrigger id="rate-client">
-              <SelectValue placeholder="No client" />
+              <SelectValue
+                placeholder={intl.formatMessage({
+                  id: "rates.form.noClient",
+                  defaultMessage: "No client",
+                })}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">No client</SelectItem>
+              <SelectItem value="__none__">
+                <FormattedMessage
+                  id="rates.form.noClient"
+                  defaultMessage="No client"
+                />
+              </SelectItem>
               {clients.map((c) => (
                 <SelectItem key={c.id} value={String(c.id)}>
                   {c.name}
@@ -154,22 +221,40 @@ export function RateForm({
         </div>
 
         <div className="col-span-2 flex flex-col gap-1.5">
-          <Label htmlFor="rate-desc">Description</Label>
+          <Label htmlFor="rate-desc">
+            <FormattedMessage
+              id="rates.form.description"
+              defaultMessage="Description"
+            />
+          </Label>
           <Textarea
             id="rate-desc"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional description"
+            placeholder={intl.formatMessage({
+              id: "rates.form.descriptionPlaceholder",
+              defaultMessage: "Optional description",
+            })}
             rows={2}
           />
         </div>
 
         {showLanguageFields && (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="rate-source-lang">Source language</Label>
+            <Label htmlFor="rate-source-lang">
+              <FormattedMessage
+                id="rates.form.sourceLanguage"
+                defaultMessage="Source language"
+              />
+            </Label>
             <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
               <SelectTrigger id="rate-source-lang">
-                <SelectValue placeholder="Select…" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "rates.form.selectEllipsis",
+                    defaultMessage: "Select…",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGES.map((l) => (
@@ -184,10 +269,20 @@ export function RateForm({
 
         {showLanguageFields && (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="rate-target-lang">Target language</Label>
+            <Label htmlFor="rate-target-lang">
+              <FormattedMessage
+                id="rates.form.targetLanguage"
+                defaultMessage="Target language"
+              />
+            </Label>
             <Select value={targetLanguage} onValueChange={setTargetLanguage}>
               <SelectTrigger id="rate-target-lang">
-                <SelectValue placeholder="Select…" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "rates.form.selectEllipsis",
+                    defaultMessage: "Select…",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGES.map((l) => (
@@ -201,7 +296,9 @@ export function RateForm({
         )}
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="rate-amount">Amount ({TYPE_UNIT[type]})</Label>
+          <Label htmlFor="rate-amount">
+            Amount ({intl.formatMessage(TYPE_UNIT_MESSAGES[type])})
+          </Label>
           <div className="relative">
             <Input
               id="rate-amount"
@@ -224,7 +321,12 @@ export function RateForm({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label className="invisible">Currency</Label>
+          <Label className="invisible">
+            <FormattedMessage
+              id="rates.form.currency"
+              defaultMessage="Currency"
+            />
+          </Label>
           <div className="flex items-center gap-2 h-9">
             <Checkbox
               id="rate-other-currency"
@@ -235,7 +337,10 @@ export function RateForm({
               htmlFor="rate-other-currency"
               className="cursor-pointer whitespace-nowrap"
             >
-              Other currency
+              <FormattedMessage
+                id="rates.form.otherCurrency"
+                defaultMessage="Other currency"
+              />
             </Label>
             {useOtherCurrency && (
               <Select value={currency} onValueChange={setCurrency}>
@@ -259,10 +364,22 @@ export function RateForm({
 
       <div className="flex gap-2">
         <Button type="submit" disabled={saving}>
-          {saving ? "Saving…" : initial ? "Save" : "Add Rate"}
+          {saving ? (
+            <FormattedMessage id="rates.form.saving" defaultMessage="Saving…" />
+          ) : initial ? (
+            <FormattedMessage id="common.actions.save" defaultMessage="Save" />
+          ) : (
+            <FormattedMessage
+              id="rates.form.addRate"
+              defaultMessage="Add Rate"
+            />
+          )}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          <FormattedMessage
+            id="common.actions.cancel"
+            defaultMessage="Cancel"
+          />
         </Button>
       </div>
     </form>

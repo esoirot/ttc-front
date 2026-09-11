@@ -35,6 +35,9 @@ vi.mock("./subTotals/InvoiceSubtotal", () => ({
 }));
 
 import { InvoiceDetail } from "./InvoiceDetail";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeInvoice(overrides: Partial<Invoice> = {}): Invoice {
   return {
@@ -82,7 +85,7 @@ describe("InvoiceDetail", () => {
       ...defaultState(),
       loading: true,
     });
-    render(<InvoiceDetail />);
+    render(<InvoiceDetail />, { wrapper });
     expect(screen.queryByText(/Header:/)).not.toBeInTheDocument();
   });
 
@@ -91,15 +94,24 @@ describe("InvoiceDetail", () => {
       ...defaultState(),
       invoice: null,
     });
-    render(<InvoiceDetail />);
+    render(<InvoiceDetail />, { wrapper });
     expect(screen.getByText("Invoice not found.")).toBeInTheDocument();
   });
 
   it("renders the header, meta card, line items, and subtotal when loaded", () => {
-    render(<InvoiceDetail />);
+    render(<InvoiceDetail />, { wrapper });
     expect(screen.getByText("Header: INV-007")).toBeInTheDocument();
     expect(screen.getByText("Meta card")).toBeInTheDocument();
     expect(screen.getByText("Line items")).toBeInTheDocument();
     expect(screen.getByText("Subtotal")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    useInvoiceDetailMock.mockReturnValue({
+      ...defaultState(),
+      invoice: null,
+    });
+    render(<InvoiceDetail />, { wrapper: createIntlWrapper("fr") });
+    expect(screen.getByText("Facture introuvable.")).toBeInTheDocument();
   });
 });

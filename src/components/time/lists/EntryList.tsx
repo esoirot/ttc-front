@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { EntryListProps } from "@/types/shared-ui.types";
@@ -15,6 +16,7 @@ export function EntryList({
   onResume,
   onUpdate,
 }: EntryListProps) {
+  const intl = useIntl();
   if (loading && entries.length === 0) {
     return (
       <div className="flex flex-col gap-2">
@@ -28,7 +30,10 @@ export function EntryList({
   if (entries.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
-        No entries in this period.
+        {intl.formatMessage({
+          id: "time.entryList.empty",
+          defaultMessage: "No entries in this period.",
+        })}
       </p>
     );
   }
@@ -56,7 +61,10 @@ export function EntryList({
           onClick={loadMore}
           disabled={false}
         >
-          Load more
+          {intl.formatMessage({
+            id: "time.entryList.loadMore",
+            defaultMessage: "Load more",
+          })}
         </Button>
       )}
     </>

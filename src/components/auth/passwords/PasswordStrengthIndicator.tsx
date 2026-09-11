@@ -1,3 +1,6 @@
+import { useIntl, type MessageDescriptor } from "react-intl";
+import type { PasswordStrengthIndicatorProps } from "@/types/auth.types";
+
 function passwordStrength(p: string): 0 | 1 | 2 | 3 {
   if (p.length === 0) return 0;
   let score = 0;
@@ -7,7 +10,12 @@ function passwordStrength(p: string): 0 | 1 | 2 | 3 {
   return Math.min(score, 3) as 0 | 1 | 2 | 3;
 }
 
-const STRENGTH_LABEL = ["", "Weak", "Medium", "Strong"] as const;
+const STRENGTH_LABEL_MESSAGES: (MessageDescriptor | null)[] = [
+  null,
+  { id: "auth.passwordStrength.weak", defaultMessage: "Weak" },
+  { id: "auth.passwordStrength.medium", defaultMessage: "Medium" },
+  { id: "auth.passwordStrength.strong", defaultMessage: "Strong" },
+];
 const STRENGTH_COLOR = [
   "",
   "bg-destructive",
@@ -21,13 +29,13 @@ const STRENGTH_TEXT_COLOR = [
   "text-emerald-500",
 ] as const;
 
-import type { PasswordStrengthIndicatorProps } from "@/types/auth.types";
-
 export function PasswordStrengthIndicator({
   password,
 }: PasswordStrengthIndicatorProps) {
+  const intl = useIntl();
   if (password.length === 0) return null;
   const strength = passwordStrength(password);
+  const label = STRENGTH_LABEL_MESSAGES[strength];
   return (
     <div className="flex items-center gap-2 mt-1">
       <div className="flex gap-1 flex-1">
@@ -41,7 +49,7 @@ export function PasswordStrengthIndicator({
         ))}
       </div>
       <span className={`text-xs font-medium ${STRENGTH_TEXT_COLOR[strength]}`}>
-        {STRENGTH_LABEL[strength]}
+        {label ? intl.formatMessage(label) : ""}
       </span>
     </div>
   );

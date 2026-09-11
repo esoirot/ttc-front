@@ -1,3 +1,4 @@
+import { useIntl, FormattedMessage } from "react-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,10 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClientHeaderForm } from "@/hooks/clients/useClientHeaderForm";
 import { hasBilling } from "@/hooks/clients/clientUtils";
-import { INDUSTRY_LABELS, STATUS_LABELS } from "@/constants/clients";
+import {
+  INDUSTRY_LABEL_MESSAGES,
+  STATUS_LABEL_MESSAGES,
+} from "@/constants/clients";
 import type {
   ClientHeaderProps,
   ClientType,
@@ -27,7 +31,18 @@ import { TtcTagChips } from "@/components/time/tags/TtcTagChips";
 import { ActivityChips } from "@/components/activities/ActivityChips";
 import { toSafeHref } from "@/lib/schemas";
 
+const MSG = {
+  company: { id: "clients.header.type.company", defaultMessage: "Company" },
+  individual: {
+    id: "clients.header.type.individual",
+    defaultMessage: "Individual",
+  },
+  notes: { id: "clients.header.notes", defaultMessage: "Notes" },
+  status: { id: "clients.header.status", defaultMessage: "Status" },
+};
+
 export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
+  const intl = useIntl();
   const {
     editing,
     setEditing,
@@ -56,21 +71,30 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
           }
         >
           <TabsList>
-            <TabsTrigger value="COMPANY">Company</TabsTrigger>
-            <TabsTrigger value="INDIVIDUAL">Individual</TabsTrigger>
+            <TabsTrigger value="COMPANY">
+              <FormattedMessage {...MSG.company} />
+            </TabsTrigger>
+            <TabsTrigger value="INDIVIDUAL">
+              <FormattedMessage {...MSG.individual} />
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
         <div className="flex flex-col gap-4">
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              {isCompany ? "Company" : "Individual"}
+              {intl.formatMessage(isCompany ? MSG.company : MSG.individual)}
             </p>
             <div className="grid grid-cols-2 gap-3">
               {isCompany ? (
                 <>
                   <div className="flex flex-col gap-1">
-                    <Label htmlFor="cl-name">Name</Label>
+                    <Label htmlFor="cl-name">
+                      <FormattedMessage
+                        id="clients.header.field.name"
+                        defaultMessage="Name"
+                      />
+                    </Label>
                     <Input
                       id="cl-name"
                       value={form.name}
@@ -79,7 +103,12 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Label htmlFor="cl-legalName">Legal name</Label>
+                    <Label htmlFor="cl-legalName">
+                      <FormattedMessage
+                        id="clients.header.field.legalName"
+                        defaultMessage="Legal name"
+                      />
+                    </Label>
                     <Input
                       id="cl-legalName"
                       value={form.legalName}
@@ -87,7 +116,12 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Label htmlFor="cl-vatNumber">VAT number</Label>
+                    <Label htmlFor="cl-vatNumber">
+                      <FormattedMessage
+                        id="clients.header.field.vatNumber"
+                        defaultMessage="VAT number"
+                      />
+                    </Label>
                     <Input
                       id="cl-vatNumber"
                       value={form.vatNumber}
@@ -95,19 +129,32 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Label htmlFor="cl-legalForm">Legal form</Label>
+                    <Label htmlFor="cl-legalForm">
+                      <FormattedMessage
+                        id="clients.header.field.legalForm"
+                        defaultMessage="Legal form"
+                      />
+                    </Label>
                     <Input
                       id="cl-legalForm"
                       value={form.legalForm}
                       onChange={set("legalForm")}
-                      placeholder="SAS, Ltd, LLC…"
+                      placeholder={intl.formatMessage({
+                        id: "clients.header.field.legalFormPlaceholder",
+                        defaultMessage: "SAS, Ltd, LLC…",
+                      })}
                     />
                   </div>
                 </>
               ) : (
                 <>
                   <div className="flex flex-col gap-1">
-                    <Label htmlFor="cl-firstName">First name</Label>
+                    <Label htmlFor="cl-firstName">
+                      <FormattedMessage
+                        id="clients.header.field.firstName"
+                        defaultMessage="First name"
+                      />
+                    </Label>
                     <Input
                       id="cl-firstName"
                       value={form.firstName}
@@ -115,7 +162,12 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Label htmlFor="cl-lastName">Last name</Label>
+                    <Label htmlFor="cl-lastName">
+                      <FormattedMessage
+                        id="clients.header.field.lastName"
+                        defaultMessage="Last name"
+                      />
+                    </Label>
                     <Input
                       id="cl-lastName"
                       value={form.lastName}
@@ -125,7 +177,12 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                 </>
               )}
               <div className="col-span-2 flex flex-col gap-1">
-                <Label htmlFor="cl-website">Website</Label>
+                <Label htmlFor="cl-website">
+                  <FormattedMessage
+                    id="clients.header.field.website"
+                    defaultMessage="Website"
+                  />
+                </Label>
                 <Input
                   id="cl-website"
                   value={form.website}
@@ -140,7 +197,12 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                 )}
               </div>
               <div className="flex flex-col gap-1">
-                <Label htmlFor="cl-industry">Industry</Label>
+                <Label htmlFor="cl-industry">
+                  <FormattedMessage
+                    id="clients.header.field.industry"
+                    defaultMessage="Industry"
+                  />
+                </Label>
                 <Select
                   value={form.industry ?? ""}
                   onValueChange={(v) =>
@@ -151,17 +213,19 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                   }
                 >
                   <SelectTrigger id="cl-industry">
-                    <SelectValue placeholder="Select industry" />
+                    <SelectValue
+                      placeholder={intl.formatMessage({
+                        id: "clients.header.field.industryPlaceholder",
+                        defaultMessage: "Select industry",
+                      })}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {(
-                      Object.entries(INDUSTRY_LABELS) as [
-                        ClientIndustry,
-                        string,
-                      ][]
-                    ).map(([val, label]) => (
+                      Object.keys(INDUSTRY_LABEL_MESSAGES) as ClientIndustry[]
+                    ).map((val) => (
                       <SelectItem key={val} value={val}>
-                        {label}
+                        {intl.formatMessage(INDUSTRY_LABEL_MESSAGES[val])}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -177,11 +241,19 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
 
           <div className="pt-4 border-t border-border">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              Contact
+              <FormattedMessage
+                id="clients.header.section.contact"
+                defaultMessage="Contact"
+              />
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
-                <Label htmlFor="cl-email">Email</Label>
+                <Label htmlFor="cl-email">
+                  <FormattedMessage
+                    id="clients.header.field.email"
+                    defaultMessage="Email"
+                  />
+                </Label>
                 <Input
                   id="cl-email"
                   type="email"
@@ -196,7 +268,12 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                 )}
               </div>
               <div className="flex flex-col gap-1">
-                <Label htmlFor="cl-phone">Phone</Label>
+                <Label htmlFor="cl-phone">
+                  <FormattedMessage
+                    id="clients.header.field.phone"
+                    defaultMessage="Phone"
+                  />
+                </Label>
                 <Input
                   id="cl-phone"
                   value={form.phone}
@@ -208,7 +285,10 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
 
           <div className="pt-4 border-t border-border">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              Address
+              <FormattedMessage
+                id="clients.header.section.address"
+                defaultMessage="Address"
+              />
             </p>
             <div className="grid grid-cols-2 gap-3">
               <AddressFields
@@ -234,26 +314,33 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
 
           <div className="pt-4 border-t border-border">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              Notes
+              <FormattedMessage {...MSG.notes} />
             </p>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="cl-notes">Notes</Label>
+              <Label htmlFor="cl-notes">
+                <FormattedMessage {...MSG.notes} />
+              </Label>
               <Textarea
                 id="cl-notes"
                 value={form.notes}
                 onChange={set("notes")}
-                placeholder="Internal notes about this client…"
+                placeholder={intl.formatMessage({
+                  id: "clients.header.field.notesPlaceholder",
+                  defaultMessage: "Internal notes about this client…",
+                })}
               />
             </div>
           </div>
 
           <div className="pt-4 border-t border-border">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              Status
+              <FormattedMessage {...MSG.status} />
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
-                <Label htmlFor="cl-status">Status</Label>
+                <Label htmlFor="cl-status">
+                  <FormattedMessage {...MSG.status} />
+                </Label>
                 <Select
                   value={form.status}
                   onValueChange={(v) =>
@@ -267,18 +354,23 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {(
-                      Object.entries(STATUS_LABELS) as [ClientStatus, string][]
-                    ).map(([val, label]) => (
-                      <SelectItem key={val} value={val}>
-                        {label}
-                      </SelectItem>
-                    ))}
+                    {(Object.keys(STATUS_LABEL_MESSAGES) as ClientStatus[]).map(
+                      (val) => (
+                        <SelectItem key={val} value={val}>
+                          {intl.formatMessage(STATUS_LABEL_MESSAGES[val])}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex flex-col gap-1">
-                <Label htmlFor="cl-contactedAt">Contacted At</Label>
+                <Label htmlFor="cl-contactedAt">
+                  <FormattedMessage
+                    id="clients.header.field.contactedAt"
+                    defaultMessage="Contacted At"
+                  />
+                </Label>
                 <Input
                   id="cl-contactedAt"
                   type="date"
@@ -291,7 +383,10 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
 
           <div className="pt-4 border-t border-border flex flex-col gap-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Tags
+              <FormattedMessage
+                id="clients.header.field.tags"
+                defaultMessage="Tags"
+              />
             </p>
             <TtcTagChips
               tagIds={form.tagIds}
@@ -302,7 +397,10 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
 
           <div className="pt-4 border-t border-border flex flex-col gap-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Activities
+              <FormattedMessage
+                id="clients.header.field.activities"
+                defaultMessage="Activities"
+              />
             </p>
             <ActivityChips
               activityIds={form.activityIds}
@@ -317,7 +415,17 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
 
         <div className="flex gap-2">
           <Button type="submit" size="sm" disabled={saving}>
-            {saving ? "Saving…" : "Save"}
+            {saving ? (
+              <FormattedMessage
+                id="clients.header.saving"
+                defaultMessage="Saving…"
+              />
+            ) : (
+              <FormattedMessage
+                id="clients.header.save"
+                defaultMessage="Save"
+              />
+            )}
           </Button>
           <Button
             type="button"
@@ -328,7 +436,10 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
               setEditing(false);
             }}
           >
-            Cancel
+            <FormattedMessage
+              id="clients.header.cancel"
+              defaultMessage="Cancel"
+            />
           </Button>
         </div>
       </form>
@@ -361,17 +472,31 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                 client.clientType === "COMPANY" ? "secondary" : "outline"
               }
             >
-              {client.clientType === "COMPANY" ? "Company" : "Individual"}
+              {intl.formatMessage(
+                client.clientType === "COMPANY" ? MSG.company : MSG.individual,
+              )}
             </Badge>
-            <Badge variant="outline">{STATUS_LABELS[client.status]}</Badge>
+            <Badge variant="outline">
+              {intl.formatMessage(STATUS_LABEL_MESSAGES[client.status])}
+            </Badge>
             {client.hubspotId && (
-              <Badge variant="secondary">HubSpot linked</Badge>
+              <Badge variant="secondary">
+                <FormattedMessage
+                  id="clients.header.hubspotLinked"
+                  defaultMessage="HubSpot linked"
+                />
+              </Badge>
             )}
           </div>
           {client.contactedAt && (
             <p className="text-muted-foreground text-xs mt-1">
-              Last contacted:{" "}
-              {new Date(client.contactedAt).toLocaleDateString()}
+              <FormattedMessage
+                id="clients.header.lastContacted"
+                defaultMessage="Last contacted: {date}"
+                values={{
+                  date: intl.formatDate(client.contactedAt),
+                }}
+              />
             </p>
           )}
         </div>
@@ -381,14 +506,21 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
           className="border-blue-600 dark:border-blue-400 text-foreground hover:bg-blue-500/30 hover:text-foreground dark:hover:bg-blue-400/30 dark:hover:text-foreground"
           onClick={() => setEditing(true)}
         >
-          Edit
+          <FormattedMessage id="clients.header.edit" defaultMessage="Edit" />
         </Button>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-6 text-sm">
         <div className="flex flex-col gap-1">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-            {client.clientType === "COMPANY" ? "Company" : "Contact"}
+            {client.clientType === "COMPANY" ? (
+              <FormattedMessage {...MSG.company} />
+            ) : (
+              <FormattedMessage
+                id="clients.header.contactColumnLabel"
+                defaultMessage="Contact"
+              />
+            )}
           </p>
           {client.address && <span>{client.address}</span>}
           {client.addressLine2 && <span>{client.addressLine2}</span>}
@@ -401,7 +533,11 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
           )}
           {client.clientType === "COMPANY" && client.vatNumber && (
             <span className="text-muted-foreground">
-              VAT {client.vatNumber}
+              <FormattedMessage
+                id="clients.header.vat"
+                defaultMessage="VAT {number}"
+                values={{ number: client.vatNumber }}
+              />
             </span>
           )}
           {client.clientType === "COMPANY" && client.legalForm && (
@@ -430,7 +566,7 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
             ))}
           {client.industry && (
             <Badge variant="outline" className="w-fit text-xs">
-              {INDUSTRY_LABELS[client.industry]}
+              {intl.formatMessage(INDUSTRY_LABEL_MESSAGES[client.industry])}
             </Badge>
           )}
         </div>
@@ -438,14 +574,36 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
         {hasBilling(client) && (
           <div className="flex flex-col gap-1">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-              Billing
+              <FormattedMessage
+                id="clients.header.section.billing"
+                defaultMessage="Billing"
+              />
             </p>
             {client.paymentDelayDays !== null && (
-              <span>Payment: {client.paymentDelayDays} days</span>
+              <span>
+                <FormattedMessage
+                  id="clients.header.paymentDelay"
+                  defaultMessage="Payment: {days} days"
+                  values={{ days: client.paymentDelayDays }}
+                />
+              </span>
             )}
-            {client.taxRate !== null && <span>Tax: {client.taxRate}%</span>}
+            {client.taxRate !== null && (
+              <span>
+                <FormattedMessage
+                  id="clients.header.taxRate"
+                  defaultMessage="Tax: {rate}%"
+                  values={{ rate: client.taxRate }}
+                />
+              </span>
+            )}
             {client.billingEndOfMonth && (
-              <span className="text-muted-foreground">End of month</span>
+              <span className="text-muted-foreground">
+                <FormattedMessage
+                  id="clients.header.endOfMonth"
+                  defaultMessage="End of month"
+                />
+              </span>
             )}
           </div>
         )}
@@ -454,7 +612,7 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
       {client.notes && (
         <div className="mt-4 flex flex-col gap-1 text-sm">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Notes
+            <FormattedMessage {...MSG.notes} />
           </p>
           <p className="whitespace-pre-wrap">{client.notes}</p>
         </div>

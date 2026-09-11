@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { RateSheet } from "@/types/rate-sheets.types";
 import { defaultMatchRates } from "@/constants/matchRateItems";
 import { RateSheetRow } from "./RateSheetRow";
@@ -23,6 +25,13 @@ const sheet: RateSheet = {
 const meta: Meta<typeof RateSheetRow> = {
   component: RateSheetRow,
   title: "Organisms/RateSheetRow",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     sheet,
     clientName: "Acme Corp",

@@ -1,16 +1,21 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ColorField } from "./ColorField";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 describe("ColorField", () => {
   it("renders the text input bound to the current value", () => {
-    render(<ColorField id="col" value="#D2D5DA" onChange={vi.fn()} />);
+    render(<ColorField id="col" value="#D2D5DA" onChange={vi.fn()} />, {
+      wrapper,
+    });
     expect(screen.getByLabelText("Color")).toHaveValue("#D2D5DA");
   });
 
   it("calls onChange when the text input changes", () => {
     const onChange = vi.fn();
-    render(<ColorField id="col" value="" onChange={onChange} />);
+    render(<ColorField id="col" value="" onChange={onChange} />, { wrapper });
 
     fireEvent.change(screen.getByLabelText("Color"), {
       target: { value: "#FCA5A5" },
@@ -20,7 +25,7 @@ describe("ColorField", () => {
   });
 
   it("opens a preset color picker when the swatch is clicked", () => {
-    render(<ColorField id="col" value="" onChange={vi.fn()} />);
+    render(<ColorField id="col" value="" onChange={vi.fn()} />, { wrapper });
 
     expect(screen.queryByLabelText("#EF4444")).not.toBeInTheDocument();
     fireEvent.click(screen.getByLabelText("Pick color"));
@@ -29,7 +34,7 @@ describe("ColorField", () => {
 
   it("calls onChange with the preset's hex value when a swatch is picked", () => {
     const onChange = vi.fn();
-    render(<ColorField id="col" value="" onChange={onChange} />);
+    render(<ColorField id="col" value="" onChange={onChange} />, { wrapper });
 
     fireEvent.click(screen.getByLabelText("Pick color"));
     fireEvent.click(screen.getByLabelText("#3B82F6"));
@@ -40,7 +45,15 @@ describe("ColorField", () => {
   it("uses a custom label when provided", () => {
     render(
       <ColorField id="col" value="" onChange={vi.fn()} label="Tag color" />,
+      { wrapper },
     );
     expect(screen.getByLabelText("Tag color")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<ColorField id="col" value="" onChange={vi.fn()} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    expect(screen.getByLabelText("Couleur")).toBeInTheDocument();
   });
 });

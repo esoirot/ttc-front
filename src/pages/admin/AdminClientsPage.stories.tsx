@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { AdminClientsPage } from "./AdminClientsPage";
 
 const meta: Meta<typeof AdminClientsPage> = {
@@ -9,9 +11,11 @@ const meta: Meta<typeof AdminClientsPage> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <MemoryRouter initialEntries={["/admin/clients"]}>
-          <Story />
-        </MemoryRouter>
+        <IntlProvider locale="en" messages={messages.en}>
+          <MemoryRouter initialEntries={["/admin/clients"]}>
+            <Story />
+          </MemoryRouter>
+        </IntlProvider>
       </QueryClientProvider>
     ),
   ],

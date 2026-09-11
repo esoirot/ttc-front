@@ -1,17 +1,27 @@
 import { NavLink, Link } from "react-router-dom";
 import { Sun, Moon } from "lucide-react";
+import { useIntl, FormattedMessage } from "react-intl";
+import type { MessageDescriptor } from "react-intl";
 import { useCurrentUser, useLogout } from "../../hooks/auth/useAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { useLocale } from "@/i18n/useLocale";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/types/layout.types";
 
-const DASHBOARD_ITEM: NavItem = {
+type TranslatedNavItem = Omit<NavItem, "label"> & {
+  labelMessage: MessageDescriptor;
+};
+
+const DASHBOARD_ITEM: TranslatedNavItem = {
   to: "/",
   end: true,
-  label: "Dashboard",
+  labelMessage: {
+    id: "layout.sidebar.nav.dashboard",
+    defaultMessage: "Dashboard",
+  },
   icon: (
     <svg
       width="16"
@@ -60,14 +70,20 @@ const DASHBOARD_ITEM: NavItem = {
   ),
 };
 
-const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
+const NAV_GROUPS: {
+  labelMessage: MessageDescriptor;
+  items: TranslatedNavItem[];
+}[] = [
   {
-    label: "CRM",
+    labelMessage: { id: "layout.sidebar.group.crm", defaultMessage: "CRM" },
     items: [
       {
         to: "/clients",
         end: false,
-        label: "Clients",
+        labelMessage: {
+          id: "layout.sidebar.nav.clients",
+          defaultMessage: "Clients",
+        },
         icon: (
           <svg
             width="16"
@@ -95,7 +111,10 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       {
         to: "/prospects",
         end: false,
-        label: "Prospects",
+        labelMessage: {
+          id: "layout.sidebar.nav.prospects",
+          defaultMessage: "Prospects",
+        },
         icon: (
           <svg
             width="16"
@@ -123,12 +142,18 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: "Project Management",
+    labelMessage: {
+      id: "layout.sidebar.group.projectManagement",
+      defaultMessage: "Project Management",
+    },
     items: [
       {
         to: "/projects",
         end: false,
-        label: "Projects",
+        labelMessage: {
+          id: "layout.sidebar.nav.projects",
+          defaultMessage: "Projects",
+        },
         icon: (
           <svg
             width="16"
@@ -158,7 +183,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       {
         to: "/time",
         end: false,
-        label: "Time",
+        labelMessage: { id: "layout.sidebar.nav.time", defaultMessage: "Time" },
         icon: (
           <svg
             width="16"
@@ -187,12 +212,18 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: "Business",
+    labelMessage: {
+      id: "layout.sidebar.group.business",
+      defaultMessage: "Business",
+    },
     items: [
       {
         to: "/activities",
         end: false,
-        label: "My Activity",
+        labelMessage: {
+          id: "layout.sidebar.nav.myActivity",
+          defaultMessage: "My Activity",
+        },
         icon: (
           <svg
             width="16"
@@ -228,12 +259,18 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: "Finance",
+    labelMessage: {
+      id: "layout.sidebar.group.finance",
+      defaultMessage: "Finance",
+    },
     items: [
       {
         to: "/invoices",
         end: false,
-        label: "Invoices",
+        labelMessage: {
+          id: "layout.sidebar.nav.invoices",
+          defaultMessage: "Invoices",
+        },
         icon: (
           <svg
             width="16"
@@ -263,7 +300,10 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       {
         to: "/rates",
         end: false,
-        label: "Rates",
+        labelMessage: {
+          id: "layout.sidebar.nav.rates",
+          defaultMessage: "Rates",
+        },
         icon: (
           <svg
             width="16"
@@ -291,12 +331,18 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: "Integrations",
+    labelMessage: {
+      id: "layout.sidebar.group.integrations",
+      defaultMessage: "Integrations",
+    },
     items: [
       {
         to: "/hubspot",
         end: false,
-        label: "HubSpot",
+        labelMessage: {
+          id: "layout.sidebar.nav.hubspot",
+          defaultMessage: "HubSpot",
+        },
         icon: (
           <svg
             width="16"
@@ -338,7 +384,10 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       {
         to: "/time-tracker",
         end: false,
-        label: "Clockify",
+        labelMessage: {
+          id: "layout.sidebar.nav.clockify",
+          defaultMessage: "Clockify",
+        },
         icon: (
           <svg
             width="16"
@@ -368,7 +417,10 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       {
         to: "/google-calendar",
         end: false,
-        label: "Google Calendar",
+        labelMessage: {
+          id: "layout.sidebar.nav.googleCalendar",
+          defaultMessage: "Google Calendar",
+        },
         icon: (
           <svg
             width="16"
@@ -405,10 +457,10 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   },
 ];
 
-const ADMIN_NAV_ITEM: NavItem = {
+const ADMIN_NAV_ITEM: TranslatedNavItem = {
   to: "/admin",
   end: false,
-  label: "Admin",
+  labelMessage: { id: "layout.sidebar.nav.admin", defaultMessage: "Admin" },
   icon: (
     <svg
       width="16"
@@ -435,7 +487,8 @@ const ADMIN_NAV_ITEM: NavItem = {
   ),
 };
 
-function NavItemLink({ to, end, label, icon }: NavItem) {
+function NavItemLink({ to, end, labelMessage, icon }: TranslatedNavItem) {
+  const intl = useIntl();
   return (
     <NavLink
       key={to}
@@ -451,15 +504,17 @@ function NavItemLink({ to, end, label, icon }: NavItem) {
       }
     >
       <span className="flex items-center shrink-0">{icon}</span>
-      {label}
+      {intl.formatMessage(labelMessage)}
     </NavLink>
   );
 }
 
 export function Sidebar() {
+  const intl = useIntl();
   const { user } = useCurrentUser();
   const { logout, loading } = useLogout();
   const { theme, toggleTheme } = useTheme();
+  const { locale, toggleLocale } = useLocale();
 
   return (
     <aside className="flex flex-row flex-wrap border-b border-border sm:flex-col sm:flex-nowrap sm:w-56 sm:shrink-0 sm:sticky sm:top-0 sm:h-screen sm:overflow-y-auto sm:border-b-0 sm:border-r bg-sidebar">
@@ -468,34 +523,69 @@ export function Sidebar() {
           <span className="text-primary text-base" aria-hidden="true">
             ⟡
           </span>
-          Freelance Assistant
+          <FormattedMessage
+            id="layout.sidebar.appName"
+            defaultMessage="Freelance Assistant"
+          />
         </span>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label={
-            theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-          }
-          onClick={toggleTheme}
-        >
-          {theme === "dark" ? (
-            <Sun className="size-4" />
-          ) : (
-            <Moon className="size-4" />
-          )}
-        </Button>
+        <span className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={intl.formatMessage(
+              locale === "en"
+                ? {
+                    id: "layout.sidebar.switchToFrench",
+                    defaultMessage: "Switch to French",
+                  }
+                : {
+                    id: "layout.sidebar.switchToEnglish",
+                    defaultMessage: "Switch to English",
+                  },
+            )}
+            onClick={toggleLocale}
+            className="text-xs font-semibold"
+          >
+            {locale.toUpperCase()}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={intl.formatMessage(
+              theme === "dark"
+                ? {
+                    id: "layout.sidebar.switchToLightMode",
+                    defaultMessage: "Switch to light mode",
+                  }
+                : {
+                    id: "layout.sidebar.switchToDarkMode",
+                    defaultMessage: "Switch to dark mode",
+                  },
+            )}
+            onClick={toggleTheme}
+          >
+            {theme === "dark" ? (
+              <Sun className="size-4" />
+            ) : (
+              <Moon className="size-4" />
+            )}
+          </Button>
+        </span>
       </div>
 
       <nav
         className="flex flex-row flex-1 items-center gap-1 p-2 sm:flex-col sm:flex-1 sm:items-stretch"
-        aria-label="Main navigation"
+        aria-label={intl.formatMessage({
+          id: "layout.sidebar.mainNav",
+          defaultMessage: "Main navigation",
+        })}
       >
         <NavItemLink {...DASHBOARD_ITEM} />
 
-        {NAV_GROUPS.map(({ label, items }) => (
-          <div key={label} className="contents sm:flex sm:flex-col">
+        {NAV_GROUPS.map(({ labelMessage, items }) => (
+          <div key={labelMessage.id} className="contents sm:flex sm:flex-col">
             <p className="hidden sm:block px-3 pt-3 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              {label}
+              {intl.formatMessage(labelMessage)}
             </p>
             {items.map((item) => (
               <NavItemLink key={item.to} {...item} />
@@ -506,7 +596,10 @@ export function Sidebar() {
         {user?.role === "ADMIN" && (
           <div className="contents sm:flex sm:flex-col">
             <p className="hidden sm:block px-3 pt-3 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              System
+              <FormattedMessage
+                id="layout.sidebar.group.system"
+                defaultMessage="System"
+              />
             </p>
             <NavItemLink {...ADMIN_NAV_ITEM} />
           </div>
@@ -534,7 +627,17 @@ export function Sidebar() {
           onClick={logout}
           disabled={loading}
         >
-          {loading ? "Signing out…" : "Sign out"}
+          {loading ? (
+            <FormattedMessage
+              id="layout.sidebar.signingOut"
+              defaultMessage="Signing out…"
+            />
+          ) : (
+            <FormattedMessage
+              id="layout.sidebar.signOut"
+              defaultMessage="Sign out"
+            />
+          )}
         </Button>
       </div>
     </aside>

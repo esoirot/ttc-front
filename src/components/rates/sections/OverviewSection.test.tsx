@@ -1,5 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const IntlWrapper = createIntlWrapper();
 
 const useRateCrudMock = vi.fn();
 vi.mock("@/hooks/rates/useRateCrud", () => ({
@@ -61,6 +64,7 @@ describe("OverviewSection", () => {
     useRateCrudMock.mockReturnValue(crudState());
     render(
       <OverviewSection type="HOURLY" rates={[makeRate()]} loading={false} />,
+      { wrapper: IntlWrapper },
     );
 
     expect(screen.getByText("Hourly")).toBeInTheDocument();
@@ -71,6 +75,7 @@ describe("OverviewSection", () => {
     useRateCrudMock.mockReturnValue(crudState());
     const { container } = render(
       <OverviewSection type="HOURLY" rates={[]} loading={true} />,
+      { wrapper: IntlWrapper },
     );
 
     expect(
@@ -80,7 +85,9 @@ describe("OverviewSection", () => {
 
   it("shows an empty state when there are no rates and not loading", () => {
     useRateCrudMock.mockReturnValue(crudState());
-    render(<OverviewSection type="FIXED" rates={[]} loading={false} />);
+    render(<OverviewSection type="FIXED" rates={[]} loading={false} />, {
+      wrapper: IntlWrapper,
+    });
 
     expect(screen.getByText("No rates defined.")).toBeInTheDocument();
   });
@@ -93,6 +100,7 @@ describe("OverviewSection", () => {
         rates={[makeRate({ type: "PER_WORD", name: "General", amount: 0.1 })]}
         loading={false}
       />,
+      { wrapper: IntlWrapper },
     );
 
     expect(screen.getByText("General")).toBeInTheDocument();
@@ -109,6 +117,7 @@ describe("OverviewSection", () => {
         rates={[makeRate({ sourceLanguage: "EN", targetLanguage: "FR" })]}
         loading={false}
       />,
+      { wrapper: IntlWrapper },
     );
 
     expect(screen.getByText("EN → FR")).toBeInTheDocument();
@@ -120,7 +129,9 @@ describe("OverviewSection", () => {
     useRateCrudMock.mockReturnValue(
       crudState({ setShowForm, setEditingId, showForm: false }),
     );
-    render(<OverviewSection type="HOURLY" rates={[]} loading={false} />);
+    render(<OverviewSection type="HOURLY" rates={[]} loading={false} />, {
+      wrapper: IntlWrapper,
+    });
 
     fireEvent.click(screen.getByText("+ Add"));
 
@@ -130,7 +141,9 @@ describe("OverviewSection", () => {
 
   it("shows the create RateForm when showForm is true", () => {
     useRateCrudMock.mockReturnValue(crudState({ showForm: true }));
-    render(<OverviewSection type="HOURLY" rates={[]} loading={false} />);
+    render(<OverviewSection type="HOURLY" rates={[]} loading={false} />, {
+      wrapper: IntlWrapper,
+    });
 
     expect(screen.getByTestId("rate-form")).toBeInTheDocument();
     expect(screen.getByText("Cancel")).toBeInTheDocument();
@@ -146,6 +159,7 @@ describe("OverviewSection", () => {
         rates={[makeRate({ id: 7 })]}
         loading={false}
       />,
+      { wrapper: IntlWrapper },
     );
 
     fireEvent.click(screen.getByText("Edit"));
@@ -162,6 +176,7 @@ describe("OverviewSection", () => {
         rates={[makeRate({ id: 7 })]}
         loading={false}
       />,
+      { wrapper: IntlWrapper },
     );
 
     expect(screen.getByTestId("rate-form")).toBeInTheDocument();
@@ -173,7 +188,9 @@ describe("OverviewSection", () => {
     useRateCrudMock.mockReturnValue(
       crudState({ showForm: true, handleCreate }),
     );
-    render(<OverviewSection type="HOURLY" rates={[]} loading={false} />);
+    render(<OverviewSection type="HOURLY" rates={[]} loading={false} />, {
+      wrapper: IntlWrapper,
+    });
 
     (rateFormProps.onSave as (data: unknown) => void)({ name: "New" });
 
@@ -189,6 +206,7 @@ describe("OverviewSection", () => {
         rates={[makeRate({ id: 7 })]}
         loading={false}
       />,
+      { wrapper: IntlWrapper },
     );
 
     (rateFormProps.onSave as (data: unknown) => void)({ name: "Renamed" });

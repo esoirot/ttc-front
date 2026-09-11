@@ -9,7 +9,10 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import { ObjectivesForm } from "./ObjectivesForm";
 
 function renderForm(
@@ -19,11 +22,14 @@ function renderForm(
     objectiveQ3?: number | null;
     objectiveQ4?: number | null;
   } = {},
+  locale: Locale = "en",
 ) {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <ObjectivesForm activityId={3} initial={initial} />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <ObjectivesForm activityId={3} initial={initial} />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -112,5 +118,12 @@ describe("ObjectivesForm", () => {
         screen.getByRole("button", { name: "Save objectives" }),
       ).not.toBeDisabled(),
     );
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm({}, "fr");
+    expect(
+      screen.getByRole("button", { name: "Enregistrer les objectifs" }),
+    ).toBeInTheDocument();
   });
 });

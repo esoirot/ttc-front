@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditableTimeField } from "@/components/time/EditableTimeField";
 import { useUpdateTimeEntry } from "@/hooks/time/useTimeEntries";
@@ -14,6 +15,7 @@ function formatDuration(seconds: number): string {
 }
 
 export function RecentTimeEntries({ entries }: Props) {
+  const intl = useIntl();
   const queryClient = useQueryClient();
   const { updateTimeEntry } = useUpdateTimeEntry();
 
@@ -26,11 +28,21 @@ export function RecentTimeEntries({ entries }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">Recent Time Entries</CardTitle>
+        <CardTitle className="text-sm">
+          <FormattedMessage
+            id="dashboard.recentTimeEntries.title"
+            defaultMessage="Recent Time Entries"
+          />
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {entries.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No time entries yet.</p>
+          <p className="text-sm text-muted-foreground">
+            <FormattedMessage
+              id="dashboard.recentTimeEntries.empty"
+              defaultMessage="No time entries yet."
+            />
+          </p>
         ) : (
           <div className="flex flex-col gap-2">
             {entries.map((e: DashboardTimeEntry) => (
@@ -42,7 +54,10 @@ export function RecentTimeEntries({ entries }: Props) {
                   <p className="text-sm">
                     {e.description ?? (
                       <span className="italic text-muted-foreground">
-                        No description
+                        <FormattedMessage
+                          id="time.entryRow.noDescription"
+                          defaultMessage="No description"
+                        />
                       </span>
                     )}
                   </p>
@@ -50,15 +65,23 @@ export function RecentTimeEntries({ entries }: Props) {
                     <span>{e.startTime.slice(0, 10)}</span>
                     <EditableTimeField
                       iso={e.startTime}
-                      label="start time"
+                      label={intl.formatMessage({
+                        id: "time.entryRow.startTimeLabel",
+                        defaultMessage: "start time",
+                      })}
                       onCommit={(newIso) => commitStartTime(e.id, newIso)}
                     />
                   </p>
                 </div>
                 <span className="text-xs font-mono text-muted-foreground">
-                  {e.durationSeconds
-                    ? formatDuration(e.durationSeconds)
-                    : "running"}
+                  {e.durationSeconds ? (
+                    formatDuration(e.durationSeconds)
+                  ) : (
+                    <FormattedMessage
+                      id="time.entryRow.running"
+                      defaultMessage="running"
+                    />
+                  )}
                 </span>
               </div>
             ))}

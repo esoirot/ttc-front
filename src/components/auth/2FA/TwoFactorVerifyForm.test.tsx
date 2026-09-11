@@ -1,8 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -22,16 +25,21 @@ vi.mock("react-router-dom", async () => {
 
 import { TwoFactorVerifyForm } from "./TwoFactorVerifyForm";
 
-function renderForm(state: { tempToken?: string; from?: string } | null) {
+function renderForm(
+  state: { tempToken?: string; from?: string } | null,
+  locale: Locale = "en",
+) {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter initialEntries={[{ pathname: "/2fa/verify", state }]}>
-        <Routes>
-          <Route path="/login" element={<div>Login page</div>} />
-          <Route path="/2fa/verify" element={<TwoFactorVerifyForm />} />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <MemoryRouter initialEntries={[{ pathname: "/2fa/verify", state }]}>
+          <Routes>
+            <Route path="/login" element={<div>Login page</div>} />
+            <Route path="/2fa/verify" element={<TwoFactorVerifyForm />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -110,5 +118,13 @@ describe("TwoFactorVerifyForm", () => {
         replace: true,
       }),
     );
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm({ tempToken: "temp-1" }, "fr");
+
+    expect(
+      screen.getByText("Authentification à deux facteurs"),
+    ).toBeInTheDocument();
   });
 });

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,8 +29,8 @@ import {
   CURRENCIES,
   CURRENCY_SYMBOLS,
   TRANSLATION_RATE_TYPES as RATE_TYPES,
-  TYPE_LABELS,
-  TYPE_UNIT,
+  TYPE_LABEL_MESSAGES,
+  TYPE_UNIT_MESSAGES,
 } from "@/constants/rates";
 import type { TranslationRateType } from "@/types/rates.types";
 import type {
@@ -57,6 +58,7 @@ function ClientRateForm({
   onCancel: () => void;
   saving: boolean;
 }) {
+  const intl = useIntl();
   const [type, setType] = useState<TranslationRateType>(
     initial?.type ?? "HOURLY",
   );
@@ -98,7 +100,7 @@ function ClientRateForm({
             <SelectContent>
               {RATE_TYPES.map((t) => (
                 <SelectItem key={t} value={t}>
-                  {TYPE_LABELS[t]}
+                  {intl.formatMessage(TYPE_LABEL_MESSAGES[t])}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -119,7 +121,7 @@ function ClientRateForm({
         </div>
         <div className="flex flex-col gap-1">
           <Label htmlFor={`cr-amount-${clientId}`} className="text-xs">
-            Amount ({TYPE_UNIT[type]})
+            Amount ({intl.formatMessage(TYPE_UNIT_MESSAGES[type])})
           </Label>
           <Input
             id={`cr-amount-${clientId}`}
@@ -179,6 +181,7 @@ function ClientRateForm({
 }
 
 export function ClientRatesTab({ clientId }: { clientId: number }) {
+  const intl = useIntl();
   const { clientRates, loading } = useClientRates(clientId);
   const { createClientRate, loading: creating } = useCreateClientRate(clientId);
   const { updateClientRate, loading: updating } = useUpdateClientRate(clientId);
@@ -298,7 +301,7 @@ export function ClientRatesTab({ clientId }: { clientId: number }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs shrink-0">
-                          {TYPE_LABELS[rate.type]}
+                          {intl.formatMessage(TYPE_LABEL_MESSAGES[rate.type])}
                         </Badge>
                         <span className="font-medium text-sm truncate">
                           {rate.name}

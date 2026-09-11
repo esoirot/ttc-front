@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Task, TaskActivity } from "@/types/tasks.types";
 import { ActivityTab } from "./ActivityTab";
 
@@ -77,9 +79,11 @@ const meta: Meta<typeof ActivityTab> = {
   title: "Organisms/ProjectActivityTab",
   decorators: [
     (Story) => (
-      <div className="max-w-2xl">
-        <Story />
-      </div>
+      <IntlProvider locale="en" messages={messages.en}>
+        <div className="max-w-2xl">
+          <Story />
+        </div>
+      </IntlProvider>
     ),
   ],
   args: {

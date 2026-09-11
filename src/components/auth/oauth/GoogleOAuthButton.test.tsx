@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import { GoogleOAuthButton } from "./GoogleOAuthButton";
+
+const wrapper = createIntlWrapper();
 
 describe("GoogleOAuthButton", () => {
   const originalLocation = window.location;
@@ -20,7 +23,7 @@ describe("GoogleOAuthButton", () => {
   });
 
   it("stores the oauth_from destination and redirects to the google auth endpoint", () => {
-    render(<GoogleOAuthButton from="/dashboard" />);
+    render(<GoogleOAuthButton from="/dashboard" />, { wrapper });
 
     fireEvent.click(screen.getByText("Continue with Google"));
 
@@ -31,7 +34,7 @@ describe("GoogleOAuthButton", () => {
   });
 
   it("defaults the destination to '/' when no from prop is given", () => {
-    render(<GoogleOAuthButton />);
+    render(<GoogleOAuthButton />, { wrapper });
 
     fireEvent.click(screen.getByText("Continue with Google"));
 

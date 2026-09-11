@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { MemoryRouter } from "react-router-dom";
+import { messages } from "@/i18n/messages";
 import { ProjectsList } from "./ProjectsList";
 
 const meta: Meta<typeof ProjectsList> = {
@@ -8,11 +10,13 @@ const meta: Meta<typeof ProjectsList> = {
   title: "Organisms/ProjectsList",
   decorators: [
     (Story) => (
-      <QueryClientProvider client={new QueryClient()}>
-        <MemoryRouter initialEntries={["/projects"]}>
-          <Story />
-        </MemoryRouter>
-      </QueryClientProvider>
+      <IntlProvider locale="en" messages={messages.en}>
+        <QueryClientProvider client={new QueryClient()}>
+          <MemoryRouter initialEntries={["/projects"]}>
+            <Story />
+          </MemoryRouter>
+        </QueryClientProvider>
+      </IntlProvider>
     ),
   ],
   parameters: {

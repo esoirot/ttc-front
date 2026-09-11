@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,6 +7,7 @@ import type { TwoFactorSetupFlowProps } from "@/types/auth.types";
 import { useEnableTwoFactor, useSetupTwoFactor } from "@/hooks/auth/useAuth";
 
 export function TwoFactorSetupFlow({ onEnabled }: TwoFactorSetupFlowProps) {
+  const intl = useIntl();
   const {
     setupTwoFactor,
     loading: setupLoading,
@@ -34,14 +36,27 @@ export function TwoFactorSetupFlow({ onEnabled }: TwoFactorSetupFlowProps) {
     return (
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">
-          Add an extra layer of security using an authenticator app.
+          <FormattedMessage
+            id="auth.twoFactorSetupFlow.intro"
+            defaultMessage="Add an extra layer of security using an authenticator app."
+          />
         </p>
         <Button
           className="self-start"
           onClick={() => setupTwoFactor()}
           disabled={setupLoading}
         >
-          {setupLoading ? "Generating…" : "Set up 2FA"}
+          {setupLoading ? (
+            <FormattedMessage
+              id="auth.twoFactorSetupFlow.generating"
+              defaultMessage="Generating…"
+            />
+          ) : (
+            <FormattedMessage
+              id="auth.twoFactorSetupFlow.setUp"
+              defaultMessage="Set up 2FA"
+            />
+          )}
         </Button>
       </div>
     );
@@ -50,18 +65,26 @@ export function TwoFactorSetupFlow({ onEnabled }: TwoFactorSetupFlowProps) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
-        Scan this QR code with your authenticator app (Google Authenticator,
-        Authy, etc.).
+        <FormattedMessage
+          id="auth.twoFactorSetupFlow.scanQr"
+          defaultMessage="Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)."
+        />
       </p>
       <img
         src={qrCodeUrl}
-        alt="2FA QR code"
+        alt={intl.formatMessage({
+          id: "auth.twoFactorSetupFlow.qrAlt",
+          defaultMessage: "2FA QR code",
+        })}
         className="block rounded-lg border max-w-[200px]"
       />
       {secret && (
         <details className="text-sm text-muted-foreground">
           <summary className="cursor-pointer select-none">
-            Can't scan? Enter code manually
+            <FormattedMessage
+              id="auth.twoFactorSetupFlow.cantScan"
+              defaultMessage="Can't scan? Enter code manually"
+            />
           </summary>
           <code className="block mt-2 px-3 py-2 bg-muted rounded font-mono text-xs break-all">
             {secret}
@@ -71,7 +94,10 @@ export function TwoFactorSetupFlow({ onEnabled }: TwoFactorSetupFlowProps) {
       <form onSubmit={handleEnable} className="flex flex-col gap-4 max-w-xs">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="confirm-code">
-            Enter the 6-digit code to confirm
+            <FormattedMessage
+              id="auth.twoFactorSetupFlow.confirmCodeLabel"
+              defaultMessage="Enter the 6-digit code to confirm"
+            />
           </Label>
           <Input
             id="confirm-code"
@@ -91,7 +117,17 @@ export function TwoFactorSetupFlow({ onEnabled }: TwoFactorSetupFlowProps) {
           className="self-start"
           disabled={enableLoading || code.length !== 6}
         >
-          {enableLoading ? "Enabling…" : "Enable 2FA"}
+          {enableLoading ? (
+            <FormattedMessage
+              id="auth.twoFactorSetupFlow.enabling"
+              defaultMessage="Enabling…"
+            />
+          ) : (
+            <FormattedMessage
+              id="auth.twoFactorSetupFlow.enable"
+              defaultMessage="Enable 2FA"
+            />
+          )}
         </Button>
       </form>
     </div>

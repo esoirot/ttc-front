@@ -1,11 +1,27 @@
+import type { MessageDescriptor } from "react-intl";
 import type { InvoiceStatus } from "@/types/invoices.types";
 import type { TranslationRateType } from "@/types/rates.types";
 
-export const STATUS_TABS: { value: InvoiceStatus | "ALL"; label: string }[] = [
-  { value: "ALL", label: "All" },
-  { value: "DRAFT", label: "Draft" },
-  { value: "SENT", label: "Sent" },
-  { value: "PAID", label: "Paid" },
+export const STATUS_TABS: {
+  value: InvoiceStatus | "ALL";
+  labelMessage: MessageDescriptor;
+}[] = [
+  {
+    value: "ALL",
+    labelMessage: { id: "invoices.statusTab.all", defaultMessage: "All" },
+  },
+  {
+    value: "DRAFT",
+    labelMessage: { id: "invoices.statusTab.draft", defaultMessage: "Draft" },
+  },
+  {
+    value: "SENT",
+    labelMessage: { id: "invoices.statusTab.sent", defaultMessage: "Sent" },
+  },
+  {
+    value: "PAID",
+    labelMessage: { id: "invoices.statusTab.paid", defaultMessage: "Paid" },
+  },
 ];
 
 export const STATUS_BADGE: Record<
@@ -29,9 +45,12 @@ export const STATUS_TRANSITIONS: Record<InvoiceStatus, InvoiceStatus[]> = {
 
 export const CURRENCIES = ["EUR", "USD", "GBP", "CHF", "CAD", "AUD", "JPY"];
 
-export const QTY_LABEL: Record<TranslationRateType, string> = {
-  HOURLY: "Hours",
-  PER_WORD: "Words",
-  FIXED: "Qty",
-  DAY: "Day",
+export const QTY_LABEL_MESSAGES: Record<
+  TranslationRateType,
+  MessageDescriptor
+> = {
+  HOURLY: { id: "invoices.qtyLabel.hourly", defaultMessage: "Hours" },
+  PER_WORD: { id: "invoices.qtyLabel.perWord", defaultMessage: "Words" },
+  FIXED: { id: "invoices.qtyLabel.fixed", defaultMessage: "Qty" },
+  DAY: { id: "invoices.qtyLabel.day", defaultMessage: "Day" },
 };

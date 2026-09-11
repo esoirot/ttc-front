@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CustomFieldsInput } from "./CustomFieldsInput";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 describe("CustomFieldsInput", () => {
   it("renders no field rows when fields is empty", () => {
@@ -11,6 +14,7 @@ describe("CustomFieldsInput", () => {
         onUpdate={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.queryByPlaceholderText("Field name")).not.toBeInTheDocument();
@@ -27,6 +31,7 @@ describe("CustomFieldsInput", () => {
         onUpdate={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getAllByPlaceholderText("Field name")).toHaveLength(2);
@@ -45,6 +50,7 @@ describe("CustomFieldsInput", () => {
         onUpdate={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("+ Add field"));
@@ -60,6 +66,7 @@ describe("CustomFieldsInput", () => {
         onUpdate={onUpdate}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.change(screen.getByDisplayValue("Rate"), {
@@ -85,9 +92,23 @@ describe("CustomFieldsInput", () => {
         onUpdate={vi.fn()}
         onRemove={onRemove}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getAllByLabelText("Remove field")[1]);
     expect(onRemove).toHaveBeenCalledWith(1);
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <CustomFieldsInput
+        fields={[]}
+        onAdd={vi.fn()}
+        onUpdate={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+    expect(screen.getByText("Champs personnalisés")).toBeInTheDocument();
   });
 });

@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 
 const useClientsMock = vi.fn();
 vi.mock("@/hooks/clients/useClients", () => ({
@@ -52,7 +54,10 @@ function makeInitial(
   };
 }
 
-function renderForm(props: Partial<Parameters<typeof RateForm>[0]> = {}) {
+function renderForm(
+  props: Partial<Parameters<typeof RateForm>[0]> = {},
+  locale: Locale = "en",
+) {
   const onSave = vi.fn();
   const onCancel = vi.fn();
   render(
@@ -63,6 +68,7 @@ function renderForm(props: Partial<Parameters<typeof RateForm>[0]> = {}) {
       saving={false}
       {...props}
     />,
+    { wrapper: createIntlWrapper(locale) },
   );
   return { onSave, onCancel };
 }
@@ -258,5 +264,15 @@ describe("RateForm", () => {
     const countBefore = screen.getAllByRole("combobox").length;
     fireEvent.click(screen.getByLabelText("Other currency"));
     expect(screen.getAllByRole("combobox")).toHaveLength(countBefore + 1);
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm({}, "fr");
+
+    expect(screen.getByLabelText("Nom")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Ajouter un tarif" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Autre devise")).toBeInTheDocument();
   });
 });

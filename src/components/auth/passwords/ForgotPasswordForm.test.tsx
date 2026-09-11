@@ -1,8 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -13,13 +16,15 @@ vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
 
-function renderForm() {
+function renderForm(locale: Locale = "en") {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter>
-        <ForgotPasswordForm />
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <MemoryRouter>
+          <ForgotPasswordForm />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -56,5 +61,11 @@ describe("ForgotPasswordForm", () => {
     expect(
       await screen.findByText("Something went wrong. Please try again."),
     ).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm("fr");
+
+    expect(screen.getByText("Mot de passe oublié")).toBeInTheDocument();
   });
 });

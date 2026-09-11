@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +31,7 @@ export function RateSheetForm({
   onCancel,
   saving,
 }: RateSheetFormProps) {
+  const intl = useIntl();
   const { user } = useCurrentUser();
   const userCurrency = user?.defaultCurrency ?? "EUR";
 
@@ -80,20 +82,40 @@ export function RateSheetForm({
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!name.trim()) {
-      setError("Name is required.");
+      setError(
+        intl.formatMessage({
+          id: "rates.form.nameRequired",
+          defaultMessage: "Name is required.",
+        }),
+      );
       return;
     }
     if (showLanguageFields && !sourceLanguage) {
-      setError("Source language is required.");
+      setError(
+        intl.formatMessage({
+          id: "rates.form.sourceLanguageRequired",
+          defaultMessage: "Source language is required.",
+        }),
+      );
       return;
     }
     if (showLanguageFields && !targetLanguage) {
-      setError("Target language is required.");
+      setError(
+        intl.formatMessage({
+          id: "rates.form.targetLanguageRequired",
+          defaultMessage: "Target language is required.",
+        }),
+      );
       return;
     }
     const parsedPrice = parseFloat(pricePerWordStr.replace(",", "."));
     if (isNaN(parsedPrice) || parsedPrice < 0) {
-      setError("Price per word must be a valid number ≥ 0.");
+      setError(
+        intl.formatMessage({
+          id: "rates.sheetForm.priceInvalid",
+          defaultMessage: "Price per word must be a valid number ≥ 0.",
+        }),
+      );
       return;
     }
     setError(null);
@@ -116,24 +138,44 @@ export function RateSheetForm({
       {/* Section 1: Basic info */}
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2 flex flex-col gap-1.5">
-          <Label htmlFor="rs-name">Name</Label>
+          <Label htmlFor="rs-name">
+            <FormattedMessage id="rates.form.name" defaultMessage="Name" />
+          </Label>
           <Input
             id="rs-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. EN→FR Standard"
+            placeholder={intl.formatMessage({
+              id: "rates.sheetForm.namePlaceholder",
+              defaultMessage: "e.g. EN→FR Standard",
+            })}
             required
           />
         </div>
 
         <div className="col-span-2 flex flex-col gap-1.5">
-          <Label htmlFor="rs-activity">Activity (optional)</Label>
+          <Label htmlFor="rs-activity">
+            <FormattedMessage
+              id="rates.form.activityOptional"
+              defaultMessage="Activity (optional)"
+            />
+          </Label>
           <Select value={activityId} onValueChange={setActivityId}>
             <SelectTrigger id="rs-activity">
-              <SelectValue placeholder="No activity" />
+              <SelectValue
+                placeholder={intl.formatMessage({
+                  id: "rates.form.noActivity",
+                  defaultMessage: "No activity",
+                })}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">No activity</SelectItem>
+              <SelectItem value="__none__">
+                <FormattedMessage
+                  id="rates.form.noActivity"
+                  defaultMessage="No activity"
+                />
+              </SelectItem>
               {activities.map((a) => (
                 <SelectItem key={a.id} value={String(a.id)}>
                   {a.name}
@@ -144,13 +186,28 @@ export function RateSheetForm({
         </div>
 
         <div className="col-span-2 flex flex-col gap-1.5">
-          <Label htmlFor="rs-client">Client (optional)</Label>
+          <Label htmlFor="rs-client">
+            <FormattedMessage
+              id="rates.form.clientOptional"
+              defaultMessage="Client (optional)"
+            />
+          </Label>
           <Select value={clientId} onValueChange={setClientId}>
             <SelectTrigger id="rs-client">
-              <SelectValue placeholder="No client" />
+              <SelectValue
+                placeholder={intl.formatMessage({
+                  id: "rates.form.noClient",
+                  defaultMessage: "No client",
+                })}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">No client</SelectItem>
+              <SelectItem value="__none__">
+                <FormattedMessage
+                  id="rates.form.noClient"
+                  defaultMessage="No client"
+                />
+              </SelectItem>
               {clients.map((c) => (
                 <SelectItem key={c.id} value={String(c.id)}>
                   {c.name}
@@ -168,28 +225,49 @@ export function RateSheetForm({
               onCheckedChange={(v) => setIsDefault(Boolean(v))}
             />
             <Label htmlFor="rs-is-default" className="cursor-pointer">
-              Default rate sheet for this client
+              <FormattedMessage
+                id="rates.sheetForm.defaultForClient"
+                defaultMessage="Default rate sheet for this client"
+              />
             </Label>
           </div>
         )}
 
         <div className="col-span-2 flex flex-col gap-1.5">
-          <Label htmlFor="rs-description">Description</Label>
+          <Label htmlFor="rs-description">
+            <FormattedMessage
+              id="rates.form.description"
+              defaultMessage="Description"
+            />
+          </Label>
           <Textarea
             id="rs-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional description"
+            placeholder={intl.formatMessage({
+              id: "rates.form.descriptionPlaceholder",
+              defaultMessage: "Optional description",
+            })}
             rows={2}
           />
         </div>
 
         {showLanguageFields && (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="rs-source-lang">Source language</Label>
+            <Label htmlFor="rs-source-lang">
+              <FormattedMessage
+                id="rates.form.sourceLanguage"
+                defaultMessage="Source language"
+              />
+            </Label>
             <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
               <SelectTrigger id="rs-source-lang">
-                <SelectValue placeholder="Select…" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "rates.form.selectEllipsis",
+                    defaultMessage: "Select…",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGES.map((l) => (
@@ -204,10 +282,20 @@ export function RateSheetForm({
 
         {showLanguageFields && (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="rs-target-lang">Target language</Label>
+            <Label htmlFor="rs-target-lang">
+              <FormattedMessage
+                id="rates.form.targetLanguage"
+                defaultMessage="Target language"
+              />
+            </Label>
             <Select value={targetLanguage} onValueChange={setTargetLanguage}>
               <SelectTrigger id="rs-target-lang">
-                <SelectValue placeholder="Select…" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "rates.form.selectEllipsis",
+                    defaultMessage: "Select…",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGES.map((l) => (
@@ -221,7 +309,12 @@ export function RateSheetForm({
         )}
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="rs-price">Price per word</Label>
+          <Label htmlFor="rs-price">
+            <FormattedMessage
+              id="rates.sheetForm.pricePerWord"
+              defaultMessage="Price per word"
+            />
+          </Label>
           <div className="relative">
             <Input
               id="rs-price"
@@ -243,7 +336,12 @@ export function RateSheetForm({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label className="invisible">Currency</Label>
+          <Label className="invisible">
+            <FormattedMessage
+              id="rates.form.currency"
+              defaultMessage="Currency"
+            />
+          </Label>
           <div className="flex items-center gap-2 h-9">
             <Checkbox
               id="rs-other-currency"
@@ -254,7 +352,10 @@ export function RateSheetForm({
               htmlFor="rs-other-currency"
               className="cursor-pointer whitespace-nowrap"
             >
-              Other currency
+              <FormattedMessage
+                id="rates.form.otherCurrency"
+                defaultMessage="Other currency"
+              />
             </Label>
             {useOtherCurrency && (
               <Select value={currency} onValueChange={setCurrency}>
@@ -276,15 +377,28 @@ export function RateSheetForm({
 
       {/* Section 2: Match rates grid */}
       <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium">Match rates</p>
+        <p className="text-sm font-medium">
+          <FormattedMessage
+            id="rates.sheetForm.matchRates"
+            defaultMessage="Match rates"
+          />
+        </p>
         <div className="rounded-md border border-border overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-muted text-muted-foreground">
-                <th className="text-left px-3 py-2 font-medium">Category</th>
+                <th className="text-left px-3 py-2 font-medium">
+                  <FormattedMessage
+                    id="rates.sheetForm.category"
+                    defaultMessage="Category"
+                  />
+                </th>
                 <th className="text-center px-3 py-2 font-medium w-24">%</th>
                 <th className="text-right px-3 py-2 font-medium w-32">
-                  Price / word
+                  <FormattedMessage
+                    id="rates.sheetForm.pricePerWordColumn"
+                    defaultMessage="Price / word"
+                  />
                 </th>
               </tr>
             </thead>
@@ -338,10 +452,17 @@ export function RateSheetForm({
 
       <div className="flex gap-2">
         <Button type="submit" disabled={saving}>
-          {saving ? "Saving…" : "Save"}
+          {saving ? (
+            <FormattedMessage id="rates.form.saving" defaultMessage="Saving…" />
+          ) : (
+            <FormattedMessage id="common.actions.save" defaultMessage="Save" />
+          )}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          <FormattedMessage
+            id="common.actions.cancel"
+            defaultMessage="Cancel"
+          />
         </Button>
       </div>
     </form>

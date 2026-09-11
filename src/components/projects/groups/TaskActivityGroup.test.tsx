@@ -2,6 +2,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { TaskActivity } from "@/types/tasks.types";
 import { TaskActivityGroup } from "./TaskActivityGroup";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeActivity(overrides: Partial<TaskActivity> = {}): TaskActivity {
   return {
@@ -23,6 +26,7 @@ describe("TaskActivityGroup", () => {
         taskTitle="Translate homepage"
         activities={[makeActivity(), makeActivity({ id: 2 })]}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Translate homepage")).toBeInTheDocument();
@@ -35,6 +39,7 @@ describe("TaskActivityGroup", () => {
         taskTitle="Translate homepage"
         activities={[makeActivity()]}
       />,
+      { wrapper },
     );
 
     expect(
@@ -48,6 +53,7 @@ describe("TaskActivityGroup", () => {
         taskTitle="Translate homepage"
         activities={[makeActivity()]}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("Translate homepage"));

@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useIntl } from "react-intl";
 import { useCurrentUser } from "../../hooks/auth/useAuth";
 
 export function ProtectedRoute() {
+  const intl = useIntl();
   const { isAuthenticated, loading, user } = useCurrentUser();
   // Only show loading spinner on initial check — not during 60s polls.
   // Polls keep previous data so isAuthenticated stays true; no flicker needed.
@@ -50,7 +52,10 @@ export function ProtectedRoute() {
   if (!hasData)
     return (
       <div className="flex items-center justify-center min-h-screen text-zinc-500">
-        Loading…
+        {intl.formatMessage({
+          id: "auth.protectedRoute.loading",
+          defaultMessage: "Loading…",
+        })}
       </div>
     );
   if (!isAuthenticated)

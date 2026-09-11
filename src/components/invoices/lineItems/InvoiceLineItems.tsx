@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -49,19 +50,49 @@ export function InvoiceLineItems({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">Line items</CardTitle>
+        <CardTitle className="text-sm">
+          <FormattedMessage
+            id="invoices.lineItems.title"
+            defaultMessage="Line items"
+          />
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-[1fr_80px_100px_100px_64px] gap-2 text-xs font-semibold text-muted-foreground mb-2">
-          <span>Description</span>
-          <span className="text-right">Qty</span>
-          <span className="text-right">Unit price</span>
-          <span className="text-right">Total</span>
+          <span>
+            <FormattedMessage
+              id="invoices.itemRow.description"
+              defaultMessage="Description"
+            />
+          </span>
+          <span className="text-right">
+            <FormattedMessage
+              id="invoices.lineItems.qty"
+              defaultMessage="Qty"
+            />
+          </span>
+          <span className="text-right">
+            <FormattedMessage
+              id="invoices.timeEntriesTab.unitPrice"
+              defaultMessage="Unit price"
+            />
+          </span>
+          <span className="text-right">
+            <FormattedMessage
+              id="invoices.lineItems.total"
+              defaultMessage="Total"
+            />
+          </span>
           <span />
         </div>
         <Separator className="mb-2" />
         {items.length === 0 && (
-          <p className="text-muted-foreground text-sm py-2">No items yet.</p>
+          <p className="text-muted-foreground text-sm py-2">
+            <FormattedMessage
+              id="invoices.lineItems.empty"
+              defaultMessage="No items yet."
+            />
+          </p>
         )}
         {items.map((item) => (
           <InvoiceItemRow
@@ -85,7 +116,10 @@ export function InvoiceLineItems({
           className="mt-2"
           onClick={() => setDialogOpen(true)}
         >
-          + Add item
+          <FormattedMessage
+            id="invoices.lineItems.addItem"
+            defaultMessage="+ Add item"
+          />
         </Button>
         <AddItemDialog
           invoiceId={invoiceId}

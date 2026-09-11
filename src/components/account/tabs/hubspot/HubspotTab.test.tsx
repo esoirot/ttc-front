@@ -1,5 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { IntlProvider } from "react-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 const { apiGet, apiPost, apiPatch, apiDelete } = vi.hoisted(() => ({
   apiGet: vi.fn(),
@@ -17,11 +20,13 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/test/queryClientWrapper";
 import { HubspotTab } from "./HubspotTab";
 
-function renderTab(queryClient = createQueryClient()) {
+function renderTab(queryClient = createQueryClient(), locale: Locale = "en") {
   return render(
-    <QueryClientProvider client={queryClient}>
-      <HubspotTab />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={queryClient}>
+        <HubspotTab />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -87,5 +92,16 @@ describe("HubspotTab", () => {
     await waitFor(() =>
       expect(apiDelete).toHaveBeenCalledWith("/hubspot/disconnect"),
     );
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    apiGet.mockResolvedValueOnce({ connected: false });
+    renderTab(createQueryClient(), "fr");
+
+    expect(
+      await screen.findByText(
+        "Connectez votre compte HubSpot pour synchroniser contacts, entreprises et transactions.",
+      ),
+    ).toBeInTheDocument();
   });
 });

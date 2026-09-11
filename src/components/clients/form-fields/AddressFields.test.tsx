@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AddressFields } from "./AddressFields";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 const baseProps = {
   address: "",
@@ -23,6 +26,7 @@ describe("AddressFields", () => {
         postalCode="75001"
         onChange={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByLabelText("Address")).toHaveValue("123 Main St");
@@ -37,7 +41,7 @@ describe("AddressFields", () => {
 
   it("calls onChange with the field name and new value", () => {
     const onChange = vi.fn();
-    render(<AddressFields {...baseProps} onChange={onChange} />);
+    render(<AddressFields {...baseProps} onChange={onChange} />, { wrapper });
 
     fireEvent.change(screen.getByLabelText("City"), {
       target: { value: "Lyon" },
@@ -49,6 +53,7 @@ describe("AddressFields", () => {
   it("namespaces input ids with the given idPrefix", () => {
     render(
       <AddressFields {...baseProps} onChange={vi.fn()} idPrefix="custom" />,
+      { wrapper },
     );
 
     expect(screen.getByLabelText("Address")).toHaveAttribute(
@@ -58,7 +63,7 @@ describe("AddressFields", () => {
   });
 
   it("uses 'addr' as the default idPrefix when none is provided", () => {
-    render(<AddressFields {...baseProps} onChange={vi.fn()} />);
+    render(<AddressFields {...baseProps} onChange={vi.fn()} />, { wrapper });
     expect(screen.getByLabelText("Address")).toHaveAttribute(
       "id",
       "addr-address",
@@ -67,7 +72,7 @@ describe("AddressFields", () => {
 
   it("calls onChange with 'address' when the Address input changes", () => {
     const onChange = vi.fn();
-    render(<AddressFields {...baseProps} onChange={onChange} />);
+    render(<AddressFields {...baseProps} onChange={onChange} />, { wrapper });
     fireEvent.change(screen.getByLabelText("Address"), {
       target: { value: "10 Rue de Rivoli" },
     });
@@ -76,7 +81,7 @@ describe("AddressFields", () => {
 
   it("calls onChange with 'addressLine2' when the Address line 2 input changes", () => {
     const onChange = vi.fn();
-    render(<AddressFields {...baseProps} onChange={onChange} />);
+    render(<AddressFields {...baseProps} onChange={onChange} />, { wrapper });
     fireEvent.change(screen.getByLabelText("Address line 2"), {
       target: { value: "Suite 300" },
     });
@@ -85,7 +90,7 @@ describe("AddressFields", () => {
 
   it("calls onChange with 'postalCode' when the Postal code input changes", () => {
     const onChange = vi.fn();
-    render(<AddressFields {...baseProps} onChange={onChange} />);
+    render(<AddressFields {...baseProps} onChange={onChange} />, { wrapper });
     fireEvent.change(screen.getByLabelText("Postal code"), {
       target: { value: "69001" },
     });
@@ -94,7 +99,7 @@ describe("AddressFields", () => {
 
   it("calls onChange with 'state' when the State / Province input changes", () => {
     const onChange = vi.fn();
-    render(<AddressFields {...baseProps} onChange={onChange} />);
+    render(<AddressFields {...baseProps} onChange={onChange} />, { wrapper });
     fireEvent.change(screen.getByLabelText("State / Province"), {
       target: { value: "Ontario" },
     });
@@ -103,10 +108,18 @@ describe("AddressFields", () => {
 
   it("calls onChange with 'country' when the Country input changes", () => {
     const onChange = vi.fn();
-    render(<AddressFields {...baseProps} onChange={onChange} />);
+    render(<AddressFields {...baseProps} onChange={onChange} />, { wrapper });
     fireEvent.change(screen.getByLabelText("Country"), {
       target: { value: "Germany" },
     });
     expect(onChange).toHaveBeenCalledWith("country", "Germany");
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<AddressFields {...baseProps} onChange={vi.fn()} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    expect(screen.getByLabelText("Adresse")).toBeInTheDocument();
+    expect(screen.getByLabelText("Ville")).toBeInTheDocument();
   });
 });

@@ -1,3 +1,4 @@
+import { FormattedMessage } from "react-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ActivityTabProps } from "@/types/clients.types";
 import { InvoiceRow } from "../rows/InvoiceRow";
@@ -14,7 +15,12 @@ export function ActivityTab({
 }: ActivityTabProps) {
   return (
     <>
-      <h3 className="text-sm font-semibold mb-3">Invoices</h3>
+      <h3 className="text-sm font-semibold mb-3">
+        <FormattedMessage
+          id="clients.activityTab.invoices"
+          defaultMessage="Invoices"
+        />
+      </h3>
       {invoicesLoading ? (
         <div className="flex flex-col gap-2">
           {[1, 2].map((i) => (
@@ -22,7 +28,12 @@ export function ActivityTab({
           ))}
         </div>
       ) : invoices.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No invoices yet.</p>
+        <p className="text-muted-foreground text-sm">
+          <FormattedMessage
+            id="clients.activityTab.noInvoices"
+            defaultMessage="No invoices yet."
+          />
+        </p>
       ) : (
         <div className="flex flex-col">
           {invoices.map((inv) => (
@@ -32,13 +43,28 @@ export function ActivityTab({
       )}
 
       <div className="mt-6">
-        <h3 className="text-sm font-semibold mb-2">Time logged</h3>
+        <h3 className="text-sm font-semibold mb-2">
+          <FormattedMessage
+            id="clients.projectsTab.timeLogged"
+            defaultMessage="Time logged"
+          />
+        </h3>
         {timeLoading ? (
           <Skeleton className="h-6 w-24" />
         ) : !hasProjects ? (
-          <p className="text-muted-foreground text-sm">No projects linked.</p>
+          <p className="text-muted-foreground text-sm">
+            <FormattedMessage
+              id="clients.activityTab.noProjectsLinked"
+              defaultMessage="No projects linked."
+            />
+          </p>
         ) : totalSeconds === 0 ? (
-          <p className="text-muted-foreground text-sm">No time logged.</p>
+          <p className="text-muted-foreground text-sm">
+            <FormattedMessage
+              id="clients.activityTab.noTimeLogged"
+              defaultMessage="No time logged."
+            />
+          </p>
         ) : (
           <p className="font-mono text-sm">
             {formatDurationWithoutSeconds(totalSeconds)}
@@ -47,7 +73,12 @@ export function ActivityTab({
       </div>
 
       <div className="mt-6">
-        <h3 className="text-sm font-semibold mb-2">Status history</h3>
+        <h3 className="text-sm font-semibold mb-2">
+          <FormattedMessage
+            id="clients.activityTab.statusHistory"
+            defaultMessage="Status history"
+          />
+        </h3>
         <ClientStatusHistoryFeed history={statusHistory} />
       </div>
     </>

@@ -9,14 +9,22 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import { TagsSection } from "./TagsSection";
 
-function renderSection(queryClient = createQueryClient()) {
+function renderSection(
+  queryClient = createQueryClient(),
+  locale: Locale = "en",
+) {
   return render(
-    <QueryClientProvider client={queryClient}>
-      <TagsSection />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={queryClient}>
+        <TagsSection />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -94,5 +102,14 @@ describe("TagsSection", () => {
     await waitFor(() =>
       expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), { id: 9 }),
     );
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    gqlFetch.mockResolvedValueOnce({ tags: [] });
+    renderSection(createQueryClient(), "fr");
+
+    expect(
+      await screen.findByText("Aucune étiquette pour l'instant."),
+    ).toBeInTheDocument();
   });
 });

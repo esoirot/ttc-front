@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +11,7 @@ export function BillableToggle({
   disabled?: boolean;
   onChange: (v: boolean) => void;
 }) {
+  const intl = useIntl();
   return (
     <Button
       type="button"
@@ -18,10 +20,20 @@ export function BillableToggle({
       onClick={() => !disabled && onChange(!billable)}
       title={
         disabled
-          ? "Billability editing not available on your Clockify plan"
+          ? intl.formatMessage({
+              id: "clockify.billableToggle.disabled",
+              defaultMessage:
+                "Billability editing not available on your Clockify plan",
+            })
           : billable
-            ? "Billable"
-            : "Non-billable"
+            ? intl.formatMessage({
+                id: "clockify.billableToggle.billable",
+                defaultMessage: "Billable",
+              })
+            : intl.formatMessage({
+                id: "clockify.billableToggle.nonBillable",
+                defaultMessage: "Non-billable",
+              })
       }
       disabled={disabled}
       className={cn(

@@ -1,9 +1,12 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -23,13 +26,23 @@ vi.mock("react-router-dom", async () => {
 
 import { LoginForm } from "./LoginForm";
 
-function wrapper({ children }: { children: ReactNode }) {
-  return (
-    <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter>{children}</MemoryRouter>
-    </QueryClientProvider>
-  );
+function makeWrapper(locale: Locale = "en") {
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={createQueryClient()}>
+        <IntlProvider
+          locale={locale}
+          defaultLocale="en"
+          messages={messages[locale]}
+        >
+          <MemoryRouter>{children}</MemoryRouter>
+        </IntlProvider>
+      </QueryClientProvider>
+    );
+  };
 }
+
+const wrapper = makeWrapper();
 
 describe("LoginForm", () => {
   beforeEach(() => {
@@ -115,5 +128,15 @@ describe("LoginForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(await screen.findByText("Invalid credentials")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<LoginForm />, { wrapper: makeWrapper("fr") });
+
+    expect(screen.getByText("Connexion")).toBeInTheDocument();
+    expect(screen.getByLabelText("Mot de passe")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Se connecter" }),
+    ).toBeInTheDocument();
   });
 });

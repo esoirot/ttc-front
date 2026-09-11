@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { INDUSTRY_LABELS } from "@/constants/clients";
+import { INDUSTRY_LABEL_MESSAGES } from "@/constants/clients";
 import type { ClientCardProps } from "@/types/clients.types";
 import { contactLabel } from "@/hooks/clients/clientUtils";
 
@@ -38,6 +39,7 @@ const HUBSPOT_CLASSES =
 
 export function ClientCard({ client, onDelete }: ClientCardProps) {
   const navigate = useNavigate();
+  const intl = useIntl();
   const label = contactLabel(client);
   return (
     <Card
@@ -77,7 +79,7 @@ export function ClientCard({ client, onDelete }: ClientCardProps) {
           </Badge>
           {client.industry && (
             <Badge variant="outline" className={`text-xs ${INDUSTRY_CLASSES}`}>
-              {INDUSTRY_LABELS[client.industry]}
+              {intl.formatMessage(INDUSTRY_LABEL_MESSAGES[client.industry])}
             </Badge>
           )}
           {client.tags.slice(0, 2).map((t) => (

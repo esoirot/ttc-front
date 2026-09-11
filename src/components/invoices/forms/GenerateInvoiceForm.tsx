@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ export function GenerateInvoiceForm({
   onClose,
   onGenerated,
 }: Props) {
+  const intl = useIntl();
   const { generateInvoice, loading } = useGenerateInvoice();
   const [clientId, setClientId] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -42,7 +44,12 @@ export function GenerateInvoiceForm({
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <Label htmlFor="gif-project">Project *</Label>
+              <Label htmlFor="gif-project">
+                <FormattedMessage
+                  id="invoices.generateForm.projectRequired"
+                  defaultMessage="Project *"
+                />
+              </Label>
               <Select
                 value={projectId || "__none__"}
                 onValueChange={(val) =>
@@ -50,10 +57,20 @@ export function GenerateInvoiceForm({
                 }
               >
                 <SelectTrigger id="gif-project" className="w-full">
-                  <SelectValue placeholder="Select project" />
+                  <SelectValue
+                    placeholder={intl.formatMessage({
+                      id: "invoices.generateForm.selectProject",
+                      defaultMessage: "Select project",
+                    })}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">Select project</SelectItem>
+                  <SelectItem value="__none__">
+                    <FormattedMessage
+                      id="invoices.generateForm.selectProject"
+                      defaultMessage="Select project"
+                    />
+                  </SelectItem>
                   {projects.map((p) => (
                     <SelectItem key={p.id} value={String(p.id)}>
                       {p.title}
@@ -63,7 +80,12 @@ export function GenerateInvoiceForm({
               </Select>
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="gif-client">Client</Label>
+              <Label htmlFor="gif-client">
+                <FormattedMessage
+                  id="invoices.metaCard.client"
+                  defaultMessage="Client"
+                />
+              </Label>
               <Select
                 value={clientId || "__none__"}
                 onValueChange={(val) =>
@@ -71,10 +93,20 @@ export function GenerateInvoiceForm({
                 }
               >
                 <SelectTrigger id="gif-client" className="w-full">
-                  <SelectValue placeholder="No client" />
+                  <SelectValue
+                    placeholder={intl.formatMessage({
+                      id: "invoices.metaCard.noClient",
+                      defaultMessage: "No client",
+                    })}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No client</SelectItem>
+                  <SelectItem value="__none__">
+                    <FormattedMessage
+                      id="invoices.metaCard.noClient"
+                      defaultMessage="No client"
+                    />
+                  </SelectItem>
                   {clients.map((c) => (
                     <SelectItem key={c.id} value={String(c.id)}>
                       {c.name}
@@ -84,7 +116,12 @@ export function GenerateInvoiceForm({
               </Select>
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="gif-due">Due date</Label>
+              <Label htmlFor="gif-due">
+                <FormattedMessage
+                  id="invoices.metaCard.dueDate"
+                  defaultMessage="Due date"
+                />
+              </Label>
               <Input
                 id="gif-due"
                 type="date"
@@ -94,15 +131,27 @@ export function GenerateInvoiceForm({
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Invoice line items generated from project pricing (fixed fee, hourly
-            rate, per-word rate) and billable time entries.
+            <FormattedMessage
+              id="invoices.generateForm.description"
+              defaultMessage="Invoice line items generated from project pricing (fixed fee, hourly rate, per-word rate) and billable time entries."
+            />
           </p>
           <Button
             type="submit"
             disabled={loading || !projectId}
             className="self-end"
           >
-            {loading ? "Generating…" : "Generate invoice"}
+            {loading ? (
+              <FormattedMessage
+                id="invoices.generateForm.generating"
+                defaultMessage="Generating…"
+              />
+            ) : (
+              <FormattedMessage
+                id="invoices.generateForm.submit"
+                defaultMessage="Generate invoice"
+              />
+            )}
           </Button>
         </form>
       </CardContent>

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { ColorField } from "./ColorField";
 
 const meta: Meta<typeof ColorField> = {
@@ -11,9 +13,11 @@ const meta: Meta<typeof ColorField> = {
       return <ColorField {...args} value={value} onChange={setValue} />;
     }
     return (
-      <div className="w-[280px]">
-        <Controlled />
-      </div>
+      <IntlProvider locale="en" messages={messages.en}>
+        <div className="w-[280px]">
+          <Controlled />
+        </div>
+      </IntlProvider>
     );
   },
 };

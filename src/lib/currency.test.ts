@@ -36,10 +36,21 @@ describe("eurosToCents", () => {
 });
 
 describe("formatCents", () => {
-  it("formats cents as EUR currency in fr-FR locale", () => {
-    const result = formatCents(1050);
+  it("formats using the given currency and locale", () => {
+    const result = formatCents(1050, "EUR", "fr");
     expect(result).toContain("10,50");
     expect(result).toMatch(/€/);
+  });
+
+  it("formats English locale with a period decimal separator", () => {
+    const result = formatCents(1050, "USD", "en");
+    expect(result).toContain("10.50");
+    expect(result).toMatch(/\$/);
+  });
+
+  it("respects the currency code independent of locale", () => {
+    const result = formatCents(1050, "GBP", "en");
+    expect(result).toMatch(/£/);
   });
 });
 

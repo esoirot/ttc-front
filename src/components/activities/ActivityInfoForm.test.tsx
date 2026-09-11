@@ -9,7 +9,10 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import { ActivityInfoForm } from "./ActivityInfoForm";
 
 function makeInitial(overrides = {}) {
@@ -25,10 +28,12 @@ function makeInitial(overrides = {}) {
   };
 }
 
-function renderForm(initial = makeInitial()) {
+function renderForm(initial = makeInitial(), locale: Locale = "en") {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <ActivityInfoForm activityId={5} initial={initial} />
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <ActivityInfoForm activityId={5} initial={initial} />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -249,5 +254,14 @@ describe("ActivityInfoForm", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Save" })).not.toBeDisabled(),
     );
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm(makeInitial(), "fr");
+
+    expect(screen.getByLabelText("Forme juridique")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Enregistrer" }),
+    ).toBeInTheDocument();
   });
 });

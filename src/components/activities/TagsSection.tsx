@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { useTags, useCreateTag, useDeleteTag } from "@/hooks/tags/useTags";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export function TagsSection() {
+  const intl = useIntl();
   const { tags } = useTags();
   const { createTag } = useCreateTag();
   const { deleteTag } = useDeleteTag();
@@ -31,7 +33,12 @@ export function TagsSection() {
   return (
     <div className="flex flex-col gap-3">
       {tags.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No tags yet.</p>
+        <p className="text-sm text-muted-foreground">
+          <FormattedMessage
+            id="activities.tagsSection.empty"
+            defaultMessage="No tags yet."
+          />
+        </p>
       ) : (
         <div className="flex flex-wrap gap-2">
           {tags.map((tag) => (
@@ -46,18 +53,35 @@ export function TagsSection() {
               </div>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete tag?</AlertDialogTitle>
+                  <AlertDialogTitle>
+                    <FormattedMessage
+                      id="activities.tagsSection.deleteTitle"
+                      defaultMessage="Delete tag?"
+                    />
+                  </AlertDialogTitle>
                   <AlertDialogDescription>
-                    "{tag.name}" will be removed from all entries.
+                    <FormattedMessage
+                      id="activities.tagsSection.deleteDescription"
+                      defaultMessage='"{name}" will be removed from all entries.'
+                      values={{ name: tag.name }}
+                    />
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>
+                    <FormattedMessage
+                      id="common.actions.cancel"
+                      defaultMessage="Cancel"
+                    />
+                  </AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     onClick={() => void deleteTag(tag.id)}
                   >
-                    Delete
+                    <FormattedMessage
+                      id="common.actions.delete"
+                      defaultMessage="Delete"
+                    />
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -69,7 +93,10 @@ export function TagsSection() {
         <Input
           value={newTag}
           onChange={(e) => setNewTag(e.target.value)}
-          placeholder="New tag name"
+          placeholder={intl.formatMessage({
+            id: "activities.tagsSection.newTagPlaceholder",
+            defaultMessage: "New tag name",
+          })}
           className="h-8 text-sm"
         />
         <Button
@@ -78,7 +105,10 @@ export function TagsSection() {
           variant="secondary"
           disabled={!newTag.trim()}
         >
-          Add
+          <FormattedMessage
+            id="projects.taskLabelPicker.add"
+            defaultMessage="Add"
+          />
         </Button>
       </form>
     </div>

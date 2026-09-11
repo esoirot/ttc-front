@@ -1,5 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { IntlProvider } from "react-intl";
 import { describe, expect, it, vi } from "vitest";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { InvoiceItem, InvoiceAddItemInput } from "@/types/invoices.types";
 import type { InvoiceItemRowProps } from "@/types/invoices.types";
 
@@ -65,19 +68,22 @@ function makeItem(overrides: Partial<InvoiceItem> = {}): InvoiceItem {
 function renderLineItems(
   items: InvoiceItem[] = [],
   props: Partial<Parameters<typeof InvoiceLineItems>[0]> = {},
+  locale: Locale = "en",
 ) {
   return render(
-    <InvoiceLineItems
-      invoiceId={4}
-      items={items}
-      onAddItem={vi
-        .fn<(input: InvoiceAddItemInput) => Promise<unknown>>()
-        .mockResolvedValue({})}
-      onUpdateItem={vi.fn().mockResolvedValue({})}
-      onRemoveItem={vi.fn()}
-      adding={false}
-      {...props}
-    />,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <InvoiceLineItems
+        invoiceId={4}
+        items={items}
+        onAddItem={vi
+          .fn<(input: InvoiceAddItemInput) => Promise<unknown>>()
+          .mockResolvedValue({})}
+        onUpdateItem={vi.fn().mockResolvedValue({})}
+        onRemoveItem={vi.fn()}
+        adding={false}
+        {...props}
+      />
+    </IntlProvider>,
   );
 }
 
@@ -208,5 +214,13 @@ describe("InvoiceLineItems", () => {
     renderLineItems([makeItem({ id: 7 })], { onRemoveItem });
     fireEvent.click(screen.getByText("remove-7"));
     expect(onRemoveItem).toHaveBeenCalledWith(7);
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderLineItems([], {}, "fr");
+    expect(screen.getByText("Lignes de facture")).toBeInTheDocument();
+    expect(
+      screen.getByText("Aucune ligne pour l'instant."),
+    ).toBeInTheDocument();
   });
 });

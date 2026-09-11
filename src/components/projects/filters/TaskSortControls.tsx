@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -6,7 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TASK_SORT_FIELDS, TASK_SORT_FIELD_LABELS } from "@/constants/tasks";
+import {
+  TASK_SORT_FIELDS,
+  TASK_SORT_FIELD_LABEL_MESSAGES,
+} from "@/constants/tasks";
 import type { TaskSortField, TaskSortDirection } from "@/types/tasks.types";
 import type { TaskSortControlsProps } from "@/types/projects.types";
 
@@ -17,6 +21,7 @@ export function TaskSortControls({
   onDirectionChange,
   idPrefix,
 }: TaskSortControlsProps) {
+  const intl = useIntl();
   return (
     <>
       <Label htmlFor={`${idPrefix}-sort-field`} className="text-sm shrink-0">
@@ -35,7 +40,7 @@ export function TaskSortControls({
         <SelectContent>
           {TASK_SORT_FIELDS.map((f) => (
             <SelectItem key={f} value={f}>
-              {TASK_SORT_FIELD_LABELS[f]}
+              {intl.formatMessage(TASK_SORT_FIELD_LABEL_MESSAGES[f])}
             </SelectItem>
           ))}
         </SelectContent>

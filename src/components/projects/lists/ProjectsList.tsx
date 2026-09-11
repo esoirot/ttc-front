@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,7 @@ import { ProjectCard } from "../cards/ProjectCard";
 import { ProjectsOverviewCharts } from "../charts/ProjectsOverviewCharts";
 
 export function ProjectsList() {
+  const intl = useIntl();
   const navigate = useNavigate();
   const [tab, setTab] = useState<ProjectStatus | "ALL">("ALL");
   const [search, setSearch] = useState("");
@@ -37,12 +39,27 @@ export function ProjectsList() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Projects</h1>
+        <h1 className="text-2xl font-bold">
+          <FormattedMessage
+            id="projects.list.title"
+            defaultMessage="Projects"
+          />
+        </h1>
         <Button
           onClick={() => setShowForm(!showForm)}
           variant={showForm ? "outline" : "default"}
         >
-          {showForm ? "Cancel" : "New project"}
+          {showForm ? (
+            <FormattedMessage
+              id="common.actions.cancel"
+              defaultMessage="Cancel"
+            />
+          ) : (
+            <FormattedMessage
+              id="projects.list.newProject"
+              defaultMessage="New project"
+            />
+          )}
         </Button>
       </div>
 
@@ -61,19 +78,25 @@ export function ProjectsList() {
       >
         <div className="flex flex-col gap-3 pb-4 border-b border-border mb-6">
           <Label htmlFor="projects-search" className="sr-only">
-            Search projects
+            <FormattedMessage
+              id="projects.list.searchLabel"
+              defaultMessage="Search projects"
+            />
           </Label>
           <Input
             id="projects-search"
             type="search"
-            placeholder="Search projects…"
+            placeholder={intl.formatMessage({
+              id: "projects.list.searchPlaceholder",
+              defaultMessage: "Search projects…",
+            })}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <TabsList>
             {PROJECT_STATUS_TABS.map((t) => (
               <TabsTrigger key={t.value} value={t.value}>
-                {t.label}
+                {intl.formatMessage(t.labelMessage)}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -88,11 +111,20 @@ export function ProjectsList() {
                 ))}
               </div>
             ) : projects.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No projects.</p>
+              <p className="text-muted-foreground text-sm">
+                <FormattedMessage
+                  id="projects.list.empty"
+                  defaultMessage="No projects."
+                />
+              </p>
             ) : (
               <>
                 <p className="text-muted-foreground text-xs mb-2">
-                  {projects.length} of {total}
+                  <FormattedMessage
+                    id="clients.list.countOfTotal"
+                    defaultMessage="{count} of {total}"
+                    values={{ count: projects.length, total }}
+                  />
                 </p>
                 <div className="flex flex-col gap-2">
                   {projects.map((p) => (
@@ -114,7 +146,10 @@ export function ProjectsList() {
                     onClick={loadMore}
                     disabled={loading}
                   >
-                    Load more
+                    <FormattedMessage
+                      id="clients.list.loadMore"
+                      defaultMessage="Load more"
+                    />
                   </Button>
                 )}
               </>

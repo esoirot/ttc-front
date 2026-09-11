@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ export function ManualEntryForm({
   recentDescriptions,
   tags,
 }: ManualEntryFormProps) {
+  const intl = useIntl();
   const { createTimeEntry, loading: creating } = useCreateTimeEntry();
   const [desc, setDesc] = useState("");
   const [tagIds, setTagIds] = useState<number[]>([]);
@@ -43,21 +45,39 @@ export function ManualEntryForm({
       <CardContent className="pt-4">
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="me-desc">Description</Label>
+            <Label htmlFor="me-desc">
+              {intl.formatMessage({
+                id: "time.manualEntryForm.description",
+                defaultMessage: "Description",
+              })}
+            </Label>
             <DescriptionCombobox
               value={desc}
               onChange={setDesc}
               recentDescriptions={recentDescriptions}
-              placeholder="What did you work on?"
+              placeholder={intl.formatMessage({
+                id: "time.manualEntryForm.descriptionPlaceholder",
+                defaultMessage: "What did you work on?",
+              })}
             />
           </div>
           <div className="flex flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">Tags</Label>
+            <Label className="text-xs text-muted-foreground">
+              {intl.formatMessage({
+                id: "time.manualEntryForm.tags",
+                defaultMessage: "Tags",
+              })}
+            </Label>
             <TtcTagChips tagIds={tagIds} tags={tags} onChange={setTagIds} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <Label htmlFor="me-start-date">Start date</Label>
+              <Label htmlFor="me-start-date">
+                {intl.formatMessage({
+                  id: "time.manualEntryForm.startDate",
+                  defaultMessage: "Start date",
+                })}
+              </Label>
               <Input
                 id="me-start-date"
                 type="date"
@@ -66,7 +86,12 @@ export function ManualEntryForm({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="me-start-time">Start time</Label>
+              <Label htmlFor="me-start-time">
+                {intl.formatMessage({
+                  id: "time.manualEntryForm.startTime",
+                  defaultMessage: "Start time",
+                })}
+              </Label>
               <Input
                 id="me-start-time"
                 type="time"
@@ -75,7 +100,12 @@ export function ManualEntryForm({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="me-end-date">End date</Label>
+              <Label htmlFor="me-end-date">
+                {intl.formatMessage({
+                  id: "time.manualEntryForm.endDate",
+                  defaultMessage: "End date",
+                })}
+              </Label>
               <Input
                 id="me-end-date"
                 type="date"
@@ -84,7 +114,12 @@ export function ManualEntryForm({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="me-end-time">End time</Label>
+              <Label htmlFor="me-end-time">
+                {intl.formatMessage({
+                  id: "time.manualEntryForm.endTime",
+                  defaultMessage: "End time",
+                })}
+              </Label>
               <Input
                 id="me-end-time"
                 type="time"
@@ -94,7 +129,15 @@ export function ManualEntryForm({
             </div>
           </div>
           <Button type="submit" disabled={creating} className="self-end">
-            {creating ? "Saving…" : "Save entry"}
+            {creating
+              ? intl.formatMessage({
+                  id: "time.manualEntryForm.saving",
+                  defaultMessage: "Saving…",
+                })
+              : intl.formatMessage({
+                  id: "time.manualEntryForm.saveEntry",
+                  defaultMessage: "Save entry",
+                })}
           </Button>
         </form>
       </CardContent>

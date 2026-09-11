@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { AgendaList } from "./AgendaList";
 import type { GoogleCalendarEvent } from "@/types/google-calendar.types";
 
@@ -24,6 +26,13 @@ const events: GoogleCalendarEvent[] = [
 const meta: Meta<typeof AgendaList> = {
   component: AgendaList,
   title: "Molecules/AgendaList",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     selectedDate,
     events,

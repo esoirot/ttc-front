@@ -1,3 +1,4 @@
+import type { MessageDescriptor } from "react-intl";
 import type { TranslationRateType } from "@/types/rates.types";
 
 export const CURRENCIES = ["EUR", "USD", "GBP", "CHF", "CAD", "AUD", "JPY"];
@@ -19,16 +20,22 @@ export const TRANSLATION_RATE_TYPES: TranslationRateType[] = [
   "FIXED",
 ];
 
-export const TYPE_LABELS: Record<TranslationRateType, string> = {
-  HOURLY: "Hourly",
-  DAY: "Day Rate",
-  PER_WORD: "Per Word",
-  FIXED: "Fixed Fee",
+export const TYPE_LABEL_MESSAGES: Record<
+  TranslationRateType,
+  MessageDescriptor
+> = {
+  HOURLY: { id: "rates.type.hourly", defaultMessage: "Hourly" },
+  DAY: { id: "rates.type.day", defaultMessage: "Day Rate" },
+  PER_WORD: { id: "rates.type.perWord", defaultMessage: "Per Word" },
+  FIXED: { id: "rates.type.fixed", defaultMessage: "Fixed Fee" },
 };
 
-export const TYPE_UNIT: Record<TranslationRateType, string> = {
-  HOURLY: "/hr",
-  DAY: "/day",
-  PER_WORD: "/word",
-  FIXED: "flat",
+export const TYPE_UNIT_MESSAGES: Record<
+  TranslationRateType,
+  MessageDescriptor
+> = {
+  HOURLY: { id: "rates.unit.hourly", defaultMessage: "/hr" },
+  DAY: { id: "rates.unit.day", defaultMessage: "/day" },
+  PER_WORD: { id: "rates.unit.perWord", defaultMessage: "/word" },
+  FIXED: { id: "rates.unit.fixed", defaultMessage: "flat" },
 };

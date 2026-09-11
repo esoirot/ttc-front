@@ -32,6 +32,9 @@ vi.mock("./googleCalendar/GoogleCalendarWidget", () => ({
 }));
 
 import { AccountDashboard } from "./AccountDashboard";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeDashboard(overrides: Partial<DashboardData> = {}): DashboardData {
   return {
@@ -69,21 +72,21 @@ describe("AccountDashboard", () => {
   it("shows a loading skeleton when user is loading and no user is cached", () => {
     useCurrentUserMock.mockReturnValue({ user: null, loading: true });
     useDashboardMock.mockReturnValue({ dashboard: null, loading: false });
-    render(<AccountDashboard />);
+    render(<AccountDashboard />, { wrapper });
     expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
   });
 
   it("shows a loading skeleton when dashboard is loading", () => {
     useCurrentUserMock.mockReturnValue({ user: makeUser(), loading: false });
     useDashboardMock.mockReturnValue({ dashboard: null, loading: true });
-    render(<AccountDashboard />);
+    render(<AccountDashboard />, { wrapper });
     expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
   });
 
   it("does not show the loading skeleton when user is loading but a cached user exists", () => {
     useCurrentUserMock.mockReturnValue({ user: makeUser(), loading: true });
     useDashboardMock.mockReturnValue({ dashboard: null, loading: false });
-    render(<AccountDashboard />);
+    render(<AccountDashboard />, { wrapper });
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
   });
 
@@ -93,7 +96,7 @@ describe("AccountDashboard", () => {
       loading: false,
     });
     useDashboardMock.mockReturnValue({ dashboard: null, loading: false });
-    render(<AccountDashboard />);
+    render(<AccountDashboard />, { wrapper });
     expect(screen.getByText(/Welcome back, Jane Doe\./)).toBeInTheDocument();
   });
 
@@ -103,7 +106,7 @@ describe("AccountDashboard", () => {
       loading: false,
     });
     useDashboardMock.mockReturnValue({ dashboard: null, loading: false });
-    render(<AccountDashboard />);
+    render(<AccountDashboard />, { wrapper });
     expect(
       screen.getByText(/Welcome back, jane@example\.com\./),
     ).toBeInTheDocument();
@@ -115,7 +118,7 @@ describe("AccountDashboard", () => {
       loading: false,
     });
     useDashboardMock.mockReturnValue({ dashboard: null, loading: false });
-    render(<AccountDashboard />);
+    render(<AccountDashboard />, { wrapper });
     expect(screen.getByText("2FA prompt")).toBeInTheDocument();
   });
 
@@ -125,14 +128,14 @@ describe("AccountDashboard", () => {
       loading: false,
     });
     useDashboardMock.mockReturnValue({ dashboard: null, loading: false });
-    render(<AccountDashboard />);
+    render(<AccountDashboard />, { wrapper });
     expect(screen.queryByText("2FA prompt")).not.toBeInTheDocument();
   });
 
   it("does not render dashboard sections when dashboard is null", () => {
     useCurrentUserMock.mockReturnValue({ user: makeUser(), loading: false });
     useDashboardMock.mockReturnValue({ dashboard: null, loading: false });
-    render(<AccountDashboard />);
+    render(<AccountDashboard />, { wrapper });
     expect(screen.queryByText("Stats grid")).not.toBeInTheDocument();
   });
 
@@ -142,11 +145,22 @@ describe("AccountDashboard", () => {
       dashboard: makeDashboard(),
       loading: false,
     });
-    render(<AccountDashboard />);
+    render(<AccountDashboard />, { wrapper });
     expect(screen.getByText("Stats grid")).toBeInTheDocument();
     expect(screen.getByText("Upcoming deadlines")).toBeInTheDocument();
     expect(screen.getByText("Recent time entries")).toBeInTheDocument();
     expect(screen.getByText("Prospects to contact")).toBeInTheDocument();
     expect(screen.getByText("Google Calendar widget")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    useCurrentUserMock.mockReturnValue({
+      user: makeUser({ name: "Jane Doe" }),
+      loading: false,
+    });
+    useDashboardMock.mockReturnValue({ dashboard: null, loading: false });
+    render(<AccountDashboard />, { wrapper: createIntlWrapper("fr") });
+    expect(screen.getByText("Tableau de bord")).toBeInTheDocument();
+    expect(screen.getByText(/Bon retour, Jane Doe\./)).toBeInTheDocument();
   });
 });

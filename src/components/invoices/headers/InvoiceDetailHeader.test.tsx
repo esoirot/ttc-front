@@ -1,10 +1,13 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 import { InvoiceDetailHeader } from "./InvoiceDetailHeader";
 import type { InvoiceStatus } from "@/types/invoices.types";
 
 function renderHeader(
   props: Partial<Parameters<typeof InvoiceDetailHeader>[0]> = {},
+  locale: Locale = "en",
 ) {
   return render(
     <InvoiceDetailHeader
@@ -18,6 +21,7 @@ function renderHeader(
       onDelete={vi.fn()}
       {...props}
     />,
+    { wrapper: createIntlWrapper(locale) },
   );
 }
 
@@ -122,5 +126,10 @@ describe("InvoiceDetailHeader", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderHeader({ downloading: true }, "fr");
+    expect(screen.getByText("Génération…")).toBeInTheDocument();
   });
 });

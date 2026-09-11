@@ -1,6 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 describe("InvoiceSubtotal", () => {
   it("sums item totals and shows the currency", () => {
@@ -30,13 +33,21 @@ describe("InvoiceSubtotal", () => {
         ]}
         currency="USD"
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("50.00 USD")).toBeInTheDocument();
   });
 
   it("shows 0.00 for an empty item list", () => {
-    render(<InvoiceSubtotal items={[]} currency="EUR" />);
+    render(<InvoiceSubtotal items={[]} currency="EUR" />, { wrapper });
     expect(screen.getByText("0.00 EUR")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<InvoiceSubtotal items={[]} currency="EUR" />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    expect(screen.getByText("Sous-total")).toBeInTheDocument();
   });
 });

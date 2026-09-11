@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { AppLayout } from "./AppLayout";
 
 const meta: Meta<typeof AppLayout> = {
@@ -9,23 +11,25 @@ const meta: Meta<typeof AppLayout> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <MemoryRouter initialEntries={["/"]}>
-          <Routes>
-            <Route path="/" element={<Story />}>
-              <Route
-                index
-                element={
-                  <div className="p-6">
-                    <p className="text-sm text-muted-foreground">
-                      Page content renders here via &lt;Outlet/&gt; — this
-                      template only owns the sidebar + content shell.
-                    </p>
-                  </div>
-                }
-              />
-            </Route>
-          </Routes>
-        </MemoryRouter>
+        <IntlProvider locale="en" defaultLocale="en" messages={messages.en}>
+          <MemoryRouter initialEntries={["/"]}>
+            <Routes>
+              <Route path="/" element={<Story />}>
+                <Route
+                  index
+                  element={
+                    <div className="p-6">
+                      <p className="text-sm text-muted-foreground">
+                        Page content renders here via &lt;Outlet/&gt; — this
+                        template only owns the sidebar + content shell.
+                      </p>
+                    </div>
+                  }
+                />
+              </Route>
+            </Routes>
+          </MemoryRouter>
+        </IntlProvider>
       </QueryClientProvider>
     ),
   ],

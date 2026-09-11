@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { FormattedMessage } from "react-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -60,16 +61,27 @@ export function GoogleCalendarWidget() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Calendar</CardTitle>
+          <CardTitle className="text-sm">
+            <FormattedMessage
+              id="dashboard.googleCalendarWidget.title"
+              defaultMessage="Calendar"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Connect Google Calendar to see your events here.{" "}
+            <FormattedMessage
+              id="dashboard.googleCalendarWidget.connectPrompt"
+              defaultMessage="Connect Google Calendar to see your events here."
+            />{" "}
             <Link
               to="/google-calendar"
               className="text-primary hover:underline"
             >
-              Connect
+              <FormattedMessage
+                id="dashboard.googleCalendarWidget.connect"
+                defaultMessage="Connect"
+              />
             </Link>
           </p>
         </CardContent>
@@ -80,7 +92,12 @@ export function GoogleCalendarWidget() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-sm">Calendar</CardTitle>
+        <CardTitle className="text-sm">
+          <FormattedMessage
+            id="dashboard.googleCalendarWidget.title"
+            defaultMessage="Calendar"
+          />
+        </CardTitle>
         <CreateEventDialog defaultDate={selectedDate} />
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

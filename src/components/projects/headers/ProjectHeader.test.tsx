@@ -7,8 +7,11 @@ import {
 } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { Client } from "@/types/clients.types";
 import type { Project } from "@/types/projects.types";
 
@@ -110,18 +113,21 @@ function renderHeader(
   project: Project,
   clients: Client[] = [],
   onUpdate = vi.fn(),
+  locale: Locale = "en",
 ) {
   gqlFetch.mockResolvedValue({ translationRates: [], clientRates: [] });
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter>
-        <ProjectHeader
-          project={project}
-          clients={clients}
-          onUpdate={onUpdate}
-          saving={false}
-        />
-      </MemoryRouter>
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <MemoryRouter>
+          <ProjectHeader
+            project={project}
+            clients={clients}
+            onUpdate={onUpdate}
+            saving={false}
+          />
+        </MemoryRouter>
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -372,16 +378,18 @@ describe("ProjectHeader", () => {
 
     render(
       <QueryClientProvider client={createQueryClient()}>
-        <ProjectHeader
-          project={makeProject({
-            clientId: 3,
-            sourceLanguage: "EN",
-            targetLanguage: "FR",
-          })}
-          clients={[]}
-          onUpdate={vi.fn()}
-          saving={false}
-        />
+        <IntlProvider locale="en" messages={messages.en}>
+          <ProjectHeader
+            project={makeProject({
+              clientId: 3,
+              sourceLanguage: "EN",
+              targetLanguage: "FR",
+            })}
+            clients={[]}
+            onUpdate={vi.fn()}
+            saving={false}
+          />
+        </IntlProvider>
       </QueryClientProvider>,
     );
 
@@ -447,16 +455,18 @@ describe("ProjectHeader", () => {
     });
     render(
       <QueryClientProvider client={createQueryClient()}>
-        <ProjectHeader
-          project={makeProject({
-            clientId: 3,
-            sourceLanguage: "EN",
-            targetLanguage: "FR",
-          })}
-          clients={[]}
-          onUpdate={vi.fn()}
-          saving={false}
-        />
+        <IntlProvider locale="en" messages={messages.en}>
+          <ProjectHeader
+            project={makeProject({
+              clientId: 3,
+              sourceLanguage: "EN",
+              targetLanguage: "FR",
+            })}
+            clients={[]}
+            onUpdate={vi.fn()}
+            saving={false}
+          />
+        </IntlProvider>
       </QueryClientProvider>,
     );
     expect(
@@ -476,12 +486,14 @@ describe("ProjectHeader", () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     render(
       <QueryClientProvider client={createQueryClient()}>
-        <ProjectHeader
-          project={makeProject({ id: 7, clientId: 3 })}
-          clients={[]}
-          onUpdate={onUpdate}
-          saving={false}
-        />
+        <IntlProvider locale="en" messages={messages.en}>
+          <ProjectHeader
+            project={makeProject({ id: 7, clientId: 3 })}
+            clients={[]}
+            onUpdate={onUpdate}
+            saving={false}
+          />
+        </IntlProvider>
       </QueryClientProvider>,
     );
     fireEvent.click(await screen.findByText("Edit"));
@@ -503,12 +515,14 @@ describe("ProjectHeader", () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     render(
       <QueryClientProvider client={createQueryClient()}>
-        <ProjectHeader
-          project={makeProject({ id: 7, clientId: 3 })}
-          clients={[]}
-          onUpdate={onUpdate}
-          saving={false}
-        />
+        <IntlProvider locale="en" messages={messages.en}>
+          <ProjectHeader
+            project={makeProject({ id: 7, clientId: 3 })}
+            clients={[]}
+            onUpdate={onUpdate}
+            saving={false}
+          />
+        </IntlProvider>
       </QueryClientProvider>,
     );
     fireEvent.click(await screen.findByText("Edit"));
@@ -543,12 +557,14 @@ describe("ProjectHeader", () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     render(
       <QueryClientProvider client={createQueryClient()}>
-        <ProjectHeader
-          project={makeProject({ id: 7, clientId: 3 })}
-          clients={[]}
-          onUpdate={onUpdate}
-          saving={false}
-        />
+        <IntlProvider locale="en" messages={messages.en}>
+          <ProjectHeader
+            project={makeProject({ id: 7, clientId: 3 })}
+            clients={[]}
+            onUpdate={onUpdate}
+            saving={false}
+          />
+        </IntlProvider>
       </QueryClientProvider>,
     );
     fireEvent.click(await screen.findByText("Edit"));
@@ -574,17 +590,19 @@ describe("ProjectHeader", () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     render(
       <QueryClientProvider client={createQueryClient()}>
-        <MemoryRouter>
-          <ProjectHeader
-            project={makeProject({ id: 7, clientId: 1 })}
-            clients={[
-              makeClient({ id: 1, name: "Alpha" }),
-              makeClient({ id: 2, name: "Beta" }),
-            ]}
-            onUpdate={onUpdate}
-            saving={false}
-          />
-        </MemoryRouter>
+        <IntlProvider locale="en" messages={messages.en}>
+          <MemoryRouter>
+            <ProjectHeader
+              project={makeProject({ id: 7, clientId: 1 })}
+              clients={[
+                makeClient({ id: 1, name: "Alpha" }),
+                makeClient({ id: 2, name: "Beta" }),
+              ]}
+              onUpdate={onUpdate}
+              saving={false}
+            />
+          </MemoryRouter>
+        </IntlProvider>
       </QueryClientProvider>,
     );
     fireEvent.click(await screen.findByText("Edit"));
@@ -646,12 +664,14 @@ describe("ProjectHeader", () => {
     });
     render(
       <QueryClientProvider client={createQueryClient()}>
-        <ProjectHeader
-          project={makeProject()}
-          clients={[]}
-          onUpdate={vi.fn()}
-          saving={false}
-        />
+        <IntlProvider locale="en" messages={messages.en}>
+          <ProjectHeader
+            project={makeProject()}
+            clients={[]}
+            onUpdate={vi.fn()}
+            saving={false}
+          />
+        </IntlProvider>
       </QueryClientProvider>,
     );
     fireEvent.click(screen.getByText("Edit"));
@@ -684,12 +704,14 @@ describe("ProjectHeader", () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     render(
       <QueryClientProvider client={createQueryClient()}>
-        <ProjectHeader
-          project={makeProject({ id: 7 })}
-          clients={[]}
-          onUpdate={onUpdate}
-          saving={false}
-        />
+        <IntlProvider locale="en" messages={messages.en}>
+          <ProjectHeader
+            project={makeProject({ id: 7 })}
+            clients={[]}
+            onUpdate={onUpdate}
+            saving={false}
+          />
+        </IntlProvider>
       </QueryClientProvider>,
     );
     fireEvent.click(screen.getByText("Edit"));
@@ -785,5 +807,24 @@ describe("ProjectHeader", () => {
         }),
       ),
     );
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderHeader(
+      makeProject({
+        useCustomRate: true,
+        hourlyRate: 25,
+        currency: "USD",
+      }),
+      [],
+      vi.fn(),
+      "fr",
+    );
+
+    expect(screen.getByText("25/h USD")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Modifier"));
+    expect(screen.getByLabelText("Titre")).toBeInTheDocument();
+    expect(screen.getByText("Enregistrer")).toBeInTheDocument();
+    expect(screen.getByText("Annuler")).toBeInTheDocument();
   });
 });

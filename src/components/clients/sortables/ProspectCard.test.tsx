@@ -2,7 +2,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { Client } from "@/types/clients.types";
 import { ProspectCard } from "./ProspectCard";
 
@@ -48,15 +51,17 @@ function makeClient(overrides: Partial<Client> = {}): Client {
   } as Client;
 }
 
-function renderCard(client: Client, onDelete = vi.fn()) {
+function renderCard(client: Client, onDelete = vi.fn(), locale: Locale = "en") {
   return render(
-    <MemoryRouter>
-      <DndContext>
-        <SortableContext items={[client.id]}>
-          <ProspectCard client={client} onDelete={onDelete} />
-        </SortableContext>
-      </DndContext>
-    </MemoryRouter>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <MemoryRouter>
+        <DndContext>
+          <SortableContext items={[client.id]}>
+            <ProspectCard client={client} onDelete={onDelete} />
+          </SortableContext>
+        </DndContext>
+      </MemoryRouter>
+    </IntlProvider>,
   );
 }
 
@@ -99,5 +104,11 @@ describe("ProspectCard", () => {
 
     fireEvent.click(screen.getByText("Delete"));
     expect(onDelete).toHaveBeenCalledWith(3);
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderCard(makeClient({ id: 3, name: "Acme" }), vi.fn(), "fr");
+    fireEvent.click(screen.getByLabelText("Supprimer le prospect"));
+    expect(screen.getByText("Supprimer le prospect ?")).toBeInTheDocument();
   });
 });

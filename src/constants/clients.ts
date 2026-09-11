@@ -1,3 +1,4 @@
+import type { MessageDescriptor } from "react-intl";
 import type {
   ClientType,
   ClientIndustry,
@@ -57,15 +58,27 @@ export const EMPTY_EDIT = {
   color: "",
 };
 
-export const STATUS_LABELS: Record<ClientStatus, string> = {
-  TO_CONTACT: "Prospect",
-  CONTACTED: "1st Contact",
-  FOLLOW_UP_1: "Follow up 1",
-  FOLLOW_UP_2: "Follow up 2",
-  FOLLOW_UP_3: "Follow up 3",
-  RECONTACT_LATER: "Recontact Later",
-  TALKING: "Talking",
-  CLIENT: "Client",
+export const STATUS_LABEL_MESSAGES: Record<ClientStatus, MessageDescriptor> = {
+  TO_CONTACT: { id: "clients.status.toContact", defaultMessage: "Prospect" },
+  CONTACTED: { id: "clients.status.contacted", defaultMessage: "1st Contact" },
+  FOLLOW_UP_1: {
+    id: "clients.status.followUp1",
+    defaultMessage: "Follow up 1",
+  },
+  FOLLOW_UP_2: {
+    id: "clients.status.followUp2",
+    defaultMessage: "Follow up 2",
+  },
+  FOLLOW_UP_3: {
+    id: "clients.status.followUp3",
+    defaultMessage: "Follow up 3",
+  },
+  RECONTACT_LATER: {
+    id: "clients.status.recontactLater",
+    defaultMessage: "Recontact Later",
+  },
+  TALKING: { id: "clients.status.talking", defaultMessage: "Talking" },
+  CLIENT: { id: "clients.status.client", defaultMessage: "Client" },
 };
 
 export const STATUS_ORDER: ClientStatus[] = [
@@ -93,22 +106,52 @@ export const ACTIVE_CONTACT_STATUSES = new Set<ClientStatus>([
   "TALKING",
 ]);
 
-export const INDUSTRY_LABELS: Record<ClientIndustry, string> = {
-  HEALTHCARE: "Healthcare",
-  EDUCATION: "Education",
-  LEGAL: "Legal",
-  FINANCE: "Finance",
-  TECHNOLOGY: "Technology",
-  VIDEO_GAMES: "Video Games",
-  MARKETING: "Marketing",
-  MEDIA_ENTERTAINMENT: "Media & Entertainment",
-  E_COMMERCE: "E-Commerce",
-  MANUFACTURING: "Manufacturing",
-  AUTOMOTIVE: "Automotive",
-  GOVERNMENT: "Government",
-  NGO: "NGO / Non-profit",
-  REAL_ESTATE: "Real Estate",
-  TOURISM: "Tourism",
-  LUXE: "Luxury Goods",
-  OTHER: "Other",
+export const INDUSTRY_LABEL_MESSAGES: Record<
+  ClientIndustry,
+  MessageDescriptor
+> = {
+  HEALTHCARE: {
+    id: "clients.industry.healthcare",
+    defaultMessage: "Healthcare",
+  },
+  EDUCATION: { id: "clients.industry.education", defaultMessage: "Education" },
+  LEGAL: { id: "clients.industry.legal", defaultMessage: "Legal" },
+  FINANCE: { id: "clients.industry.finance", defaultMessage: "Finance" },
+  TECHNOLOGY: {
+    id: "clients.industry.technology",
+    defaultMessage: "Technology",
+  },
+  VIDEO_GAMES: {
+    id: "clients.industry.videoGames",
+    defaultMessage: "Video Games",
+  },
+  MARKETING: { id: "clients.industry.marketing", defaultMessage: "Marketing" },
+  MEDIA_ENTERTAINMENT: {
+    id: "clients.industry.mediaEntertainment",
+    defaultMessage: "Media & Entertainment",
+  },
+  E_COMMERCE: {
+    id: "clients.industry.eCommerce",
+    defaultMessage: "E-Commerce",
+  },
+  MANUFACTURING: {
+    id: "clients.industry.manufacturing",
+    defaultMessage: "Manufacturing",
+  },
+  AUTOMOTIVE: {
+    id: "clients.industry.automotive",
+    defaultMessage: "Automotive",
+  },
+  GOVERNMENT: {
+    id: "clients.industry.government",
+    defaultMessage: "Government",
+  },
+  NGO: { id: "clients.industry.ngo", defaultMessage: "NGO / Non-profit" },
+  REAL_ESTATE: {
+    id: "clients.industry.realEstate",
+    defaultMessage: "Real Estate",
+  },
+  TOURISM: { id: "clients.industry.tourism", defaultMessage: "Tourism" },
+  LUXE: { id: "clients.industry.luxe", defaultMessage: "Luxury Goods" },
+  OTHER: { id: "clients.industry.other", defaultMessage: "Other" },
 };

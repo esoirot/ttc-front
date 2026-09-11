@@ -8,6 +8,9 @@ vi.mock("@/hooks/integrations/useClockify", () => ({
 }));
 
 import { TagChips } from "./TagChips";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeTag(overrides: Partial<ClockifyTag> = {}): ClockifyTag {
   return {
@@ -42,13 +45,13 @@ describe("TagChips", () => {
   });
 
   it("shows a badge for each active tag", () => {
-    render(<TagChips {...defaultProps()} tagIds={["t1", "t2"]} />);
+    render(<TagChips {...defaultProps()} tagIds={["t1", "t2"]} />, { wrapper });
     expect(screen.getByText("Urgent")).toBeInTheDocument();
     expect(screen.getByText("Billable")).toBeInTheDocument();
   });
 
   it("treats a null tagIds as an empty active list", () => {
-    render(<TagChips {...defaultProps()} tagIds={null} />);
+    render(<TagChips {...defaultProps()} tagIds={null} />, { wrapper });
     expect(screen.queryByText("Urgent")).not.toBeInTheDocument();
   });
 
@@ -56,13 +59,14 @@ describe("TagChips", () => {
     const onRemove = vi.fn();
     render(
       <TagChips {...defaultProps()} tagIds={["t1"]} onRemove={onRemove} />,
+      { wrapper },
     );
     fireEvent.click(screen.getByText("×"));
     expect(onRemove).toHaveBeenCalledWith("t1");
   });
 
   it("opens the dropdown on focus and shows unselected, non-archived tags", () => {
-    render(<TagChips {...defaultProps()} />);
+    render(<TagChips {...defaultProps()} />, { wrapper });
     fireEvent.focus(screen.getByPlaceholderText("+ tag"));
     expect(screen.getByText("Urgent")).toBeInTheDocument();
     expect(screen.getByText("Billable")).toBeInTheDocument();
@@ -70,7 +74,7 @@ describe("TagChips", () => {
   });
 
   it("excludes already-active tags from the dropdown list", () => {
-    render(<TagChips {...defaultProps()} tagIds={["t1"]} />);
+    render(<TagChips {...defaultProps()} tagIds={["t1"]} />, { wrapper });
     fireEvent.focus(screen.getByPlaceholderText("+ tag"));
     expect(screen.queryByText("Billable")).toBeInTheDocument();
     const dropdownUrgent = screen.queryAllByText("Urgent");
@@ -79,7 +83,7 @@ describe("TagChips", () => {
   });
 
   it("filters the dropdown by the typed query", () => {
-    render(<TagChips {...defaultProps()} />);
+    render(<TagChips {...defaultProps()} />, { wrapper });
     const input = screen.getByPlaceholderText("+ tag");
     fireEvent.change(input, { target: { value: "bill" } });
     expect(screen.getByText("Billable")).toBeInTheDocument();
@@ -88,7 +92,7 @@ describe("TagChips", () => {
 
   it("calls onAdd, clears the query, and closes the dropdown when a tag is selected", () => {
     const onAdd = vi.fn();
-    render(<TagChips {...defaultProps()} onAdd={onAdd} />);
+    render(<TagChips {...defaultProps()} onAdd={onAdd} />, { wrapper });
     const input = screen.getByPlaceholderText("+ tag");
     fireEvent.focus(input);
     fireEvent.mouseDown(screen.getByText("Urgent"));
@@ -97,14 +101,14 @@ describe("TagChips", () => {
   });
 
   it("shows a Create option when the query matches no existing tag", () => {
-    render(<TagChips {...defaultProps()} />);
+    render(<TagChips {...defaultProps()} />, { wrapper });
     const input = screen.getByPlaceholderText("+ tag");
     fireEvent.change(input, { target: { value: "Brand new" } });
     expect(screen.getByText('Create "Brand new"')).toBeInTheDocument();
   });
 
   it("does not show a Create option for an empty query", () => {
-    render(<TagChips {...defaultProps()} />);
+    render(<TagChips {...defaultProps()} />, { wrapper });
     fireEvent.focus(screen.getByPlaceholderText("+ tag"));
     expect(screen.queryByText(/^Create/)).not.toBeInTheDocument();
   });
@@ -117,7 +121,7 @@ describe("TagChips", () => {
     );
     useCreateTagMock.mockReturnValue({ mutate, isPending: false });
     const onAdd = vi.fn();
-    render(<TagChips {...defaultProps()} onAdd={onAdd} />);
+    render(<TagChips {...defaultProps()} onAdd={onAdd} />, { wrapper });
     const input = screen.getByPlaceholderText("+ tag");
     fireEvent.change(input, { target: { value: "  New Tag  " } });
     fireEvent.mouseDown(screen.getByText('Create "New Tag"'));
@@ -130,7 +134,7 @@ describe("TagChips", () => {
   it("does not call createTag when the query is only whitespace", () => {
     const mutate = vi.fn();
     useCreateTagMock.mockReturnValue({ mutate, isPending: false });
-    render(<TagChips {...defaultProps()} />);
+    render(<TagChips {...defaultProps()} />, { wrapper });
     const input = screen.getByPlaceholderText("+ tag");
     fireEvent.change(input, { target: { value: "   " } });
     // No create option renders and no dropdown items exist to mousedown on;
@@ -142,7 +146,7 @@ describe("TagChips", () => {
   it("does not call createTag again while a create mutation is pending", () => {
     const mutate = vi.fn();
     useCreateTagMock.mockReturnValue({ mutate, isPending: true });
-    render(<TagChips {...defaultProps()} />);
+    render(<TagChips {...defaultProps()} />, { wrapper });
     const input = screen.getByPlaceholderText("+ tag");
     fireEvent.change(input, { target: { value: "New Tag" } });
     expect(screen.getByText("Creating…")).toBeInTheDocument();
@@ -152,7 +156,7 @@ describe("TagChips", () => {
 
   it("closes the dropdown after a debounced blur", async () => {
     vi.useFakeTimers();
-    render(<TagChips {...defaultProps()} />);
+    render(<TagChips {...defaultProps()} />, { wrapper });
     const input = screen.getByPlaceholderText("+ tag");
     fireEvent.focus(input);
     expect(screen.getByText("Urgent")).toBeInTheDocument();
@@ -162,5 +166,14 @@ describe("TagChips", () => {
     });
     vi.useRealTimers();
     expect(screen.queryByText("Urgent")).not.toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<TagChips {...defaultProps()} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    const input = screen.getByPlaceholderText("+ étiquette");
+    fireEvent.change(input, { target: { value: "Nouveau" } });
+    expect(screen.getByText('Créer "Nouveau"')).toBeInTheDocument();
   });
 });

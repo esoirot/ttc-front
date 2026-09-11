@@ -9,6 +9,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Client } from "@/types/clients.types";
 import type { Project } from "@/types/projects.types";
 import type { Invoice } from "@/types/invoices.types";
@@ -48,6 +50,8 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     billingEndOfMonth: false,
     website: null,
     industry: null,
+    status: "CLIENT",
+    contactedAt: null,
     tags: [],
     contacts: [
       {
@@ -102,6 +106,7 @@ function routeGqlFetch(
 function renderAt(
   id: string,
   opts: { client: Client | null; projects?: Project[]; invoices?: Invoice[] },
+  locale: "en" | "fr" = "en",
 ) {
   gqlFetch.mockImplementation((_doc: unknown, vars?: Record<string, unknown>) =>
     routeGqlFetch(vars, {
@@ -113,11 +118,13 @@ function renderAt(
 
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter initialEntries={[`/clients/${id}`]}>
-        <Routes>
-          <Route path="/clients/:id" element={<ClientDetail />} />
-        </Routes>
-      </MemoryRouter>
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <MemoryRouter initialEntries={[`/clients/${id}`]}>
+          <Routes>
+            <Route path="/clients/:id" element={<ClientDetail />} />
+          </Routes>
+        </MemoryRouter>
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -207,12 +214,14 @@ function renderNavigable(
 
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter initialEntries={["/clients/1"]}>
-        <Link to="/clients/2">Go to client 2</Link>
-        <Routes>
-          <Route path="/clients/:id" element={<ClientDetail />} />
-        </Routes>
-      </MemoryRouter>
+      <IntlProvider locale="en" messages={messages.en}>
+        <MemoryRouter initialEntries={["/clients/1"]}>
+          <Link to="/clients/2">Go to client 2</Link>
+          <Routes>
+            <Route path="/clients/:id" element={<ClientDetail />} />
+          </Routes>
+        </MemoryRouter>
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -227,6 +236,12 @@ describe("ClientDetail", () => {
     renderAt("999", { client: null });
 
     expect(await screen.findByText("Client not found.")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    renderAt("999", { client: null }, "fr");
+
+    expect(await screen.findByText("Client introuvable.")).toBeInTheDocument();
   });
 
   it("shows skeleton placeholders while the client is loading", () => {

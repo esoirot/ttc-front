@@ -9,6 +9,9 @@ vi.mock("../rows/TtcEntryRow", () => ({
 
 import type { TimeEntry } from "@/types/time-entries.types";
 import { TtcDescriptionGroup } from "./TtcDescriptionGroup";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
   return {
@@ -45,7 +48,7 @@ function baseProps(
 
 describe("TtcDescriptionGroup", () => {
   it("shows the description, entry count, and total duration", () => {
-    render(<TtcDescriptionGroup {...baseProps()} />);
+    render(<TtcDescriptionGroup {...baseProps()} />, { wrapper });
 
     expect(screen.getByText("Translate")).toBeInTheDocument();
     expect(screen.getByText("×1")).toBeInTheDocument();
@@ -53,7 +56,9 @@ describe("TtcDescriptionGroup", () => {
   });
 
   it("shows 'No description' fallback when description is empty", () => {
-    render(<TtcDescriptionGroup {...baseProps({ description: "" })} />);
+    render(<TtcDescriptionGroup {...baseProps({ description: "" })} />, {
+      wrapper,
+    });
 
     expect(screen.getByText("No description")).toBeInTheDocument();
   });
@@ -68,6 +73,7 @@ describe("TtcDescriptionGroup", () => {
           ],
         })}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("01:00:00")).toBeInTheDocument();
@@ -75,18 +81,26 @@ describe("TtcDescriptionGroup", () => {
   });
 
   it("starts collapsed and shows no entry rows", () => {
-    render(<TtcDescriptionGroup {...baseProps()} />);
+    render(<TtcDescriptionGroup {...baseProps()} />, { wrapper });
 
     expect(screen.queryByTestId("entry-row")).not.toBeInTheDocument();
   });
 
   it("expands to show entry rows when clicked, collapses on second click", () => {
-    render(<TtcDescriptionGroup {...baseProps()} />);
+    render(<TtcDescriptionGroup {...baseProps()} />, { wrapper });
 
     fireEvent.click(screen.getByText("Translate"));
     expect(screen.getByTestId("entry-row")).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Translate"));
     expect(screen.queryByTestId("entry-row")).not.toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<TtcDescriptionGroup {...baseProps({ description: "" })} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+
+    expect(screen.getByText("Aucune description")).toBeInTheDocument();
   });
 });

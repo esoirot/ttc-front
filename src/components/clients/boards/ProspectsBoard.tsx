@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useIntl } from "react-intl";
 import {
   DndContext,
   PointerSensor,
@@ -24,7 +25,7 @@ import {
 } from "@/hooks/clients/useClients";
 import {
   PROSPECT_COLUMNS,
-  STATUS_LABELS,
+  STATUS_LABEL_MESSAGES,
   ACTIVE_CONTACT_STATUSES,
 } from "@/constants/clients";
 import type { Client, ClientStatus } from "@/types/clients.types";
@@ -53,6 +54,7 @@ function DroppableColumn({
 }
 
 export function ProspectsBoard() {
+  const intl = useIntl();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -169,7 +171,8 @@ export function ProspectsBoard() {
               {PROSPECT_COLUMNS.map((status) => (
                 <div key={status} className="w-64 shrink-0">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">
-                    {STATUS_LABELS[status]} ({clientsByStatus[status].length})
+                    {intl.formatMessage(STATUS_LABEL_MESSAGES[status])} (
+                    {clientsByStatus[status].length})
                   </h3>
                   <DroppableColumn id={status}>
                     <SortableContext

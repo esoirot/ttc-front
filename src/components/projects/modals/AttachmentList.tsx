@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,7 @@ export function AttachmentList({
   attachments: TaskAttachment[];
   onAdd: () => void;
 }) {
+  const intl = useIntl();
   const { deleteAttachment } = useDeleteAttachment(taskId);
   const { updateAttachment } = useUpdateAttachment(taskId);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -48,7 +50,10 @@ export function AttachmentList({
 
   const editUrlError =
     editUrl.trim() !== "" && !isValidHttpUrl(editUrl.trim())
-      ? "Enter a valid URL."
+      ? intl.formatMessage({
+          id: "projects.attachmentList.invalidUrl",
+          defaultMessage: "Enter a valid URL.",
+        })
       : "";
 
   async function saveEdit() {
@@ -61,7 +66,10 @@ export function AttachmentList({
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-          Attachments
+          <FormattedMessage
+            id="projects.attachmentList.attachments"
+            defaultMessage="Attachments"
+          />
         </span>
         <Button
           variant="ghost"
@@ -69,7 +77,10 @@ export function AttachmentList({
           className="h-6 px-2 text-xs"
           onClick={onAdd}
         >
-          + Add
+          <FormattedMessage
+            id="projects.attachmentList.add"
+            defaultMessage="+ Add"
+          />
         </Button>
       </div>
       <div className="flex flex-col gap-1">
@@ -87,11 +98,19 @@ export function AttachmentList({
             return (
               <div key={a.id} className="flex flex-col gap-1.5 py-1">
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs">URL</Label>
+                  <Label className="text-xs">
+                    <FormattedMessage
+                      id="projects.attachmentList.url"
+                      defaultMessage="URL"
+                    />
+                  </Label>
                   <Input
                     value={editUrl}
                     onChange={(e) => setEditUrl(e.target.value)}
-                    placeholder="URL"
+                    placeholder={intl.formatMessage({
+                      id: "projects.attachmentList.url",
+                      defaultMessage: "URL",
+                    })}
                     className="h-7 text-xs"
                   />
                   {editUrlError && (
@@ -101,11 +120,19 @@ export function AttachmentList({
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs">Display text</Label>
+                  <Label className="text-xs">
+                    <FormattedMessage
+                      id="projects.attachmentList.displayText"
+                      defaultMessage="Display text"
+                    />
+                  </Label>
                   <Input
                     value={editDisplayText}
                     onChange={(e) => setEditDisplayText(e.target.value)}
-                    placeholder="Display text (optional)"
+                    placeholder={intl.formatMessage({
+                      id: "projects.attachmentList.displayTextPlaceholder",
+                      defaultMessage: "Display text (optional)",
+                    })}
                     className="h-7 text-xs"
                   />
                 </div>
@@ -116,7 +143,10 @@ export function AttachmentList({
                     onClick={() => void saveEdit()}
                     disabled={!editUrl.trim() || !!editUrlError}
                   >
-                    Save
+                    <FormattedMessage
+                      id="common.actions.save"
+                      defaultMessage="Save"
+                    />
                   </Button>
                   <Button
                     size="sm"
@@ -124,7 +154,10 @@ export function AttachmentList({
                     className="h-6 px-2 text-xs"
                     onClick={() => setEditingId(null)}
                   >
-                    Cancel
+                    <FormattedMessage
+                      id="common.actions.cancel"
+                      defaultMessage="Cancel"
+                    />
                   </Button>
                 </div>
               </div>
@@ -157,8 +190,14 @@ export function AttachmentList({
                     size="icon-xs"
                     className="text-muted-foreground hover:text-foreground"
                     onClick={() => startEdit(a)}
-                    title="Edit"
-                    aria-label="Edit"
+                    title={intl.formatMessage({
+                      id: "common.actions.edit",
+                      defaultMessage: "Edit",
+                    })}
+                    aria-label={intl.formatMessage({
+                      id: "common.actions.edit",
+                      defaultMessage: "Edit",
+                    })}
                   >
                     ✎
                   </Button>
@@ -169,26 +208,49 @@ export function AttachmentList({
                       variant="ghost"
                       size="icon-xs"
                       className="text-muted-foreground hover:text-destructive"
-                      title="Delete"
-                      aria-label="Delete"
+                      title={intl.formatMessage({
+                        id: "common.actions.delete",
+                        defaultMessage: "Delete",
+                      })}
+                      aria-label={intl.formatMessage({
+                        id: "common.actions.delete",
+                        defaultMessage: "Delete",
+                      })}
                     >
                       ✕
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete attachment?</AlertDialogTitle>
+                      <AlertDialogTitle>
+                        <FormattedMessage
+                          id="projects.attachmentList.deleteConfirmTitle"
+                          defaultMessage="Delete attachment?"
+                        />
+                      </AlertDialogTitle>
                       <AlertDialogDescription>
-                        &ldquo;{label}&rdquo; will be permanently removed.
+                        <FormattedMessage
+                          id="projects.attachmentList.deleteConfirmDescription"
+                          defaultMessage="“{label}” will be permanently removed."
+                          values={{ label }}
+                        />
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>
+                        <FormattedMessage
+                          id="common.actions.cancel"
+                          defaultMessage="Cancel"
+                        />
+                      </AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => void deleteAttachment(a.id)}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
-                        Delete
+                        <FormattedMessage
+                          id="common.actions.delete"
+                          defaultMessage="Delete"
+                        />
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

@@ -9,14 +9,22 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import { AddChargeForm } from "./AddChargeForm";
 
-function renderForm(type: "FIXED" | "VARIABLE" = "FIXED") {
+function renderForm(
+  type: "FIXED" | "VARIABLE" = "FIXED",
+  locale: Locale = "en",
+) {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <AddChargeForm activityId={10} type={type} />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <AddChargeForm activityId={10} type={type} />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -105,5 +113,11 @@ describe("AddChargeForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm("FIXED", "fr");
+    fireEvent.click(screen.getByText("+ Ajouter"));
+    expect(screen.getByPlaceholderText("Nom")).toBeInTheDocument();
   });
 });

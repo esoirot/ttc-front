@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,11 +13,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ACTIVITY_TYPE_LABELS } from "@/constants/activities";
+import { ACTIVITY_TYPE_LABEL_MESSAGES } from "@/constants/activities";
 import type { ActivityCardProps } from "@/types/activities.types";
 
 export function ActivityCard({ activity: a, onDelete }: ActivityCardProps) {
   const navigate = useNavigate();
+  const intl = useIntl();
 
   return (
     <Card
@@ -34,7 +36,7 @@ export function ActivityCard({ activity: a, onDelete }: ActivityCardProps) {
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="secondary" className="text-xs">
-            {ACTIVITY_TYPE_LABELS[a.activityType]}
+            {intl.formatMessage(ACTIVITY_TYPE_LABEL_MESSAGES[a.activityType])}
           </Badge>
           {a.legalForm && (
             <Badge variant="secondary" className="text-xs">

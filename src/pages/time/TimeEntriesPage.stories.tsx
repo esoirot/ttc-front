@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { TimeEntriesPage } from "./TimeEntriesPage";
 
 const meta: Meta<typeof TimeEntriesPage> = {
@@ -9,9 +11,11 @@ const meta: Meta<typeof TimeEntriesPage> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <MemoryRouter initialEntries={["/time"]}>
-          <Story />
-        </MemoryRouter>
+        <IntlProvider locale="en" messages={messages.en}>
+          <MemoryRouter initialEntries={["/time"]}>
+            <Story />
+          </MemoryRouter>
+        </IntlProvider>
       </QueryClientProvider>
     ),
   ],

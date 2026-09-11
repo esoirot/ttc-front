@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { FormattedMessage } from "react-intl";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -50,7 +51,12 @@ export function ClientDetail() {
   if (!client) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <p className="text-muted-foreground">Client not found.</p>
+        <p className="text-muted-foreground">
+          <FormattedMessage
+            id="clients.detail.notFound"
+            defaultMessage="Client not found."
+          />
+        </p>
       </div>
     );
   }
@@ -66,7 +72,10 @@ export function ClientDetail() {
       <Tabs defaultValue="contacts">
         <TabsList>
           <TabsTrigger value="contacts">
-            Contacts
+            <FormattedMessage
+              id="clients.detail.tabs.contacts"
+              defaultMessage="Contacts"
+            />
             {client.contacts.length > 0 && (
               <Badge variant="secondary" className="ml-1.5 text-xs">
                 {client.contacts.length}
@@ -74,7 +83,10 @@ export function ClientDetail() {
             )}
           </TabsTrigger>
           <TabsTrigger value="projects">
-            Projects
+            <FormattedMessage
+              id="clients.projectsTab.projects"
+              defaultMessage="Projects"
+            />
             {clientProjects.length > 0 && (
               <Badge variant="secondary" className="ml-1.5 text-xs">
                 {clientProjects.length}
@@ -82,7 +94,10 @@ export function ClientDetail() {
             )}
           </TabsTrigger>
           <TabsTrigger value="activity">
-            Activity
+            <FormattedMessage
+              id="activities.detail.activity"
+              defaultMessage="Activity"
+            />
             {invoices.length > 0 && (
               <Badge variant="secondary" className="ml-1.5 text-xs">
                 {invoices.length}
@@ -90,7 +105,10 @@ export function ClientDetail() {
             )}
           </TabsTrigger>
           <TabsTrigger value="rates">
-            Rates
+            <FormattedMessage
+              id="activities.detail.rates"
+              defaultMessage="Rates"
+            />
             {ratesCount > 0 && (
               <Badge variant="secondary" className="ml-1.5 text-xs">
                 {ratesCount}

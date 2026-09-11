@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { CreateInvoiceForm } from "../forms/CreateInvoiceForm";
 import { InvoicesPageHeader } from "../headers/InvoicesPageHeader";
 
 export function InvoicesList() {
+  const intl = useIntl();
   const {
     navigate,
     tab,
@@ -77,7 +79,7 @@ export function InvoicesList() {
           <TabsList>
             {STATUS_TABS.map((t) => (
               <TabsTrigger key={t.value} value={t.value}>
-                {t.label}
+                {intl.formatMessage(t.labelMessage)}
               </TabsTrigger>
             ))}
           </TabsList>

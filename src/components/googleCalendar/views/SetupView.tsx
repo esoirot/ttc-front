@@ -1,3 +1,4 @@
+import { FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { GOOGLE_CALENDAR_AUTH_URL } from "@/constants/googleCalendar";
 
@@ -8,10 +9,17 @@ export function SetupView() {
         <span className="text-3xl" aria-hidden="true">
           📅
         </span>
-        <h2 className="text-lg font-semibold">Connect Google Calendar</h2>
+        <h2 className="text-lg font-semibold">
+          <FormattedMessage
+            id="googleCalendar.setupView.title"
+            defaultMessage="Connect Google Calendar"
+          />
+        </h2>
         <p className="text-sm text-muted-foreground max-w-xs">
-          Authenticate with your Google account to see your events on the
-          dashboard and create new ones.
+          <FormattedMessage
+            id="googleCalendar.setupView.description"
+            defaultMessage="Authenticate with your Google account to see your events on the dashboard and create new ones."
+          />
         </p>
       </div>
       <Button
@@ -20,7 +28,10 @@ export function SetupView() {
           window.location.href = GOOGLE_CALENDAR_AUTH_URL;
         }}
       >
-        Connect Google Calendar
+        <FormattedMessage
+          id="googleCalendar.setupView.cta"
+          defaultMessage="Connect Google Calendar"
+        />
       </Button>
     </div>
   );

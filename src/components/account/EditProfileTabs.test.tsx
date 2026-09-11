@@ -1,9 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  createQueryClient,
-  createQueryWrapper,
-} from "@/test/queryClientWrapper";
+import type { ReactNode } from "react";
+import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
 import type { AuthUser } from "@/types/auth.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -42,12 +43,19 @@ function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
   } as AuthUser;
 }
 
-function renderTabs() {
+function renderTabs(locale: "en" | "fr" = "en") {
   const queryClient = createQueryClient();
   queryClient.setQueryData(["me"], makeUser());
-  return render(<EditProfileTabs />, {
-    wrapper: createQueryWrapper(queryClient),
-  });
+  function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <IntlProvider locale={locale} messages={messages[locale]}>
+          {children}
+        </IntlProvider>
+      </QueryClientProvider>
+    );
+  }
+  return render(<EditProfileTabs />, { wrapper: Wrapper });
 }
 
 describe("EditProfileTabs", () => {
@@ -110,5 +118,11 @@ describe("EditProfileTabs", () => {
         "Connect your Google account to see your events on the dashboard and create new ones.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderTabs("fr");
+
+    expect(screen.getByRole("tab", { name: "Sécurité" })).toBeInTheDocument();
   });
 });

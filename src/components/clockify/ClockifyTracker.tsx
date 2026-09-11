@@ -1,3 +1,4 @@
+import { FormattedMessage } from "react-intl";
 import {
   useClockifyStatus,
   useClockifyWorkspaces,
@@ -31,7 +32,12 @@ export function ClockifyTracker() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Time Tracker</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          <FormattedMessage
+            id="clockify.tracker.title"
+            defaultMessage="Time Tracker"
+          />
+        </h1>
         {plan && (
           <Badge variant="secondary" className="text-xs font-mono">
             {plan}
@@ -42,14 +48,20 @@ export function ClockifyTracker() {
       {!status?.connected ? (
         <>
           <p className="text-sm text-muted-foreground mb-6">
-            Connect your Clockify account to start tracking time.
+            <FormattedMessage
+              id="clockify.tracker.connectPrompt"
+              defaultMessage="Connect your Clockify account to start tracking time."
+            />
           </p>
           <ConnectForm />
         </>
       ) : !status.workspaceId ? (
         <>
           <p className="text-sm text-muted-foreground mb-6">
-            Choose a workspace to track time in.
+            <FormattedMessage
+              id="clockify.tracker.choosePrompt"
+              defaultMessage="Choose a workspace to track time in."
+            />
           </p>
           <WorkspacePicker />
         </>

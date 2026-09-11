@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl } from "react-intl";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -22,7 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTask, useUpdateTask } from "@/hooks/tasks/useTasks";
 import type { TaskStatus } from "@/types/tasks.types";
 import {
-  STATUS_LABELS,
+  STATUS_LABEL_MESSAGES,
   STATUS_VARIANTS,
   STATUS_BADGE_CLASSES,
   TASK_STATUSES,
@@ -52,6 +53,7 @@ export function TaskDetailModal({
   onClose: () => void;
   currentUserId: number | undefined;
 }) {
+  const intl = useIntl();
   const { task, loading } = useTask(taskId);
   const { updateTask } = useUpdateTask(projectId);
 
@@ -155,7 +157,7 @@ export function TaskDetailModal({
                         variant={STATUS_VARIANTS[s]}
                         className={STATUS_BADGE_CLASSES[s]}
                       >
-                        {STATUS_LABELS[s]}
+                        {intl.formatMessage(STATUS_LABEL_MESSAGES[s])}
                       </Badge>
                     </SelectItem>
                   ))}

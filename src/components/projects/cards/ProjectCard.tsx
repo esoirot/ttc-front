@@ -1,3 +1,4 @@
+import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,7 @@ export function ProjectCard({
   onDelete,
   onClick,
 }: ProjectCardProps) {
+  const intl = useIntl();
   return (
     <Card
       className="cursor-pointer hover:bg-accent/30 transition-colors"
@@ -31,7 +33,16 @@ export function ProjectCard({
         <div>
           <p className="font-medium">{project.title}</p>
           <p className="text-muted-foreground text-xs">
-            {project.clientId ? (clientName ?? "Client") : "No client"}
+            {project.clientId
+              ? (clientName ??
+                intl.formatMessage({
+                  id: "projects.card.client",
+                  defaultMessage: "Client",
+                }))
+              : intl.formatMessage({
+                  id: "projects.header.field.noClient",
+                  defaultMessage: "No client",
+                })}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -45,19 +56,37 @@ export function ProjectCard({
           )}
           {project.deadline && (
             <Badge variant="outline" className="text-xs">
-              Due {project.deadline.slice(0, 10)}
+              <FormattedMessage
+                id="dashboard.upcomingDeadlines.due"
+                defaultMessage="Due {date}"
+                values={{ date: project.deadline.slice(0, 10) }}
+              />
             </Badge>
           )}
           {project.wordCount != null ? (
             <Badge variant="outline" className="text-xs">
-              {(project.totalWordsProcessed ?? 0).toLocaleString()} /{" "}
-              {project.wordCount.toLocaleString()} words
+              <FormattedMessage
+                id="projects.header.wordsProgress"
+                defaultMessage="{processed} / {total} words"
+                values={{
+                  processed: intl.formatNumber(
+                    project.totalWordsProcessed ?? 0,
+                  ),
+                  total: intl.formatNumber(project.wordCount),
+                }}
+              />
             </Badge>
           ) : (
             project.totalWordsProcessed != null &&
             project.totalWordsProcessed > 0 && (
               <Badge variant="outline" className="text-xs">
-                {project.totalWordsProcessed.toLocaleString()} words logged
+                <FormattedMessage
+                  id="projects.header.wordsLogged"
+                  defaultMessage="{total} words logged"
+                  values={{
+                    total: intl.formatNumber(project.totalWordsProcessed),
+                  }}
+                />
               </Badge>
             )
           )}
@@ -80,19 +109,38 @@ export function ProjectCard({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete project?</AlertDialogTitle>
+                <AlertDialogTitle>
+                  <FormattedMessage
+                    id="projects.card.deleteTitle"
+                    defaultMessage="Delete project?"
+                  />
+                </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Delete <strong>{project.title}</strong>? This cannot be
-                  undone.
+                  <FormattedMessage
+                    id="projects.card.deleteDescription"
+                    defaultMessage="Delete <b>{title}</b>? This cannot be undone."
+                    values={{
+                      title: project.title,
+                      b: (chunks) => <strong>{chunks}</strong>,
+                    }}
+                  />
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>
+                  <FormattedMessage
+                    id="common.actions.cancel"
+                    defaultMessage="Cancel"
+                  />
+                </AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   onClick={() => onDelete(project.id)}
                 >
-                  Delete
+                  <FormattedMessage
+                    id="common.actions.delete"
+                    defaultMessage="Delete"
+                  />
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

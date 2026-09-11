@@ -1,8 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
 import type { ClientRate } from "@/types/client-rates.types";
 import type { RateSheet } from "@/types/rate-sheets.types";
 
@@ -79,9 +81,11 @@ function setupGqlFetch(
 function renderTab(clientId = 5) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter>
-        <ClientRatesTab clientId={clientId} />
-      </MemoryRouter>
+      <IntlProvider locale="en" messages={messages.en}>
+        <MemoryRouter>
+          <ClientRatesTab clientId={clientId} />
+        </MemoryRouter>
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }

@@ -1,5 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { Client } from "@/types/clients.types";
 
 const useCreateInvoiceMock = vi.fn();
@@ -46,14 +49,17 @@ function renderForm(
     onClose: () => void;
     onCreated: (id: number) => void;
   }> = {},
+  locale: Locale = "en",
 ) {
   return render(
-    <CreateInvoiceForm
-      clients={[]}
-      onClose={vi.fn()}
-      onCreated={vi.fn()}
-      {...overrides}
-    />,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <CreateInvoiceForm
+        clients={[]}
+        onClose={vi.fn()}
+        onCreated={vi.fn()}
+        {...overrides}
+      />
+    </IntlProvider>,
   );
 }
 
@@ -141,5 +147,13 @@ describe("CreateInvoiceForm", () => {
   it("shows 'No client' as the default selection", () => {
     renderForm({ clients: [makeClient({ id: 1, name: "Acme" })] });
     expect(screen.getByRole("combobox")).toHaveTextContent("No client");
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm({}, "fr");
+    expect(screen.getByText("Client")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Créer la facture" }),
+    ).toBeInTheDocument();
   });
 });

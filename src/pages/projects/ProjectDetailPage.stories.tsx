@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { ProjectDetailPage } from "./ProjectDetailPage";
 
 const meta: Meta<typeof ProjectDetailPage> = {
@@ -9,11 +11,13 @@ const meta: Meta<typeof ProjectDetailPage> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <MemoryRouter initialEntries={["/projects/1"]}>
-          <Routes>
-            <Route path="/projects/:id" element={<Story />} />
-          </Routes>
-        </MemoryRouter>
+        <IntlProvider locale="en" messages={messages.en}>
+          <MemoryRouter initialEntries={["/projects/1"]}>
+            <Routes>
+              <Route path="/projects/:id" element={<Story />} />
+            </Routes>
+          </MemoryRouter>
+        </IntlProvider>
       </QueryClientProvider>
     ),
   ],

@@ -1,7 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { ClientStatusHistory } from "@/types/clients.types";
 import { ClientStatusHistoryFeed } from "./ClientStatusHistoryFeed";
+
+const IntlWrapper = createIntlWrapper();
 
 function makeEntry(
   overrides: Partial<ClientStatusHistory> = {},
@@ -20,7 +23,7 @@ function makeEntry(
 
 describe("ClientStatusHistoryFeed", () => {
   it("shows an empty state when there is no history", () => {
-    render(<ClientStatusHistoryFeed history={[]} />);
+    render(<ClientStatusHistoryFeed history={[]} />, { wrapper: IntlWrapper });
     expect(screen.getByText("No status history yet.")).toBeInTheDocument();
   });
 
@@ -43,6 +46,7 @@ describe("ClientStatusHistoryFeed", () => {
           }),
         ]}
       />,
+      { wrapper: IntlWrapper },
     );
 
     const items = screen.getAllByText(/Alice/);
@@ -56,6 +60,7 @@ describe("ClientStatusHistoryFeed", () => {
       <ClientStatusHistoryFeed
         history={[makeEntry({ user: null, userId: 9 })]}
       />,
+      { wrapper: IntlWrapper },
     );
     expect(screen.getByText("User 9")).toBeInTheDocument();
   });
@@ -87,6 +92,7 @@ describe("ClientStatusHistoryFeed", () => {
   ] as const)("describes %s correctly", (type, payload, expected) => {
     render(
       <ClientStatusHistoryFeed history={[makeEntry({ type, payload })]} />,
+      { wrapper: IntlWrapper },
     );
     expect(screen.getByText(expected, { exact: false })).toBeInTheDocument();
   });
@@ -96,6 +102,7 @@ describe("ClientStatusHistoryFeed", () => {
       <ClientStatusHistoryFeed
         history={[makeEntry({ type: "STATUS_CHANGED", payload: "not-json{" })]}
       />,
+      { wrapper: IntlWrapper },
     );
     expect(
       screen.getByText("STATUS_CHANGED", { exact: false }),
@@ -107,6 +114,7 @@ describe("ClientStatusHistoryFeed", () => {
       <ClientStatusHistoryFeed
         history={[makeEntry({ type: "SOME_NEW_TYPE", payload: null })]}
       />,
+      { wrapper: IntlWrapper },
     );
     expect(
       screen.getByText("some new type", { exact: false }),
@@ -118,6 +126,7 @@ describe("ClientStatusHistoryFeed", () => {
       <ClientStatusHistoryFeed
         history={[makeEntry({ user: { id: 1, name: "Bob" } })]}
       />,
+      { wrapper: IntlWrapper },
     );
     expect(screen.getByText("B")).toBeInTheDocument();
   });
@@ -127,7 +136,17 @@ describe("ClientStatusHistoryFeed", () => {
       <ClientStatusHistoryFeed
         history={[makeEntry({ user: { id: 1, name: null } })]}
       />,
+      { wrapper: IntlWrapper },
     );
     expect(screen.getByText("?")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<ClientStatusHistoryFeed history={[]} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    expect(
+      screen.getByText("Aucun historique de statut pour l'instant."),
+    ).toBeInTheDocument();
   });
 });

@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { LanguagePairsInput } from "./LanguagePairsInput";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 describe("LanguagePairsInput", () => {
   it("renders no rows when pairs is empty", () => {
@@ -11,6 +14,7 @@ describe("LanguagePairsInput", () => {
         onUpdate={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.queryByLabelText("Remove pair")).not.toBeInTheDocument();
@@ -27,6 +31,7 @@ describe("LanguagePairsInput", () => {
         onUpdate={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getAllByLabelText("Remove pair")).toHaveLength(2);
@@ -41,6 +46,7 @@ describe("LanguagePairsInput", () => {
         onUpdate={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("+ Add pair"));
@@ -59,6 +65,7 @@ describe("LanguagePairsInput", () => {
         onUpdate={vi.fn()}
         onRemove={onRemove}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getAllByLabelText("Remove pair")[1]);
@@ -73,6 +80,7 @@ describe("LanguagePairsInput", () => {
         onUpdate={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Same language")).toBeInTheDocument();
@@ -86,6 +94,7 @@ describe("LanguagePairsInput", () => {
         onUpdate={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.queryByText("Same language")).not.toBeInTheDocument();
@@ -99,8 +108,22 @@ describe("LanguagePairsInput", () => {
         onUpdate={vi.fn()}
         onRemove={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.queryByText("Same language")).not.toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <LanguagePairsInput
+        pairs={[]}
+        onAdd={vi.fn()}
+        onUpdate={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+    expect(screen.getByText("Langues")).toBeInTheDocument();
   });
 });

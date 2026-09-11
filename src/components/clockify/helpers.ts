@@ -1,3 +1,4 @@
+import type { IntlShape } from "react-intl";
 import type { ClockifyTimeEntry } from "@/types/clockify.types";
 
 export function formatTime(iso: string): string {
@@ -12,16 +13,26 @@ export function secsToHms(secs: number): string {
   return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
 }
 
-export function dayLabel(dayKey: string): string {
+export function dayLabel(dayKey: string, intl: IntlShape): string {
   const now = new Date();
   const todayKey = now.toLocaleDateString("en-CA");
   const yd = new Date(now);
   yd.setDate(yd.getDate() - 1);
   const ydKey = yd.toLocaleDateString("en-CA");
-  if (dayKey === todayKey) return "Today";
-  if (dayKey === ydKey) return "Yesterday";
+  if (dayKey === todayKey) {
+    return intl.formatMessage({
+      id: "time.dayLabel.today",
+      defaultMessage: "Today",
+    });
+  }
+  if (dayKey === ydKey) {
+    return intl.formatMessage({
+      id: "time.dayLabel.yesterday",
+      defaultMessage: "Yesterday",
+    });
+  }
   const d = new Date(dayKey + "T12:00:00");
-  return d.toLocaleDateString("en-US", {
+  return intl.formatDate(d, {
     weekday: "short",
     month: "short",
     day: "numeric",

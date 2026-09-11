@@ -1,3 +1,4 @@
+import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { StatsGridProps as Props } from "@/types/dashboard.types";
 
@@ -8,12 +9,16 @@ function formatDuration(seconds: number): string {
 }
 
 export function StatsGrid({ dashboard }: Props) {
+  const intl = useIntl();
   return (
     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
       <Card>
         <CardHeader className="pb-1">
           <CardTitle className="text-xs text-muted-foreground font-normal">
-            Active Projects
+            <FormattedMessage
+              id="dashboard.statsGrid.activeProjects"
+              defaultMessage="Active Projects"
+            />
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -25,7 +30,10 @@ export function StatsGrid({ dashboard }: Props) {
       <Card>
         <CardHeader className="pb-1">
           <CardTitle className="text-xs text-muted-foreground font-normal">
-            Unpaid Invoices
+            <FormattedMessage
+              id="dashboard.statsGrid.unpaidInvoices"
+              defaultMessage="Unpaid Invoices"
+            />
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -37,7 +45,10 @@ export function StatsGrid({ dashboard }: Props) {
       <Card>
         <CardHeader className="pb-1">
           <CardTitle className="text-xs text-muted-foreground font-normal">
-            Hours This Month
+            <FormattedMessage
+              id="dashboard.statsGrid.hoursThisMonth"
+              defaultMessage="Hours This Month"
+            />
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -49,7 +60,10 @@ export function StatsGrid({ dashboard }: Props) {
       <Card>
         <CardHeader className="pb-1">
           <CardTitle className="text-xs text-muted-foreground font-normal">
-            Revenue This Month
+            <FormattedMessage
+              id="dashboard.statsGrid.revenueThisMonth"
+              defaultMessage="Revenue This Month"
+            />
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -64,12 +78,15 @@ export function StatsGrid({ dashboard }: Props) {
       <Card>
         <CardHeader className="pb-1">
           <CardTitle className="text-xs text-muted-foreground font-normal">
-            Words This Year
+            <FormattedMessage
+              id="dashboard.statsGrid.wordsThisYear"
+              defaultMessage="Words This Year"
+            />
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-3xl font-semibold font-mono">
-            {dashboard.yearToDateWords.toLocaleString()}
+            {intl.formatNumber(dashboard.yearToDateWords)}
           </p>
         </CardContent>
       </Card>

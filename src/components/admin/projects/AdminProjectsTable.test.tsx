@@ -8,6 +8,8 @@ import {
 import { QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 import type { AdminProject } from "@/types/admin.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -65,11 +67,12 @@ function makeConnection(items: AdminProject[]) {
   return { items, nextCursor: null, total: items.length };
 }
 
-function renderTable() {
+function renderTable(locale: Locale = "en") {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <AdminProjectsTable />
     </QueryClientProvider>,
+    { wrapper: createIntlWrapper(locale) },
   );
 }
 
@@ -442,5 +445,15 @@ describe("AdminProjectsTable", () => {
     });
     renderTable();
     expect(await screen.findByText("Load more")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    gqlFetch.mockResolvedValueOnce({ adminProjects: makeConnection([]) });
+    renderTable("fr");
+    expect(await screen.findByText("Aucun projet trouvé.")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Rechercher un titre..."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("+ Nouveau projet")).toBeInTheDocument();
   });
 });

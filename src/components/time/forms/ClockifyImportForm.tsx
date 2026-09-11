@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,11 +48,19 @@ export function ClockifyImportForm({
           className="flex flex-col gap-3"
         >
           <p className="text-sm font-medium">
-            Import Clockify entries into TTC
+            <FormattedMessage
+              id="time.clockifyImport.title"
+              defaultMessage="Import Clockify entries into TTC"
+            />
           </p>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <Label htmlFor="ci-from">From</Label>
+              <Label htmlFor="ci-from">
+                <FormattedMessage
+                  id="time.clockifyImport.from"
+                  defaultMessage="From"
+                />
+              </Label>
               <Input
                 id="ci-from"
                 type="date"
@@ -61,7 +70,12 @@ export function ClockifyImportForm({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="ci-to">To</Label>
+              <Label htmlFor="ci-to">
+                <FormattedMessage
+                  id="time.clockifyImport.to"
+                  defaultMessage="To"
+                />
+              </Label>
               <Input
                 id="ci-to"
                 type="date"
@@ -74,8 +88,14 @@ export function ClockifyImportForm({
           </div>
           {importResult && (
             <Alert className="text-sm">
-              Imported {importResult.imported}, skipped {importResult.skipped}{" "}
-              (already in TTC).
+              <FormattedMessage
+                id="time.clockifyImport.result"
+                defaultMessage="Imported {imported}, skipped {skipped} (already in TTC)."
+                values={{
+                  imported: importResult.imported,
+                  skipped: importResult.skipped,
+                }}
+              />
             </Alert>
           )}
           {importMutation.error && (
@@ -85,14 +105,27 @@ export function ClockifyImportForm({
           )}
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" size="sm" onClick={onClose}>
-              Cancel
+              <FormattedMessage
+                id="common.actions.cancel"
+                defaultMessage="Cancel"
+              />
             </Button>
             <Button
               type="submit"
               disabled={importMutation.isPending}
               className="self-end"
             >
-              {importMutation.isPending ? "Importing…" : "Import"}
+              {importMutation.isPending ? (
+                <FormattedMessage
+                  id="time.clockifyImport.importing"
+                  defaultMessage="Importing…"
+                />
+              ) : (
+                <FormattedMessage
+                  id="time.clockifyImport.import"
+                  defaultMessage="Import"
+                />
+              )}
             </Button>
           </div>
         </form>

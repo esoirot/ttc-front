@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useIntl } from "react-intl";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { DescriptionComboboxProps as Props } from "@/types/time-entries.types";
@@ -8,9 +9,16 @@ export function DescriptionCombobox({
   onChange,
   onEnter,
   recentDescriptions,
-  placeholder = "What are you working on?",
+  placeholder,
   className,
 }: Props) {
+  const intl = useIntl();
+  const resolvedPlaceholder =
+    placeholder ??
+    intl.formatMessage({
+      id: "time.descriptionCombobox.placeholder",
+      defaultMessage: "What are you working on?",
+    });
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -70,7 +78,7 @@ export function DescriptionCombobox({
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         className="w-full"
       />
       {showDropdown && (

@@ -15,6 +15,9 @@ vi.mock("./TtcDescriptionGroup", () => ({
 import { formatTime } from "@/components/clockify/helpers";
 import type { TimeEntry } from "@/types/time-entries.types";
 import { TtcDayGroup } from "./TtcDayGroup";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
   return {
@@ -58,6 +61,7 @@ describe("TtcDayGroup", () => {
           ],
         })}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("(2)")).toBeInTheDocument();
@@ -73,6 +77,7 @@ describe("TtcDayGroup", () => {
           entries: [makeEntry({ startTime: start, endTime: end })],
         })}
       />,
+      { wrapper },
     );
 
     expect(
@@ -88,6 +93,7 @@ describe("TtcDayGroup", () => {
           entries: [makeEntry({ startTime: start, endTime: null })],
         })}
       />,
+      { wrapper },
     );
 
     expect(
@@ -96,13 +102,13 @@ describe("TtcDayGroup", () => {
   });
 
   it("starts collapsed with no rows rendered", () => {
-    render(<TtcDayGroup {...baseProps()} />);
+    render(<TtcDayGroup {...baseProps()} />, { wrapper });
 
     expect(screen.queryByTestId("entry-row")).not.toBeInTheDocument();
   });
 
   it("expands to render a TtcEntryRow for a single-entry description group", () => {
-    render(<TtcDayGroup {...baseProps()} />);
+    render(<TtcDayGroup {...baseProps()} />, { wrapper });
 
     fireEvent.click(screen.getByText("(1)"));
 
@@ -120,6 +126,7 @@ describe("TtcDayGroup", () => {
           ],
         })}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("(2)"));
@@ -131,10 +138,26 @@ describe("TtcDayGroup", () => {
   });
 
   it("hides the collapsed time range once expanded", () => {
-    render(<TtcDayGroup {...baseProps()} />);
+    render(<TtcDayGroup {...baseProps()} />, { wrapper });
 
     fireEvent.click(screen.getByText("(1)"));
 
     expect(screen.queryByText(/ - /)).not.toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    const start = "2026-06-01T08:00:00.000Z";
+    render(
+      <TtcDayGroup
+        {...baseProps({
+          entries: [makeEntry({ startTime: start, endTime: null })],
+        })}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+
+    expect(
+      screen.getByText(`${formatTime(start)} - en cours`),
+    ).toBeInTheDocument();
   });
 });

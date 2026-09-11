@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 import type { AuthUser } from "@/types/auth.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -38,13 +40,14 @@ function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
   } as AuthUser;
 }
 
-function renderProfileTab(user: AuthUser) {
+function renderProfileTab(user: AuthUser, locale: Locale = "en") {
   const queryClient = createQueryClient();
   queryClient.setQueryData(["me"], user);
   return render(
     <QueryClientProvider client={queryClient}>
       <ProfileTab />
     </QueryClientProvider>,
+    { wrapper: createIntlWrapper(locale) },
   );
 }
 
@@ -290,5 +293,15 @@ describe("ProfileTab", () => {
       await screen.findByText("Logo URL must be a valid https:// address"),
     ).toBeInTheDocument();
     expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderProfileTab(makeUser(), "fr");
+
+    expect(screen.getByLabelText("Prénom")).toBeInTheDocument();
+    expect(screen.getByText("Informations personnelles")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Enregistrer les modifications" }),
+    ).toBeInTheDocument();
   });
 });

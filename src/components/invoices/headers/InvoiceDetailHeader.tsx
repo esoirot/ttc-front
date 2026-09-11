@@ -1,3 +1,4 @@
+import { FormattedMessage } from "react-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,7 +69,17 @@ export function InvoiceDetailHeader({
             onClick={onDownloadPdf}
             disabled={downloading}
           >
-            {downloading ? "Generating…" : "Download PDF"}
+            {downloading ? (
+              <FormattedMessage
+                id="invoices.detailHeader.generating"
+                defaultMessage="Generating…"
+              />
+            ) : (
+              <FormattedMessage
+                id="invoices.detailHeader.downloadPdf"
+                defaultMessage="Download PDF"
+              />
+            )}
           </Button>
           {status === "DRAFT" && (
             <AlertDialog>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { FormattedMessage, useIntl } from "react-intl";
 import { useRegister } from "@/hooks/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { AuthLayout } from "../layouts/AuthLayout";
 import { GoogleOAuthButton } from "../oauth/GoogleOAuthButton";
 
 export function RegisterForm() {
+  const intl = useIntl();
   const navigate = useNavigate();
   const { register, loading, error } = useRegister();
   const [name, setName] = useState("");
@@ -20,10 +22,18 @@ export function RegisterForm() {
   const [passwordTouched, setPasswordTouched] = useState(false);
 
   const emailError =
-    emailTouched && !isValidEmail(email) ? "Enter a valid email address." : "";
+    emailTouched && !isValidEmail(email)
+      ? intl.formatMessage({
+          id: "auth.login.emailError",
+          defaultMessage: "Enter a valid email address.",
+        })
+      : "";
   const passwordError =
     passwordTouched && password.length < 8
-      ? "Password must be at least 8 characters."
+      ? intl.formatMessage({
+          id: "auth.register.passwordError",
+          defaultMessage: "Password must be at least 8 characters.",
+        })
       : "";
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
@@ -39,10 +49,20 @@ export function RegisterForm() {
   }
 
   return (
-    <AuthLayout title="Create account">
+    <AuthLayout
+      title={intl.formatMessage({
+        id: "auth.register.title",
+        defaultMessage: "Create account",
+      })}
+    >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="name">Name (optional)</Label>
+          <Label htmlFor="name">
+            <FormattedMessage
+              id="auth.register.nameLabel"
+              defaultMessage="Name (optional)"
+            />
+          </Label>
           <Input
             id="name"
             type="text"
@@ -53,7 +73,12 @@ export function RegisterForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">
+            <FormattedMessage
+              id="auth.login.emailLabel"
+              defaultMessage="Email"
+            />
+          </Label>
           <Input
             id="email"
             type="email"
@@ -70,7 +95,12 @@ export function RegisterForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">
+            <FormattedMessage
+              id="auth.login.passwordLabel"
+              defaultMessage="Password"
+            />
+          </Label>
           <Input
             id="password"
             type="password"
@@ -91,22 +121,40 @@ export function RegisterForm() {
         {error && <p className="text-sm text-destructive">{error.message}</p>}
 
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Creating account…" : "Create account"}
+          {loading ? (
+            <FormattedMessage
+              id="auth.register.creating"
+              defaultMessage="Creating account…"
+            />
+          ) : (
+            <FormattedMessage
+              id="auth.register.title"
+              defaultMessage="Create account"
+            />
+          )}
         </Button>
       </form>
 
       <div className="flex items-center gap-3 my-4 text-xs text-muted-foreground">
         <Separator className="flex-1" />
-        <span>or</span>
+        <span>
+          <FormattedMessage id="auth.login.or" defaultMessage="or" />
+        </span>
         <Separator className="flex-1" />
       </div>
 
       <GoogleOAuthButton />
 
       <p className="text-sm text-center mt-4 text-muted-foreground">
-        Already have an account?{" "}
+        <FormattedMessage
+          id="auth.register.alreadyHaveAccount"
+          defaultMessage="Already have an account?"
+        />{" "}
         <Link to="/login" className="text-primary font-medium hover:underline">
-          Sign in
+          <FormattedMessage
+            id="auth.register.signIn"
+            defaultMessage="Sign in"
+          />
         </Link>
       </p>
     </AuthLayout>

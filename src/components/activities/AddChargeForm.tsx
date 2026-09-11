@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { useCreateCharge } from "@/hooks/activities/useActivities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +7,7 @@ import { eurosToCents } from "@/lib/currency";
 import type { AddChargeFormProps } from "@/types/activities.types";
 
 export function AddChargeForm({ activityId, type }: AddChargeFormProps) {
+  const intl = useIntl();
   const { createCharge, loading } = useCreateCharge(activityId);
   const [show, setShow] = useState(false);
   const [name, setName] = useState("");
@@ -29,7 +31,10 @@ export function AddChargeForm({ activityId, type }: AddChargeFormProps) {
         className="mt-1 text-xs h-7"
         onClick={() => setShow(true)}
       >
-        + Add
+        <FormattedMessage
+          id="projects.attachmentList.add"
+          defaultMessage="+ Add"
+        />
       </Button>
     );
   }
@@ -39,7 +44,10 @@ export function AddChargeForm({ activityId, type }: AddChargeFormProps) {
       <Input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Name"
+        placeholder={intl.formatMessage({
+          id: "clients.header.field.name",
+          defaultMessage: "Name",
+        })}
         className="h-8 text-sm flex-1"
         required
         autoFocus
@@ -54,7 +62,10 @@ export function AddChargeForm({ activityId, type }: AddChargeFormProps) {
         className="h-8 text-sm w-28"
       />
       <Button type="submit" size="sm" disabled={loading}>
-        Add
+        <FormattedMessage
+          id="projects.taskLabelPicker.add"
+          defaultMessage="Add"
+        />
       </Button>
       <Button
         type="button"
@@ -62,7 +73,7 @@ export function AddChargeForm({ activityId, type }: AddChargeFormProps) {
         variant="ghost"
         onClick={() => setShow(false)}
       >
-        Cancel
+        <FormattedMessage id="common.actions.cancel" defaultMessage="Cancel" />
       </Button>
     </form>
   );

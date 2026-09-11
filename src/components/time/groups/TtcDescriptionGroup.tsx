@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl } from "react-intl";
 import type { TimeEntry } from "@/types/time-entries.types";
 import type { Project } from "@/types/projects.types";
 import type { Tag } from "@/types/tags.types";
@@ -24,6 +25,7 @@ export function TtcDescriptionGroup({
   onResume: (entry: TimeEntry) => void;
   onUpdate: (input: TtcUpdateInput) => void;
 }) {
+  const intl = useIntl();
   const [expanded, setExpanded] = useState(false);
 
   const totalSecs = entries.reduce(
@@ -43,7 +45,12 @@ export function TtcDescriptionGroup({
         </span>
         <span className="text-sm truncate flex-1 text-left">
           {description || (
-            <span className="italic text-muted-foreground">No description</span>
+            <span className="italic text-muted-foreground">
+              {intl.formatMessage({
+                id: "time.entryRow.noDescription",
+                defaultMessage: "No description",
+              })}
+            </span>
           )}
         </span>
         <span className="text-xs text-muted-foreground shrink-0">

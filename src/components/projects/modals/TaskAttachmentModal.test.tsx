@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 import { TaskAttachmentModal } from "./TaskAttachmentModal";
 
@@ -11,15 +14,18 @@ function jsonResponse(status: number, body: unknown) {
 
 function renderModal(
   props: Partial<Parameters<typeof TaskAttachmentModal>[0]> = {},
+  locale: Locale = "en",
 ) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <TaskAttachmentModal
-        taskId={4}
-        open={true}
-        onClose={vi.fn()}
-        {...props}
-      />
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <TaskAttachmentModal
+          taskId={4}
+          open={true}
+          onClose={vi.fn()}
+          {...props}
+        />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -130,5 +136,11 @@ describe("TaskAttachmentModal", () => {
     const [, init] = fetchMock.mock.calls[0];
     const body = JSON.parse(init.body as string) as Record<string, unknown>;
     expect(body).not.toHaveProperty("displayText");
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderModal({}, "fr");
+    expect(screen.getByText("Ajouter une pièce jointe")).toBeInTheDocument();
+    expect(screen.getByText("Joindre")).toBeDisabled();
   });
 });

@@ -36,6 +36,9 @@ vi.mock("@/components/ui/select", () => ({
 }));
 
 import { ProjectSelect } from "./ProjectSelect";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeProject(
   overrides: Partial<ClockifyProject> = {},
@@ -52,7 +55,10 @@ function makeProject(
 
 describe("ProjectSelect", () => {
   it("selects No project option when projectId is null", () => {
-    render(<ProjectSelect projectId={null} projects={[]} onChange={vi.fn()} />);
+    render(
+      <ProjectSelect projectId={null} projects={[]} onChange={vi.fn()} />,
+      { wrapper },
+    );
     expect(screen.getByDisplayValue("No project")).toBeInTheDocument();
   });
 
@@ -63,6 +69,7 @@ describe("ProjectSelect", () => {
         projects={[makeProject({ id: "p1", name: "Alpha Project" })]}
         onChange={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByDisplayValue("Alpha Project")).toBeInTheDocument();
   });
@@ -75,6 +82,7 @@ describe("ProjectSelect", () => {
         projects={[makeProject({ id: "p1", name: "Alpha Project" })]}
         onChange={onChange}
       />,
+      { wrapper },
     );
     fireEvent.change(screen.getByRole("combobox"), {
       target: { value: "p1" },
@@ -90,6 +98,7 @@ describe("ProjectSelect", () => {
         projects={[makeProject({ id: "p1", name: "Alpha Project" })]}
         onChange={onChange}
       />,
+      { wrapper },
     );
     fireEvent.change(screen.getByRole("combobox"), {
       target: { value: "__none__" },
@@ -107,7 +116,16 @@ describe("ProjectSelect", () => {
         ]}
         onChange={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getAllByRole("option")).toHaveLength(3); // No project + Alpha + Beta
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <ProjectSelect projectId={null} projects={[]} onChange={vi.fn()} />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+    expect(screen.getByDisplayValue("Aucun projet")).toBeInTheDocument();
   });
 });

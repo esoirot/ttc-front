@@ -11,11 +11,15 @@ export function eurosToCents(euros: string): number | null {
   return Math.round(n * 100);
 }
 
-export function formatCents(cents: number): string {
-  return (cents / 100).toLocaleString("fr-FR", {
+export function formatCents(
+  cents: number,
+  currency: string,
+  locale: string,
+): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "EUR",
-  });
+    currency,
+  }).format(cents / 100);
 }
 
 export function currencySymbol(code: string): string {

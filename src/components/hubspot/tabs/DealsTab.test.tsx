@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { HubspotDeal } from "@/types/hubspot.types";
+
+const wrapper = createIntlWrapper();
 
 const useInfiniteHubspotDealsMock = vi.fn();
 const useSearchHubspotDealsMock = vi.fn();
@@ -70,12 +73,12 @@ describe("DealsTab", () => {
       ...defaultInfinite(),
       isLoading: true,
     });
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     expect(screen.getByText("Loading…")).toBeInTheDocument();
   });
 
   it("shows No deals yet when the list is empty", () => {
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     expect(screen.getByText("No deals yet")).toBeInTheDocument();
   });
 
@@ -84,7 +87,7 @@ describe("DealsTab", () => {
       ...defaultInfinite(),
       data: { pages: [{ results: [makeDeal()] }] },
     });
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     expect(screen.getByText("Big Contract")).toBeInTheDocument();
     expect(screen.getByText("$1000")).toBeInTheDocument();
     expect(screen.getByText("negotiation")).toBeInTheDocument();
@@ -109,7 +112,7 @@ describe("DealsTab", () => {
         ],
       },
     });
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     expect(screen.getAllByText("—").length).toBe(4);
   });
 
@@ -118,7 +121,7 @@ describe("DealsTab", () => {
       ...defaultInfinite(),
       data: { pages: [{ results: [makeDeal()] }] },
     });
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     expect(screen.getByText("1 deal loaded")).toBeInTheDocument();
   });
 
@@ -127,7 +130,7 @@ describe("DealsTab", () => {
       ...defaultInfinite(),
       data: { pages: [{ results: [makeDeal({}, "1"), makeDeal({}, "2")] }] },
     });
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     expect(screen.getByText("2 deals loaded")).toBeInTheDocument();
   });
 
@@ -138,13 +141,13 @@ describe("DealsTab", () => {
       hasNextPage: true,
       fetchNextPage,
     });
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "Load more" }));
     expect(fetchNextPage).toHaveBeenCalled();
   });
 
   it("toggles the new deal form", () => {
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New deal" }));
     expect(screen.getByPlaceholderText("Deal name *")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -154,7 +157,7 @@ describe("DealsTab", () => {
   });
 
   it("Create button is disabled until dealname is filled", () => {
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New deal" }));
     expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
     fireEvent.change(screen.getByPlaceholderText("Deal name *"), {
@@ -171,7 +174,7 @@ describe("DealsTab", () => {
       isPending: false,
       error: null,
     });
-    const { container } = render(<DealsTab />);
+    const { container } = render(<DealsTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New deal" }));
     fireEvent.change(screen.getByPlaceholderText("Deal name *"), {
       target: { value: " Big deal " },
@@ -202,7 +205,7 @@ describe("DealsTab", () => {
       isPending: true,
       error: new Error("Deal exists"),
     });
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New deal" }));
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     expect(screen.getByText("Deal exists")).toBeInTheDocument();
@@ -214,7 +217,7 @@ describe("DealsTab", () => {
       data: { results: [makeDeal({}, "9")] },
       isLoading: false,
     });
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     fireEvent.change(screen.getByPlaceholderText("Search deals…"), {
       target: { value: "big" },
     });
@@ -226,7 +229,7 @@ describe("DealsTab", () => {
 
   it("shows No deals found for an empty search result", async () => {
     vi.useFakeTimers();
-    render(<DealsTab />);
+    render(<DealsTab />, { wrapper });
     fireEvent.change(screen.getByPlaceholderText("Search deals…"), {
       target: { value: "zzz" },
     });
@@ -234,5 +237,17 @@ describe("DealsTab", () => {
     vi.useRealTimers();
 
     expect(await screen.findByText("No deals found")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    useInfiniteHubspotDealsMock.mockReturnValue({
+      ...defaultInfinite(),
+      data: { pages: [{ results: [makeDeal({}, "1"), makeDeal({}, "2")] }] },
+    });
+    render(<DealsTab />, { wrapper: createIntlWrapper("fr") });
+    expect(
+      screen.getByRole("button", { name: "+ Nouvelle affaire" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("2 affaires chargées")).toBeInTheDocument();
   });
 });

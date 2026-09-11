@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,7 @@ function SubtaskItemDialog({
   taskId: number;
   onClose: () => void;
 }) {
+  const intl = useIntl();
   const isEdit = state.mode === "edit";
   const initial = isEdit ? state.subtask : null;
 
@@ -128,13 +130,26 @@ function SubtaskItemDialog({
     >
       <DialogContent className="max-w-sm w-full" aria-describedby={undefined}>
         <DialogTitle className="text-sm font-medium">
-          {isEdit ? "Edit checklist item" : "New checklist item"}
+          {isEdit ? (
+            <FormattedMessage
+              id="projects.taskChecklist.editItem"
+              defaultMessage="Edit checklist item"
+            />
+          ) : (
+            <FormattedMessage
+              id="projects.taskChecklist.newItem"
+              defaultMessage="New checklist item"
+            />
+          )}
         </DialogTitle>
 
         <div className="flex flex-col gap-4 mt-1">
           <Input
             autoFocus
-            placeholder="Item title…"
+            placeholder={intl.formatMessage({
+              id: "projects.taskChecklist.itemTitlePlaceholder",
+              defaultMessage: "Item title…",
+            })}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={(e) => {
@@ -155,7 +170,10 @@ function SubtaskItemDialog({
                 htmlFor="subtask-due-date"
                 className="text-sm cursor-pointer"
               >
-                Due Date
+                <FormattedMessage
+                  id="projects.taskChecklist.dueDate"
+                  defaultMessage="Due Date"
+                />
               </Label>
             </div>
             {hasDueDate && (
@@ -189,14 +207,27 @@ function SubtaskItemDialog({
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => void handleRemove()}
             >
-              {isEdit ? "Remove" : "Cancel"}
+              {isEdit ? (
+                <FormattedMessage
+                  id="projects.taskChecklist.remove"
+                  defaultMessage="Remove"
+                />
+              ) : (
+                <FormattedMessage
+                  id="common.actions.cancel"
+                  defaultMessage="Cancel"
+                />
+              )}
             </Button>
             <Button
               size="sm"
               onClick={() => void handleSave()}
               disabled={saving || !title.trim() || (hasDueDate && !dateStr)}
             >
-              Save
+              <FormattedMessage
+                id="common.actions.save"
+                defaultMessage="Save"
+              />
             </Button>
           </div>
         </div>
@@ -214,6 +245,7 @@ function ChecklistGroup({
   items: Subtask[];
   taskId: number;
 }) {
+  const intl = useIntl();
   const [newTitle, setNewTitle] = useState("");
   const [dialogState, setDialogState] = useState<DialogState | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -265,7 +297,10 @@ function ChecklistGroup({
               setTitleVal(checklistTitle);
               setEditingTitle(true);
             }}
-            title="Click to rename"
+            title={intl.formatMessage({
+              id: "projects.taskChecklist.clickToRename",
+              defaultMessage: "Click to rename",
+            })}
           >
             {checklistTitle}
           </span>
@@ -286,19 +321,35 @@ function ChecklistGroup({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete checklist</AlertDialogTitle>
+                <AlertDialogTitle>
+                  <FormattedMessage
+                    id="projects.taskChecklist.deleteChecklist"
+                    defaultMessage="Delete checklist"
+                  />
+                </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Delete &ldquo;{checklistTitle}&rdquo; and all its items? This
-                  cannot be undone.
+                  <FormattedMessage
+                    id="projects.taskChecklist.deleteChecklistConfirm"
+                    defaultMessage="Delete “{checklistTitle}” and all its items? This cannot be undone."
+                    values={{ checklistTitle }}
+                  />
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>
+                  <FormattedMessage
+                    id="common.actions.cancel"
+                    defaultMessage="Cancel"
+                  />
+                </AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   onClick={() => void deleteChecklist(checklistTitle)}
                 >
-                  Delete
+                  <FormattedMessage
+                    id="common.actions.delete"
+                    defaultMessage="Delete"
+                  />
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -347,7 +398,7 @@ function ChecklistGroup({
               </span>
               {s.dueDate && (
                 <span className="text-[11px] text-muted-foreground">
-                  {new Date(s.dueDate).toLocaleString(undefined, {
+                  {intl.formatDate(s.dueDate, {
                     month: "short",
                     day: "numeric",
                     hour: "2-digit",
@@ -362,7 +413,10 @@ function ChecklistGroup({
 
       <div className="flex gap-2">
         <Input
-          placeholder="Add an item…"
+          placeholder={intl.formatMessage({
+            id: "projects.taskChecklist.addItemPlaceholder",
+            defaultMessage: "Add an item…",
+          })}
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
           onKeyDown={(e) => {
@@ -376,7 +430,10 @@ function ChecklistGroup({
           onClick={openCreate}
           disabled={!newTitle.trim()}
         >
-          Add
+          <FormattedMessage
+            id="projects.taskChecklist.add"
+            defaultMessage="Add"
+          />
         </Button>
       </div>
 
@@ -407,6 +464,7 @@ export function TaskChecklist({
   addingChecklist: boolean;
   onAddingChecklistChange: (v: boolean) => void;
 }) {
+  const intl = useIntl();
   const [newChecklistTitle, setNewChecklistTitle] = useState("");
   const { createChecklist } = useCreateChecklist(taskId);
 
@@ -434,7 +492,10 @@ export function TaskChecklist({
     <div className="flex flex-col gap-4">
       {ungrouped.length > 0 && (
         <ChecklistGroup
-          checklistTitle="Checklist"
+          checklistTitle={intl.formatMessage({
+            id: "projects.taskChecklist.defaultTitle",
+            defaultMessage: "Checklist",
+          })}
           items={ungrouped}
           taskId={taskId}
         />
@@ -453,7 +514,10 @@ export function TaskChecklist({
         <div className="flex gap-2">
           <Input
             autoFocus
-            placeholder="Checklist title…"
+            placeholder={intl.formatMessage({
+              id: "projects.taskChecklist.newTitlePlaceholder",
+              defaultMessage: "Checklist title…",
+            })}
             value={newChecklistTitle}
             onChange={(e) => setNewChecklistTitle(e.target.value)}
             onKeyDown={(e) => {
@@ -471,7 +535,10 @@ export function TaskChecklist({
             onClick={confirmNewChecklist}
             disabled={!newChecklistTitle.trim()}
           >
-            Create
+            <FormattedMessage
+              id="projects.taskChecklist.create"
+              defaultMessage="Create"
+            />
           </Button>
           <Button
             size="sm"
@@ -482,7 +549,10 @@ export function TaskChecklist({
               setNewChecklistTitle("");
             }}
           >
-            Cancel
+            <FormattedMessage
+              id="common.actions.cancel"
+              defaultMessage="Cancel"
+            />
           </Button>
         </div>
       )}

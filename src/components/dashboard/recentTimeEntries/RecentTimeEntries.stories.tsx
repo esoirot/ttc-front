@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { DashboardTimeEntry } from "@/types/dashboard.types";
 import { RecentTimeEntries } from "./RecentTimeEntries";
 
@@ -36,11 +38,13 @@ const meta: Meta<typeof RecentTimeEntries> = {
   title: "Organisms/RecentTimeEntries",
   decorators: [
     (Story) => (
-      <QueryClientProvider client={new QueryClient()}>
-        <div className="max-w-md">
-          <Story />
-        </div>
-      </QueryClientProvider>
+      <IntlProvider locale="en" messages={messages.en}>
+        <QueryClientProvider client={new QueryClient()}>
+          <div className="max-w-md">
+            <Story />
+          </div>
+        </QueryClientProvider>
+      </IntlProvider>
     ),
   ],
   args: {

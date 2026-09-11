@@ -9,7 +9,10 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { LanguagePair } from "@/types/activities.types";
 import { LanguagePairsSection } from "./LanguagePairsSection";
 
@@ -23,11 +26,16 @@ function makePair(overrides: Partial<LanguagePair> = {}): LanguagePair {
   };
 }
 
-function renderSection(initialPairs: LanguagePair[] = []) {
+function renderSection(
+  initialPairs: LanguagePair[] = [],
+  locale: Locale = "en",
+) {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <LanguagePairsSection activityId={5} initialPairs={initialPairs} />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <LanguagePairsSection activityId={5} initialPairs={initialPairs} />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -97,5 +105,12 @@ describe("LanguagePairsSection", () => {
       ),
     );
     expect(await screen.findByText("Saved.")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderSection([], "fr");
+    expect(
+      screen.getByRole("button", { name: "Enregistrer" }),
+    ).toBeInTheDocument();
   });
 });

@@ -1,5 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const IntlWrapper = createIntlWrapper();
 
 const useRatesMock = vi.fn();
 vi.mock("@/hooks/rates/useRates", () => ({
@@ -77,7 +80,9 @@ describe("RateList", () => {
   it("shows skeletons while loading", () => {
     useRatesMock.mockReturnValue({ rates: [], loading: true });
     useRateCrudMock.mockReturnValue(crudState());
-    const { container } = render(<RateList type="HOURLY" />);
+    const { container } = render(<RateList type="HOURLY" />, {
+      wrapper: IntlWrapper,
+    });
 
     expect(
       container.querySelectorAll('[class*="animate-pulse"]').length,
@@ -87,7 +92,7 @@ describe("RateList", () => {
   it("shows the type-specific empty state when there are no rates", () => {
     useRatesMock.mockReturnValue({ rates: [], loading: false });
     useRateCrudMock.mockReturnValue(crudState());
-    render(<RateList type="PER_WORD" />);
+    render(<RateList type="PER_WORD" />, { wrapper: IntlWrapper });
 
     expect(screen.getByText("No per word rates yet.")).toBeInTheDocument();
   });
@@ -98,7 +103,7 @@ describe("RateList", () => {
       loading: false,
     });
     useRateCrudMock.mockReturnValue(crudState());
-    render(<RateList type="HOURLY" />);
+    render(<RateList type="HOURLY" />, { wrapper: IntlWrapper });
 
     expect(screen.getAllByTestId("rate-row")).toHaveLength(2);
   });
@@ -109,7 +114,7 @@ describe("RateList", () => {
       loading: false,
     });
     useRateCrudMock.mockReturnValue(crudState({ editingId: 1 }));
-    render(<RateList type="HOURLY" />);
+    render(<RateList type="HOURLY" />, { wrapper: IntlWrapper });
 
     expect(screen.getByTestId("rate-form")).toBeInTheDocument();
     expect(screen.queryByTestId("rate-row")).not.toBeInTheDocument();
@@ -118,7 +123,7 @@ describe("RateList", () => {
   it("shows the '+ Add <Type> Rate' button when the form is closed", () => {
     useRatesMock.mockReturnValue({ rates: [], loading: false });
     useRateCrudMock.mockReturnValue(crudState());
-    render(<RateList type="FIXED" />);
+    render(<RateList type="FIXED" />, { wrapper: IntlWrapper });
 
     expect(screen.getByText("+ Add Fixed Fee Rate")).toBeInTheDocument();
   });
@@ -126,7 +131,7 @@ describe("RateList", () => {
   it("shows the create RateForm when showForm is true, hiding the add button", () => {
     useRatesMock.mockReturnValue({ rates: [], loading: false });
     useRateCrudMock.mockReturnValue(crudState({ showForm: true }));
-    render(<RateList type="HOURLY" />);
+    render(<RateList type="HOURLY" />, { wrapper: IntlWrapper });
 
     expect(screen.getByTestId("rate-form")).toBeInTheDocument();
     expect(screen.queryByText(/\+ Add/)).not.toBeInTheDocument();
@@ -137,7 +142,7 @@ describe("RateList", () => {
     const setEditingId = vi.fn();
     useRatesMock.mockReturnValue({ rates: [], loading: false });
     useRateCrudMock.mockReturnValue(crudState({ setShowForm, setEditingId }));
-    render(<RateList type="HOURLY" />);
+    render(<RateList type="HOURLY" />, { wrapper: IntlWrapper });
 
     fireEvent.click(screen.getByText("+ Add Hourly Rate"));
 
@@ -153,7 +158,7 @@ describe("RateList", () => {
       loading: false,
     });
     useRateCrudMock.mockReturnValue(crudState({ setShowForm, setEditingId }));
-    render(<RateList type="HOURLY" />);
+    render(<RateList type="HOURLY" />, { wrapper: IntlWrapper });
 
     (rateRowProps[0].onEdit as () => void)();
 
@@ -168,7 +173,7 @@ describe("RateList", () => {
       loading: false,
     });
     useRateCrudMock.mockReturnValue(crudState({ deleteRate }));
-    render(<RateList type="HOURLY" />);
+    render(<RateList type="HOURLY" />, { wrapper: IntlWrapper });
 
     (rateRowProps[0].onDelete as () => void)();
 
@@ -181,7 +186,7 @@ describe("RateList", () => {
     useRateCrudMock.mockReturnValue(
       crudState({ showForm: true, handleCreate }),
     );
-    render(<RateList type="HOURLY" />);
+    render(<RateList type="HOURLY" />, { wrapper: IntlWrapper });
 
     (rateFormProps.onSave as (data: unknown) => void)({ name: "New" });
 
@@ -195,7 +200,7 @@ describe("RateList", () => {
       loading: false,
     });
     useRateCrudMock.mockReturnValue(crudState({ editingId: 9, handleUpdate }));
-    render(<RateList type="HOURLY" />);
+    render(<RateList type="HOURLY" />, { wrapper: IntlWrapper });
 
     (rateFormProps.onSave as (data: unknown) => void)({ name: "Renamed" });
 
@@ -205,7 +210,7 @@ describe("RateList", () => {
   it("passes the type through to useRates", () => {
     useRatesMock.mockReturnValue({ rates: [], loading: false });
     useRateCrudMock.mockReturnValue(crudState());
-    render(<RateList type="DAY" />);
+    render(<RateList type="DAY" />, { wrapper: IntlWrapper });
 
     expect(useRatesMock).toHaveBeenCalledWith("DAY");
   });

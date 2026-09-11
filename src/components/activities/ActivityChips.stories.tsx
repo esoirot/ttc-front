@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { userEvent, within } from "storybook/test";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { ActivityChips } from "./ActivityChips";
 import type { AnyActivity } from "@/types/activities.types";
 
@@ -42,6 +44,13 @@ const activities: AnyActivity[] = [
 const meta: Meta<typeof ActivityChips> = {
   component: ActivityChips,
   title: "Molecules/ActivityChips",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     activities,
     onChange: () => {},

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl } from "react-intl";
 import { Badge } from "@/components/ui/badge";
 import type { ClockifyTag } from "@/types/clockify.types";
 import { useCreateTag } from "@/hooks/integrations/useClockify";
@@ -16,6 +17,7 @@ export function TagChips({
   onAdd: (id: string) => void;
   onRemove: (id: string) => void;
 }) {
+  const intl = useIntl();
   const { mutate: createTag, isPending: creating } = useCreateTag(workspaceId);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -81,7 +83,10 @@ export function TagChips({
           onBlur={() => {
             setTimeout(() => setOpen(false), 150);
           }}
-          placeholder="+ tag"
+          placeholder={intl.formatMessage({
+            id: "time.tagChips.addTag",
+            defaultMessage: "+ tag",
+          })}
           className="text-xs w-10 focus:w-20 transition-all bg-transparent border-none outline-none text-muted-foreground placeholder:text-muted-foreground/60"
         />
         {open && (filtered.length > 0 || showCreate) && (
@@ -101,7 +106,18 @@ export function TagChips({
                 disabled={creating}
                 className="block w-full text-left px-2 py-1 text-xs text-primary hover:bg-accent disabled:opacity-50"
               >
-                {creating ? "Creating…" : `Create "${query.trim()}"`}
+                {creating
+                  ? intl.formatMessage({
+                      id: "clockify.tagChips.creating",
+                      defaultMessage: "Creating…",
+                    })
+                  : intl.formatMessage(
+                      {
+                        id: "clockify.tagChips.createQuery",
+                        defaultMessage: 'Create "{query}"',
+                      },
+                      { query: query.trim() },
+                    )}
               </button>
             )}
           </div>

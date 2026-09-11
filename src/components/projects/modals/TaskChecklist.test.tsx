@@ -1,7 +1,9 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
 import type { Subtask } from "@/types/tasks.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -29,17 +31,20 @@ function makeSubtask(overrides: Partial<Subtask> = {}): Subtask {
 
 function renderChecklist(
   props: Partial<Parameters<typeof TaskChecklist>[0]> = {},
+  locale: "en" | "fr" = "en",
 ) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <TaskChecklist
-        taskId={4}
-        subtasks={[]}
-        checklistTitles={[]}
-        addingChecklist={false}
-        onAddingChecklistChange={vi.fn()}
-        {...props}
-      />
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <TaskChecklist
+          taskId={4}
+          subtasks={[]}
+          checklistTitles={[]}
+          addingChecklist={false}
+          onAddingChecklistChange={vi.fn()}
+          {...props}
+        />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -408,5 +413,18 @@ describe("TaskChecklist", () => {
     expect(screen.getByText("Beta")).toBeInTheDocument();
     expect(screen.getByText("A1")).toBeInTheDocument();
     expect(screen.getByText("B1")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderChecklist(
+      { subtasks: [makeSubtask({ checklistTitle: null })] },
+      "fr",
+    );
+
+    expect(screen.getByText("Checklist")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Ajouter un élément…"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ajouter" })).toBeInTheDocument();
   });
 });

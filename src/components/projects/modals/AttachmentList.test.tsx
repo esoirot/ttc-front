@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 import type { TaskAttachment } from "@/types/tasks.types";
 
 import { AttachmentList } from "./AttachmentList";
@@ -24,11 +26,13 @@ function makeAttachment(
 function renderList(
   attachments: TaskAttachment[],
   onAdd: () => void = vi.fn(),
+  locale: Locale = "en",
 ) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <AttachmentList taskId={4} attachments={attachments} onAdd={onAdd} />
     </QueryClientProvider>,
+    { wrapper: createIntlWrapper(locale) },
   );
 }
 
@@ -223,5 +227,11 @@ describe("AttachmentList", () => {
     renderList([makeAttachment({ id: 1 })], onAdd);
     fireEvent.click(screen.getByText("+ Add"));
     expect(onAdd).toHaveBeenCalled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderList([], vi.fn(), "fr");
+    expect(screen.getByText("Pièces jointes")).toBeInTheDocument();
+    expect(screen.getByText("+ Ajouter")).toBeInTheDocument();
   });
 });

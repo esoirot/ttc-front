@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Invoice } from "@/types/invoices.types";
 import { InvoiceListCard } from "./InvoiceListCard";
 
@@ -38,11 +40,13 @@ const meta: Meta<typeof InvoiceListCard> = {
   title: "Organisms/InvoiceListCard",
   decorators: [
     (Story) => (
-      <MemoryRouter>
-        <div className="max-w-md">
-          <Story />
-        </div>
-      </MemoryRouter>
+      <IntlProvider locale="en" messages={messages.en}>
+        <MemoryRouter>
+          <div className="max-w-md">
+            <Story />
+          </div>
+        </MemoryRouter>
+      </IntlProvider>
     ),
   ],
   args: {

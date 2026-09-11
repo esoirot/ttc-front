@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useIntl, FormattedMessage } from "react-intl";
 import { useCreateActivity } from "@/hooks/activities/useActivities";
 import { useCreateActivityForm } from "@/hooks/activities/useCreateActivityForm";
 import { Button } from "@/components/ui/button";
@@ -12,11 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ACTIVITY_TYPE_LABEL_MESSAGES } from "@/constants/activities";
 import { LanguagePairsInput } from "./LanguagePairsInput";
 import { CustomFieldsInput } from "./CustomFieldsInput";
 import type { CreateActivityFormProps } from "@/types/activities.types";
 
 export function CreateActivityForm({ onCancel }: CreateActivityFormProps) {
+  const intl = useIntl();
   const navigate = useNavigate();
   const { createActivity, loading: creating } = useCreateActivity();
   const {
@@ -67,25 +70,46 @@ export function CreateActivityForm({ onCancel }: CreateActivityFormProps) {
         <form onSubmit={handleCreate} className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label>Activity type</Label>
+              <Label>
+                <FormattedMessage
+                  id="activities.createForm.activityType"
+                  defaultMessage="Activity type"
+                />
+              </Label>
               <Select value={activityType} onValueChange={handleTypeChange}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="TRANSLATOR">Translator</SelectItem>
-                  <SelectItem value="CORRECTOR">Corrector</SelectItem>
-                  <SelectItem value="CUSTOM">Custom</SelectItem>
+                  <SelectItem value="TRANSLATOR">
+                    {intl.formatMessage(
+                      ACTIVITY_TYPE_LABEL_MESSAGES.TRANSLATOR,
+                    )}
+                  </SelectItem>
+                  <SelectItem value="CORRECTOR">
+                    {intl.formatMessage(ACTIVITY_TYPE_LABEL_MESSAGES.CORRECTOR)}
+                  </SelectItem>
+                  <SelectItem value="CUSTOM">
+                    {intl.formatMessage(ACTIVITY_TYPE_LABEL_MESSAGES.CUSTOM)}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="new-activity-name">Activity name</Label>
+              <Label htmlFor="new-activity-name">
+                <FormattedMessage
+                  id="activities.createForm.activityName"
+                  defaultMessage="Activity name"
+                />
+              </Label>
               <Input
                 id="new-activity-name"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="e.g. EI Freelance Translation"
+                placeholder={intl.formatMessage({
+                  id: "activities.createForm.activityNamePlaceholder",
+                  defaultMessage: "e.g. EI Freelance Translation",
+                })}
                 required
                 autoFocus
               />
@@ -112,10 +136,23 @@ export function CreateActivityForm({ onCancel }: CreateActivityFormProps) {
 
           <div className="flex gap-2">
             <Button type="submit" disabled={creating || !isValid()}>
-              {creating ? "Creating…" : "Create"}
+              {creating ? (
+                <FormattedMessage
+                  id="activities.createForm.creating"
+                  defaultMessage="Creating…"
+                />
+              ) : (
+                <FormattedMessage
+                  id="projects.taskChecklist.create"
+                  defaultMessage="Create"
+                />
+              )}
             </Button>
             <Button type="button" variant="ghost" onClick={handleCancel}>
-              Cancel
+              <FormattedMessage
+                id="common.actions.cancel"
+                defaultMessage="Cancel"
+              />
             </Button>
           </div>
         </form>

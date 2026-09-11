@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { GoogleCalendarPage } from "./GoogleCalendarPage";
 
 const meta: Meta<typeof GoogleCalendarPage> = {
@@ -9,9 +11,11 @@ const meta: Meta<typeof GoogleCalendarPage> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <MemoryRouter initialEntries={["/google-calendar"]}>
-          <Story />
-        </MemoryRouter>
+        <IntlProvider locale="en" messages={messages.en}>
+          <MemoryRouter initialEntries={["/google-calendar"]}>
+            <Story />
+          </MemoryRouter>
+        </IntlProvider>
       </QueryClientProvider>
     ),
   ],

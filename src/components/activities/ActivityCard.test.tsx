@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { AnyActivity } from "@/types/activities.types";
 import { ActivityCard } from "./ActivityCard";
+
+const wrapper = createIntlWrapper();
 
 const navigateMock = vi.fn();
 vi.mock("react-router-dom", async () => {
@@ -35,7 +38,9 @@ describe("ActivityCard", () => {
   });
 
   it("shows the activity name and type badge", () => {
-    render(<ActivityCard activity={makeActivity()} onDelete={vi.fn()} />);
+    render(<ActivityCard activity={makeActivity()} onDelete={vi.fn()} />, {
+      wrapper,
+    });
 
     expect(screen.getByText("Freelance")).toBeInTheDocument();
     expect(screen.getByText("Custom")).toBeInTheDocument();
@@ -50,6 +55,7 @@ describe("ActivityCard", () => {
         })}
         onDelete={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Acme SARL")).toBeInTheDocument();
@@ -57,7 +63,9 @@ describe("ActivityCard", () => {
   });
 
   it("hides companyName and legalForm when null", () => {
-    render(<ActivityCard activity={makeActivity()} onDelete={vi.fn()} />);
+    render(<ActivityCard activity={makeActivity()} onDelete={vi.fn()} />, {
+      wrapper,
+    });
 
     expect(screen.queryByText("SARL")).not.toBeInTheDocument();
   });
@@ -65,6 +73,7 @@ describe("ActivityCard", () => {
   it("navigates to the activity detail page when the card is clicked", () => {
     render(
       <ActivityCard activity={makeActivity({ id: 7 })} onDelete={vi.fn()} />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("Freelance"));
@@ -72,7 +81,9 @@ describe("ActivityCard", () => {
   });
 
   it("does not navigate when the delete trigger is clicked", () => {
-    render(<ActivityCard activity={makeActivity()} onDelete={vi.fn()} />);
+    render(<ActivityCard activity={makeActivity()} onDelete={vi.fn()} />, {
+      wrapper,
+    });
 
     fireEvent.click(screen.getByLabelText("Delete activity"));
     expect(navigateMock).not.toHaveBeenCalled();
@@ -82,6 +93,7 @@ describe("ActivityCard", () => {
     const onDelete = vi.fn();
     render(
       <ActivityCard activity={makeActivity({ id: 9 })} onDelete={onDelete} />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByLabelText("Delete activity"));
@@ -93,7 +105,9 @@ describe("ActivityCard", () => {
 
   it("does not call onDelete when the dialog is cancelled", () => {
     const onDelete = vi.fn();
-    render(<ActivityCard activity={makeActivity()} onDelete={onDelete} />);
+    render(<ActivityCard activity={makeActivity()} onDelete={onDelete} />, {
+      wrapper,
+    });
 
     fireEvent.click(screen.getByLabelText("Delete activity"));
     fireEvent.click(screen.getByText("Cancel"));

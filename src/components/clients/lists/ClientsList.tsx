@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import { NewClientForm } from "../forms/NewClientForm";
 import { ClientCard } from "../cards/ClientCard";
 
 export function ClientsList() {
+  const intl = useIntl();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<ClientType | "ALL">("ALL");
@@ -31,23 +33,41 @@ export function ClientsList() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Clients</h1>
+        <h1 className="text-2xl font-bold">
+          <FormattedMessage id="clients.list.title" defaultMessage="Clients" />
+        </h1>
         <Button
           onClick={() => setShowForm(!showForm)}
           variant={showForm ? "outline" : "default"}
         >
-          {showForm ? "Cancel" : "New client"}
+          {showForm ? (
+            <FormattedMessage
+              id="common.actions.cancel"
+              defaultMessage="Cancel"
+            />
+          ) : (
+            <FormattedMessage
+              id="clients.list.newClient"
+              defaultMessage="New client"
+            />
+          )}
         </Button>
       </div>
 
       <div className="flex flex-col gap-3 pb-4 border-b border-border mb-6">
         <Label htmlFor="clients-search" className="sr-only">
-          Search clients
+          <FormattedMessage
+            id="clients.list.searchLabel"
+            defaultMessage="Search clients"
+          />
         </Label>
         <Input
           id="clients-search"
           type="search"
-          placeholder="Search clients…"
+          placeholder={intl.formatMessage({
+            id: "clients.list.searchPlaceholder",
+            defaultMessage: "Search clients…",
+          })}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -57,19 +77,25 @@ export function ClientsList() {
         >
           <TabsList>
             <TabsTrigger value="ALL" className="data-[state=active]:text-white">
-              All
+              <FormattedMessage id="clients.list.all" defaultMessage="All" />
             </TabsTrigger>
             <TabsTrigger
               value="COMPANY"
               className="data-[state=active]:text-white"
             >
-              Companies
+              <FormattedMessage
+                id="clients.list.companies"
+                defaultMessage="Companies"
+              />
             </TabsTrigger>
             <TabsTrigger
               value="INDIVIDUAL"
               className="data-[state=active]:text-white"
             >
-              Individuals
+              <FormattedMessage
+                id="clients.list.individuals"
+                defaultMessage="Individuals"
+              />
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -85,12 +111,19 @@ export function ClientsList() {
         </div>
       ) : clients.length === 0 ? (
         <p className="text-muted-foreground text-sm">
-          No clients yet. Create one above.
+          <FormattedMessage
+            id="clients.list.empty"
+            defaultMessage="No clients yet. Create one above."
+          />
         </p>
       ) : (
         <>
           <p className="text-muted-foreground text-xs mb-2">
-            {clients.length} of {total}
+            <FormattedMessage
+              id="clients.list.countOfTotal"
+              defaultMessage="{count} of {total}"
+              values={{ count: clients.length, total }}
+            />
           </p>
           <div className="flex flex-col gap-2">
             {clients.map((client) => (
@@ -108,7 +141,10 @@ export function ClientsList() {
               onClick={loadMore}
               disabled={loading}
             >
-              Load more
+              <FormattedMessage
+                id="clients.list.loadMore"
+                defaultMessage="Load more"
+              />
             </Button>
           )}
         </>

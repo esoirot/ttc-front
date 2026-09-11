@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +19,7 @@ export function ProjectsTab({
   projects: Project[];
   loading: boolean;
 }) {
+  const intl = useIntl();
   const { rateSheets } = useRateSheets();
 
   if (loading) {
@@ -33,7 +35,10 @@ export function ProjectsTab({
   if (projects.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
-        No projects linked to this client.
+        <FormattedMessage
+          id="clients.projectsTab.noProjects"
+          defaultMessage="No projects linked to this client."
+        />
       </p>
     );
   }
@@ -66,7 +71,12 @@ export function ProjectsTab({
       <div className="grid grid-cols-4 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Projects</CardTitle>
+            <CardTitle className="text-sm">
+              <FormattedMessage
+                id="clients.projectsTab.projects"
+                defaultMessage="Projects"
+              />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-mono">{projects.length}</p>
@@ -74,7 +84,12 @@ export function ProjectsTab({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Time logged</CardTitle>
+            <CardTitle className="text-sm">
+              <FormattedMessage
+                id="clients.projectsTab.timeLogged"
+                defaultMessage="Time logged"
+              />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-mono">{secsToHms(totalTimeSeconds)}</p>
@@ -82,15 +97,27 @@ export function ProjectsTab({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Total words</CardTitle>
+            <CardTitle className="text-sm">
+              <FormattedMessage
+                id="clients.projectsTab.totalWords"
+                defaultMessage="Total words"
+              />
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-mono">{totalWords.toLocaleString()}</p>
+            <p className="text-2xl font-mono">
+              {intl.formatNumber(totalWords)}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Total revenue</CardTitle>
+            <CardTitle className="text-sm">
+              <FormattedMessage
+                id="clients.projectsTab.totalRevenue"
+                defaultMessage="Total revenue"
+              />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-mono">
@@ -124,7 +151,11 @@ export function ProjectsTab({
                 ))}
                 {p.deadline && (
                   <Badge variant="outline" className="text-xs shrink-0">
-                    Due {p.deadline.slice(0, 10)}
+                    <FormattedMessage
+                      id="dashboard.upcomingDeadlines.due"
+                      defaultMessage="Due {date}"
+                      values={{ date: p.deadline.slice(0, 10) }}
+                    />
                   </Badge>
                 )}
               </div>
@@ -134,7 +165,13 @@ export function ProjectsTab({
                 ⏱ {secsToHms(p.totalTimeSeconds ?? 0)}
               </span>
               <span className="text-xs font-mono text-muted-foreground tabular-nums">
-                {(p.totalWordsProcessed ?? 0).toLocaleString()} words
+                {intl.formatMessage(
+                  {
+                    id: "time.entryRow.wordsCount",
+                    defaultMessage: "{count} words",
+                  },
+                  { count: intl.formatNumber(p.totalWordsProcessed ?? 0) },
+                )}
               </span>
               <span className="font-mono text-sm tabular-nums text-muted-foreground">
                 {(revenueByProject.get(p.id) ?? 0).toFixed(2)}

@@ -7,6 +7,9 @@ vi.mock("@/hooks/integrations/useClockify", () => ({
 }));
 
 import { ConnectForm } from "./ConnectForm";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function defaultMutation() {
   return { mutate: vi.fn(), isPending: false, error: null };
@@ -19,7 +22,7 @@ describe("ConnectForm", () => {
   });
 
   it("renders API key label, password input, and submit button", () => {
-    render(<ConnectForm />);
+    render(<ConnectForm />, { wrapper });
     const input = screen.getByLabelText("Clockify API Key");
     expect(input).toBeInTheDocument();
     expect(input).toHaveAttribute("type", "password");
@@ -29,14 +32,14 @@ describe("ConnectForm", () => {
   });
 
   it("submit button is disabled when input is empty", () => {
-    render(<ConnectForm />);
+    render(<ConnectForm />, { wrapper });
     expect(
       screen.getByRole("button", { name: "Connect Clockify" }),
     ).toBeDisabled();
   });
 
   it("submit button stays disabled when input is whitespace-only", () => {
-    render(<ConnectForm />);
+    render(<ConnectForm />, { wrapper });
     fireEvent.change(screen.getByLabelText("Clockify API Key"), {
       target: { value: "   " },
     });
@@ -46,7 +49,7 @@ describe("ConnectForm", () => {
   });
 
   it("submit button is enabled after typing a valid key", () => {
-    render(<ConnectForm />);
+    render(<ConnectForm />, { wrapper });
     fireEvent.change(screen.getByLabelText("Clockify API Key"), {
       target: { value: "my-api-key" },
     });
@@ -62,7 +65,7 @@ describe("ConnectForm", () => {
       isPending: false,
       error: null,
     });
-    render(<ConnectForm />);
+    render(<ConnectForm />, { wrapper });
     fireEvent.change(screen.getByLabelText("Clockify API Key"), {
       target: { value: "  abc123  " },
     });
@@ -76,7 +79,7 @@ describe("ConnectForm", () => {
       isPending: true,
       error: null,
     });
-    render(<ConnectForm />);
+    render(<ConnectForm />, { wrapper });
     expect(screen.getByRole("button", { name: "Connecting…" })).toBeDisabled();
   });
 
@@ -86,7 +89,7 @@ describe("ConnectForm", () => {
       isPending: false,
       error: new Error("Invalid API key"),
     });
-    render(<ConnectForm />);
+    render(<ConnectForm />, { wrapper });
     expect(screen.getByText("Invalid API key")).toBeInTheDocument();
   });
 
@@ -97,10 +100,18 @@ describe("ConnectForm", () => {
       isPending: false,
       error: null,
     });
-    const { container } = render(<ConnectForm />);
+    const { container } = render(<ConnectForm />, { wrapper });
     const form = container.querySelector("form");
     if (!form) throw new Error("form not found");
     fireEvent.submit(form);
     expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<ConnectForm />, { wrapper: createIntlWrapper("fr") });
+    expect(screen.getByLabelText("Clé API Clockify")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Connecter Clockify" }),
+    ).toBeInTheDocument();
   });
 });

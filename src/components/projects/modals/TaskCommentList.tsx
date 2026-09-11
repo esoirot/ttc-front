@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,7 @@ export function TaskCommentList({
   comments: TaskComment[];
   currentUserId: number | undefined;
 }) {
+  const intl = useIntl();
   const [body, setBody] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editBody, setEditBody] = useState("");
@@ -39,12 +41,25 @@ export function TaskCommentList({
 
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-sm font-medium text-foreground">Comments</span>
+      <span className="text-sm font-medium text-foreground">
+        <FormattedMessage
+          id="projects.taskCommentList.comments"
+          defaultMessage="Comments"
+        />
+      </span>
       <div className="flex flex-col gap-2">
         {comments.map((c) => (
           <div key={c.id} className="flex flex-col gap-1 text-sm group">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>User {c.authorId}</span>
+              <span>
+                {intl.formatMessage(
+                  {
+                    id: "clients.statusHistory.userFallback",
+                    defaultMessage: "User {id}",
+                  },
+                  { id: c.authorId },
+                )}
+              </span>
               <span>{timeAgo(c.createdAt)}</span>
               {c.authorId === currentUserId && (
                 <span className="ml-auto opacity-0 group-hover:opacity-100 flex gap-2">
@@ -52,13 +67,19 @@ export function TaskCommentList({
                     onClick={() => startEdit(c)}
                     className="hover:text-foreground transition-colors"
                   >
-                    Edit
+                    <FormattedMessage
+                      id="common.actions.edit"
+                      defaultMessage="Edit"
+                    />
                   </button>
                   <button
                     onClick={() => void deleteComment(c.id)}
                     className="hover:text-destructive transition-colors"
                   >
-                    Delete
+                    <FormattedMessage
+                      id="common.actions.delete"
+                      defaultMessage="Delete"
+                    />
                   </button>
                 </span>
               )}
@@ -81,7 +102,10 @@ export function TaskCommentList({
                     }}
                     disabled={!editBody.trim()}
                   >
-                    Save
+                    <FormattedMessage
+                      id="common.actions.save"
+                      defaultMessage="Save"
+                    />
                   </Button>
                   <Button
                     size="sm"
@@ -89,7 +113,10 @@ export function TaskCommentList({
                     className="h-7 text-xs"
                     onClick={() => setEditingId(null)}
                   >
-                    Cancel
+                    <FormattedMessage
+                      id="common.actions.cancel"
+                      defaultMessage="Cancel"
+                    />
                   </Button>
                 </div>
               </div>
@@ -101,7 +128,10 @@ export function TaskCommentList({
       </div>
       <div className="flex flex-col gap-1">
         <Textarea
-          placeholder="Write a comment…"
+          placeholder={intl.formatMessage({
+            id: "projects.taskCommentList.placeholder",
+            defaultMessage: "Write a comment…",
+          })}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           className="text-sm min-h-15"
@@ -112,7 +142,10 @@ export function TaskCommentList({
           onClick={() => void handleSubmit()}
           disabled={creating || !body.trim()}
         >
-          Comment
+          <FormattedMessage
+            id="projects.taskCommentList.submit"
+            defaultMessage="Comment"
+          />
         </Button>
       </div>
     </div>

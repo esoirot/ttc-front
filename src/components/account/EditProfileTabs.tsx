@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileTab } from "./tabs/ProfileTab";
 import { SecurityTab } from "./tabs/security/SecurityTab";
@@ -6,14 +7,40 @@ import { HubspotTab } from "./tabs/hubspot/HubspotTab";
 import { GoogleCalendarTab } from "./tabs/googleCalendar/GoogleCalendarTab";
 
 export function EditProfileTabs() {
+  const intl = useIntl();
   return (
     <Tabs defaultValue="profile">
       <TabsList className="mb-8">
-        <TabsTrigger value="profile">Profile</TabsTrigger>
-        <TabsTrigger value="security">Security</TabsTrigger>
-        <TabsTrigger value="clockify">Clockify</TabsTrigger>
-        <TabsTrigger value="hubspot">HubSpot</TabsTrigger>
-        <TabsTrigger value="google-calendar">Google Calendar</TabsTrigger>
+        <TabsTrigger value="profile">
+          {intl.formatMessage({
+            id: "account.editProfileTabs.profile",
+            defaultMessage: "Profile",
+          })}
+        </TabsTrigger>
+        <TabsTrigger value="security">
+          {intl.formatMessage({
+            id: "account.editProfileTabs.security",
+            defaultMessage: "Security",
+          })}
+        </TabsTrigger>
+        <TabsTrigger value="clockify">
+          {intl.formatMessage({
+            id: "account.editProfileTabs.clockify",
+            defaultMessage: "Clockify",
+          })}
+        </TabsTrigger>
+        <TabsTrigger value="hubspot">
+          {intl.formatMessage({
+            id: "account.editProfileTabs.hubspot",
+            defaultMessage: "HubSpot",
+          })}
+        </TabsTrigger>
+        <TabsTrigger value="google-calendar">
+          {intl.formatMessage({
+            id: "account.editProfileTabs.googleCalendar",
+            defaultMessage: "Google Calendar",
+          })}
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="profile">

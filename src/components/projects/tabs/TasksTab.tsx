@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useIntl } from "react-intl";
 import {
   DndContext,
   PointerSensor,
@@ -26,7 +27,7 @@ import type {
   TaskSortDirection,
 } from "@/types/tasks.types";
 import type { TasksTabProps } from "@/types/projects.types";
-import { TASK_STATUSES, STATUS_LABELS } from "@/constants/tasks";
+import { TASK_STATUSES, STATUS_LABEL_MESSAGES } from "@/constants/tasks";
 import { compareTasks } from "@/lib/taskSort";
 import { useDeleteTask, useUpdateTask } from "@/hooks/tasks/useTasks";
 import { SortableTask } from "../sortables/SortableTask";
@@ -57,6 +58,7 @@ export function TasksTab({
   onOpenModal,
 }: TasksTabProps) {
   const navigate = useNavigate();
+  const intl = useIntl();
   const { updateTask } = useUpdateTask(projectId);
   const { deleteTask } = useDeleteTask(projectId);
   const sensors = useSensors(
@@ -209,7 +211,7 @@ export function TasksTab({
               {TASK_STATUSES.map((status) => (
                 <div key={status}>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">
-                    {STATUS_LABELS[status]}
+                    {intl.formatMessage(STATUS_LABEL_MESSAGES[status])}
                   </h3>
                   <DroppableColumn id={status}>
                     <SortableContext

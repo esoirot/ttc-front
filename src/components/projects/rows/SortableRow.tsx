@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDateDDMMYYYY, secsToHms } from "@/lib/time";
@@ -16,7 +17,7 @@ import {
 import type { TaskStatus } from "@/types/tasks.types";
 import type { SortableRowProps } from "@/types/projects.types";
 import {
-  STATUS_LABELS,
+  STATUS_LABEL_MESSAGES,
   STATUS_VARIANTS,
   STATUS_BADGE_CLASSES,
 } from "@/constants/tasks";
@@ -29,7 +30,9 @@ export function SortableRow({
   onOpenModal,
   onDelete,
 }: SortableRowProps) {
+  const intl = useIntl();
   const { setNodeRef, style, attributes, listeners } = useSortableItem(task.id);
+  const statusMessage = STATUS_LABEL_MESSAGES[task.status as TaskStatus];
 
   return (
     <div
@@ -70,7 +73,7 @@ export function SortableRow({
         variant={STATUS_VARIANTS[task.status as TaskStatus] ?? "outline"}
         className={STATUS_BADGE_CLASSES[task.status as TaskStatus]}
       >
-        {STATUS_LABELS[task.status as TaskStatus] ?? task.status}
+        {statusMessage ? intl.formatMessage(statusMessage) : task.status}
       </Badge>
       <AlertDialog>
         <AlertDialogTrigger asChild>

@@ -1,3 +1,4 @@
+import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { secsToHms } from "@/lib/time";
@@ -22,6 +23,7 @@ export function SortableTask({
   onOpenModal,
   memberMap,
 }: SortableTaskProps) {
+  const intl = useIntl();
   const { setNodeRef, style, attributes, listeners } = useSortableItem(
     task.id,
     0,
@@ -38,25 +40,48 @@ export function SortableTask({
             size="sm"
             className="absolute top-1 right-1 h-5 w-5 p-0 z-10 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-sm"
             onClick={(e) => e.stopPropagation()}
-            aria-label="Delete task"
+            aria-label={intl.formatMessage({
+              id: "projects.sortableTask.deleteAria",
+              defaultMessage: "Delete task",
+            })}
           >
             ✕
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete task?</AlertDialogTitle>
+            <AlertDialogTitle>
+              <FormattedMessage
+                id="projects.sortableTask.deleteTitle"
+                defaultMessage="Delete task?"
+              />
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Delete <strong>{task.title}</strong>? This cannot be undone.
+              <FormattedMessage
+                id="projects.sortableTask.deleteDescription"
+                defaultMessage="Delete <b>{title}</b>? This cannot be undone."
+                values={{
+                  title: task.title,
+                  b: (chunks) => <strong>{chunks}</strong>,
+                }}
+              />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>
+              <FormattedMessage
+                id="common.actions.cancel"
+                defaultMessage="Cancel"
+              />
+            </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => onDelete(task.id)}
             >
-              Delete
+              <FormattedMessage
+                id="common.actions.delete"
+                defaultMessage="Delete"
+              />
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -74,7 +99,10 @@ export function SortableTask({
               className="cursor-grab h-6 px-1 text-muted-foreground hover:text-foreground shrink-0"
               {...attributes}
               {...listeners}
-              aria-label="Drag to reorder"
+              aria-label={intl.formatMessage({
+                id: "projects.sortableTask.dragAria",
+                defaultMessage: "Drag to reorder",
+              })}
               tabIndex={0}
               onClick={(e) => e.stopPropagation()}
             >

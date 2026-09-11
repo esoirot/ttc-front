@@ -1,18 +1,27 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { createIntl } from "react-intl";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import { messages } from "@/i18n/messages";
 import { ProspectsToContact } from "./ProspectsToContact";
 import { formatTimeSinceContact } from "./formatTimeSinceContact";
 import type { DashboardProspect } from "@/types/dashboard.types";
+
+const IntlWrapper = createIntlWrapper();
+const intl = createIntl({ locale: "en", messages: messages.en });
+const intlFr = createIntl({ locale: "fr", messages: messages.fr });
 
 const daysAgoIso = (days: number) =>
   new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
 function renderWidget(prospects: DashboardProspect[]) {
   return render(
-    <MemoryRouter>
-      <ProspectsToContact prospects={prospects} />
-    </MemoryRouter>,
+    <IntlWrapper>
+      <MemoryRouter>
+        <ProspectsToContact prospects={prospects} />
+      </MemoryRouter>
+    </IntlWrapper>,
   );
 }
 
@@ -54,22 +63,45 @@ describe("ProspectsToContact", () => {
       "/clients/42",
     );
   });
+
+  it("renders French copy when locale is fr", () => {
+    const FrWrapper = createIntlWrapper("fr");
+    render(
+      <FrWrapper>
+        <MemoryRouter>
+          <ProspectsToContact prospects={[]} />
+        </MemoryRouter>
+      </FrWrapper>,
+    );
+    expect(
+      screen.getByText("Aucun prospect ne nécessite de suivi pour l'instant."),
+    ).toBeInTheDocument();
+  });
 });
 
 describe("formatTimeSinceContact", () => {
   it("returns 'Never contacted' for null", () => {
-    expect(formatTimeSinceContact(null)).toBe("Never contacted");
+    expect(formatTimeSinceContact(null, intl)).toBe("Never contacted");
   });
 
   it("returns 'Contacted this week' for under 7 days", () => {
-    expect(formatTimeSinceContact(daysAgoIso(3))).toBe("Contacted this week");
+    expect(formatTimeSinceContact(daysAgoIso(3), intl)).toBe(
+      "Contacted this week",
+    );
   });
 
   it("returns singular week for exactly 1 week", () => {
-    expect(formatTimeSinceContact(daysAgoIso(7))).toBe("1 week ago");
+    expect(formatTimeSinceContact(daysAgoIso(7), intl)).toBe("1 week ago");
   });
 
   it("returns plural weeks for multiple weeks", () => {
-    expect(formatTimeSinceContact(daysAgoIso(21))).toBe("3 weeks ago");
+    expect(formatTimeSinceContact(daysAgoIso(21), intl)).toBe("3 weeks ago");
+  });
+
+  it("returns French copy when locale is fr", () => {
+    expect(formatTimeSinceContact(null, intlFr)).toBe("Jamais contacté");
+    expect(formatTimeSinceContact(daysAgoIso(21), intlFr)).toBe(
+      "il y a 3 semaines",
+    );
   });
 });

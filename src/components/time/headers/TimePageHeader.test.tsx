@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { TimePageHeader } from "./TimePageHeader";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 describe("TimePageHeader", () => {
   it("hides the Clockify import button when workspaceId is null", () => {
@@ -12,6 +15,7 @@ describe("TimePageHeader", () => {
         onToggleManual={vi.fn()}
         onToggleImport={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.queryByText("Import from Clockify")).not.toBeInTheDocument();
@@ -27,6 +31,7 @@ describe("TimePageHeader", () => {
         onToggleManual={vi.fn()}
         onToggleImport={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Import from Clockify")).toBeInTheDocument();
@@ -41,6 +46,7 @@ describe("TimePageHeader", () => {
         onToggleManual={vi.fn()}
         onToggleImport={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Cancel import")).toBeInTheDocument();
@@ -55,6 +61,7 @@ describe("TimePageHeader", () => {
         onToggleManual={vi.fn()}
         onToggleImport={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByText("Cancel")).toBeInTheDocument();
@@ -71,6 +78,7 @@ describe("TimePageHeader", () => {
         onToggleManual={onToggleManual}
         onToggleImport={onToggleImport}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("Import from Clockify"));
@@ -78,5 +86,20 @@ describe("TimePageHeader", () => {
 
     expect(onToggleImport).toHaveBeenCalled();
     expect(onToggleManual).toHaveBeenCalled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <TimePageHeader
+        workspaceId={null}
+        showManual={false}
+        showImport={false}
+        onToggleManual={vi.fn()}
+        onToggleImport={vi.fn()}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+
+    expect(screen.getByText("Entrées de temps")).toBeInTheDocument();
   });
 });

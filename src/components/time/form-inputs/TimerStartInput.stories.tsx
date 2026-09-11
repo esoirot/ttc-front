@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Project } from "@/types/projects.types";
 import type { Tag } from "@/types/tags.types";
 import { TimerStartInput } from "./TimerStartInput";
@@ -46,7 +48,9 @@ const meta: Meta<typeof TimerStartInput> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <Story />
+        <IntlProvider locale="en" messages={messages.en}>
+          <Story />
+        </IntlProvider>
       </QueryClientProvider>
     ),
   ],

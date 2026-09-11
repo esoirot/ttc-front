@@ -1,3 +1,4 @@
+import { useIntl, FormattedMessage } from "react-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,33 +23,64 @@ export function InvoiceMetaCard({
   notes,
   onUpdate,
 }: Props) {
+  const intl = useIntl();
   const { clients } = useClients();
   const { editing, saving, form, setForm, openEdit, cancelEdit, handleSave } =
     useInvoiceMetaEdit({ clientId, currency, dueDate, notes, onUpdate });
 
   const clientName =
     clientId != null
-      ? (clients.find((c) => c.id === clientId)?.name ?? `Client #${clientId}`)
-      : "No client";
+      ? (clients.find((c) => c.id === clientId)?.name ??
+        intl.formatMessage(
+          {
+            id: "invoices.metaCard.clientNumber",
+            defaultMessage: "Client #{num}",
+          },
+          { num: clientId },
+        ))
+      : intl.formatMessage({
+          id: "invoices.metaCard.noClient",
+          defaultMessage: "No client",
+        });
 
   if (editing) {
     return (
       <Card className="mb-6">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Invoice details</CardTitle>
+          <CardTitle className="text-sm">
+            <FormattedMessage
+              id="invoices.metaCard.title"
+              defaultMessage="Invoice details"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
-            <Label className="text-xs">Client</Label>
+            <Label className="text-xs">
+              <FormattedMessage
+                id="invoices.metaCard.client"
+                defaultMessage="Client"
+              />
+            </Label>
             <Select
               value={form.clientId}
               onValueChange={(v) => setForm((f) => ({ ...f, clientId: v }))}
             >
               <SelectTrigger className="h-8 text-sm">
-                <SelectValue placeholder="No client" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "invoices.metaCard.noClient",
+                    defaultMessage: "No client",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No client</SelectItem>
+                <SelectItem value="none">
+                  <FormattedMessage
+                    id="invoices.metaCard.noClient"
+                    defaultMessage="No client"
+                  />
+                </SelectItem>
                 {clients.map((c) => (
                   <SelectItem key={c.id} value={String(c.id)}>
                     {c.name}
@@ -59,7 +91,12 @@ export function InvoiceMetaCard({
           </div>
 
           <div className="flex flex-col gap-1">
-            <Label className="text-xs">Currency</Label>
+            <Label className="text-xs">
+              <FormattedMessage
+                id="invoices.metaCard.currency"
+                defaultMessage="Currency"
+              />
+            </Label>
             <Select
               value={form.currency}
               onValueChange={(v) => setForm((f) => ({ ...f, currency: v }))}
@@ -78,7 +115,12 @@ export function InvoiceMetaCard({
           </div>
 
           <div className="flex flex-col gap-1">
-            <Label className="text-xs">Due date</Label>
+            <Label className="text-xs">
+              <FormattedMessage
+                id="invoices.metaCard.dueDate"
+                defaultMessage="Due date"
+              />
+            </Label>
             <Input
               type="date"
               className="h-8 text-sm"
@@ -90,7 +132,12 @@ export function InvoiceMetaCard({
           </div>
 
           <div className="col-span-2 flex flex-col gap-1">
-            <Label className="text-xs">Notes</Label>
+            <Label className="text-xs">
+              <FormattedMessage
+                id="invoices.metaCard.notes"
+                defaultMessage="Notes"
+              />
+            </Label>
             <Textarea
               rows={3}
               className="text-sm resize-none"
@@ -98,7 +145,10 @@ export function InvoiceMetaCard({
               onChange={(e) =>
                 setForm((f) => ({ ...f, notes: e.target.value }))
               }
-              placeholder="Internal notes…"
+              placeholder={intl.formatMessage({
+                id: "invoices.metaCard.notesPlaceholder",
+                defaultMessage: "Internal notes…",
+              })}
             />
           </div>
 
@@ -108,7 +158,17 @@ export function InvoiceMetaCard({
               disabled={saving}
               onClick={() => void handleSave()}
             >
-              {saving ? "Saving…" : "Save"}
+              {saving ? (
+                <FormattedMessage
+                  id="invoices.metaCard.saving"
+                  defaultMessage="Saving…"
+                />
+              ) : (
+                <FormattedMessage
+                  id="common.actions.save"
+                  defaultMessage="Save"
+                />
+              )}
             </Button>
             <Button
               variant="ghost"
@@ -116,7 +176,10 @@ export function InvoiceMetaCard({
               disabled={saving}
               onClick={cancelEdit}
             >
-              Cancel
+              <FormattedMessage
+                id="common.actions.cancel"
+                defaultMessage="Cancel"
+              />
             </Button>
           </div>
         </CardContent>
@@ -127,29 +190,49 @@ export function InvoiceMetaCard({
   return (
     <Card className="mb-6">
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm">Invoice details</CardTitle>
+        <CardTitle className="text-sm">
+          <FormattedMessage
+            id="invoices.metaCard.title"
+            defaultMessage="Invoice details"
+          />
+        </CardTitle>
         <Button
           variant="outline"
           size="sm"
           onClick={openEdit}
           className="h-7 px-2 text-xs border-blue-600 dark:border-blue-400 text-foreground hover:bg-blue-500/30 hover:text-foreground dark:hover:bg-blue-400/30 dark:hover:text-foreground"
         >
-          Edit
+          <FormattedMessage id="common.actions.edit" defaultMessage="Edit" />
         </Button>
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
         <div>
-          <span className="text-xs text-muted-foreground">Client</span>
+          <span className="text-xs text-muted-foreground">
+            <FormattedMessage
+              id="invoices.metaCard.client"
+              defaultMessage="Client"
+            />
+          </span>
           <p className={clientId == null ? "text-muted-foreground" : ""}>
             {clientName}
           </p>
         </div>
         <div>
-          <span className="text-xs text-muted-foreground">Currency</span>
+          <span className="text-xs text-muted-foreground">
+            <FormattedMessage
+              id="invoices.metaCard.currency"
+              defaultMessage="Currency"
+            />
+          </span>
           <p className="font-mono">{currency}</p>
         </div>
         <div>
-          <span className="text-xs text-muted-foreground">Due date</span>
+          <span className="text-xs text-muted-foreground">
+            <FormattedMessage
+              id="invoices.metaCard.dueDate"
+              defaultMessage="Due date"
+            />
+          </span>
           <p>
             {dueDate ? (
               dueDate.slice(0, 10)
@@ -159,7 +242,12 @@ export function InvoiceMetaCard({
           </p>
         </div>
         <div>
-          <span className="text-xs text-muted-foreground">Notes</span>
+          <span className="text-xs text-muted-foreground">
+            <FormattedMessage
+              id="invoices.metaCard.notes"
+              defaultMessage="Notes"
+            />
+          </span>
           <p className={notes ? "" : "text-muted-foreground"}>{notes ?? "—"}</p>
         </div>
       </CardContent>

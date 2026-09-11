@@ -1,5 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -98,11 +101,13 @@ function mockGql(responses: Record<string, unknown>) {
   );
 }
 
-function renderTabs() {
+function renderTabs(locale: Locale = "en") {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <RatesTabs />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <RatesTabs />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -270,5 +275,19 @@ describe("RatesTabs", () => {
     fireEvent.focus(screen.getByRole("tab", { name: /Rate Sheets/ }));
 
     expect(screen.getByTestId("rate-sheet-list")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    mockGql({
+      TranslationRates: { translationRates: [] },
+      RateSheets: { rateSheets: [] },
+    });
+    renderTabs("fr");
+
+    expect(
+      await screen.findByText(
+        "Aucun tarif défini pour le moment. Utilisez les onglets ci-dessus pour ajouter votre premier tarif.",
+      ),
+    ).toBeInTheDocument();
   });
 });

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl } from "react-intl";
 import { DescriptionGroup } from "./DescriptionGroup";
 import { Button } from "@/components/ui/button";
 import type {
@@ -36,6 +37,7 @@ export function DayGroup({
   onResume: (entry: ClockifyTimeEntry) => void;
   onUpdate: (input: UpdateEntryInput) => void;
 }) {
+  const intl = useIntl();
   const [expanded, setExpanded] = useState(false);
 
   const totalSecs = entries.reduce((sum, e) => {
@@ -62,7 +64,10 @@ export function DayGroup({
     sortedEnds.length > 0
       ? formatTime(sortedEnds[sortedEnds.length - 1])
       : hasRunning
-        ? "running"
+        ? intl.formatMessage({
+            id: "time.entryRow.running",
+            defaultMessage: "running",
+          })
         : "";
 
   return (
@@ -75,7 +80,7 @@ export function DayGroup({
         <span className="text-muted-foreground text-xs w-3 shrink-0">
           {expanded ? "▼" : "▶"}
         </span>
-        <span className="font-medium text-sm">{dayLabel(dayKey)}</span>
+        <span className="font-medium text-sm">{dayLabel(dayKey, intl)}</span>
         <span className="text-xs text-muted-foreground">
           ({entries.length})
         </span>

@@ -15,12 +15,16 @@ vi.mock("../tags/TtcTagChips", () => ({
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/test/queryClientWrapper";
 import { ManualEntryForm } from "./ManualEntryForm";
+import { createIntlWrapper } from "@/test/intlWrapper";
 
-function renderForm(onClose = vi.fn()) {
+const wrapper = createIntlWrapper();
+
+function renderForm(onClose = vi.fn(), locale: "en" | "fr" = "en") {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <ManualEntryForm onClose={onClose} recentDescriptions={[]} tags={[]} />
     </QueryClientProvider>,
+    { wrapper: locale === "en" ? wrapper : createIntlWrapper(locale) },
   );
 }
 
@@ -211,5 +215,13 @@ describe("ManualEntryForm", () => {
         screen.queryByRole("button", { name: "Saving…" }),
       ).not.toBeInTheDocument(),
     );
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm(vi.fn(), "fr");
+
+    expect(
+      screen.getByPlaceholderText("Sur quoi avez-vous travaillé ?"),
+    ).toBeInTheDocument();
   });
 });

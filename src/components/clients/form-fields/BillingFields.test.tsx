@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BillingFields } from "./BillingFields";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 describe("BillingFields", () => {
   it("renders the delay, tax rate, and checked state of end-of-month", () => {
@@ -11,6 +14,7 @@ describe("BillingFields", () => {
         billingEndOfMonth={true}
         onChange={vi.fn()}
       />,
+      { wrapper },
     );
 
     expect(screen.getByLabelText("Payment delay (days)")).toHaveValue(30);
@@ -27,6 +31,7 @@ describe("BillingFields", () => {
         billingEndOfMonth={false}
         onChange={onChange}
       />,
+      { wrapper },
     );
 
     fireEvent.change(screen.getByLabelText("Payment delay (days)"), {
@@ -45,6 +50,7 @@ describe("BillingFields", () => {
         billingEndOfMonth={false}
         onChange={onChange}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByLabelText("Bill at end of month"));
@@ -61,6 +67,7 @@ describe("BillingFields", () => {
         billingEndOfMonth={false}
         onChange={onChange}
       />,
+      { wrapper },
     );
     fireEvent.change(screen.getByLabelText("Tax rate (%)"), {
       target: { value: "20" },
@@ -77,6 +84,7 @@ describe("BillingFields", () => {
         billingEndOfMonth={true}
         onChange={onChange}
       />,
+      { wrapper },
     );
     fireEvent.click(screen.getByLabelText("Bill at end of month"));
     expect(onChange).toHaveBeenCalledWith("billingEndOfMonth", false);
@@ -90,10 +98,26 @@ describe("BillingFields", () => {
         billingEndOfMonth={false}
         onChange={vi.fn()}
       />,
+      { wrapper },
     );
     expect(screen.getByLabelText("Payment delay (days)")).toHaveAttribute(
       "id",
       "billing-delay",
     );
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(
+      <BillingFields
+        paymentDelayDays=""
+        taxRate=""
+        billingEndOfMonth={false}
+        onChange={vi.fn()}
+      />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+    expect(
+      screen.getByLabelText("Délai de paiement (jours)"),
+    ).toBeInTheDocument();
   });
 });

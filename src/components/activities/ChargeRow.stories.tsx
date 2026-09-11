@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Charge } from "@/types/activities.types";
 import { ChargeRow } from "./ChargeRow";
 
@@ -20,9 +22,11 @@ const meta: Meta<typeof ChargeRow> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <div className="max-w-md border border-border rounded-md px-3">
-          <Story />
-        </div>
+        <IntlProvider locale="en" messages={messages.en}>
+          <div className="max-w-md border border-border rounded-md px-3">
+            <Story />
+          </div>
+        </IntlProvider>
       </QueryClientProvider>
     ),
   ],

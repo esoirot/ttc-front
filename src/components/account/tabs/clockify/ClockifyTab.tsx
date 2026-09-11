@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import {
   useClockifyStatus,
   useDisconnectClockify,
@@ -20,6 +21,7 @@ import { ConnectForm } from "@/components/clockify/forms/ConnectForm";
 import { WorkspacePicker } from "@/components/clockify/forms-inputs/WorkspacePicker";
 
 export function ClockifyTab() {
+  const intl = useIntl();
   const { data: status, isLoading } = useClockifyStatus();
   const disconnect = useDisconnectClockify();
 
@@ -36,7 +38,11 @@ export function ClockifyTab() {
     return (
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">
-          Connect your Clockify account to enable time tracking.
+          {intl.formatMessage({
+            id: "account.clockifyTab.connectPrompt",
+            defaultMessage:
+              "Connect your Clockify account to enable time tracking.",
+          })}
         </p>
         <ConnectForm />
       </div>
@@ -50,11 +56,20 @@ export function ClockifyTab() {
           variant="secondary"
           className="text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30"
         >
-          ✓ Connected
+          {intl.formatMessage({
+            id: "account.clockifyTab.connected",
+            defaultMessage: "✓ Connected",
+          })}
         </Badge>
         {status.workspaceId && (
           <span className="text-xs text-muted-foreground">
-            Workspace {status.workspaceId}
+            {intl.formatMessage(
+              {
+                id: "account.clockifyTab.workspace",
+                defaultMessage: "Workspace {workspaceId}",
+              },
+              { workspaceId: status.workspaceId },
+            )}
           </span>
         )}
       </div>
@@ -62,7 +77,10 @@ export function ClockifyTab() {
       {!status.workspaceId && (
         <div className="flex flex-col gap-2">
           <p className="text-sm text-muted-foreground">
-            Choose a workspace to use for time tracking.
+            {intl.formatMessage({
+              id: "account.clockifyTab.chooseWorkspace",
+              defaultMessage: "Choose a workspace to use for time tracking.",
+            })}
           </p>
           <WorkspacePicker />
         </div>
@@ -70,12 +88,20 @@ export function ClockifyTab() {
 
       <details className="text-xs text-muted-foreground">
         <summary className="cursor-pointer hover:text-foreground transition-colors">
-          Update API key or workspace
+          {intl.formatMessage({
+            id: "account.clockifyTab.updateApiKeyOrWorkspace",
+            defaultMessage: "Update API key or workspace",
+          })}
         </summary>
         <div className="mt-4 flex flex-col gap-6">
           <ConnectForm />
           <div className="flex flex-col gap-2">
-            <p className="text-sm text-muted-foreground">Switch workspace</p>
+            <p className="text-sm text-muted-foreground">
+              {intl.formatMessage({
+                id: "account.clockifyTab.switchWorkspace",
+                defaultMessage: "Switch workspace",
+              })}
+            </p>
             <WorkspacePicker />
           </div>
         </div>
@@ -90,24 +116,48 @@ export function ClockifyTab() {
               className="text-destructive hover:text-destructive"
               disabled={disconnect.isPending}
             >
-              {disconnect.isPending ? "Disconnecting…" : "Disconnect Clockify"}
+              {disconnect.isPending
+                ? intl.formatMessage({
+                    id: "account.clockifyTab.disconnecting",
+                    defaultMessage: "Disconnecting…",
+                  })
+                : intl.formatMessage({
+                    id: "account.clockifyTab.disconnectClockify",
+                    defaultMessage: "Disconnect Clockify",
+                  })}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Disconnect Clockify?</AlertDialogTitle>
+              <AlertDialogTitle>
+                {intl.formatMessage({
+                  id: "account.clockifyTab.disconnectConfirmTitle",
+                  defaultMessage: "Disconnect Clockify?",
+                })}
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                This will clear your API key and workspace. You will need to
-                reconnect to resume imports.
+                {intl.formatMessage({
+                  id: "account.clockifyTab.disconnectConfirmDescription",
+                  defaultMessage:
+                    "This will clear your API key and workspace. You will need to reconnect to resume imports.",
+                })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>
+                {intl.formatMessage({
+                  id: "common.actions.cancel",
+                  defaultMessage: "Cancel",
+                })}
+              </AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => void disconnect.mutateAsync()}
               >
-                Disconnect
+                {intl.formatMessage({
+                  id: "account.clockifyTab.disconnect",
+                  defaultMessage: "Disconnect",
+                })}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -1,3 +1,4 @@
+import { FormattedMessage } from "react-intl";
 import {
   Dialog,
   DialogContent,
@@ -22,12 +23,27 @@ export function AddItemDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg" aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle>Add line item</DialogTitle>
+          <DialogTitle>
+            <FormattedMessage
+              id="invoices.addItemDialog.title"
+              defaultMessage="Add line item"
+            />
+          </DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="time">
           <TabsList className="mb-4">
-            <TabsTrigger value="time">Time Entries</TabsTrigger>
-            <TabsTrigger value="custom">Custom Line</TabsTrigger>
+            <TabsTrigger value="time">
+              <FormattedMessage
+                id="invoices.addItemDialog.timeEntries"
+                defaultMessage="Time Entries"
+              />
+            </TabsTrigger>
+            <TabsTrigger value="custom">
+              <FormattedMessage
+                id="invoices.addItemDialog.customLine"
+                defaultMessage="Custom Line"
+              />
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="time" className="mt-0">
             <TimeEntriesTab

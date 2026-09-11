@@ -1,77 +1,246 @@
+import { FormattedMessage, useIntl, type IntlShape } from "react-intl";
 import { formatTimestamp, secsToHms } from "@/lib/time";
 import type { TaskActivity } from "@/types/tasks.types";
 
-function describe(activity: TaskActivity): string {
+function describe(intl: IntlShape, activity: TaskActivity): string {
   try {
     const p = activity.payload
       ? (JSON.parse(activity.payload) as Record<string, unknown>)
       : null;
     switch (activity.type) {
       case "CREATED":
-        return "created this task";
+        return intl.formatMessage({
+          id: "projects.taskActivityFeed.created",
+          defaultMessage: "created this task",
+        });
       case "TITLE_CHANGED":
-        return `renamed task to "${String(p?.to ?? "")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.titleChanged",
+            defaultMessage: 'renamed task to "{to}"',
+          },
+          { to: String(p?.to ?? "") },
+        );
       case "DESCRIPTION_CHANGED":
-        return "updated description";
+        return intl.formatMessage({
+          id: "projects.taskActivityFeed.descriptionChanged",
+          defaultMessage: "updated description",
+        });
       case "STATUS_CHANGED":
-        return `changed status from ${String(p?.from ?? "?")} to ${String(p?.to ?? "?")}`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.statusChanged",
+            defaultMessage: "changed status from {from} to {to}",
+          },
+          { from: String(p?.from ?? "?"), to: String(p?.to ?? "?") },
+        );
       case "DUE_DATE_SET":
         return p?.to
-          ? `set due date to ${new Date(String(p.to)).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`
-          : "cleared due date";
+          ? intl.formatMessage(
+              {
+                id: "projects.taskActivityFeed.dueDateSet",
+                defaultMessage: "set due date to {date}",
+              },
+              {
+                date: intl.formatDate(new Date(String(p.to)), {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                }),
+              },
+            )
+          : intl.formatMessage({
+              id: "projects.taskActivityFeed.dueDateCleared",
+              defaultMessage: "cleared due date",
+            });
       case "ASSIGNED":
-        return p?.to ? `changed assignee` : "unassigned task";
+        return p?.to
+          ? intl.formatMessage({
+              id: "projects.taskActivityFeed.assigneeChanged",
+              defaultMessage: "changed assignee",
+            })
+          : intl.formatMessage({
+              id: "projects.taskActivityFeed.unassigned",
+              defaultMessage: "unassigned task",
+            });
       case "CHECKLIST_CREATED":
-        return `created checklist "${String(p?.title ?? "")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.checklistCreated",
+            defaultMessage: 'created checklist "{title}"',
+          },
+          { title: String(p?.title ?? "") },
+        );
       case "CHECKLIST_ADDED":
-        return `added checklist item "${String(p?.title ?? "")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.checklistItemAdded",
+            defaultMessage: 'added checklist item "{title}"',
+          },
+          { title: String(p?.title ?? "") },
+        );
       case "CHECKLIST_RENAMED":
-        return `renamed checklist "${String(p?.from ?? "")}" to "${String(p?.to ?? "")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.checklistRenamed",
+            defaultMessage: 'renamed checklist "{from}" to "{to}"',
+          },
+          { from: String(p?.from ?? ""), to: String(p?.to ?? "") },
+        );
       case "CHECKLIST_ITEM_TOGGLED":
         return p?.done
-          ? `checked "${String(p?.title ?? "")}" in checklist "${String(p?.checklistTitle ?? "Checklist")}"`
-          : `unchecked "${String(p?.title ?? "")}" in checklist "${String(p?.checklistTitle ?? "Checklist")}"`;
+          ? intl.formatMessage(
+              {
+                id: "projects.taskActivityFeed.checklistItemChecked",
+                defaultMessage: 'checked "{title}" in checklist "{list}"',
+              },
+              {
+                title: String(p?.title ?? ""),
+                list: String(p?.checklistTitle ?? "Checklist"),
+              },
+            )
+          : intl.formatMessage(
+              {
+                id: "projects.taskActivityFeed.checklistItemUnchecked",
+                defaultMessage: 'unchecked "{title}" in checklist "{list}"',
+              },
+              {
+                title: String(p?.title ?? ""),
+                list: String(p?.checklistTitle ?? "Checklist"),
+              },
+            );
       case "CHECKLIST_UPDATED":
-        return `updated checklist item "${String(p?.title ?? "")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.checklistItemUpdated",
+            defaultMessage: 'updated checklist item "{title}"',
+          },
+          { title: String(p?.title ?? "") },
+        );
       case "CHECKLIST_DELETED":
-        return `removed checklist item "${String(p?.title ?? "")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.checklistItemRemoved",
+            defaultMessage: 'removed checklist item "{title}"',
+          },
+          { title: String(p?.title ?? "") },
+        );
       case "CHECKLIST_REMOVED":
-        return `deleted checklist "${String(p?.title ?? "")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.checklistDeleted",
+            defaultMessage: 'deleted checklist "{title}"',
+          },
+          { title: String(p?.title ?? "") },
+        );
       case "ATTACHMENT_ADDED":
-        return `attached "${String(p?.name ?? p?.url ?? "file")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.attachmentAdded",
+            defaultMessage: 'attached "{name}"',
+          },
+          { name: String(p?.name ?? p?.url ?? "file") },
+        );
       case "ATTACHMENT_UPDATED":
-        return `updated attachment "${String(p?.name ?? p?.url ?? "file")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.attachmentUpdated",
+            defaultMessage: 'updated attachment "{name}"',
+          },
+          { name: String(p?.name ?? p?.url ?? "file") },
+        );
       case "ATTACHMENT_DELETED":
-        return `removed attachment "${String(p?.name ?? p?.url ?? "file")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.attachmentRemoved",
+            defaultMessage: 'removed attachment "{name}"',
+          },
+          { name: String(p?.name ?? p?.url ?? "file") },
+        );
       case "COMMENT_ADDED":
-        return "added a comment";
+        return intl.formatMessage({
+          id: "projects.taskActivityFeed.commentAdded",
+          defaultMessage: "added a comment",
+        });
       case "COMMENT_EDITED":
-        return "edited a comment";
+        return intl.formatMessage({
+          id: "projects.taskActivityFeed.commentEdited",
+          defaultMessage: "edited a comment",
+        });
       case "COMMENT_DELETED":
-        return "deleted a comment";
+        return intl.formatMessage({
+          id: "projects.taskActivityFeed.commentDeleted",
+          defaultMessage: "deleted a comment",
+        });
       case "LABEL_ADDED":
-        return `added label "${String(p?.name ?? "")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.labelAdded",
+            defaultMessage: 'added label "{name}"',
+          },
+          { name: String(p?.name ?? "") },
+        );
       case "LABEL_REMOVED":
-        return `removed label "${String(p?.name ?? "")}"`;
+        return intl.formatMessage(
+          {
+            id: "projects.taskActivityFeed.labelRemoved",
+            defaultMessage: 'removed label "{name}"',
+          },
+          { name: String(p?.name ?? "") },
+        );
       case "STARTED":
         return p?.description
-          ? `started time tracking on "${String(p.description)}"`
-          : "started time tracking";
+          ? intl.formatMessage(
+              {
+                id: "projects.taskActivityFeed.startedWithDescription",
+                defaultMessage: 'started time tracking on "{description}"',
+              },
+              { description: String(p.description) },
+            )
+          : intl.formatMessage({
+              id: "projects.taskActivityFeed.started",
+              defaultMessage: "started time tracking",
+            });
       case "STOPPED": {
         const duration =
           typeof p?.durationSeconds === "number"
             ? ` (${secsToHms(p.durationSeconds)})`
             : "";
         return p?.description
-          ? `stopped time tracking on "${String(p.description)}"${duration}`
-          : `stopped time tracking${duration}`;
+          ? intl.formatMessage(
+              {
+                id: "projects.taskActivityFeed.stoppedWithDescription",
+                defaultMessage:
+                  'stopped time tracking on "{description}"{duration}',
+              },
+              { description: String(p.description), duration },
+            )
+          : intl.formatMessage(
+              {
+                id: "projects.taskActivityFeed.stopped",
+                defaultMessage: "stopped time tracking{duration}",
+              },
+              { duration },
+            );
       }
       case "RESUMED":
-        return "resumed time tracking";
+        return intl.formatMessage({
+          id: "projects.taskActivityFeed.resumed",
+          defaultMessage: "resumed time tracking",
+        });
       case "DELETED":
         return p?.durationSeconds
-          ? `deleted a time entry (${secsToHms(Number(p.durationSeconds))})`
-          : "deleted a time entry";
+          ? intl.formatMessage(
+              {
+                id: "projects.taskActivityFeed.deletedWithDuration",
+                defaultMessage: "deleted a time entry ({duration})",
+              },
+              { duration: secsToHms(Number(p.durationSeconds)) },
+            )
+          : intl.formatMessage({
+              id: "projects.taskActivityFeed.deleted",
+              defaultMessage: "deleted a time entry",
+            });
       default:
         return activity.type.toLowerCase().replace(/_/g, " ");
     }
@@ -85,9 +254,15 @@ export function TaskActivityFeed({
 }: {
   activities: TaskActivity[];
 }) {
+  const intl = useIntl();
   if (activities.length === 0) {
     return (
-      <div className="text-xs text-muted-foreground">No activity yet.</div>
+      <div className="text-xs text-muted-foreground">
+        <FormattedMessage
+          id="projects.taskActivityFeed.empty"
+          defaultMessage="No activity yet."
+        />
+      </div>
     );
   }
 
@@ -101,9 +276,16 @@ export function TaskActivityFeed({
           <div className="flex flex-col">
             <span>
               <span className="font-medium text-foreground">
-                {a.user?.name ?? `User ${a.userId}`}
+                {a.user?.name ??
+                  intl.formatMessage(
+                    {
+                      id: "clients.statusHistory.userFallback",
+                      defaultMessage: "User {id}",
+                    },
+                    { id: a.userId },
+                  )}
               </span>{" "}
-              <span className="text-muted-foreground">{describe(a)}</span>
+              <span className="text-muted-foreground">{describe(intl, a)}</span>
             </span>
             <span className="text-muted-foreground">
               {formatTimestamp(a.createdAt)}

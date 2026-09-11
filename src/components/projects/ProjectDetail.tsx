@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { FormattedMessage } from "react-intl";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProject, useUpdateProject } from "@/hooks/projects/useProjects";
@@ -51,7 +52,12 @@ export function ProjectDetail() {
   if (!project) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <p className="text-muted-foreground">Project not found.</p>
+        <p className="text-muted-foreground">
+          <FormattedMessage
+            id="projects.detail.notFound"
+            defaultMessage="Project not found."
+          />
+        </p>
       </div>
     );
   }
@@ -71,10 +77,30 @@ export function ProjectDetail() {
 
       <Tabs defaultValue="tasks">
         <TabsList>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="kanban">Kanban</TabsTrigger>
-          <TabsTrigger value="time">Time</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="tasks">
+            <FormattedMessage
+              id="projects.detail.tabs.tasks"
+              defaultMessage="Tasks"
+            />
+          </TabsTrigger>
+          <TabsTrigger value="kanban">
+            <FormattedMessage
+              id="projects.detail.tabs.kanban"
+              defaultMessage="Kanban"
+            />
+          </TabsTrigger>
+          <TabsTrigger value="time">
+            <FormattedMessage
+              id="layout.sidebar.nav.time"
+              defaultMessage="Time"
+            />
+          </TabsTrigger>
+          <TabsTrigger value="activity">
+            <FormattedMessage
+              id="activities.detail.activity"
+              defaultMessage="Activity"
+            />
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="mt-4">

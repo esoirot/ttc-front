@@ -15,6 +15,9 @@ vi.mock("./DescriptionGroup", () => ({
 }));
 
 import { DayGroup } from "./DayGroup";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeEntry(
   overrides: Partial<ClockifyTimeEntry> = {},
@@ -51,6 +54,7 @@ describe("DayGroup", () => {
     const todayKey = new Date().toLocaleDateString("en-CA");
     render(
       <DayGroup {...baseProps} dayKey={todayKey} entries={[makeEntry()]} />,
+      { wrapper },
     );
     expect(screen.getByText("Today")).toBeInTheDocument();
   });
@@ -61,6 +65,7 @@ describe("DayGroup", () => {
         {...baseProps}
         entries={[makeEntry({ id: "e1" }), makeEntry({ id: "e2" })]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("(2)")).toBeInTheDocument();
   });
@@ -83,18 +88,20 @@ describe("DayGroup", () => {
         duration: null,
       },
     });
-    render(<DayGroup {...baseProps} entries={[e1, e2]} />);
+    render(<DayGroup {...baseProps} entries={[e1, e2]} />, { wrapper });
     expect(screen.getByText("02:00:00")).toBeInTheDocument();
   });
 
   it("is collapsed by default and does not render entries", () => {
-    render(<DayGroup {...baseProps} entries={[makeEntry()]} />);
+    render(<DayGroup {...baseProps} entries={[makeEntry()]} />, { wrapper });
     expect(screen.queryByTestId("entry-row")).not.toBeInTheDocument();
     expect(screen.queryByTestId("desc-group")).not.toBeInTheDocument();
   });
 
   it("expands to show EntryRow when the header is clicked for a single-entry group", () => {
-    render(<DayGroup {...baseProps} entries={[makeEntry({ id: "e1" })]} />);
+    render(<DayGroup {...baseProps} entries={[makeEntry({ id: "e1" })]} />, {
+      wrapper,
+    });
     fireEvent.click(screen.getByRole("button"));
     expect(screen.getByTestId("entry-row")).toBeInTheDocument();
     expect(screen.queryByTestId("desc-group")).not.toBeInTheDocument();
@@ -105,7 +112,7 @@ describe("DayGroup", () => {
       makeEntry({ id: "e1", description: "Translate" }),
       makeEntry({ id: "e2", description: "Translate" }),
     ];
-    render(<DayGroup {...baseProps} entries={entries} />);
+    render(<DayGroup {...baseProps} entries={entries} />, { wrapper });
     fireEvent.click(screen.getByRole("button"));
     expect(screen.getByTestId("desc-group")).toBeInTheDocument();
     expect(screen.queryByTestId("entry-row")).not.toBeInTheDocument();
@@ -117,7 +124,7 @@ describe("DayGroup", () => {
       makeEntry({ id: "e2", description: "Translate" }),
       makeEntry({ id: "e3", description: "Translate" }),
     ];
-    render(<DayGroup {...baseProps} entries={entries} />);
+    render(<DayGroup {...baseProps} entries={entries} />, { wrapper });
     fireEvent.click(screen.getByRole("button"));
     expect(screen.getByTestId("entry-row")).toBeInTheDocument();
     expect(screen.getByTestId("desc-group")).toBeInTheDocument();
@@ -132,7 +139,7 @@ describe("DayGroup", () => {
         duration: null,
       },
     });
-    render(<DayGroup {...baseProps} entries={[running]} />);
+    render(<DayGroup {...baseProps} entries={[running]} />, { wrapper });
     expect(screen.getByText(/running/)).toBeInTheDocument();
   });
 
@@ -144,9 +151,24 @@ describe("DayGroup", () => {
         duration: null,
       },
     });
-    render(<DayGroup {...baseProps} entries={[e1]} />);
+    render(<DayGroup {...baseProps} entries={[e1]} />, { wrapper });
     fireEvent.click(screen.getByRole("button"));
     // "–" separator only appears in the collapsed time range span
     expect(screen.queryByText("–")).not.toBeInTheDocument();
+  });
+
+  it("shows French running copy when locale is fr", () => {
+    const running = makeEntry({
+      id: "e1",
+      timeInterval: {
+        start: "2026-01-15T09:00:00.000Z",
+        end: null,
+        duration: null,
+      },
+    });
+    render(<DayGroup {...baseProps} entries={[running]} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    expect(screen.getByText(/en cours/)).toBeInTheDocument();
   });
 });

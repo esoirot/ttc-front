@@ -2,6 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { DashboardData } from "@/types/dashboard.types";
 import { StatsGrid } from "./StatsGrid";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeDashboard(overrides: Partial<DashboardData> = {}): DashboardData {
   return {
@@ -19,7 +22,7 @@ function makeDashboard(overrides: Partial<DashboardData> = {}): DashboardData {
 
 describe("StatsGrid", () => {
   it("renders all five stat values", () => {
-    render(<StatsGrid dashboard={makeDashboard()} />);
+    render(<StatsGrid dashboard={makeDashboard()} />, { wrapper });
 
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
@@ -31,14 +34,23 @@ describe("StatsGrid", () => {
   it("formats minutes-only durations without an hours prefix", () => {
     render(
       <StatsGrid dashboard={makeDashboard({ monthToDateSeconds: 900 })} />,
+      { wrapper },
     );
 
     expect(screen.getByText("15m")).toBeInTheDocument();
   });
 
   it("shows the currency label next to revenue", () => {
-    render(<StatsGrid dashboard={makeDashboard()} />);
+    render(<StatsGrid dashboard={makeDashboard()} />, { wrapper });
 
     expect(screen.getByText("EUR")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<StatsGrid dashboard={makeDashboard()} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    expect(screen.getByText("Projets actifs")).toBeInTheDocument();
+    expect(screen.getByText("12 345")).toBeInTheDocument();
   });
 });

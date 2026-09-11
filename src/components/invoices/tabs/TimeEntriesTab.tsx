@@ -1,3 +1,4 @@
+import { useIntl, FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ export function TimeEntriesTab({
   onAdd,
   adding,
 }: Props) {
+  const intl = useIntl();
   const {
     rates,
     projects,
@@ -45,13 +47,28 @@ export function TimeEntriesTab({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <Label className="text-xs">Project</Label>
+        <Label className="text-xs">
+          <FormattedMessage
+            id="invoices.timeEntriesTab.project"
+            defaultMessage="Project"
+          />
+        </Label>
         <Select value={selectedProjectId} onValueChange={handleProjectChange}>
           <SelectTrigger className="h-8 text-sm">
-            <SelectValue placeholder="All projects" />
+            <SelectValue
+              placeholder={intl.formatMessage({
+                id: "invoices.timeEntriesTab.allProjects",
+                defaultMessage: "All projects",
+              })}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">All projects</SelectItem>
+            <SelectItem value="__all__">
+              <FormattedMessage
+                id="invoices.timeEntriesTab.allProjects"
+                defaultMessage="All projects"
+              />
+            </SelectItem>
             {projects.map((p) => (
               <SelectItem key={p.id} value={String(p.id)}>
                 {p.title}
@@ -62,16 +79,29 @@ export function TimeEntriesTab({
       </div>
 
       <div className="flex flex-col gap-1">
-        <Label className="text-xs">Rate</Label>
+        <Label className="text-xs">
+          <FormattedMessage
+            id="invoices.timeEntriesTab.rate"
+            defaultMessage="Rate"
+          />
+        </Label>
         <div className="flex items-center gap-2">
           <Select value={selectedRateId} onValueChange={handleRateChange}>
             <SelectTrigger className="h-8 text-sm flex-1">
-              <SelectValue placeholder="Pick a rate…" />
+              <SelectValue
+                placeholder={intl.formatMessage({
+                  id: "invoices.timeEntriesTab.pickRate",
+                  defaultMessage: "Pick a rate…",
+                })}
+              />
             </SelectTrigger>
             <SelectContent>
               {rates.length === 0 ? (
                 <SelectItem value="__none__" disabled>
-                  No rates — add rates first
+                  <FormattedMessage
+                    id="invoices.timeEntriesTab.noRates"
+                    defaultMessage="No rates — add rates first"
+                  />
                 </SelectItem>
               ) : (
                 rates.map((r) => (
@@ -82,12 +112,20 @@ export function TimeEntriesTab({
               )}
             </SelectContent>
           </Select>
-          <span className="text-xs text-muted-foreground shrink-0">or</span>
+          <span className="text-xs text-muted-foreground shrink-0">
+            <FormattedMessage
+              id="invoices.timeEntriesTab.or"
+              defaultMessage="or"
+            />
+          </span>
           <Input
             type="number"
             min={0}
             step="0.01"
-            placeholder="Unit price"
+            placeholder={intl.formatMessage({
+              id: "invoices.timeEntriesTab.unitPrice",
+              defaultMessage: "Unit price",
+            })}
             value={unitPrice}
             onChange={(e) => handleUnitPriceChange(e.target.value)}
             className="h-8 text-sm w-28"
@@ -96,14 +134,25 @@ export function TimeEntriesTab({
       </div>
 
       <div className="flex flex-col gap-1">
-        <Label className="text-xs">Billable time entries</Label>
+        <Label className="text-xs">
+          <FormattedMessage
+            id="invoices.timeEntriesTab.billableTimeEntries"
+            defaultMessage="Billable time entries"
+          />
+        </Label>
         {entriesLoading ? (
           <p className="text-sm text-muted-foreground py-3 text-center">
-            Loading…
+            <FormattedMessage
+              id="invoices.timeEntriesTab.loading"
+              defaultMessage="Loading…"
+            />
           </p>
         ) : billableEntries.length === 0 ? (
           <p className="text-sm text-muted-foreground py-3 text-center">
-            No billable entries found.
+            <FormattedMessage
+              id="invoices.timeEntriesTab.noBillableEntries"
+              defaultMessage="No billable entries found."
+            />
           </p>
         ) : (
           <div className="border border-border rounded-md overflow-y-auto max-h-64">
@@ -133,7 +182,10 @@ export function TimeEntriesTab({
                     <p className="text-sm truncate">
                       {entry.description ?? (
                         <span className="italic text-muted-foreground">
-                          No description
+                          <FormattedMessage
+                            id="invoices.timeEntriesTab.noDescription"
+                            defaultMessage="No description"
+                          />
                         </span>
                       )}
                     </p>
@@ -144,15 +196,24 @@ export function TimeEntriesTab({
                   <div className="flex items-center gap-2 shrink-0">
                     {alreadyAdded && (
                       <Badge variant="secondary" className="text-xs">
-                        added
+                        <FormattedMessage
+                          id="invoices.timeEntriesTab.added"
+                          defaultMessage="added"
+                        />
                       </Badge>
                     )}
                     <span className="text-xs font-mono text-muted-foreground">
-                      {isTranslationEntry(entry)
-                        ? `${entry.wordsProcessed ?? 0} words`
-                        : entry.durationSeconds != null
-                          ? secsToHms(entry.durationSeconds)
-                          : "—"}
+                      {isTranslationEntry(entry) ? (
+                        <FormattedMessage
+                          id="invoices.timeEntriesTab.wordsCount"
+                          defaultMessage="{count} words"
+                          values={{ count: entry.wordsProcessed ?? 0 }}
+                        />
+                      ) : entry.durationSeconds != null ? (
+                        secsToHms(entry.durationSeconds)
+                      ) : (
+                        "—"
+                      )}
                     </span>
                   </div>
                 </div>
@@ -166,7 +227,10 @@ export function TimeEntriesTab({
                   className="text-xs"
                   onClick={loadMore}
                 >
-                  Load more
+                  <FormattedMessage
+                    id="invoices.timeEntriesTab.loadMore"
+                    defaultMessage="Load more"
+                  />
                 </Button>
               </div>
             )}
@@ -176,16 +240,38 @@ export function TimeEntriesTab({
 
       <div className="flex items-center justify-between pt-1">
         <span className="text-xs text-muted-foreground">
-          {selectedEntryIds.size > 0 ? `${selectedEntryIds.size} selected` : ""}
+          {selectedEntryIds.size > 0
+            ? intl.formatMessage(
+                {
+                  id: "invoices.timeEntriesTab.selectedCount",
+                  defaultMessage: "{count} selected",
+                },
+                { count: selectedEntryIds.size },
+              )
+            : ""}
         </span>
         <Button
           onClick={() => void handleBulkAdd()}
           disabled={!canAdd}
           size="sm"
         >
-          {adding
-            ? "Adding…"
-            : `Add ${selectedEntryIds.size > 0 ? selectedEntryIds.size : ""} item${selectedEntryIds.size === 1 ? "" : "s"}`}
+          {adding ? (
+            <FormattedMessage
+              id="invoices.timeEntriesTab.addingItems"
+              defaultMessage="Adding…"
+            />
+          ) : selectedEntryIds.size > 0 ? (
+            <FormattedMessage
+              id="invoices.timeEntriesTab.addItemsCount"
+              defaultMessage="Add {count, plural, one {# item} other {# items}}"
+              values={{ count: selectedEntryIds.size }}
+            />
+          ) : (
+            <FormattedMessage
+              id="invoices.timeEntriesTab.addItems"
+              defaultMessage="Add items"
+            />
+          )}
         </Button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ export function CreateProjectForm({
   clients,
   onClose,
 }: CreateProjectFormProps) {
+  const intl = useIntl();
   const { createProject, loading: creating } = useCreateProject();
   const [title, setTitle] = useState("");
   const [clientId, setClientId] = useState("");
@@ -28,7 +30,12 @@ export function CreateProjectForm({
   async function handleCreate(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!title.trim()) {
-      setFormError("Title is required");
+      setFormError(
+        intl.formatMessage({
+          id: "projects.createForm.titleRequired",
+          defaultMessage: "Title is required",
+        }),
+      );
       return;
     }
     setFormError(null);
@@ -51,16 +58,29 @@ export function CreateProjectForm({
         <form onSubmit={handleCreate} className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2 flex flex-col gap-1">
-              <Label htmlFor="title">Title *</Label>
+              <Label htmlFor="title">
+                <FormattedMessage
+                  id="admin.projectsTable.fieldTitleRequired"
+                  defaultMessage="Title *"
+                />
+              </Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Project title"
+                placeholder={intl.formatMessage({
+                  id: "projects.createForm.titlePlaceholder",
+                  defaultMessage: "Project title",
+                })}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="cpf-client">Client</Label>
+              <Label htmlFor="cpf-client">
+                <FormattedMessage
+                  id="projects.createForm.client"
+                  defaultMessage="Client"
+                />
+              </Label>
               <Select
                 value={clientId || "__none__"}
                 onValueChange={(val) =>
@@ -68,10 +88,20 @@ export function CreateProjectForm({
                 }
               >
                 <SelectTrigger id="cpf-client" className="w-full">
-                  <SelectValue placeholder="No client" />
+                  <SelectValue
+                    placeholder={intl.formatMessage({
+                      id: "projects.header.field.noClient",
+                      defaultMessage: "No client",
+                    })}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No client</SelectItem>
+                  <SelectItem value="__none__">
+                    <FormattedMessage
+                      id="projects.header.field.noClient"
+                      defaultMessage="No client"
+                    />
+                  </SelectItem>
                   {clients.map((c) => (
                     <SelectItem key={c.id} value={String(c.id)}>
                       {c.name}
@@ -81,7 +111,12 @@ export function CreateProjectForm({
               </Select>
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="srcLang">Source language</Label>
+              <Label htmlFor="srcLang">
+                <FormattedMessage
+                  id="projects.createForm.sourceLanguage"
+                  defaultMessage="Source language"
+                />
+              </Label>
               <Select
                 value={srcLang || "__none__"}
                 onValueChange={(val) =>
@@ -89,7 +124,12 @@ export function CreateProjectForm({
                 }
               >
                 <SelectTrigger id="srcLang" className="w-full">
-                  <SelectValue placeholder="Select…" />
+                  <SelectValue
+                    placeholder={intl.formatMessage({
+                      id: "projects.header.field.languagePlaceholder",
+                      defaultMessage: "Select…",
+                    })}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">—</SelectItem>
@@ -102,7 +142,12 @@ export function CreateProjectForm({
               </Select>
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="tgtLang">Target language</Label>
+              <Label htmlFor="tgtLang">
+                <FormattedMessage
+                  id="projects.createForm.targetLanguage"
+                  defaultMessage="Target language"
+                />
+              </Label>
               <Select
                 value={tgtLang || "__none__"}
                 onValueChange={(val) =>
@@ -110,7 +155,12 @@ export function CreateProjectForm({
                 }
               >
                 <SelectTrigger id="tgtLang" className="w-full">
-                  <SelectValue placeholder="Select…" />
+                  <SelectValue
+                    placeholder={intl.formatMessage({
+                      id: "projects.header.field.languagePlaceholder",
+                      defaultMessage: "Select…",
+                    })}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">—</SelectItem>
@@ -125,7 +175,17 @@ export function CreateProjectForm({
           </div>
           {formError && <p className="text-destructive text-sm">{formError}</p>}
           <Button type="submit" disabled={creating} className="self-end">
-            {creating ? "Creating…" : "Create project"}
+            {creating ? (
+              <FormattedMessage
+                id="projects.createForm.creating"
+                defaultMessage="Creating…"
+              />
+            ) : (
+              <FormattedMessage
+                id="projects.createForm.submit"
+                defaultMessage="Create project"
+              />
+            )}
           </Button>
         </form>
       </CardContent>

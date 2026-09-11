@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -34,6 +35,7 @@ export function TaskTimeSection({
   projectId: number;
   taskTitle: string;
 }) {
+  const intl = useIntl();
   const { entries, loading } = useTimeEntries({ taskId });
   const { activeTimer } = useActiveTimer();
   const { startTimer, loading: starting } = useStartTimer();
@@ -65,8 +67,25 @@ export function TaskTimeSection({
       subtasks.find((s) => s.id === selectedSubtaskId) ?? null;
     const desc = project
       ? selectedSub
-        ? `Task ${taskTitle} › ${selectedSub.title} of project ${project.title}`
-        : `Task ${taskTitle} of project ${project.title}`
+        ? intl.formatMessage(
+            {
+              id: "projects.taskTimeSection.descriptionWithSubtask",
+              defaultMessage:
+                "Task {taskTitle} › {subtaskTitle} of project {projectTitle}",
+            },
+            {
+              taskTitle,
+              subtaskTitle: selectedSub.title,
+              projectTitle: project.title,
+            },
+          )
+        : intl.formatMessage(
+            {
+              id: "projects.taskTimeSection.description",
+              defaultMessage: "Task {taskTitle} of project {projectTitle}",
+            },
+            { taskTitle, projectTitle: project.title },
+          )
       : taskTitle;
     void startTimer({
       taskId,
@@ -84,7 +103,18 @@ export function TaskTimeSection({
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-          Time {entries.length > 0 ? `(${entries.length})` : ""}
+          {entries.length > 0 ? (
+            <FormattedMessage
+              id="projects.taskTimeSection.timeLabelWithCount"
+              defaultMessage="Time ({count})"
+              values={{ count: entries.length }}
+            />
+          ) : (
+            <FormattedMessage
+              id="projects.taskTimeSection.timeLabel"
+              defaultMessage="Time"
+            />
+          )}
         </span>
         <Button
           variant="outline"
@@ -94,7 +124,15 @@ export function TaskTimeSection({
         >
           ⏱ {secsToHms(totalSeconds)}
           <span className="text-muted-foreground">
-            {entriesOpen ? "hide ▲" : "show ▼"}
+            {entriesOpen
+              ? intl.formatMessage({
+                  id: "projects.taskTimeSection.hide",
+                  defaultMessage: "hide ▲",
+                })
+              : intl.formatMessage({
+                  id: "projects.taskTimeSection.show",
+                  defaultMessage: "show ▼",
+                })}
           </span>
         </Button>
       </div>
@@ -109,10 +147,20 @@ export function TaskTimeSection({
           }
         >
           <SelectTrigger className="h-6 text-xs">
-            <SelectValue placeholder="No subtask" />
+            <SelectValue
+              placeholder={intl.formatMessage({
+                id: "projects.taskTimeSection.noSubtask",
+                defaultMessage: "No subtask",
+              })}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__none__">No subtask</SelectItem>
+            <SelectItem value="__none__">
+              <FormattedMessage
+                id="projects.taskTimeSection.noSubtask"
+                defaultMessage="No subtask"
+              />
+            </SelectItem>
             {subtasks.map((s) => (
               <SelectItem key={s.id} value={String(s.id)}>
                 {s.checklistTitle
@@ -139,7 +187,11 @@ export function TaskTimeSection({
             }}
             disabled={stopping}
           >
-            ⏹ Stop
+            ⏹{" "}
+            <FormattedMessage
+              id="projects.taskTimeSection.stop"
+              defaultMessage="Stop"
+            />
           </Button>
         </div>
       ) : (
@@ -149,9 +201,20 @@ export function TaskTimeSection({
           className="h-7 text-xs w-fit"
           onClick={handleStart}
           disabled={starting || !!activeTimer}
-          title={activeTimer ? "Another timer is already running" : undefined}
+          title={
+            activeTimer
+              ? intl.formatMessage({
+                  id: "projects.taskTimeSection.anotherTimerRunning",
+                  defaultMessage: "Another timer is already running",
+                })
+              : undefined
+          }
         >
-          ▶ Start timer
+          ▶{" "}
+          <FormattedMessage
+            id="projects.taskTimeSection.startTimer"
+            defaultMessage="Start timer"
+          />
         </Button>
       )}
 
@@ -181,7 +244,12 @@ export function TaskTimeSection({
           )}
 
           {entries.length === 0 && !loading && (
-            <p className="text-xs text-muted-foreground">No time logged yet.</p>
+            <p className="text-xs text-muted-foreground">
+              <FormattedMessage
+                id="projects.taskTimeSection.noTimeLogged"
+                defaultMessage="No time logged yet."
+              />
+            </p>
           )}
         </>
       )}

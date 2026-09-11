@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -27,13 +29,15 @@ describe("AppLayout", () => {
   it("renders the Sidebar alongside the routed child via Outlet", async () => {
     render(
       <QueryClientProvider client={createQueryClient()}>
-        <MemoryRouter initialEntries={["/"]}>
-          <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<div>Page content</div>} />
-            </Route>
-          </Routes>
-        </MemoryRouter>
+        <IntlProvider locale="en" defaultLocale="en" messages={messages.en}>
+          <MemoryRouter initialEntries={["/"]}>
+            <Routes>
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<div>Page content</div>} />
+              </Route>
+            </Routes>
+          </MemoryRouter>
+        </IntlProvider>
       </QueryClientProvider>,
     );
 

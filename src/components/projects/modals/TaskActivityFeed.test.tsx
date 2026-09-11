@@ -2,6 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { TaskActivity } from "@/types/tasks.types";
 import { TaskActivityFeed } from "./TaskActivityFeed";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeActivity(overrides: Partial<TaskActivity> = {}): TaskActivity {
   return {
@@ -18,7 +21,7 @@ function makeActivity(overrides: Partial<TaskActivity> = {}): TaskActivity {
 
 describe("TaskActivityFeed", () => {
   it("shows an empty state when there is no activity", () => {
-    render(<TaskActivityFeed activities={[]} />);
+    render(<TaskActivityFeed activities={[]} />, { wrapper });
     expect(screen.getByText("No activity yet.")).toBeInTheDocument();
   });
 
@@ -30,6 +33,7 @@ describe("TaskActivityFeed", () => {
           makeActivity({ id: 2, type: "COMMENT_ADDED" }),
         ]}
       />,
+      { wrapper },
     );
 
     const items = screen.getAllByText(/Alice/);
@@ -41,6 +45,7 @@ describe("TaskActivityFeed", () => {
       <TaskActivityFeed
         activities={[makeActivity({ user: null, userId: 9 })]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("User 9")).toBeInTheDocument();
   });
@@ -69,7 +74,10 @@ describe("TaskActivityFeed", () => {
     ["COMMENT_DELETED", null, "deleted a comment"],
     ["LABEL_ADDED", JSON.stringify({ name: "Urgent" }), 'added label "Urgent"'],
   ] as const)("describes %s correctly", (type, payload, expected) => {
-    render(<TaskActivityFeed activities={[makeActivity({ type, payload })]} />);
+    render(
+      <TaskActivityFeed activities={[makeActivity({ type, payload })]} />,
+      { wrapper },
+    );
     expect(screen.getByText(expected, { exact: false })).toBeInTheDocument();
   });
 
@@ -80,6 +88,7 @@ describe("TaskActivityFeed", () => {
           makeActivity({ type: "DUE_DATE_SET", payload: JSON.stringify({}) }),
         ]}
       />,
+      { wrapper },
     );
     expect(
       screen.getByText("cleared due date", { exact: false }),
@@ -93,6 +102,7 @@ describe("TaskActivityFeed", () => {
           makeActivity({ type: "STATUS_CHANGED", payload: "not-json{" }),
         ]}
       />,
+      { wrapper },
     );
     expect(
       screen.getByText("STATUS_CHANGED", { exact: false }),
@@ -104,6 +114,7 @@ describe("TaskActivityFeed", () => {
       <TaskActivityFeed
         activities={[makeActivity({ type: "SOME_NEW_TYPE", payload: null })]}
       />,
+      { wrapper },
     );
     expect(
       screen.getByText("some new type", { exact: false }),
@@ -172,6 +183,7 @@ describe("TaskActivityFeed", () => {
     (type, payload, expected) => {
       render(
         <TaskActivityFeed activities={[makeActivity({ type, payload })]} />,
+        { wrapper },
       );
       expect(screen.getByText(expected, { exact: false })).toBeInTheDocument();
     },
@@ -215,6 +227,7 @@ describe("TaskActivityFeed", () => {
     (type, payload, expected) => {
       render(
         <TaskActivityFeed activities={[makeActivity({ type, payload })]} />,
+        { wrapper },
       );
       expect(screen.getByText(expected, { exact: false })).toBeInTheDocument();
     },
@@ -230,6 +243,7 @@ describe("TaskActivityFeed", () => {
           }),
         ]}
       />,
+      { wrapper },
     );
     expect(
       screen.getByText(/set due date to/i, { exact: false }),
@@ -241,6 +255,7 @@ describe("TaskActivityFeed", () => {
       <TaskActivityFeed
         activities={[makeActivity({ user: { id: 1, name: "Bob" } })]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("B")).toBeInTheDocument();
   });
@@ -252,7 +267,17 @@ describe("TaskActivityFeed", () => {
           makeActivity({ type: "CREATED", user: { id: 1, name: null } }),
         ]}
       />,
+      { wrapper },
     );
     expect(screen.getByText("?")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<TaskActivityFeed activities={[]} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    expect(
+      screen.getByText("Aucune activité pour l'instant."),
+    ).toBeInTheDocument();
   });
 });

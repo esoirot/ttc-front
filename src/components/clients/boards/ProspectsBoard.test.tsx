@@ -10,6 +10,8 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Client, ClientConnection } from "@/types/clients.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -84,9 +86,11 @@ function makeConnection(
 function renderBoard() {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter>
-        <ProspectsBoard />
-      </MemoryRouter>
+      <IntlProvider locale="en" messages={messages.en}>
+        <MemoryRouter>
+          <ProspectsBoard />
+        </MemoryRouter>
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }

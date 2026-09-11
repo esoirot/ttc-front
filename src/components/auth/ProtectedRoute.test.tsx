@@ -1,8 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { AuthUser } from "@/types/auth.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -14,20 +17,22 @@ vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { ProtectedRoute } from "./ProtectedRoute";
 
-function renderAt(path: string) {
+function renderAt(path: string, locale: Locale = "en") {
   const queryClient = createQueryClient();
   return render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route path="/login" element={<div>Login page</div>} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<div>Dashboard page</div>} />
-            <Route path="/clients" element={<div>Clients page</div>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/login" element={<div>Login page</div>} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<div>Dashboard page</div>} />
+              <Route path="/clients" element={<div>Clients page</div>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -123,5 +128,13 @@ describe("ProtectedRoute", () => {
     renderAt("/");
 
     expect(await screen.findByText("Dashboard page")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    gqlFetch.mockImplementation(() => new Promise(() => {}));
+
+    renderAt("/", "fr");
+
+    expect(screen.getByText("Chargement…")).toBeInTheDocument();
   });
 });

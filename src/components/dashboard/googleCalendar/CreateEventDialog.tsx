@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,14 +69,25 @@ export function CreateEventDialog({ defaultDate }: Props) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button type="button" variant="ghost" size="sm">
-          + Add event
+          <FormattedMessage
+            id="dashboard.createEventDialog.addEvent"
+            defaultMessage="+ Add event"
+          />
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New event</DialogTitle>
+          <DialogTitle>
+            <FormattedMessage
+              id="dashboard.createEventDialog.newEvent"
+              defaultMessage="New event"
+            />
+          </DialogTitle>
           <DialogDescription>
-            Creates an event on your primary Google Calendar.
+            <FormattedMessage
+              id="dashboard.createEventDialog.description"
+              defaultMessage="Creates an event on your primary Google Calendar."
+            />
           </DialogDescription>
         </DialogHeader>
         <form
@@ -83,7 +95,12 @@ export function CreateEventDialog({ defaultDate }: Props) {
           className="flex flex-col gap-3"
         >
           <div className="flex flex-col gap-1">
-            <Label htmlFor="gcal-summary">Title</Label>
+            <Label htmlFor="gcal-summary">
+              <FormattedMessage
+                id="dashboard.createEventDialog.title"
+                defaultMessage="Title"
+              />
+            </Label>
             <Input
               id="gcal-summary"
               value={summary}
@@ -92,7 +109,12 @@ export function CreateEventDialog({ defaultDate }: Props) {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="gcal-start">Start</Label>
+            <Label htmlFor="gcal-start">
+              <FormattedMessage
+                id="dashboard.createEventDialog.start"
+                defaultMessage="Start"
+              />
+            </Label>
             <Input
               id="gcal-start"
               type="datetime-local"
@@ -102,7 +124,12 @@ export function CreateEventDialog({ defaultDate }: Props) {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="gcal-end">End</Label>
+            <Label htmlFor="gcal-end">
+              <FormattedMessage
+                id="dashboard.createEventDialog.end"
+                defaultMessage="End"
+              />
+            </Label>
             <Input
               id="gcal-end"
               type="datetime-local"
@@ -113,7 +140,17 @@ export function CreateEventDialog({ defaultDate }: Props) {
           </div>
           <DialogFooter>
             <Button type="submit" disabled={createEvent.isPending}>
-              {createEvent.isPending ? "Creating…" : "Create event"}
+              {createEvent.isPending ? (
+                <FormattedMessage
+                  id="dashboard.createEventDialog.creating"
+                  defaultMessage="Creating…"
+                />
+              ) : (
+                <FormattedMessage
+                  id="dashboard.createEventDialog.createEvent"
+                  defaultMessage="Create event"
+                />
+              )}
             </Button>
           </DialogFooter>
         </form>

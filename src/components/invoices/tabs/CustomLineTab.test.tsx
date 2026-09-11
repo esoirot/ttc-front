@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { TranslationRate } from "@/types/rates.types";
+
+const IntlWrapper = createIntlWrapper();
 
 const useCustomLineTabMock = vi.fn();
 vi.mock("@/hooks/invoices/useCustomLineTab", () => ({
@@ -54,6 +57,7 @@ function renderTab(
   });
   return render(
     <CustomLineTab invoiceId={1} onAdd={vi.fn()} adding={adding} />,
+    { wrapper: IntlWrapper },
   );
 }
 
@@ -164,7 +168,9 @@ describe("CustomLineTab", () => {
   it("passes invoiceId and onAdd args to useCustomLineTab", () => {
     const onAdd = vi.fn();
     useCustomLineTabMock.mockReturnValue(defaultState());
-    render(<CustomLineTab invoiceId={42} onAdd={onAdd} adding={false} />);
+    render(<CustomLineTab invoiceId={42} onAdd={onAdd} adding={false} />, {
+      wrapper: IntlWrapper,
+    });
     expect(useCustomLineTabMock).toHaveBeenCalledWith(42, onAdd);
   });
 });

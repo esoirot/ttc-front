@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Project } from "@/types/projects.types";
 import { ProjectCard } from "./ProjectCard";
 
@@ -33,6 +35,13 @@ function makeProject(overrides: Partial<Project> = {}): Project {
 const meta: Meta<typeof ProjectCard> = {
   component: ProjectCard,
   title: "Organisms/ProjectCard",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     project: makeProject(),
     clientName: "Acme Corp",

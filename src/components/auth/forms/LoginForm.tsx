@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { FormattedMessage, useIntl } from "react-intl";
 import { useLogin, useCurrentUser } from "@/hooks/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { AuthLayout } from "../layouts/AuthLayout";
 import { GoogleOAuthButton } from "../oauth/GoogleOAuthButton";
 
 export function LoginForm() {
+  const intl = useIntl();
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as { from?: string; message?: string } | null;
@@ -37,9 +39,19 @@ export function LoginForm() {
   const [passwordTouched, setPasswordTouched] = useState(false);
 
   const emailError =
-    emailTouched && !isValidEmail(email) ? "Enter a valid email address." : "";
+    emailTouched && !isValidEmail(email)
+      ? intl.formatMessage({
+          id: "auth.login.emailError",
+          defaultMessage: "Enter a valid email address.",
+        })
+      : "";
   const passwordError =
-    passwordTouched && password.length === 0 ? "Password is required." : "";
+    passwordTouched && password.length === 0
+      ? intl.formatMessage({
+          id: "auth.login.passwordError",
+          defaultMessage: "Password is required.",
+        })
+      : "";
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -58,7 +70,12 @@ export function LoginForm() {
   }
 
   return (
-    <AuthLayout title="Sign in">
+    <AuthLayout
+      title={intl.formatMessage({
+        id: "auth.login.title",
+        defaultMessage: "Sign in",
+      })}
+    >
       {successMessage && (
         <p className="text-sm text-center text-emerald-600 mb-2">
           {successMessage}
@@ -66,7 +83,12 @@ export function LoginForm() {
       )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">
+            <FormattedMessage
+              id="auth.login.emailLabel"
+              defaultMessage="Email"
+            />
+          </Label>
           <Input
             id="email"
             type="email"
@@ -84,12 +106,20 @@ export function LoginForm() {
 
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">
+              <FormattedMessage
+                id="auth.login.passwordLabel"
+                defaultMessage="Password"
+              />
+            </Label>
             <Link
               to="/forgot-password"
               className="text-xs text-muted-foreground hover:underline"
             >
-              Forgot password?
+              <FormattedMessage
+                id="auth.login.forgotPassword"
+                defaultMessage="Forgot password?"
+              />
             </Link>
           </div>
           <Input
@@ -110,25 +140,40 @@ export function LoginForm() {
         {error && <p className="text-sm text-destructive">{error.message}</p>}
 
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Signing in…" : "Sign in"}
+          {loading ? (
+            <FormattedMessage
+              id="auth.login.submitting"
+              defaultMessage="Signing in…"
+            />
+          ) : (
+            <FormattedMessage id="auth.login.submit" defaultMessage="Sign in" />
+          )}
         </Button>
       </form>
 
       <div className="flex items-center gap-3 my-4 text-xs text-muted-foreground">
         <Separator className="flex-1" />
-        <span>or</span>
+        <span>
+          <FormattedMessage id="auth.login.or" defaultMessage="or" />
+        </span>
         <Separator className="flex-1" />
       </div>
 
       <GoogleOAuthButton from={from} />
 
       <p className="text-sm text-center mt-4 text-muted-foreground">
-        No account?{" "}
+        <FormattedMessage
+          id="auth.login.noAccount"
+          defaultMessage="No account?"
+        />{" "}
         <Link
           to="/register"
           className="text-primary font-medium hover:underline"
         >
-          Register
+          <FormattedMessage
+            id="auth.login.register"
+            defaultMessage="Register"
+          />
         </Link>
       </p>
     </AuthLayout>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
 import { PlusIcon, XIcon } from "lucide-react";
 import type { Tag } from "@/types/tags.types";
 import type { TtcTagChipsProps as Props } from "@/types/time-entries.types";
@@ -22,6 +23,7 @@ import { useCreateTag } from "@/hooks/tags/useTags";
 type PendingNew = { key: string; name: string };
 
 export function TtcTagChips({ tagIds, tags, onChange }: Props) {
+  const intl = useIntl();
   const { createTag } = useCreateTag();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -96,7 +98,14 @@ export function TtcTagChips({ tagIds, tags, onChange }: Props) {
         setStagedIds([...finalStaged]);
       } catch {
         setSaveError(
-          `Couldn't create "${next.name}". Other staged changes are kept — Save again to retry.`,
+          intl.formatMessage(
+            {
+              id: "time.tagChips.createError",
+              defaultMessage:
+                'Couldn\'t create "{name}". Other staged changes are kept — Save again to retry.',
+            },
+            { name: next.name },
+          ),
         );
         setSaving(false);
         return;
@@ -141,7 +150,10 @@ export function TtcTagChips({ tagIds, tags, onChange }: Props) {
               variant="ghost"
               size="icon-xs"
               className="text-muted-foreground"
-              aria-label="Edit tags"
+              aria-label={intl.formatMessage({
+                id: "time.tagChips.editTags",
+                defaultMessage: "Edit tags",
+              })}
             >
               <PlusIcon />
             </Button>
@@ -151,7 +163,10 @@ export function TtcTagChips({ tagIds, tags, onChange }: Props) {
               size="xs"
               className="text-muted-foreground font-normal"
             >
-              + tag
+              <FormattedMessage
+                id="time.tagChips.addTag"
+                defaultMessage="+ tag"
+              />
             </Button>
           )}
         </PopoverTrigger>
@@ -160,10 +175,18 @@ export function TtcTagChips({ tagIds, tags, onChange }: Props) {
             <CommandInput
               value={query}
               onValueChange={setQuery}
-              placeholder="Search or add tag…"
+              placeholder={intl.formatMessage({
+                id: "time.tagChips.searchPlaceholder",
+                defaultMessage: "Search or add tag…",
+              })}
             />
             <CommandList>
-              <CommandEmpty>No tags found.</CommandEmpty>
+              <CommandEmpty>
+                <FormattedMessage
+                  id="time.tagChips.noTagsFound"
+                  defaultMessage="No tags found."
+                />
+              </CommandEmpty>
               {tags.map((t) => (
                 <CommandItem
                   key={t.id}
@@ -180,7 +203,11 @@ export function TtcTagChips({ tagIds, tags, onChange }: Props) {
                   className="text-primary"
                   onSelect={stagePendingNew}
                 >
-                  Add &quot;{trimmedQuery}&quot;
+                  <FormattedMessage
+                    id="time.tagChips.addQuery"
+                    defaultMessage='Add "{query}"'
+                    values={{ query: trimmedQuery }}
+                  />
                 </CommandItem>
               )}
             </CommandList>
@@ -213,7 +240,17 @@ export function TtcTagChips({ tagIds, tags, onChange }: Props) {
                 disabled={saving}
                 onClick={() => void handleSave()}
               >
-                {saving ? "Saving…" : "Save"}
+                {saving ? (
+                  <FormattedMessage
+                    id="clients.header.saving"
+                    defaultMessage="Saving…"
+                  />
+                ) : (
+                  <FormattedMessage
+                    id="common.actions.save"
+                    defaultMessage="Save"
+                  />
+                )}
               </Button>
               <Button
                 size="sm"
@@ -221,7 +258,10 @@ export function TtcTagChips({ tagIds, tags, onChange }: Props) {
                 disabled={saving}
                 onClick={handleCancel}
               >
-                Cancel
+                <FormattedMessage
+                  id="common.actions.cancel"
+                  defaultMessage="Cancel"
+                />
               </Button>
             </div>
           </Command>

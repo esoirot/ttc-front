@@ -1,7 +1,10 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChangeEvent } from "react";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { ClockifyTimeEntry } from "@/types/clockify.types";
+
+const wrapper = createIntlWrapper();
 
 const useClockifyActiveEntryMock = vi.fn();
 const useStartEntryMock = vi.fn();
@@ -103,14 +106,14 @@ describe("ActiveTimer", () => {
   });
 
   it("shows description input and Start button when no active timer", () => {
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
     expect(screen.getByTestId("desc-input")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
   });
 
   it("shows Stop button and elapsed clock when a timer is running", () => {
     useClockifyActiveEntryMock.mockReturnValue({ data: makeActive() });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
     expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
     expect(screen.getByText(/\d\d:\d\d:\d\d/)).toBeInTheDocument();
   });
@@ -119,7 +122,7 @@ describe("ActiveTimer", () => {
     useClockifyActiveEntryMock.mockReturnValue({
       data: makeActive({ description: "Review copy" }),
     });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
     expect(screen.getByText("Review copy")).toBeInTheDocument();
   });
 
@@ -127,7 +130,7 @@ describe("ActiveTimer", () => {
     useClockifyActiveEntryMock.mockReturnValue({
       data: makeActive({ description: null }),
     });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
     expect(screen.getByText("No description")).toBeInTheDocument();
   });
 
@@ -135,7 +138,7 @@ describe("ActiveTimer", () => {
     useClockifyActiveEntryMock.mockReturnValue({
       data: makeActive({ projectId: "p1" }),
     });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
     expect(screen.getByText("Docs")).toBeInTheDocument();
   });
 
@@ -143,7 +146,7 @@ describe("ActiveTimer", () => {
     useClockifyActiveEntryMock.mockReturnValue({
       data: makeActive({ tagIds: ["t1"] }),
     });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
     expect(screen.getByText("Urgent")).toBeInTheDocument();
   });
 
@@ -151,7 +154,7 @@ describe("ActiveTimer", () => {
     useClockifyActiveEntryMock.mockReturnValue({
       data: makeActive({ billable: true }),
     });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
     expect(screen.getByText("$")).toBeInTheDocument();
   });
 
@@ -159,7 +162,7 @@ describe("ActiveTimer", () => {
     const stop = vi.fn();
     useClockifyActiveEntryMock.mockReturnValue({ data: makeActive() });
     useStopEntryMock.mockReturnValue({ mutate: stop, isPending: false });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "Stop" }));
     expect(stop).toHaveBeenCalled();
   });
@@ -167,14 +170,14 @@ describe("ActiveTimer", () => {
   it("shows Stopping… and disables the Stop button while stopping", () => {
     useClockifyActiveEntryMock.mockReturnValue({ data: makeActive() });
     useStopEntryMock.mockReturnValue({ mutate: vi.fn(), isPending: true });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
     expect(screen.getByRole("button", { name: "Stopping…" })).toBeDisabled();
   });
 
   it("calls start() with description, projectId, tagIds, and billable when Start is clicked", () => {
     const start = vi.fn();
     useStartEntryMock.mockReturnValue({ mutate: start, isPending: false });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
 
     fireEvent.change(screen.getByTestId("desc-input"), {
       target: { value: "  Translate  " },
@@ -194,7 +197,7 @@ describe("ActiveTimer", () => {
   it("clears the description field after Start is clicked", () => {
     const start = vi.fn();
     useStartEntryMock.mockReturnValue({ mutate: start, isPending: false });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
 
     fireEvent.change(screen.getByTestId("desc-input"), {
       target: { value: "Translate" },
@@ -206,14 +209,14 @@ describe("ActiveTimer", () => {
 
   it("shows Starting… and disables Start while the mutation is pending", () => {
     useStartEntryMock.mockReturnValue({ mutate: vi.fn(), isPending: true });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
     expect(screen.getByRole("button", { name: "Starting…" })).toBeDisabled();
   });
 
   it("calls start() via the DescriptionCombobox onEnter callback", () => {
     const start = vi.fn();
     useStartEntryMock.mockReturnValue({ mutate: start, isPending: false });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
 
     act(() => capturedOnEnter?.());
 
@@ -223,7 +226,7 @@ describe("ActiveTimer", () => {
   it("passes a non-null projectId when one is selected", () => {
     const start = vi.fn();
     useStartEntryMock.mockReturnValue({ mutate: start, isPending: false });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
 
     fireEvent.click(screen.getByTestId("project-select")); // triggers onChange("p1")
     fireEvent.click(screen.getByRole("button", { name: "Start" }));
@@ -236,7 +239,7 @@ describe("ActiveTimer", () => {
   it("adds and removes tag ids via TagChips, reflected in start()", () => {
     const start = vi.fn();
     useStartEntryMock.mockReturnValue({ mutate: start, isPending: false });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
 
     fireEvent.click(screen.getByText("add-tag"));
     fireEvent.click(screen.getByRole("button", { name: "Start" }));
@@ -254,7 +257,7 @@ describe("ActiveTimer", () => {
   it("updates the elapsed clock display on each tick while a timer runs", () => {
     vi.useFakeTimers();
     useClockifyActiveEntryMock.mockReturnValue({ data: makeActive() });
-    render(<ActiveTimer {...baseProps} />);
+    render(<ActiveTimer {...baseProps} />, { wrapper });
 
     act(() => {
       vi.advanceTimersByTime(1000);
@@ -262,5 +265,13 @@ describe("ActiveTimer", () => {
 
     expect(screen.getByText(/\d\d:\d\d:\d\d/)).toBeInTheDocument();
     vi.useRealTimers();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    useClockifyActiveEntryMock.mockReturnValue({ data: makeActive() });
+    render(<ActiveTimer {...baseProps} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+    expect(screen.getByRole("button", { name: "Arrêter" })).toBeInTheDocument();
   });
 });

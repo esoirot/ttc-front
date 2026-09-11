@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MemoryRouter } from "react-router-dom";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Client } from "@/types/clients.types";
 import { ProspectCard } from "./ProspectCard";
 
@@ -48,15 +50,17 @@ const meta: Meta<typeof ProspectCard> = {
   title: "Organisms/ProspectCard",
   decorators: [
     (Story) => (
-      <MemoryRouter>
-        <DndContext>
-          <SortableContext items={[1]}>
-            <div className="max-w-xs">
-              <Story />
-            </div>
-          </SortableContext>
-        </DndContext>
-      </MemoryRouter>
+      <IntlProvider locale="en" messages={messages.en}>
+        <MemoryRouter>
+          <DndContext>
+            <SortableContext items={[1]}>
+              <div className="max-w-xs">
+                <Story />
+              </div>
+            </SortableContext>
+          </DndContext>
+        </MemoryRouter>
+      </IntlProvider>
     ),
   ],
   args: {

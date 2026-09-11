@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl } from "react-intl";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { RateSheetList } from "../lists/RateSheetList";
 import { RateSheetForm } from "../forms/RateSheetForm";
 
 export function RatesTabs() {
+  const intl = useIntl();
   const { rates: allRates, loading } = useRates();
   const { rateSheets } = useRateSheets();
   const { createRateSheet, loading: creating } = useCreateRateSheet();
@@ -40,9 +42,17 @@ export function RatesTabs() {
     <Tabs defaultValue="overview">
       <div className="pb-4 border-b border-border mb-6">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="overview">
+            {intl.formatMessage({
+              id: "rates.tabs.overview",
+              defaultMessage: "Overview",
+            })}
+          </TabsTrigger>
           <TabsTrigger value="hourly">
-            Hourly
+            {intl.formatMessage({
+              id: "rates.type.hourly",
+              defaultMessage: "Hourly",
+            })}
             {hourly.length > 0 && (
               <Badge variant="secondary" className="ml-1.5 text-xs px-1.5">
                 {hourly.length}
@@ -50,7 +60,10 @@ export function RatesTabs() {
             )}
           </TabsTrigger>
           <TabsTrigger value="day">
-            Day Rate
+            {intl.formatMessage({
+              id: "rates.type.day",
+              defaultMessage: "Day Rate",
+            })}
             {day.length > 0 && (
               <Badge variant="secondary" className="ml-1.5 text-xs px-1.5">
                 {day.length}
@@ -58,7 +71,10 @@ export function RatesTabs() {
             )}
           </TabsTrigger>
           <TabsTrigger value="per-word">
-            Per Word
+            {intl.formatMessage({
+              id: "rates.type.perWord",
+              defaultMessage: "Per Word",
+            })}
             {perWord.length > 0 && (
               <Badge variant="secondary" className="ml-1.5 text-xs px-1.5">
                 {perWord.length}
@@ -66,7 +82,10 @@ export function RatesTabs() {
             )}
           </TabsTrigger>
           <TabsTrigger value="fixed">
-            Fixed Fee
+            {intl.formatMessage({
+              id: "rates.type.fixed",
+              defaultMessage: "Fixed Fee",
+            })}
             {fixed.length > 0 && (
               <Badge variant="secondary" className="ml-1.5 text-xs px-1.5">
                 {fixed.length}
@@ -74,7 +93,10 @@ export function RatesTabs() {
             )}
           </TabsTrigger>
           <TabsTrigger value="sheets">
-            Rate Sheets
+            {intl.formatMessage({
+              id: "rates.tabs.rateSheets",
+              defaultMessage: "Rate Sheets",
+            })}
             {rateSheets.length > 0 && (
               <Badge variant="secondary" className="ml-1.5 text-xs px-1.5">
                 {rateSheets.length}
@@ -96,7 +118,11 @@ export function RatesTabs() {
           !showSheetForm ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground text-sm">
-              No rates defined yet. Use the tabs above to add your first rate.
+              {intl.formatMessage({
+                id: "rates.tabs.emptyOverview",
+                defaultMessage:
+                  "No rates defined yet. Use the tabs above to add your first rate.",
+              })}
             </CardContent>
           </Card>
         ) : (
@@ -111,7 +137,12 @@ export function RatesTabs() {
             <OverviewSection type="FIXED" rates={fixed} loading={loading} />
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-sm font-semibold">Rate Sheets</h3>
+                <h3 className="text-sm font-semibold">
+                  {intl.formatMessage({
+                    id: "rates.tabs.rateSheets",
+                    defaultMessage: "Rate Sheets",
+                  })}
+                </h3>
                 <Badge variant="secondary" className="text-xs">
                   {rateSheets.length}
                 </Badge>
@@ -121,12 +152,23 @@ export function RatesTabs() {
                   className="ml-auto h-6 px-2 text-xs"
                   onClick={() => setShowSheetForm((v) => !v)}
                 >
-                  {showSheetForm ? "Cancel" : "+ Add"}
+                  {showSheetForm
+                    ? intl.formatMessage({
+                        id: "common.actions.cancel",
+                        defaultMessage: "Cancel",
+                      })
+                    : intl.formatMessage({
+                        id: "rates.tabs.add",
+                        defaultMessage: "+ Add",
+                      })}
                 </Button>
               </div>
               {rateSheets.length === 0 && !showSheetForm && (
                 <p className="text-xs text-muted-foreground">
-                  No rate sheets defined.
+                  {intl.formatMessage({
+                    id: "rates.tabs.noRateSheetsDefined",
+                    defaultMessage: "No rate sheets defined.",
+                  })}
                 </p>
               )}
               {rateSheets.length > 0 && (
@@ -164,7 +206,10 @@ export function RatesTabs() {
                           )}
                           {sheet.isDefault && clientName(sheet.clientId) && (
                             <Badge variant="secondary" className="text-xs">
-                              Default
+                              {intl.formatMessage({
+                                id: "rates.rateSheetRow.default",
+                                defaultMessage: "Default",
+                              })}
                             </Badge>
                           )}
                           {sheet.description && (
@@ -188,7 +233,10 @@ export function RatesTabs() {
                             variant="outline"
                             className="text-xs font-mono"
                           >
-                            /word
+                            {intl.formatMessage({
+                              id: "rates.unit.perWord",
+                              defaultMessage: "/word",
+                            })}
                           </Badge>
                           <Button
                             variant="outline"
@@ -199,7 +247,10 @@ export function RatesTabs() {
                               setEditingSheetId(sheet.id);
                             }}
                           >
-                            Edit
+                            {intl.formatMessage({
+                              id: "common.actions.edit",
+                              defaultMessage: "Edit",
+                            })}
                           </Button>
                         </div>
                       </div>

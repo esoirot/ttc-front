@@ -1,7 +1,9 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { screen, userEvent, within } from "storybook/test";
+import { messages } from "@/i18n/messages";
 import { TtcTagChips } from "./TtcTagChips";
 
 const tags = [
@@ -16,7 +18,9 @@ const meta: Meta<typeof TtcTagChips> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <Story />
+        <IntlProvider locale="en" messages={messages.en}>
+          <Story />
+        </IntlProvider>
       </QueryClientProvider>
     ),
   ],

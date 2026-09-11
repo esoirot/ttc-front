@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -12,11 +15,13 @@ vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { CreateProjectForm } from "./CreateProjectForm";
 
-function renderForm(onClose = vi.fn()) {
+function renderForm(onClose = vi.fn(), locale: Locale = "en") {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <CreateProjectForm clients={[]} onClose={onClose} />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <CreateProjectForm clients={[]} onClose={onClose} />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -57,5 +62,11 @@ describe("CreateProjectForm", () => {
         targetLanguage: "FR",
       },
     });
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm(vi.fn(), "fr");
+    fireEvent.click(screen.getByText("Créer le projet"));
+    expect(screen.getByText("Le titre est requis")).toBeInTheDocument();
   });
 });

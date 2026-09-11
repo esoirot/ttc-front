@@ -1,9 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -26,7 +28,19 @@ import { RegisterForm } from "./RegisterForm";
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter>{children}</MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en" messages={messages.en}>
+        <MemoryRouter>{children}</MemoryRouter>
+      </IntlProvider>
+    </QueryClientProvider>
+  );
+}
+
+function frWrapper({ children }: { children: ReactNode }) {
+  return (
+    <QueryClientProvider client={createQueryClient()}>
+      <IntlProvider locale="fr" defaultLocale="fr" messages={messages.fr}>
+        <MemoryRouter>{children}</MemoryRouter>
+      </IntlProvider>
     </QueryClientProvider>
   );
 }
@@ -82,5 +96,13 @@ describe("RegisterForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create account" }));
 
     expect(await screen.findByText("Email already in use")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<RegisterForm />, { wrapper: frWrapper });
+
+    expect(
+      screen.getByRole("heading", { name: "Créer un compte" }),
+    ).toBeInTheDocument();
   });
 });

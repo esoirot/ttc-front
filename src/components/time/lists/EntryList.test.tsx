@@ -9,6 +9,9 @@ vi.mock("../groups/TtcDayGroup", () => ({
 
 import type { TimeEntry } from "@/types/time-entries.types";
 import { EntryList } from "./EntryList";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
   return {
@@ -47,6 +50,7 @@ describe("EntryList", () => {
   it("shows skeletons while loading with no entries yet", () => {
     const { container } = render(
       <EntryList {...baseProps({ loading: true, entries: [] })} />,
+      { wrapper },
     );
 
     expect(
@@ -55,7 +59,7 @@ describe("EntryList", () => {
   });
 
   it("shows an empty state when there are no entries and not loading", () => {
-    render(<EntryList {...baseProps({ entries: [] })} />);
+    render(<EntryList {...baseProps({ entries: [] })} />, { wrapper });
 
     expect(screen.getByText("No entries in this period.")).toBeInTheDocument();
   });
@@ -70,6 +74,7 @@ describe("EntryList", () => {
           ],
         })}
       />,
+      { wrapper },
     );
 
     expect(screen.getAllByTestId("day-group")).toHaveLength(2);
@@ -78,6 +83,7 @@ describe("EntryList", () => {
   it("shows entries even while loading is true, once entries exist", () => {
     render(
       <EntryList {...baseProps({ loading: true, entries: [makeEntry()] })} />,
+      { wrapper },
     );
 
     expect(screen.getByTestId("day-group")).toBeInTheDocument();
@@ -86,6 +92,7 @@ describe("EntryList", () => {
   it("shows the Load more button only when hasMore is true", () => {
     const { rerender } = render(
       <EntryList {...baseProps({ entries: [makeEntry()], hasMore: false })} />,
+      { wrapper },
     );
     expect(screen.queryByText("Load more")).not.toBeInTheDocument();
 
@@ -101,9 +108,20 @@ describe("EntryList", () => {
       <EntryList
         {...baseProps({ entries: [makeEntry()], hasMore: true, loadMore })}
       />,
+      { wrapper },
     );
 
     fireEvent.click(screen.getByText("Load more"));
     expect(loadMore).toHaveBeenCalled();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<EntryList {...baseProps({ entries: [] })} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
+
+    expect(
+      screen.getByText("Aucune entrée sur cette période."),
+    ).toBeInTheDocument();
   });
 });

@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import { TaskSortControls } from "./TaskSortControls";
+
+const wrapper = createIntlWrapper();
 
 function renderControls(
   overrides: Partial<Parameters<typeof TaskSortControls>[0]> = {},
@@ -14,6 +17,7 @@ function renderControls(
       idPrefix="test"
       {...overrides}
     />,
+    { wrapper },
   );
 }
 

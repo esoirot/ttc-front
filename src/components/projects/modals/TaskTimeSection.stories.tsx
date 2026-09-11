@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { TaskTimeSection } from "./TaskTimeSection";
 
 const meta: Meta<typeof TaskTimeSection> = {
@@ -8,9 +10,11 @@ const meta: Meta<typeof TaskTimeSection> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient()}>
-        <div className="max-w-sm border border-border rounded-md p-4">
-          <Story />
-        </div>
+        <IntlProvider locale="en" messages={messages.en}>
+          <div className="max-w-sm border border-border rounded-md p-4">
+            <Story />
+          </div>
+        </IntlProvider>
       </QueryClientProvider>
     ),
   ],

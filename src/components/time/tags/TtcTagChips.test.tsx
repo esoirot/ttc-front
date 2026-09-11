@@ -9,7 +9,10 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { Tag } from "@/types/tags.types";
 import { TtcTagChips } from "./TtcTagChips";
 
@@ -21,10 +24,22 @@ const TAGS: Tag[] = [
 
 function renderChips(
   overrides: Partial<Parameters<typeof TtcTagChips>[0]> = {},
+  locale: Locale = "en",
 ) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <TtcTagChips tagIds={[]} tags={TAGS} onChange={vi.fn()} {...overrides} />
+      <IntlProvider
+        locale={locale}
+        defaultLocale="en"
+        messages={messages[locale]}
+      >
+        <TtcTagChips
+          tagIds={[]}
+          tags={TAGS}
+          onChange={vi.fn()}
+          {...overrides}
+        />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -221,5 +236,19 @@ describe("TtcTagChips", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(onChange).toHaveBeenCalledWith([9]));
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderChips({}, "fr");
+
+    fireEvent.click(screen.getByRole("button", { name: /étiquette/i }));
+
+    expect(
+      screen.getByPlaceholderText("Rechercher ou ajouter une étiquette…"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Enregistrer" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Annuler" })).toBeInTheDocument();
   });
 });

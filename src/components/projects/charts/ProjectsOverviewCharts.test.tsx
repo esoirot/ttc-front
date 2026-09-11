@@ -1,6 +1,11 @@
 import { render, screen } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createQueryWrapper } from "@/test/queryClientWrapper";
+import type { ReactNode } from "react";
+import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { Project } from "@/types/projects.types";
 import type { TimeEntry } from "@/types/time-entries.types";
 
@@ -105,6 +110,18 @@ function setupGqlFetch(
   });
 }
 
+function makeWrapper(locale: Locale = "en") {
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={createQueryClient()}>
+        <IntlProvider locale={locale} messages={messages[locale]}>
+          {children}
+        </IntlProvider>
+      </QueryClientProvider>
+    );
+  };
+}
+
 describe("ProjectsOverviewCharts", () => {
   beforeEach(() => {
     gqlFetch.mockReset();
@@ -113,7 +130,7 @@ describe("ProjectsOverviewCharts", () => {
   it("always shows all 4 chart cards, with empty-state messages when there is no data", async () => {
     setupGqlFetch();
     render(<ProjectsOverviewCharts />, {
-      wrapper: createQueryWrapper(),
+      wrapper: makeWrapper(),
     });
 
     expect(await screen.findAllByText("Time per project")).toHaveLength(2);
@@ -145,7 +162,7 @@ describe("ProjectsOverviewCharts", () => {
         }),
       ],
     });
-    render(<ProjectsOverviewCharts />, { wrapper: createQueryWrapper() });
+    render(<ProjectsOverviewCharts />, { wrapper: makeWrapper() });
 
     const timeCharts = await screen.findAllByText("Time per project");
     expect(timeCharts).toHaveLength(2);
@@ -177,7 +194,7 @@ describe("ProjectsOverviewCharts", () => {
         }),
       ],
     });
-    render(<ProjectsOverviewCharts />, { wrapper: createQueryWrapper() });
+    render(<ProjectsOverviewCharts />, { wrapper: makeWrapper() });
 
     const monthLabel = new Date().toLocaleDateString(undefined, {
       month: "long",
@@ -188,5 +205,14 @@ describe("ProjectsOverviewCharts", () => {
     expect(screen.getAllByText("Words per project")).toHaveLength(2);
     expect(screen.getByText("No time logged yet.")).toBeInTheDocument();
     expect(screen.getByText("No words logged yet.")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    setupGqlFetch();
+    render(<ProjectsOverviewCharts />, { wrapper: makeWrapper("fr") });
+
+    expect(await screen.findAllByText("Temps par projet")).toHaveLength(2);
+    expect(screen.getAllByText("Mots par projet")).toHaveLength(2);
+    expect(screen.getByText("Aucun temps enregistré.")).toBeInTheDocument();
   });
 });

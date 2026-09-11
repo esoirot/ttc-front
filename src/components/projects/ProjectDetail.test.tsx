@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
 import type { Project } from "@/types/projects.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -58,16 +60,22 @@ function blanketResponse(project: Project | null) {
   });
 }
 
-function renderAt(id: string, project: Project | null) {
+function renderAt(
+  id: string,
+  project: Project | null,
+  locale: "en" | "fr" = "en",
+) {
   gqlFetch.mockImplementation(() => blanketResponse(project));
 
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter initialEntries={[`/projects/${id}`]}>
-        <Routes>
-          <Route path="/projects/:id" element={<ProjectDetail />} />
-        </Routes>
-      </MemoryRouter>
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <MemoryRouter initialEntries={[`/projects/${id}`]}>
+          <Routes>
+            <Route path="/projects/:id" element={<ProjectDetail />} />
+          </Routes>
+        </MemoryRouter>
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -81,6 +89,11 @@ describe("ProjectDetail", () => {
   it("shows 'Project not found.' when the project does not exist", async () => {
     renderAt("999", null);
     expect(await screen.findByText("Project not found.")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    renderAt("999", null, "fr");
+    expect(await screen.findByText("Projet introuvable.")).toBeInTheDocument();
   });
 
   it("renders the project header, overview, and tab list once loaded", async () => {

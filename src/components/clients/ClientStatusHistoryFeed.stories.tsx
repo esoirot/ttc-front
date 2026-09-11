@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { ClientStatusHistory } from "@/types/clients.types";
 import { ClientStatusHistoryFeed } from "./ClientStatusHistoryFeed";
 
@@ -36,6 +38,13 @@ const meta: Meta<typeof ClientStatusHistoryFeed> = {
   component: ClientStatusHistoryFeed,
   title: "Molecules/ClientStatusHistoryFeed",
   args: { history },
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof ClientStatusHistoryFeed>;

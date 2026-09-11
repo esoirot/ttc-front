@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { MiniMonthGrid } from "./MiniMonthGrid";
 import type { GoogleCalendarEvent } from "@/types/google-calendar.types";
 
@@ -25,6 +27,13 @@ const events: GoogleCalendarEvent[] = [
 const meta: Meta<typeof MiniMonthGrid> = {
   component: MiniMonthGrid,
   title: "Molecules/MiniMonthGrid",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     visibleMonth,
     selectedDate,

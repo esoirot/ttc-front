@@ -1,3 +1,4 @@
+import { FormattedMessage, useIntl } from "react-intl";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
 import { useDashboard } from "@/hooks/account/useDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +10,7 @@ import { ProspectsToContact } from "./prospectsToContact/ProspectsToContact";
 import { GoogleCalendarWidget } from "./googleCalendar/GoogleCalendarWidget";
 
 export function AccountDashboard() {
+  const intl = useIntl();
   const { user, loading: userLoading } = useCurrentUser();
   const { dashboard, loading: dashLoading } = useDashboard();
 
@@ -36,7 +38,7 @@ export function AccountDashboard() {
     );
   }
 
-  const today = new Date().toLocaleDateString(undefined, {
+  const today = intl.formatDate(new Date(), {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -46,11 +48,20 @@ export function AccountDashboard() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
       <div className="flex items-start justify-between mb-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          <FormattedMessage
+            id="dashboard.accountDashboard.title"
+            defaultMessage="Dashboard"
+          />
+        </h1>
         <p className="text-sm text-muted-foreground">{today}</p>
       </div>
       <p className="text-muted-foreground mb-6">
-        Welcome back, {user?.name ?? user?.email}.
+        <FormattedMessage
+          id="dashboard.accountDashboard.welcomeBack"
+          defaultMessage="Welcome back, {name}."
+          values={{ name: user?.name ?? user?.email }}
+        />
       </p>
 
       {!user?.twoFactorEnabled && <TwoFactorPromptCard />}

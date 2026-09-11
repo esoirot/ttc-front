@@ -16,6 +16,9 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/test/queryClientWrapper";
 import type { Project } from "@/types/projects.types";
 import { TimerStartInput } from "./TimerStartInput";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeProject(overrides: Partial<Project> = {}): Project {
   return {
@@ -40,6 +43,7 @@ function makeProject(overrides: Partial<Project> = {}): Project {
 
 function renderInput(
   overrides: Partial<Parameters<typeof TimerStartInput>[0]> = {},
+  locale: "en" | "fr" = "en",
 ) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
@@ -50,6 +54,7 @@ function renderInput(
         {...overrides}
       />
     </QueryClientProvider>,
+    { wrapper: locale === "en" ? wrapper : createIntlWrapper(locale) },
   );
 }
 
@@ -205,5 +210,13 @@ describe("TimerStartInput", () => {
         screen.getByRole("button", { name: "▶ Start" }),
       ).not.toBeDisabled(),
     );
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderInput({}, "fr");
+
+    expect(
+      screen.getByRole("button", { name: "▶ Démarrer" }),
+    ).toBeInTheDocument();
   });
 });

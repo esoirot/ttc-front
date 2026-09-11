@@ -10,8 +10,11 @@ vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { Charge } from "@/types/activities.types";
 import { ChargeRow } from "./ChargeRow";
+
+const IntlWrapper = createIntlWrapper();
 
 function makeCharge(overrides: Partial<Charge> = {}): Charge {
   return {
@@ -27,7 +30,9 @@ function makeCharge(overrides: Partial<Charge> = {}): Charge {
 function renderRow(charge: Charge = makeCharge()) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <ChargeRow charge={charge} activityId={10} />
+      <IntlWrapper>
+        <ChargeRow charge={charge} activityId={10} />
+      </IntlWrapper>
     </QueryClientProvider>,
   );
 }

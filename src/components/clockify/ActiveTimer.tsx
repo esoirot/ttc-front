@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FormattedMessage } from "react-intl";
 import {
   useClockifyActiveEntry,
   useStartEntry,
@@ -84,7 +85,10 @@ export function ActiveTimer({
           <p className="text-sm font-medium truncate">
             {active.description || (
               <span className="italic text-muted-foreground">
-                No description
+                <FormattedMessage
+                  id="time.entryRow.noDescription"
+                  defaultMessage="No description"
+                />
               </span>
             )}
           </p>
@@ -116,7 +120,17 @@ export function ActiveTimer({
           disabled={stopping}
           className="shrink-0"
         >
-          {stopping ? "Stopping…" : "Stop"}
+          {stopping ? (
+            <FormattedMessage
+              id="clockify.activeTimer.stopping"
+              defaultMessage="Stopping…"
+            />
+          ) : (
+            <FormattedMessage
+              id="clockify.activeTimer.stop"
+              defaultMessage="Stop"
+            />
+          )}
         </Button>
       </div>
     );
@@ -126,7 +140,10 @@ export function ActiveTimer({
     <div className="flex flex-col gap-2">
       <div className="flex flex-col sm:flex-row gap-2">
         <Label htmlFor="at-description" className="sr-only">
-          Description
+          <FormattedMessage
+            id="time.entryRow.descriptionPlaceholder"
+            defaultMessage="Description"
+          />
         </Label>
         <DescriptionCombobox
           value={description}
@@ -140,7 +157,17 @@ export function ActiveTimer({
           disabled={starting}
           className="bg-emerald-600 hover:bg-emerald-700 text-white shrink-0"
         >
-          {starting ? "Starting…" : "Start"}
+          {starting ? (
+            <FormattedMessage
+              id="clockify.activeTimer.starting"
+              defaultMessage="Starting…"
+            />
+          ) : (
+            <FormattedMessage
+              id="clockify.activeTimer.start"
+              defaultMessage="Start"
+            />
+          )}
         </Button>
       </div>
       <div className="flex items-center gap-3 flex-wrap">

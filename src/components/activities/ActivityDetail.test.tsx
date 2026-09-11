@@ -24,6 +24,8 @@ vi.mock("react-router-dom", async () => {
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { defaultMatchRates } from "@/constants/matchRateItems";
 import type {
   AnyActivity,
@@ -107,10 +109,12 @@ function mockGql(responses: Record<string, unknown>) {
   );
 }
 
-function renderDetail() {
+function renderDetail(locale: "en" | "fr" = "en") {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <ActivityDetail />
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <ActivityDetail />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -144,6 +148,23 @@ describe("ActivityDetail", () => {
     expect(await screen.findByText("Activity not found.")).toBeInTheDocument();
     fireEvent.click(screen.getByText("← Back to activities"));
     expect(navigateMock).toHaveBeenCalledWith("/activities");
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    mockGql({
+      Activity: { activity: null },
+      MyActivities: { myActivities: [] },
+      Clients: { clients: { items: [], total: 0, nextCursor: null } },
+      Me: { me: null },
+      RateSheets: { rateSheets: [] },
+      Tags: { tags: [] },
+    });
+    renderDetail("fr");
+
+    expect(
+      await screen.findByText("Activité introuvable."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("← Retour aux activités")).toBeInTheDocument();
   });
 
   it("renders the core sections for a CUSTOM activity with no charges/rates", async () => {

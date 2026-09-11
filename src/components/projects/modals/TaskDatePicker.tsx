@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
+import type { MessageDescriptor } from "react-intl";
 import {
   Popover,
   PopoverContent,
@@ -22,30 +24,145 @@ const TIME_OPTIONS: string[] = Array.from({ length: 48 }, (_, i) => {
   return `${h}:${m}`;
 });
 
-const RECURRING_OPTIONS = [
-  { value: "NEVER", label: "Never" },
-  { value: "DAILY", label: "Daily" },
-  { value: "WEEKDAYS", label: "Monday to Friday" },
-  { value: "WEEKLY", label: "Weekly" },
-  { value: "MONTHLY_ON_30TH", label: "Monthly on the 30th" },
-  { value: "MONTHLY_LAST_THURSDAY", label: "Monthly on the last Thursday" },
-] as const;
+const RECURRING_OPTIONS: { value: string; labelMessage: MessageDescriptor }[] =
+  [
+    {
+      value: "NEVER",
+      labelMessage: {
+        id: "projects.taskDatePicker.recurring.never",
+        defaultMessage: "Never",
+      },
+    },
+    {
+      value: "DAILY",
+      labelMessage: {
+        id: "projects.taskDatePicker.recurring.daily",
+        defaultMessage: "Daily",
+      },
+    },
+    {
+      value: "WEEKDAYS",
+      labelMessage: {
+        id: "projects.taskDatePicker.recurring.weekdays",
+        defaultMessage: "Monday to Friday",
+      },
+    },
+    {
+      value: "WEEKLY",
+      labelMessage: {
+        id: "projects.taskDatePicker.recurring.weekly",
+        defaultMessage: "Weekly",
+      },
+    },
+    {
+      value: "MONTHLY_ON_30TH",
+      labelMessage: {
+        id: "projects.taskDatePicker.recurring.monthlyOn30th",
+        defaultMessage: "Monthly on the 30th",
+      },
+    },
+    {
+      value: "MONTHLY_LAST_THURSDAY",
+      labelMessage: {
+        id: "projects.taskDatePicker.recurring.monthlyLastThursday",
+        defaultMessage: "Monthly on the last Thursday",
+      },
+    },
+  ];
 
-const REMINDER_OPTIONS = [
-  { value: "NONE", label: "None" },
-  { value: "AT_DUE", label: "At time of due date" },
-  { value: "BEFORE_5M", label: "5 minutes before" },
-  { value: "BEFORE_10M", label: "10 minutes before" },
-  { value: "BEFORE_15M", label: "15 minutes before" },
-  { value: "BEFORE_30M", label: "30 minutes before" },
-  { value: "BEFORE_1H", label: "1 hour before" },
-  { value: "BEFORE_2H", label: "2 hours before" },
-  { value: "BEFORE_4H", label: "4 hours before" },
-  { value: "BEFORE_1D", label: "1 day before" },
-  { value: "BEFORE_2D", label: "2 days before" },
-  { value: "BEFORE_1W", label: "1 week before" },
-  { value: "BEFORE_2W", label: "2 weeks before" },
-] as const;
+const REMINDER_OPTIONS: { value: string; labelMessage: MessageDescriptor }[] = [
+  {
+    value: "NONE",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.none",
+      defaultMessage: "None",
+    },
+  },
+  {
+    value: "AT_DUE",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.atDue",
+      defaultMessage: "At time of due date",
+    },
+  },
+  {
+    value: "BEFORE_5M",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.before5m",
+      defaultMessage: "5 minutes before",
+    },
+  },
+  {
+    value: "BEFORE_10M",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.before10m",
+      defaultMessage: "10 minutes before",
+    },
+  },
+  {
+    value: "BEFORE_15M",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.before15m",
+      defaultMessage: "15 minutes before",
+    },
+  },
+  {
+    value: "BEFORE_30M",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.before30m",
+      defaultMessage: "30 minutes before",
+    },
+  },
+  {
+    value: "BEFORE_1H",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.before1h",
+      defaultMessage: "1 hour before",
+    },
+  },
+  {
+    value: "BEFORE_2H",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.before2h",
+      defaultMessage: "2 hours before",
+    },
+  },
+  {
+    value: "BEFORE_4H",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.before4h",
+      defaultMessage: "4 hours before",
+    },
+  },
+  {
+    value: "BEFORE_1D",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.before1d",
+      defaultMessage: "1 day before",
+    },
+  },
+  {
+    value: "BEFORE_2D",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.before2d",
+      defaultMessage: "2 days before",
+    },
+  },
+  {
+    value: "BEFORE_1W",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.before1w",
+      defaultMessage: "1 week before",
+    },
+  },
+  {
+    value: "BEFORE_2W",
+    labelMessage: {
+      id: "projects.taskDatePicker.reminder.before2w",
+      defaultMessage: "2 weeks before",
+    },
+  },
+];
 
 function parseISO(iso: string | null): { date: string; time: string } {
   if (!iso) return { date: "", time: "09:00" };
@@ -78,6 +195,7 @@ export function TaskDatePicker({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
+  const intl = useIntl();
   const [openState, setOpenState] = useState(false);
   const open = openProp ?? openState;
   const setOpen = onOpenChange ?? setOpenState;
@@ -132,19 +250,19 @@ export function TaskDatePicker({
   }
 
   const hasAnyDate = !!startDate || !!dueDate;
+  const dateFormatOptions = {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  } as const;
   const label = dueDate
-    ? new Date(dueDate).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
+    ? intl.formatDate(dueDate, dateFormatOptions)
     : startDate
-      ? new Date(startDate).toLocaleDateString(undefined, {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
-      : "No date";
+      ? intl.formatDate(startDate, dateFormatOptions)
+      : intl.formatMessage({
+          id: "projects.taskDatePicker.noDate",
+          defaultMessage: "No date",
+        });
 
   return (
     <Popover open={open} onOpenChange={handleOpen}>
@@ -166,7 +284,10 @@ export function TaskDatePicker({
               htmlFor="start-enabled"
               className="text-xs font-medium cursor-pointer"
             >
-              Start Date
+              <FormattedMessage
+                id="projects.taskDatePicker.startDate"
+                defaultMessage="Start Date"
+              />
             </Label>
           </div>
           {startEnabled && (
@@ -204,7 +325,10 @@ export function TaskDatePicker({
               htmlFor="due-enabled"
               className="text-xs font-medium cursor-pointer"
             >
-              Due Date
+              <FormattedMessage
+                id="projects.taskDatePicker.dueDate"
+                defaultMessage="Due Date"
+              />
             </Label>
           </div>
           {dueEnabled && (
@@ -232,7 +356,12 @@ export function TaskDatePicker({
 
         {/* Recurring */}
         <div className="flex flex-col gap-1">
-          <Label className="text-xs font-medium">Recurring</Label>
+          <Label className="text-xs font-medium">
+            <FormattedMessage
+              id="projects.taskDatePicker.recurringLabel"
+              defaultMessage="Recurring"
+            />
+          </Label>
           <Select value={recurringVal} onValueChange={setRecurringVal}>
             <SelectTrigger className="h-7 text-xs">
               <SelectValue />
@@ -240,7 +369,7 @@ export function TaskDatePicker({
             <SelectContent>
               {RECURRING_OPTIONS.map((o) => (
                 <SelectItem key={o.value} value={o.value} className="text-xs">
-                  {o.label}
+                  {intl.formatMessage(o.labelMessage)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -249,7 +378,12 @@ export function TaskDatePicker({
 
         {/* Reminder */}
         <div className="flex flex-col gap-1">
-          <Label className="text-xs font-medium">Set due date reminder</Label>
+          <Label className="text-xs font-medium">
+            <FormattedMessage
+              id="projects.taskDatePicker.reminderLabel"
+              defaultMessage="Set due date reminder"
+            />
+          </Label>
           <Select value={reminderVal} onValueChange={setReminderVal}>
             <SelectTrigger className="h-7 text-xs">
               <SelectValue />
@@ -257,7 +391,7 @@ export function TaskDatePicker({
             <SelectContent>
               {REMINDER_OPTIONS.map((o) => (
                 <SelectItem key={o.value} value={o.value} className="text-xs">
-                  {o.label}
+                  {intl.formatMessage(o.labelMessage)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -267,7 +401,7 @@ export function TaskDatePicker({
         {/* Actions */}
         <div className="flex gap-2 pt-1">
           <Button size="sm" className="flex-1 h-7 text-xs" onClick={handleSave}>
-            Save
+            <FormattedMessage id="common.actions.save" defaultMessage="Save" />
           </Button>
           {hasAnyDate && (
             <Button
@@ -276,7 +410,10 @@ export function TaskDatePicker({
               className="h-7 text-xs"
               onClick={handleRemove}
             >
-              Remove
+              <FormattedMessage
+                id="projects.taskDatePicker.remove"
+                defaultMessage="Remove"
+              />
             </Button>
           )}
         </div>

@@ -1,33 +1,65 @@
+import type { IntlShape } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import { formatTimestamp } from "@/lib/time";
-import { STATUS_LABELS } from "@/constants/clients";
+import { STATUS_LABEL_MESSAGES } from "@/constants/clients";
 import type { ClientStatus, ClientStatusHistory } from "@/types/clients.types";
 
-function statusLabel(raw: unknown): string {
+function statusLabel(intl: IntlShape, raw: unknown): string {
   const s = String(raw ?? "");
-  return STATUS_LABELS[s as ClientStatus] ?? s;
+  const message = STATUS_LABEL_MESSAGES[s as ClientStatus];
+  return message ? intl.formatMessage(message) : s;
 }
 
-function formatDate(iso: unknown): string {
-  return new Date(String(iso)).toLocaleDateString(undefined, {
+function formatDate(intl: IntlShape, iso: unknown): string {
+  return intl.formatDate(new Date(String(iso)), {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
-function describe(entry: ClientStatusHistory): string {
+function describe(intl: IntlShape, entry: ClientStatusHistory): string {
   try {
     const p = entry.payload
       ? (JSON.parse(entry.payload) as Record<string, unknown>)
       : null;
     switch (entry.type) {
       case "STATUS_CHANGED":
-        return `changed status from ${statusLabel(p?.from)} to ${statusLabel(p?.to)}`;
+        return intl.formatMessage(
+          {
+            id: "clients.statusHistory.statusChanged",
+            defaultMessage: "changed status from {from} to {to}",
+          },
+          {
+            from: statusLabel(intl, p?.from),
+            to: statusLabel(intl, p?.to),
+          },
+        );
       case "CONTACTED_AT_CHANGED":
-        if (!p?.to) return "cleared last contacted date";
+        if (!p?.to)
+          return intl.formatMessage({
+            id: "clients.statusHistory.clearedContactedAt",
+            defaultMessage: "cleared last contacted date",
+          });
         return p?.from
-          ? `changed last contacted date from ${formatDate(p.from)} to ${formatDate(p.to)}`
-          : `set last contacted date to ${formatDate(p.to)}`;
+          ? intl.formatMessage(
+              {
+                id: "clients.statusHistory.changedContactedAt",
+                defaultMessage:
+                  "changed last contacted date from {from} to {to}",
+              },
+              {
+                from: formatDate(intl, p.from),
+                to: formatDate(intl, p.to),
+              },
+            )
+          : intl.formatMessage(
+              {
+                id: "clients.statusHistory.setContactedAt",
+                defaultMessage: "set last contacted date to {to}",
+              },
+              { to: formatDate(intl, p.to) },
+            );
       default:
         return entry.type.toLowerCase().replace(/_/g, " ");
     }
@@ -41,10 +73,14 @@ export function ClientStatusHistoryFeed({
 }: {
   history: ClientStatusHistory[];
 }) {
+  const intl = useIntl();
   if (history.length === 0) {
     return (
       <div className="text-xs text-muted-foreground">
-        No status history yet.
+        <FormattedMessage
+          id="clients.statusHistory.empty"
+          defaultMessage="No status history yet."
+        />
       </div>
     );
   }
@@ -59,9 +95,16 @@ export function ClientStatusHistoryFeed({
           <div className="flex flex-col">
             <span>
               <span className="font-medium text-foreground">
-                {h.user?.name ?? `User ${h.userId}`}
+                {h.user?.name ??
+                  intl.formatMessage(
+                    {
+                      id: "clients.statusHistory.userFallback",
+                      defaultMessage: "User {id}",
+                    },
+                    { id: h.userId },
+                  )}
               </span>{" "}
-              <span className="text-muted-foreground">{describe(h)}</span>
+              <span className="text-muted-foreground">{describe(intl, h)}</span>
             </span>
             <span className="text-muted-foreground">
               {formatTimestamp(h.createdAt)}

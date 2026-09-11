@@ -1,9 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import { BackupCodesDisplay } from "./BackupCodesDisplay";
 
 const meta: Meta<typeof BackupCodesDisplay> = {
   component: BackupCodesDisplay,
   title: "Molecules/BackupCodesDisplay",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     codes: [
       "4F7A-9K2L",

@@ -3,6 +3,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { Client, ClientConnection } from "@/types/clients.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -51,12 +53,14 @@ function makeConnection(items: Client[]): ClientConnection {
   return { items, nextCursor: null, total: items.length };
 }
 
-function renderList() {
+function renderList(locale: "en" | "fr" = "en") {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter>
-        <ClientsList />
-      </MemoryRouter>
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <MemoryRouter>
+          <ClientsList />
+        </MemoryRouter>
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -148,5 +152,17 @@ describe("ClientsList", () => {
     await waitFor(() => expect(gqlFetch).toHaveBeenCalled());
     const vars = gqlFetch.mock.calls[0][1] as Record<string, unknown>;
     expect(vars.status).toBe("CLIENT");
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    gqlFetch.mockResolvedValueOnce({ clients: makeConnection([]) });
+
+    renderList("fr");
+
+    expect(
+      await screen.findByText(
+        "Aucun client pour l'instant. Créez-en un ci-dessus.",
+      ),
+    ).toBeInTheDocument();
   });
 });

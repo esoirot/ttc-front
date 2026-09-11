@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ export function TaskAttachmentModal({
   open: boolean;
   onClose: () => void;
 }) {
+  const intl = useIntl();
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState("");
   const [displayText, setDisplayText] = useState("");
@@ -23,7 +25,10 @@ export function TaskAttachmentModal({
 
   const urlError =
     file === null && url.trim() !== "" && !isValidHttpUrl(url.trim())
-      ? "Enter a valid URL."
+      ? intl.formatMessage({
+          id: "projects.attachmentList.invalidUrl",
+          defaultMessage: "Enter a valid URL.",
+        })
       : "";
   const canAttach =
     !loading &&
@@ -61,13 +66,21 @@ export function TaskAttachmentModal({
     >
       <DialogContent className="max-w-sm w-full" aria-describedby={undefined}>
         <DialogTitle className="text-sm font-medium">
-          Add attachment
+          <FormattedMessage
+            id="projects.attachmentModal.title"
+            defaultMessage="Add attachment"
+          />
         </DialogTitle>
 
         <div className="flex flex-col gap-4 mt-1">
           {/* File upload */}
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-muted-foreground">File</Label>
+            <Label className="text-xs text-muted-foreground">
+              <FormattedMessage
+                id="projects.attachmentModal.file"
+                defaultMessage="File"
+              />
+            </Label>
             <Input
               ref={fileInputRef}
               type="file"
@@ -84,13 +97,23 @@ export function TaskAttachmentModal({
 
           <div className="flex items-center gap-2">
             <div className="h-px flex-1 bg-border" />
-            <span className="text-xs text-muted-foreground">or</span>
+            <span className="text-xs text-muted-foreground">
+              <FormattedMessage
+                id="projects.attachmentModal.or"
+                defaultMessage="or"
+              />
+            </span>
             <div className="h-px flex-1 bg-border" />
           </div>
 
           {/* URL */}
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-muted-foreground">URL</Label>
+            <Label className="text-xs text-muted-foreground">
+              <FormattedMessage
+                id="projects.attachmentList.url"
+                defaultMessage="URL"
+              />
+            </Label>
             <Input
               placeholder="https://…"
               value={url}
@@ -112,11 +135,22 @@ export function TaskAttachmentModal({
           {url.trim() && (
             <div className="flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">
-                Display text{" "}
-                <span className="text-muted-foreground/60">(optional)</span>
+                <FormattedMessage
+                  id="projects.attachmentList.displayText"
+                  defaultMessage="Display text"
+                />{" "}
+                <span className="text-muted-foreground/60">
+                  <FormattedMessage
+                    id="projects.attachmentModal.optional"
+                    defaultMessage="(optional)"
+                  />
+                </span>
               </Label>
               <Input
-                placeholder="Link label…"
+                placeholder={intl.formatMessage({
+                  id: "projects.attachmentModal.linkLabelPlaceholder",
+                  defaultMessage: "Link label…",
+                })}
                 value={displayText}
                 onChange={(e) => setDisplayText(e.target.value)}
                 className="h-8 text-xs"
@@ -131,7 +165,10 @@ export function TaskAttachmentModal({
               className="h-7 text-xs"
               onClick={handleClose}
             >
-              Cancel
+              <FormattedMessage
+                id="common.actions.cancel"
+                defaultMessage="Cancel"
+              />
             </Button>
             <Button
               size="sm"
@@ -139,7 +176,17 @@ export function TaskAttachmentModal({
               disabled={!canAttach}
               onClick={() => void handleAttach()}
             >
-              {loading ? "Attaching…" : "Attach"}
+              {loading ? (
+                <FormattedMessage
+                  id="projects.attachmentModal.attaching"
+                  defaultMessage="Attaching…"
+                />
+              ) : (
+                <FormattedMessage
+                  id="projects.attachmentModal.attach"
+                  defaultMessage="Attach"
+                />
+              )}
             </Button>
           </div>
         </div>

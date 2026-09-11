@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { PlusIcon, XIcon } from "lucide-react";
 import type { AnyActivity } from "@/types/activities.types";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,7 @@ export function ActivityChips({
   linkedActivities,
   onChange,
 }: ActivityChipsProps) {
+  const intl = useIntl();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [stagedIds, setStagedIds] = useState<number[]>([]);
@@ -110,7 +112,10 @@ export function ActivityChips({
               variant="ghost"
               size="icon-xs"
               className="text-muted-foreground"
-              aria-label="Edit activities"
+              aria-label={intl.formatMessage({
+                id: "activities.chips.editAria",
+                defaultMessage: "Edit activities",
+              })}
             >
               <PlusIcon />
             </Button>
@@ -120,7 +125,10 @@ export function ActivityChips({
               size="xs"
               className="text-muted-foreground font-normal"
             >
-              + activity
+              <FormattedMessage
+                id="activities.chips.addActivity"
+                defaultMessage="+ activity"
+              />
             </Button>
           )}
         </PopoverTrigger>
@@ -129,10 +137,18 @@ export function ActivityChips({
             <CommandInput
               value={query}
               onValueChange={setQuery}
-              placeholder="Search activities…"
+              placeholder={intl.formatMessage({
+                id: "activities.chips.searchPlaceholder",
+                defaultMessage: "Search activities…",
+              })}
             />
             <CommandList>
-              <CommandEmpty>No activities found.</CommandEmpty>
+              <CommandEmpty>
+                <FormattedMessage
+                  id="activities.chips.noneFound"
+                  defaultMessage="No activities found."
+                />
+              </CommandEmpty>
               {activities.map((a) => (
                 <CommandItem
                   key={a.id}
@@ -146,10 +162,16 @@ export function ActivityChips({
             </CommandList>
             <div className="flex gap-1.5 border-t border-border p-1.5">
               <Button size="sm" onClick={handleSave}>
-                Save
+                <FormattedMessage
+                  id="common.actions.save"
+                  defaultMessage="Save"
+                />
               </Button>
               <Button size="sm" variant="outline" onClick={handleCancel}>
-                Cancel
+                <FormattedMessage
+                  id="common.actions.cancel"
+                  defaultMessage="Cancel"
+                />
               </Button>
             </div>
           </Command>

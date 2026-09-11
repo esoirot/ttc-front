@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import {
   Popover,
   PopoverContent,
@@ -18,6 +19,7 @@ export function TaskLabelPicker({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
+  const intl = useIntl();
   const [openState, setOpenState] = useState(false);
   const open = openProp ?? openState;
   const setOpen = onOpenChange ?? setOpenState;
@@ -36,12 +38,18 @@ export function TaskLabelPicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="h-7 text-xs">
-          + Add label
+          <FormattedMessage
+            id="projects.taskLabelPicker.addLabel"
+            defaultMessage="+ Add label"
+          />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-3 flex flex-col gap-3" align="start">
         <Input
-          placeholder="Label name…"
+          placeholder={intl.formatMessage({
+            id: "projects.taskLabelPicker.labelNamePlaceholder",
+            defaultMessage: "Label name…",
+          })}
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
@@ -65,7 +73,10 @@ export function TaskLabelPicker({
           disabled={loading || !name.trim()}
           onClick={() => void handleAdd()}
         >
-          Add
+          <FormattedMessage
+            id="projects.taskLabelPicker.add"
+            defaultMessage="Add"
+          />
         </Button>
       </PopoverContent>
     </Popover>

@@ -5,7 +5,10 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -70,11 +73,13 @@ function mockGql(responses: Record<string, unknown>) {
   );
 }
 
-function renderList() {
+function renderList(locale: Locale = "en") {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <RateSheetList />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <RateSheetList />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -247,5 +252,19 @@ describe("RateSheetList", () => {
     await waitFor(() =>
       expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), { id: 9 }),
     );
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    mockGql({
+      RateSheets: { rateSheets: [] },
+      Clients: { clients: { items: [], total: 0, nextCursor: null } },
+    });
+    renderList("fr");
+
+    expect(
+      await screen.findByText(
+        "Aucune grille tarifaire pour le moment. Créez votre première grille tarifaire de traduction ci-dessous.",
+      ),
+    ).toBeInTheDocument();
   });
 });

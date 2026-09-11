@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
+import type { Locale } from "@/i18n/useLocale";
 import type { TimeEntry } from "@/types/time-entries.types";
 
 const useTimeEntriesTabMock = vi.fn();
@@ -50,6 +52,7 @@ function defaultState() {
 function renderTab(
   stateOverrides: Partial<ReturnType<typeof defaultState>> = {},
   alreadyAddedEntryIds = new Set<number>(),
+  locale: Locale = "en",
 ) {
   useTimeEntriesTabMock.mockReturnValue({
     ...defaultState(),
@@ -62,6 +65,7 @@ function renderTab(
       onAdd={vi.fn()}
       adding={false}
     />,
+    { wrapper: createIntlWrapper(locale) },
   );
 }
 
@@ -274,7 +278,21 @@ describe("TimeEntriesTab", () => {
         onAdd={vi.fn()}
         adding={true}
       />,
+      { wrapper: createIntlWrapper() },
     );
     expect(screen.getByRole("button", { name: "Adding…" })).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderTab(
+      { selectedEntryIds: new Set([1, 2]), unitPrice: "10" },
+      new Set(),
+      "fr",
+    );
+
+    expect(screen.getByText("Projet")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Ajouter 2 éléments" }),
+    ).toBeInTheDocument();
   });
 });

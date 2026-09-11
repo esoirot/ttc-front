@@ -1,3 +1,4 @@
+import { useIntl } from "react-intl";
 import {
   useHubspotStatus,
   useDisconnectHubspot,
@@ -8,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { HUBSPOT_AUTH_URL } from "@/constants/hubspot";
 
 export function HubspotTab() {
+  const intl = useIntl();
   const { data: status, isLoading } = useHubspotStatus();
   const disconnect = useDisconnectHubspot();
 
@@ -24,7 +26,11 @@ export function HubspotTab() {
     return (
       <div className="flex flex-col items-start gap-4">
         <p className="text-sm text-muted-foreground">
-          Connect your HubSpot account to sync contacts, companies, and deals.
+          {intl.formatMessage({
+            id: "account.hubspotTab.connectPrompt",
+            defaultMessage:
+              "Connect your HubSpot account to sync contacts, companies, and deals.",
+          })}
         </p>
         <Button
           type="button"
@@ -32,7 +38,10 @@ export function HubspotTab() {
             window.location.href = HUBSPOT_AUTH_URL;
           }}
         >
-          Connect HubSpot
+          {intl.formatMessage({
+            id: "account.hubspotTab.connectHubspot",
+            defaultMessage: "Connect HubSpot",
+          })}
         </Button>
       </div>
     );
@@ -45,11 +54,20 @@ export function HubspotTab() {
           variant="secondary"
           className="text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30"
         >
-          ✓ Connected
+          {intl.formatMessage({
+            id: "account.hubspotTab.connected",
+            defaultMessage: "✓ Connected",
+          })}
         </Badge>
         {status.portalId && (
           <span className="text-xs text-muted-foreground">
-            Portal {status.portalId}
+            {intl.formatMessage(
+              {
+                id: "account.hubspotTab.portal",
+                defaultMessage: "Portal {portalId}",
+              },
+              { portalId: status.portalId },
+            )}
           </span>
         )}
       </div>
@@ -62,7 +80,15 @@ export function HubspotTab() {
           onClick={() => void disconnect.mutateAsync()}
           disabled={disconnect.isPending}
         >
-          {disconnect.isPending ? "Disconnecting…" : "Disconnect HubSpot"}
+          {disconnect.isPending
+            ? intl.formatMessage({
+                id: "account.hubspotTab.disconnecting",
+                defaultMessage: "Disconnecting…",
+              })
+            : intl.formatMessage({
+                id: "account.hubspotTab.disconnectHubspot",
+                defaultMessage: "Disconnect HubSpot",
+              })}
         </Button>
       </div>
     </div>

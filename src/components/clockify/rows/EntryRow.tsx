@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type {
@@ -32,6 +33,7 @@ export function EntryRow({
   onResume: (entry: ClockifyTimeEntry) => void;
   onUpdate: (input: UpdateEntryInput) => void;
 }) {
+  const intl = useIntl();
   const start = entry.timeInterval.start;
   const end = entry.timeInterval.end;
   const durationSecs = end
@@ -99,17 +101,26 @@ export function EntryRow({
             onBlur={commitDesc}
             onKeyDown={handleDescKey}
             className="h-7 text-sm"
-            placeholder="Description"
+            placeholder={intl.formatMessage({
+              id: "time.entryRow.descriptionPlaceholder",
+              defaultMessage: "Description",
+            })}
           />
         ) : (
           <p
             className="text-sm truncate cursor-text hover:text-foreground/80"
             onClick={startEditDesc}
-            title="Click to edit description"
+            title={intl.formatMessage({
+              id: "time.entryRow.editDescriptionTitle",
+              defaultMessage: "Click to edit description",
+            })}
           >
             {entry.description || (
               <span className="italic text-muted-foreground">
-                No description
+                <FormattedMessage
+                  id="time.entryRow.noDescription"
+                  defaultMessage="No description"
+                />
               </span>
             )}
           </p>
@@ -138,7 +149,10 @@ export function EntryRow({
         <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
           <EditableTimeField
             iso={start}
-            label="start time"
+            label={intl.formatMessage({
+              id: "time.entryRow.startTimeLabel",
+              defaultMessage: "start time",
+            })}
             isValid={(newIso) => !end || newIso < end}
             onCommit={(newIso) => patch({ start: newIso })}
           />
@@ -146,12 +160,20 @@ export function EntryRow({
           {end ? (
             <EditableTimeField
               iso={end}
-              label="end time"
+              label={intl.formatMessage({
+                id: "time.entryRow.endTimeLabel",
+                defaultMessage: "end time",
+              })}
               isValid={(newIso) => newIso > start}
               onCommit={(newIso) => patch({ end: newIso })}
             />
           ) : (
-            <span className="text-primary">running</span>
+            <span className="text-primary">
+              <FormattedMessage
+                id="time.entryRow.running"
+                defaultMessage="running"
+              />
+            </span>
           )}
           <span className="mx-0.5">·</span>
           <span>{end ? secsToHms(durationSecs) : "—"}</span>
@@ -162,7 +184,10 @@ export function EntryRow({
           size="icon-xs"
           variant="ghost"
           onClick={() => onResume(entry)}
-          aria-label="Resume entry"
+          aria-label={intl.formatMessage({
+            id: "time.entryRow.resumeEntry",
+            defaultMessage: "Resume entry",
+          })}
           className="text-muted-foreground hover:text-emerald-600"
         >
           ▶
@@ -171,7 +196,10 @@ export function EntryRow({
           size="icon-xs"
           variant="ghost"
           onClick={() => onDelete(entry.id)}
-          aria-label="Delete entry"
+          aria-label={intl.formatMessage({
+            id: "time.entryRow.deleteEntry",
+            defaultMessage: "Delete entry",
+          })}
           className="text-muted-foreground hover:text-destructive"
         >
           ✕

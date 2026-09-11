@@ -7,9 +7,11 @@ import {
   within,
 } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
 import type { Task } from "@/types/tasks.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -75,16 +77,18 @@ function renderTab(
 ) {
   return render(
     <QueryClientProvider client={client}>
-      <TasksTab
-        projectId={1}
-        tasks={[]}
-        tasksLoading={false}
-        taskHasMore={false}
-        taskLoadMore={vi.fn()}
-        memberMap={{}}
-        onOpenModal={vi.fn()}
-        {...props}
-      />
+      <IntlProvider locale="en" messages={messages.en}>
+        <TasksTab
+          projectId={1}
+          tasks={[]}
+          tasksLoading={false}
+          taskHasMore={false}
+          taskLoadMore={vi.fn()}
+          memberMap={{}}
+          onOpenModal={vi.fn()}
+          {...props}
+        />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }

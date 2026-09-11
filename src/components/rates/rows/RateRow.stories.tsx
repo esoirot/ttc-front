@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { TranslationRate } from "@/types/rates.types";
 import { RateRow } from "./RateRow";
 
@@ -21,6 +23,13 @@ const rate: TranslationRate = {
 const meta: Meta<typeof RateRow> = {
   component: RateRow,
   title: "Organisms/RateRow",
+  decorators: [
+    (Story) => (
+      <IntlProvider locale="en" messages={messages.en}>
+        <Story />
+      </IntlProvider>
+    ),
+  ],
   args: {
     rate,
     onEdit: () => {},

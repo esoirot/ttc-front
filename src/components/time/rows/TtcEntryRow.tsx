@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
 import type { TimeEntry } from "@/types/time-entries.types";
 import type { Project } from "@/types/projects.types";
 import type { Tag } from "@/types/tags.types";
@@ -38,6 +39,23 @@ export function TtcEntryRow({
   /** Stack start/end/duration on 3 labeled lines instead of 1 — used in the cramped task modal sidebar. */
   stackedTime?: boolean;
 }) {
+  const intl = useIntl();
+  const noProject = intl.formatMessage({
+    id: "time.entryRow.noProject",
+    defaultMessage: "No project",
+  });
+  const noTask = intl.formatMessage({
+    id: "time.entryRow.noTask",
+    defaultMessage: "No task",
+  });
+  const noSubtask = intl.formatMessage({
+    id: "time.entryRow.noSubtask",
+    defaultMessage: "No subtask",
+  });
+  const noActivity = intl.formatMessage({
+    id: "time.entryRow.noActivity",
+    defaultMessage: "No activity",
+  });
   const [editingDesc, setEditingDesc] = useState(false);
   const [descValue, setDescValue] = useState(entry.description ?? "");
   const [editingProject, setEditingProject] = useState(false);
@@ -111,7 +129,10 @@ export function TtcEntryRow({
             onBlur={commitDesc}
             onKeyDown={handleDescKey}
             className="h-7 text-sm"
-            placeholder="Description"
+            placeholder={intl.formatMessage({
+              id: "time.entryRow.descriptionPlaceholder",
+              defaultMessage: "Description",
+            })}
           />
         ) : (
           <p
@@ -120,11 +141,17 @@ export function TtcEntryRow({
               e.stopPropagation();
               startEditDesc();
             }}
-            title="Click to edit description"
+            title={intl.formatMessage({
+              id: "time.entryRow.editDescriptionTitle",
+              defaultMessage: "Click to edit description",
+            })}
           >
             {entry.description || (
               <span className="italic text-muted-foreground">
-                No description
+                <FormattedMessage
+                  id="time.entryRow.noDescription"
+                  defaultMessage="No description"
+                />
               </span>
             )}
           </p>
@@ -148,10 +175,10 @@ export function TtcEntryRow({
               }}
             >
               <SelectTrigger className="h-6 text-xs w-[160px]">
-                <SelectValue placeholder="No project" />
+                <SelectValue placeholder={noProject} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">No project</SelectItem>
+                <SelectItem value="__none__">{noProject}</SelectItem>
                 {projects.map((p) => (
                   <SelectItem key={p.id} value={String(p.id)}>
                     {p.title}
@@ -173,9 +200,12 @@ export function TtcEntryRow({
                   ? "bg-orange-600 text-white border-orange-600 hover:bg-orange-700 hover:border-orange-700"
                   : "text-muted-foreground border-dashed",
               )}
-              title="Edit project"
+              title={intl.formatMessage({
+                id: "time.entryRow.editProjectTitle",
+                defaultMessage: "Edit project",
+              })}
             >
-              {project?.title ?? "No project"}
+              {project?.title ?? noProject}
             </Button>
           )}
           {entry.projectId != null &&
@@ -193,7 +223,14 @@ export function TtcEntryRow({
                     const autoDesc =
                       selected && needsDesc
                         ? project
-                          ? `Task ${selected.title} of project ${project.title}`
+                          ? intl.formatMessage(
+                              {
+                                id: "time.entryRow.autoDescTaskOfProject",
+                                defaultMessage:
+                                  "Task {task} of project {project}",
+                              },
+                              { task: selected.title, project: project.title },
+                            )
                           : selected.title
                         : null;
                     onUpdate({
@@ -206,10 +243,10 @@ export function TtcEntryRow({
                 }}
               >
                 <SelectTrigger className="h-6 text-xs w-[160px]">
-                  <SelectValue placeholder="No task" />
+                  <SelectValue placeholder={noTask} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No task</SelectItem>
+                  <SelectItem value="__none__">{noTask}</SelectItem>
                   {tasks.map((t) => (
                     <SelectItem key={t.id} value={String(t.id)}>
                       {t.title}
@@ -225,7 +262,10 @@ export function TtcEntryRow({
                   e.stopPropagation();
                   setEditingTask(true);
                 }}
-                title="Edit task"
+                title={intl.formatMessage({
+                  id: "time.entryRow.editTaskTitle",
+                  defaultMessage: "Edit task",
+                })}
               >
                 {entry.task.title}
               </Badge>
@@ -238,9 +278,12 @@ export function TtcEntryRow({
                   setEditingTask(true);
                 }}
                 className="h-5 px-1.5 text-xs font-normal text-muted-foreground border-dashed"
-                title="Link task"
+                title={intl.formatMessage({
+                  id: "time.entryRow.linkTaskTitle",
+                  defaultMessage: "Link task",
+                })}
               >
-                No task
+                {noTask}
               </Button>
             ))}
           {entry.taskId != null &&
@@ -260,7 +303,18 @@ export function TtcEntryRow({
                     const autoDesc =
                       selected && needsDesc
                         ? project && entry.task
-                          ? `Task ${entry.task.title} › ${selected.title} of project ${project.title}`
+                          ? intl.formatMessage(
+                              {
+                                id: "time.entryRow.autoDescSubtaskOfProject",
+                                defaultMessage:
+                                  "Task {task} › {subtask} of project {project}",
+                              },
+                              {
+                                task: entry.task.title,
+                                subtask: selected.title,
+                                project: project.title,
+                              },
+                            )
                           : selected.title
                         : null;
                     onUpdate({
@@ -273,10 +327,10 @@ export function TtcEntryRow({
                 }}
               >
                 <SelectTrigger className="h-6 text-xs w-[180px]">
-                  <SelectValue placeholder="No subtask" />
+                  <SelectValue placeholder={noSubtask} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No subtask</SelectItem>
+                  <SelectItem value="__none__">{noSubtask}</SelectItem>
                   {subtasks.map((s) => (
                     <SelectItem key={s.id} value={String(s.id)}>
                       {s.checklistTitle
@@ -294,7 +348,10 @@ export function TtcEntryRow({
                   e.stopPropagation();
                   setEditingSubtask(true);
                 }}
-                title="Edit subtask"
+                title={intl.formatMessage({
+                  id: "time.entryRow.editSubtaskTitle",
+                  defaultMessage: "Edit subtask",
+                })}
               >
                 {entry.subtask.checklistTitle
                   ? `${entry.subtask.checklistTitle} › ${entry.subtask.title}`
@@ -309,9 +366,12 @@ export function TtcEntryRow({
                   setEditingSubtask(true);
                 }}
                 className="h-5 px-1.5 text-xs font-normal text-muted-foreground border-dashed"
-                title="Link subtask"
+                title={intl.formatMessage({
+                  id: "time.entryRow.linkSubtaskTitle",
+                  defaultMessage: "Link subtask",
+                })}
               >
-                No subtask
+                {noSubtask}
               </Button>
             ))}
           {entry.projectId != null &&
@@ -333,10 +393,10 @@ export function TtcEntryRow({
                 }}
               >
                 <SelectTrigger className="h-6 text-xs w-[160px]">
-                  <SelectValue placeholder="No activity" />
+                  <SelectValue placeholder={noActivity} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No activity</SelectItem>
+                  <SelectItem value="__none__">{noActivity}</SelectItem>
                   {(project?.activities ?? []).map((a) => (
                     <SelectItem key={a.id} value={String(a.id)}>
                       {a.name}
@@ -352,7 +412,10 @@ export function TtcEntryRow({
                   e.stopPropagation();
                   setEditingActivity(true);
                 }}
-                title="Edit activity"
+                title={intl.formatMessage({
+                  id: "time.entryRow.editActivityTitle",
+                  defaultMessage: "Edit activity",
+                })}
               >
                 {entry.activity.name}
               </Badge>
@@ -365,9 +428,12 @@ export function TtcEntryRow({
                   setEditingActivity(true);
                 }}
                 className="h-5 px-1.5 text-xs font-normal text-muted-foreground border-dashed"
-                title="Link activity"
+                title={intl.formatMessage({
+                  id: "time.entryRow.linkActivityTitle",
+                  defaultMessage: "Link activity",
+                })}
               >
-                No activity
+                {noActivity}
               </Button>
             ))}
           <TtcTagChips
@@ -382,7 +448,10 @@ export function TtcEntryRow({
               e.stopPropagation();
               onUpdate({ id: entry.id, billable: !entry.billable });
             }}
-            aria-label="Toggle billable"
+            aria-label={intl.formatMessage({
+              id: "time.entryRow.toggleBillable",
+              defaultMessage: "Toggle billable",
+            })}
             className={cn(
               "h-5 px-1.5 text-xs font-mono",
               entry.billable
@@ -397,7 +466,10 @@ export function TtcEntryRow({
               variant="secondary"
               className="h-5 px-1.5 text-xs font-normal bg-blue-100 text-blue-700 border-blue-200"
             >
-              Invoiced
+              <FormattedMessage
+                id="time.entryRow.invoiced"
+                defaultMessage="Invoiced"
+              />
             </Badge>
           )}
           {entry.activity?.activityType === "TRANSLATOR" &&
@@ -411,8 +483,14 @@ export function TtcEntryRow({
                 onBlur={commitWords}
                 onKeyDown={handleWordsKey}
                 onClick={(e) => e.stopPropagation()}
-                placeholder="Words"
-                aria-label="Words processed"
+                placeholder={intl.formatMessage({
+                  id: "time.entryRow.wordsPlaceholder",
+                  defaultMessage: "Words",
+                })}
+                aria-label={intl.formatMessage({
+                  id: "time.entryRow.wordsProcessedLabel",
+                  defaultMessage: "Words processed",
+                })}
                 className="h-5 w-20 px-1.5 text-xs"
               />
             ) : (
@@ -424,11 +502,23 @@ export function TtcEntryRow({
                   startEditWords();
                 }}
                 className="h-5 px-1.5 text-xs font-normal text-muted-foreground"
-                title="Edit words processed"
+                title={intl.formatMessage({
+                  id: "time.entryRow.editWordsTitle",
+                  defaultMessage: "Edit words processed",
+                })}
               >
                 {entry.wordsProcessed != null
-                  ? `${entry.wordsProcessed.toLocaleString()} words`
-                  : "+ words"}
+                  ? intl.formatMessage(
+                      {
+                        id: "time.entryRow.wordsCount",
+                        defaultMessage: "{count} words",
+                      },
+                      { count: intl.formatNumber(entry.wordsProcessed) },
+                    )
+                  : intl.formatMessage({
+                      id: "time.entryRow.addWords",
+                      defaultMessage: "+ words",
+                    })}
               </Button>
             ))}
         </div>
@@ -436,7 +526,10 @@ export function TtcEntryRow({
           const startField = (
             <EditableTimeField
               iso={entry.startTime}
-              label="start time"
+              label={intl.formatMessage({
+                id: "time.entryRow.startTimeLabel",
+                defaultMessage: "start time",
+              })}
               isValid={(newIso) => !entry.endTime || newIso < entry.endTime}
               onCommit={(newIso) =>
                 onUpdate({ id: entry.id, startTime: newIso })
@@ -446,12 +539,20 @@ export function TtcEntryRow({
           const endField = entry.endTime ? (
             <EditableTimeField
               iso={entry.endTime}
-              label="end time"
+              label={intl.formatMessage({
+                id: "time.entryRow.endTimeLabel",
+                defaultMessage: "end time",
+              })}
               isValid={(newIso) => newIso > entry.startTime}
               onCommit={(newIso) => onUpdate({ id: entry.id, endTime: newIso })}
             />
           ) : (
-            <span className="text-primary">running</span>
+            <span className="text-primary">
+              <FormattedMessage
+                id="time.entryRow.running"
+                defaultMessage="running"
+              />
+            </span>
           );
           const durationField = (
             <span>
@@ -465,19 +566,28 @@ export function TtcEntryRow({
             <div className="flex flex-col gap-0.5 text-xs font-mono text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <span className="w-14 shrink-0 text-muted-foreground/70">
-                  Start
+                  <FormattedMessage
+                    id="time.entryRow.startLabel"
+                    defaultMessage="Start"
+                  />
                 </span>
                 {startField}
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-14 shrink-0 text-muted-foreground/70">
-                  End
+                  <FormattedMessage
+                    id="time.entryRow.endLabel"
+                    defaultMessage="End"
+                  />
                 </span>
                 {endField}
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-14 shrink-0 text-muted-foreground/70">
-                  Duration
+                  <FormattedMessage
+                    id="time.entryRow.durationLabel"
+                    defaultMessage="Duration"
+                  />
                 </span>
                 {durationField}
               </div>
@@ -502,7 +612,10 @@ export function TtcEntryRow({
               e.stopPropagation();
               onResume(entry);
             }}
-            aria-label="Resume entry"
+            aria-label={intl.formatMessage({
+              id: "time.entryRow.resumeEntry",
+              defaultMessage: "Resume entry",
+            })}
             className="text-muted-foreground hover:text-emerald-600"
           >
             ▶
@@ -515,7 +628,10 @@ export function TtcEntryRow({
             e.stopPropagation();
             onDelete(entry.id);
           }}
-          aria-label="Delete entry"
+          aria-label={intl.formatMessage({
+            id: "time.entryRow.deleteEntry",
+            defaultMessage: "Delete entry",
+          })}
           className="text-muted-foreground hover:text-destructive"
         >
           ✕

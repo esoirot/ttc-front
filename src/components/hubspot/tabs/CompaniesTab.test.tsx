@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createIntlWrapper } from "@/test/intlWrapper";
 import type { HubspotCompany } from "@/types/hubspot.types";
+
+const wrapper = createIntlWrapper();
 
 const useInfiniteHubspotCompaniesMock = vi.fn();
 const useSearchHubspotCompaniesMock = vi.fn();
@@ -72,12 +75,12 @@ describe("CompaniesTab", () => {
       ...defaultInfinite(),
       isLoading: true,
     });
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     expect(screen.getByText("Loading…")).toBeInTheDocument();
   });
 
   it("shows No companies yet when the list is empty", () => {
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     expect(screen.getByText("No companies yet")).toBeInTheDocument();
   });
 
@@ -86,7 +89,7 @@ describe("CompaniesTab", () => {
       ...defaultInfinite(),
       data: { pages: [{ results: [makeCompany()] }] },
     });
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     expect(screen.getByText("Acme Inc")).toBeInTheDocument();
     expect(screen.getByText("acme.com")).toBeInTheDocument();
     expect(screen.getByText("555-1234")).toBeInTheDocument();
@@ -112,7 +115,7 @@ describe("CompaniesTab", () => {
         ],
       },
     });
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     expect(screen.getAllByText("—").length).toBe(4);
   });
 
@@ -121,7 +124,7 @@ describe("CompaniesTab", () => {
       ...defaultInfinite(),
       data: { pages: [{ results: [makeCompany()] }] },
     });
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     expect(screen.getByText("1 company loaded")).toBeInTheDocument();
   });
 
@@ -132,7 +135,7 @@ describe("CompaniesTab", () => {
         pages: [{ results: [makeCompany({}, "1"), makeCompany({}, "2")] }],
       },
     });
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     expect(screen.getByText("2 companies loaded")).toBeInTheDocument();
   });
 
@@ -143,13 +146,13 @@ describe("CompaniesTab", () => {
       hasNextPage: true,
       fetchNextPage,
     });
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "Load more" }));
     expect(fetchNextPage).toHaveBeenCalled();
   });
 
   it("toggles the new company form", () => {
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New company" }));
     expect(screen.getByPlaceholderText("Company name *")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -159,7 +162,7 @@ describe("CompaniesTab", () => {
   });
 
   it("Create button is disabled until name is filled", () => {
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New company" }));
     expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
     fireEvent.change(screen.getByPlaceholderText("Company name *"), {
@@ -176,7 +179,7 @@ describe("CompaniesTab", () => {
       isPending: false,
       error: null,
     });
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New company" }));
     fireEvent.change(screen.getByPlaceholderText("Company name *"), {
       target: { value: " Acme " },
@@ -201,7 +204,7 @@ describe("CompaniesTab", () => {
       isPending: true,
       error: new Error("Company exists"),
     });
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "+ New company" }));
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     expect(screen.getByText("Company exists")).toBeInTheDocument();
@@ -213,7 +216,7 @@ describe("CompaniesTab", () => {
       data: { results: [makeCompany({}, "9")] },
       isLoading: false,
     });
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     fireEvent.change(screen.getByPlaceholderText("Search companies…"), {
       target: { value: "acme" },
     });
@@ -225,7 +228,7 @@ describe("CompaniesTab", () => {
 
   it("shows No companies found for an empty search result", async () => {
     vi.useFakeTimers();
-    render(<CompaniesTab />);
+    render(<CompaniesTab />, { wrapper });
     fireEvent.change(screen.getByPlaceholderText("Search companies…"), {
       target: { value: "zzz" },
     });
@@ -233,5 +236,19 @@ describe("CompaniesTab", () => {
     vi.useRealTimers();
 
     expect(await screen.findByText("No companies found")).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    useInfiniteHubspotCompaniesMock.mockReturnValue({
+      ...defaultInfinite(),
+      data: {
+        pages: [{ results: [makeCompany({}, "1"), makeCompany({}, "2")] }],
+      },
+    });
+    render(<CompaniesTab />, { wrapper: createIntlWrapper("fr") });
+    expect(
+      screen.getByRole("button", { name: "+ Nouvelle société" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("2 sociétés chargées")).toBeInTheDocument();
   });
 });

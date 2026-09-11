@@ -1,3 +1,4 @@
+import { FormattedMessage } from "react-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ProjectActivityTabProps } from "@/types/projects.types";
 import { TaskActivityFeed } from "../modals/TaskActivityFeed";
@@ -26,14 +27,29 @@ export function ActivityTab({ tasks, tasksLoading }: ProjectActivityTabProps) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h3 className="text-sm font-medium mb-2">All activity</h3>
+        <h3 className="text-sm font-medium mb-2">
+          <FormattedMessage
+            id="projects.activityTab.allActivity"
+            defaultMessage="All activity"
+          />
+        </h3>
         <TaskActivityFeed activities={allActivities} />
       </div>
 
       <div>
-        <h3 className="text-sm font-medium mb-2">By task</h3>
+        <h3 className="text-sm font-medium mb-2">
+          <FormattedMessage
+            id="projects.activityTab.byTask"
+            defaultMessage="By task"
+          />
+        </h3>
         {tasksWithActivity.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No task activity yet.</p>
+          <p className="text-xs text-muted-foreground">
+            <FormattedMessage
+              id="projects.activityTab.noTaskActivity"
+              defaultMessage="No task activity yet."
+            />
+          </p>
         ) : (
           <div className="border border-border rounded-lg divide-y divide-border overflow-hidden">
             {tasksWithActivity.map((t) => (

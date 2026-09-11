@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import type {
   ClockifyProject,
@@ -30,6 +31,7 @@ export function DescriptionGroup({
   onResume: (entry: ClockifyTimeEntry) => void;
   onUpdate: (input: UpdateEntryInput) => void;
 }) {
+  const intl = useIntl();
   const [expanded, setExpanded] = useState(false);
 
   const totalSecs = entries.reduce((sum, e) => {
@@ -51,7 +53,17 @@ export function DescriptionGroup({
           size="icon-xs"
           variant="ghost"
           onClick={() => setExpanded(!expanded)}
-          aria-label={expanded ? "Collapse entries" : "Expand entries"}
+          aria-label={
+            expanded
+              ? intl.formatMessage({
+                  id: "clockify.descriptionGroup.collapse",
+                  defaultMessage: "Collapse entries",
+                })
+              : intl.formatMessage({
+                  id: "clockify.descriptionGroup.expand",
+                  defaultMessage: "Expand entries",
+                })
+          }
           className="text-muted-foreground shrink-0"
         >
           {expanded ? "▼" : "▶"}
@@ -60,7 +72,10 @@ export function DescriptionGroup({
           <p className="text-sm truncate">
             {description || (
               <span className="italic text-muted-foreground">
-                No description
+                <FormattedMessage
+                  id="time.entryRow.noDescription"
+                  defaultMessage="No description"
+                />
               </span>
             )}
           </p>

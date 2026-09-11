@@ -1,7 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
+import { IntlProvider } from "react-intl";
 import { describe, expect, it, vi } from "vitest";
+import { messages } from "@/i18n/messages";
 import type { Task } from "@/types/tasks.types";
 import { SortableRow } from "./SortableRow";
 
@@ -27,18 +29,20 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 function renderRow(props: Partial<Parameters<typeof SortableRow>[0]> = {}) {
   const task = props.task ?? makeTask();
   return render(
-    <DndContext>
-      <SortableContext items={[task.id]}>
-        <SortableRow
-          task={task}
-          selected={false}
-          onSelect={vi.fn()}
-          onOpenModal={vi.fn()}
-          onDelete={vi.fn()}
-          {...props}
-        />
-      </SortableContext>
-    </DndContext>,
+    <IntlProvider locale="en" messages={messages.en}>
+      <DndContext>
+        <SortableContext items={[task.id]}>
+          <SortableRow
+            task={task}
+            selected={false}
+            onSelect={vi.fn()}
+            onOpenModal={vi.fn()}
+            onDelete={vi.fn()}
+            {...props}
+          />
+        </SortableContext>
+      </DndContext>
+    </IntlProvider>,
   );
 }
 

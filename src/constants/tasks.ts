@@ -1,3 +1,4 @@
+import type { MessageDescriptor } from "react-intl";
 import type { TaskSortField, TaskStatus } from "@/types/tasks.types";
 
 export const TASK_STATUSES: TaskStatus[] = [
@@ -7,11 +8,11 @@ export const TASK_STATUSES: TaskStatus[] = [
   "PAID",
 ];
 
-export const STATUS_LABELS: Record<TaskStatus, string> = {
-  TODO: "Todo",
-  IN_PROGRESS: "In Progress",
-  DONE: "Done",
-  PAID: "Paid",
+export const STATUS_LABEL_MESSAGES: Record<TaskStatus, MessageDescriptor> = {
+  TODO: { id: "tasks.status.todo", defaultMessage: "Todo" },
+  IN_PROGRESS: { id: "tasks.status.inProgress", defaultMessage: "In Progress" },
+  DONE: { id: "tasks.status.done", defaultMessage: "Done" },
+  PAID: { id: "tasks.status.paid", defaultMessage: "Paid" },
 };
 
 export const STATUS_VARIANTS: Record<TaskStatus, "default" | "outline"> = {
@@ -34,10 +35,13 @@ export const TASK_SORT_FIELDS: TaskSortField[] = [
   "createdAt",
 ];
 
-export const TASK_SORT_FIELD_LABELS: Record<TaskSortField, string> = {
-  dueDate: "Due date",
-  title: "Task name",
-  createdAt: "Created",
+export const TASK_SORT_FIELD_LABEL_MESSAGES: Record<
+  TaskSortField,
+  MessageDescriptor
+> = {
+  dueDate: { id: "tasks.sortField.dueDate", defaultMessage: "Due date" },
+  title: { id: "tasks.sortField.title", defaultMessage: "Task name" },
+  createdAt: { id: "tasks.sortField.createdAt", defaultMessage: "Created" },
 };
 
 export const PRESET_COLORS = [

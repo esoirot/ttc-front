@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useIntl, FormattedMessage } from "react-intl";
 import { useActivity } from "@/hooks/activities/useActivities";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,13 +32,8 @@ import type {
   TranslationRate,
 } from "@/types/rates.types";
 import type { CreateRateSheetInput } from "@/types/rate-sheets.types";
+import { TYPE_LABEL_MESSAGES } from "@/constants/rates";
 
-const RATE_TYPE_LABELS: Record<TranslationRateType, string> = {
-  HOURLY: "Hourly",
-  DAY: "Day",
-  PER_WORD: "Per Word",
-  FIXED: "Fixed",
-};
 const RATE_TYPES: TranslationRateType[] = [
   "HOURLY",
   "DAY",
@@ -46,6 +42,7 @@ const RATE_TYPES: TranslationRateType[] = [
 ];
 
 export function ActivityDetail() {
+  const intl = useIntl();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const activityId = Number(id);
@@ -94,14 +91,22 @@ export function ActivityDetail() {
   if (!loading && !activity) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <p className="text-sm text-muted-foreground">Activity not found.</p>
+        <p className="text-sm text-muted-foreground">
+          <FormattedMessage
+            id="activities.detail.activityNotFound"
+            defaultMessage="Activity not found."
+          />
+        </p>
         <Button
           variant="ghost"
           size="sm"
           className="mt-2"
           onClick={() => navigate("/activities")}
         >
-          ← Back to activities
+          <FormattedMessage
+            id="activities.detail.backToActivities"
+            defaultMessage="← Back to activities"
+          />
         </Button>
       </div>
     );
@@ -119,7 +124,10 @@ export function ActivityDetail() {
           onClick={() => navigate("/activities")}
           className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          ← Activities
+          <FormattedMessage
+            id="activities.detail.activitiesBreadcrumb"
+            defaultMessage="← Activities"
+          />
         </button>
         {activity && <span className="text-sm text-muted-foreground">/</span>}
         {activity && (
@@ -128,12 +136,22 @@ export function ActivityDetail() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">
+          <FormattedMessage
+            id="activities.detail.loading"
+            defaultMessage="Loading…"
+          />
+        </p>
       ) : activity ? (
         <>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Objectives</CardTitle>
+              <CardTitle className="text-base">
+                <FormattedMessage
+                  id="activities.detail.objectives"
+                  defaultMessage="Objectives"
+                />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ObjectivesForm
@@ -146,16 +164,27 @@ export function ActivityDetail() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Charges</CardTitle>
+              <CardTitle className="text-base">
+                <FormattedMessage
+                  id="activities.detail.charges"
+                  defaultMessage="Charges"
+                />
+              </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  Fixed
+                  <FormattedMessage
+                    id="activities.detail.fixed"
+                    defaultMessage="Fixed"
+                  />
                 </p>
                 {fixedCharges.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    No fixed charges.
+                    <FormattedMessage
+                      id="activities.detail.noFixedCharges"
+                      defaultMessage="No fixed charges."
+                    />
                   </p>
                 ) : (
                   <div className="divide-y divide-border">
@@ -172,11 +201,17 @@ export function ActivityDetail() {
               </div>
               <div className="border-t border-border pt-4">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  Variable
+                  <FormattedMessage
+                    id="activities.detail.variable"
+                    defaultMessage="Variable"
+                  />
                 </p>
                 {variableCharges.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    No variable charges.
+                    <FormattedMessage
+                      id="activities.detail.noVariableCharges"
+                      defaultMessage="No variable charges."
+                    />
                   </p>
                 ) : (
                   <div className="divide-y divide-border">
@@ -196,7 +231,12 @@ export function ActivityDetail() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Rates</CardTitle>
+              <CardTitle className="text-base">
+                <FormattedMessage
+                  id="activities.detail.rates"
+                  defaultMessage="Rates"
+                />
+              </CardTitle>
               {!showRateForm && (
                 <Button
                   size="sm"
@@ -206,7 +246,10 @@ export function ActivityDetail() {
                     setShowRateForm(true);
                   }}
                 >
-                  + Add Rate
+                  <FormattedMessage
+                    id="activities.detail.addRate"
+                    defaultMessage="+ Add Rate"
+                  />
                 </Button>
               )}
             </CardHeader>
@@ -214,7 +257,12 @@ export function ActivityDetail() {
               {showRateForm && (
                 <div className="flex flex-col gap-2">
                   <div className="flex gap-2 items-center">
-                    <span className="text-sm text-muted-foreground">Type:</span>
+                    <span className="text-sm text-muted-foreground">
+                      <FormattedMessage
+                        id="activities.detail.type"
+                        defaultMessage="Type:"
+                      />
+                    </span>
                     {(
                       [
                         "HOURLY",
@@ -243,7 +291,12 @@ export function ActivityDetail() {
                 </div>
               )}
               {activity.translationRates.length === 0 && !showRateForm ? (
-                <p className="text-sm text-muted-foreground">No rates yet.</p>
+                <p className="text-sm text-muted-foreground">
+                  <FormattedMessage
+                    id="activities.detail.noRatesYet"
+                    defaultMessage="No rates yet."
+                  />
+                </p>
               ) : (
                 <div className="flex flex-col gap-4">
                   {RATE_TYPES.map((rateType) => {
@@ -254,7 +307,7 @@ export function ActivityDetail() {
                     return (
                       <div key={rateType}>
                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                          {RATE_TYPE_LABELS[rateType]}
+                          {intl.formatMessage(TYPE_LABEL_MESSAGES[rateType])}
                         </p>
                         <div>
                           {group.map((rate) =>
@@ -296,7 +349,10 @@ export function ActivityDetail() {
                 activityRateSheets.length > 0 && (
                   <div className="flex flex-col gap-1 pt-3 border-t border-border">
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                      Rate Sheets
+                      <FormattedMessage
+                        id="activities.detail.rateSheets"
+                        defaultMessage="Rate Sheets"
+                      />
                     </p>
                     <div>
                       {activityRateSheets.map((rs) =>
@@ -333,7 +389,12 @@ export function ActivityDetail() {
           {isTranslatorActivity(activity) && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Language Pairs</CardTitle>
+                <CardTitle className="text-base">
+                  <FormattedMessage
+                    id="activities.detail.languagePairs"
+                    defaultMessage="Language Pairs"
+                  />
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <LanguagePairsSection
@@ -347,7 +408,12 @@ export function ActivityDetail() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Tags</CardTitle>
+              <CardTitle className="text-base">
+                <FormattedMessage
+                  id="activities.detail.tags"
+                  defaultMessage="Tags"
+                />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <TagsSection />
@@ -356,7 +422,12 @@ export function ActivityDetail() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Activity</CardTitle>
+              <CardTitle className="text-base">
+                <FormattedMessage
+                  id="activities.detail.activity"
+                  defaultMessage="Activity"
+                />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ActivityInfoForm

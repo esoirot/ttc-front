@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
 import {
   useUsers,
   useUpdateUser,
@@ -58,7 +59,13 @@ import {
   TableLoadingSkeleton,
 } from "../shared/AdminTableChrome";
 
+const COMMON = {
+  save: { id: "common.actions.save", defaultMessage: "Save" },
+  cancel: { id: "common.actions.cancel", defaultMessage: "Cancel" },
+};
+
 export function AdminUsersTable() {
+  const intl = useIntl();
   const { users, loading } = useUsers();
   const { updateUser, loading: updating } = useUpdateUser();
   const { deleteUser, loading: deleting } = useDeleteUser();
@@ -92,11 +99,20 @@ export function AdminUsersTable() {
 
   return (
     <>
-      <AdminPageHeader title="Users" total={users.length} />
+      <AdminPageHeader
+        title={intl.formatMessage({
+          id: "admin.usersTable.title",
+          defaultMessage: "Users",
+        })}
+        total={users.length}
+      />
 
       <div className="flex items-center gap-2 mb-4">
         <Input
-          placeholder="Search email or name..."
+          placeholder={intl.formatMessage({
+            id: "admin.usersTable.searchPlaceholder",
+            defaultMessage: "Search email or name...",
+          })}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-xs h-8 text-sm"
@@ -105,7 +121,10 @@ export function AdminUsersTable() {
 
       <BulkDeleteBar
         selectedIds={selected}
-        itemLabel="users"
+        itemLabel={intl.formatMessage({
+          id: "admin.usersTable.bulkItemLabel",
+          defaultMessage: "users",
+        })}
         onDelete={deleteUser}
         onDone={clear}
         excludeIds={me?.id != null ? new Set([Number(me.id)]) : undefined}
@@ -124,18 +143,53 @@ export function AdminUsersTable() {
                     onCheckedChange={toggleAll}
                   />
                 </TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>2FA</TableHead>
-                <TableHead>Permissions</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>
+                  <FormattedMessage
+                    id="admin.usersTable.column.email"
+                    defaultMessage="Email"
+                  />
+                </TableHead>
+                <TableHead>
+                  <FormattedMessage
+                    id="admin.usersTable.column.name"
+                    defaultMessage="Name"
+                  />
+                </TableHead>
+                <TableHead>
+                  <FormattedMessage
+                    id="admin.usersTable.column.role"
+                    defaultMessage="Role"
+                  />
+                </TableHead>
+                <TableHead>
+                  <FormattedMessage
+                    id="admin.usersTable.column.twoFactor"
+                    defaultMessage="2FA"
+                  />
+                </TableHead>
+                <TableHead>
+                  <FormattedMessage
+                    id="admin.usersTable.column.permissions"
+                    defaultMessage="Permissions"
+                  />
+                </TableHead>
+                <TableHead>
+                  <FormattedMessage
+                    id="admin.usersTable.column.created"
+                    defaultMessage="Created"
+                  />
+                </TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 && (
-                <TableEmptyRow colSpan={8}>No users found.</TableEmptyRow>
+                <TableEmptyRow colSpan={8}>
+                  <FormattedMessage
+                    id="admin.usersTable.emptyState"
+                    defaultMessage="No users found."
+                  />
+                </TableEmptyRow>
               )}
               {filtered.map((u: User) => (
                 <TableRow key={u.id}>
@@ -172,14 +226,33 @@ export function AdminUsersTable() {
                     <Badge
                       variant={u.twoFactorEnabled ? "default" : "secondary"}
                     >
-                      {u.twoFactorEnabled ? "On" : "Off"}
+                      {u.twoFactorEnabled ? (
+                        <FormattedMessage
+                          id="admin.usersTable.twoFactorOn"
+                          defaultMessage="On"
+                        />
+                      ) : (
+                        <FormattedMessage
+                          id="admin.usersTable.twoFactorOff"
+                          defaultMessage="Off"
+                        />
+                      )}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <span className="text-xs text-muted-foreground font-mono">
-                      {u.adminPermissions?.length
-                        ? `${u.adminPermissions.length} perms`
-                        : "All"}
+                      {u.adminPermissions?.length ? (
+                        <FormattedMessage
+                          id="admin.usersTable.permsCount"
+                          defaultMessage="{count} perms"
+                          values={{ count: u.adminPermissions.length }}
+                        />
+                      ) : (
+                        <FormattedMessage
+                          id="admin.usersTable.permsAll"
+                          defaultMessage="All"
+                        />
+                      )}
                     </span>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
@@ -197,7 +270,10 @@ export function AdminUsersTable() {
                             adminPermissions: u.adminPermissions ?? [],
                           })
                         }
-                        aria-label="Edit user"
+                        aria-label={intl.formatMessage({
+                          id: "admin.usersTable.editUserAria",
+                          defaultMessage: "Edit user",
+                        })}
                       >
                         ✎
                       </Button>
@@ -205,7 +281,10 @@ export function AdminUsersTable() {
                         size="icon-xs"
                         variant="ghost"
                         onClick={() => setHistoryUser(u)}
-                        aria-label="View history"
+                        aria-label={intl.formatMessage({
+                          id: "admin.usersTable.viewHistoryAria",
+                          defaultMessage: "View history",
+                        })}
                       >
                         🕐
                       </Button>
@@ -218,24 +297,45 @@ export function AdminUsersTable() {
                               className="text-destructive hover:text-destructive h-6 px-2 text-xs"
                               disabled={u.id === Number(me?.id) || disabling2fa}
                             >
-                              2FA
+                              <FormattedMessage
+                                id="admin.usersTable.disable2fa"
+                                defaultMessage="2FA"
+                              />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Disable 2FA?</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                <FormattedMessage
+                                  id="admin.usersTable.disable2faTitle"
+                                  defaultMessage="Disable 2FA?"
+                                />
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
-                                Remove 2FA from <strong>{u.email}</strong>. Use
-                                only for locked-out users.
+                                <FormattedMessage
+                                  id="admin.usersTable.disable2faDescription"
+                                  defaultMessage="Remove 2FA from <b>{email}</b>. Use only for locked-out users."
+                                  values={{
+                                    email: u.email,
+                                    b: (chunks: React.ReactNode[]) => (
+                                      <strong>{chunks}</strong>
+                                    ),
+                                  }}
+                                />
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>
+                                <FormattedMessage {...COMMON.cancel} />
+                              </AlertDialogCancel>
                               <AlertDialogAction
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 onClick={() => void adminDisableTwoFactor(u.id)}
                               >
-                                Disable 2FA
+                                <FormattedMessage
+                                  id="admin.usersTable.disable2faConfirm"
+                                  defaultMessage="Disable 2FA"
+                                />
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -243,15 +343,27 @@ export function AdminUsersTable() {
                       )}
                       <RowDeleteButton
                         onDelete={() => deleteUser(u.id)}
-                        title="Delete user?"
+                        title={intl.formatMessage({
+                          id: "admin.usersTable.deleteUserTitle",
+                          defaultMessage: "Delete user?",
+                        })}
                         description={
-                          <>
-                            Delete <strong>{u.email}</strong>? This cannot be
-                            undone.
-                          </>
+                          <FormattedMessage
+                            id="admin.usersTable.deleteUserDescription"
+                            defaultMessage="Delete <b>{email}</b>? This cannot be undone."
+                            values={{
+                              email: u.email,
+                              b: (chunks: React.ReactNode[]) => (
+                                <strong>{chunks}</strong>
+                              ),
+                            }}
+                          />
                         }
                         disabled={u.id === Number(me?.id) || deleting}
-                        ariaLabel="Delete user"
+                        ariaLabel={intl.formatMessage({
+                          id: "admin.usersTable.deleteUserAria",
+                          defaultMessage: "Delete user",
+                        })}
                       />
                     </div>
                   </TableCell>
@@ -265,12 +377,22 @@ export function AdminUsersTable() {
       <Dialog open={!!editUser} onOpenChange={(v) => !v && setEditUser(null)}>
         <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle>
+              <FormattedMessage
+                id="admin.usersTable.editDialogTitle"
+                defaultMessage="Edit User"
+              />
+            </DialogTitle>
           </DialogHeader>
           {editUser && (
             <div className="flex flex-col gap-4">
               <div>
-                <Label className="mb-1 block">Role</Label>
+                <Label className="mb-1 block">
+                  <FormattedMessage
+                    id="admin.usersTable.column.role"
+                    defaultMessage="Role"
+                  />
+                </Label>
                 <Select
                   value={editUser.role}
                   onValueChange={(v) =>
@@ -288,7 +410,12 @@ export function AdminUsersTable() {
                 </Select>
               </div>
               <div>
-                <Label className="mb-2 block">Admin Permissions</Label>
+                <Label className="mb-2 block">
+                  <FormattedMessage
+                    id="admin.usersTable.adminPermissionsLabel"
+                    defaultMessage="Admin Permissions"
+                  />
+                </Label>
                 <PermissionsEditor
                   value={editUser.adminPermissions}
                   onChange={(v) =>
@@ -296,7 +423,10 @@ export function AdminUsersTable() {
                   }
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Empty = full access (superadmin).
+                  <FormattedMessage
+                    id="admin.usersTable.permissionsHint"
+                    defaultMessage="Empty = full access (superadmin)."
+                  />
                 </p>
               </div>
               <div className="flex gap-2 justify-end">
@@ -305,10 +435,10 @@ export function AdminUsersTable() {
                   size="sm"
                   onClick={() => setEditUser(null)}
                 >
-                  Cancel
+                  <FormattedMessage {...COMMON.cancel} />
                 </Button>
                 <Button size="sm" onClick={handleSaveEdit} disabled={updating}>
-                  Save
+                  <FormattedMessage {...COMMON.save} />
                 </Button>
               </div>
             </div>

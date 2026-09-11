@@ -1,3 +1,4 @@
+import { FormattedMessage, useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -15,12 +16,21 @@ export function LanguagePairsInput({
   onUpdate,
   onRemove,
 }: LanguagePairsInputProps) {
+  const intl = useIntl();
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">Languages</span>
+        <span className="text-sm font-medium">
+          <FormattedMessage
+            id="activities.languagePairs.title"
+            defaultMessage="Languages"
+          />
+        </span>
         <Button type="button" variant="ghost" size="sm" onClick={onAdd}>
-          + Add pair
+          <FormattedMessage
+            id="activities.languagePairs.addPair"
+            defaultMessage="+ Add pair"
+          />
         </Button>
       </div>
       {pairs.map((pair, i) => {
@@ -35,7 +45,12 @@ export function LanguagePairsInput({
               onValueChange={(v) => onUpdate(i, "fromLanguage", v)}
             >
               <SelectTrigger className="flex-1">
-                <SelectValue placeholder="From" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "activities.languagePairs.from",
+                    defaultMessage: "From",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGES.map((lang) => (
@@ -51,7 +66,12 @@ export function LanguagePairsInput({
               onValueChange={(v) => onUpdate(i, "toLanguage", v)}
             >
               <SelectTrigger className="flex-1">
-                <SelectValue placeholder="To" />
+                <SelectValue
+                  placeholder={intl.formatMessage({
+                    id: "activities.languagePairs.to",
+                    defaultMessage: "To",
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGES.map((lang) => (
@@ -65,12 +85,20 @@ export function LanguagePairsInput({
               type="button"
               onClick={() => onRemove(i)}
               className="text-xs text-muted-foreground hover:text-destructive transition-colors"
-              aria-label="Remove pair"
+              aria-label={intl.formatMessage({
+                id: "activities.languagePairs.removePair",
+                defaultMessage: "Remove pair",
+              })}
             >
               ✕
             </button>
             {sameLanguage && (
-              <span className="text-xs text-destructive">Same language</span>
+              <span className="text-xs text-destructive">
+                <FormattedMessage
+                  id="activities.languagePairs.sameLanguage"
+                  defaultMessage="Same language"
+                />
+              </span>
             )}
           </div>
         );

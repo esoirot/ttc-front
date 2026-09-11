@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { useUpdateActivity } from "@/hooks/activities/useActivities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,7 @@ import { centsToEuros, eurosToCents } from "@/lib/currency";
 import type { ObjectivesFormProps } from "@/types/activities.types";
 
 export function ObjectivesForm({ activityId, initial }: ObjectivesFormProps) {
+  const intl = useIntl();
   const {
     updateActivity,
     loading: saving,
@@ -42,7 +44,12 @@ export function ObjectivesForm({ activityId, initial }: ObjectivesFormProps) {
     const q3r = parseObjective(q3);
     const q4r = parseObjective(q4);
     if (!q1r.valid || !q2r.valid || !q3r.valid || !q4r.valid) {
-      setValidationError("Objectives must be valid numbers ≥ 0.");
+      setValidationError(
+        intl.formatMessage({
+          id: "activities.objectivesForm.validationError",
+          defaultMessage: "Objectives must be valid numbers ≥ 0.",
+        }),
+      );
       return;
     }
     setValidationError(null);
@@ -100,11 +107,24 @@ export function ObjectivesForm({ activityId, initial }: ObjectivesFormProps) {
       )}
       {saved && (
         <p className="text-sm text-emerald-600 dark:text-emerald-400">
-          Objectives saved.
+          <FormattedMessage
+            id="activities.objectivesForm.saved"
+            defaultMessage="Objectives saved."
+          />
         </p>
       )}
       <Button type="submit" className="self-start" disabled={saving}>
-        {saving ? "Saving…" : "Save objectives"}
+        {saving ? (
+          <FormattedMessage
+            id="clients.header.saving"
+            defaultMessage="Saving…"
+          />
+        ) : (
+          <FormattedMessage
+            id="activities.objectivesForm.submit"
+            defaultMessage="Save objectives"
+          />
+        )}
       </Button>
     </form>
   );

@@ -8,6 +8,8 @@ import {
 import { QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -37,11 +39,14 @@ import { NewClientForm } from "./NewClientForm";
 function renderForm(
   onClose = vi.fn(),
   props: { defaultStatus?: "TO_CONTACT"; title?: string } = {},
+  locale: "en" | "fr" = "en",
 ) {
   gqlFetch.mockResolvedValue({ tags: [] });
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <NewClientForm onClose={onClose} {...props} />
+      <IntlProvider locale={locale} messages={messages[locale]}>
+        <NewClientForm onClose={onClose} {...props} />
+      </IntlProvider>
     </QueryClientProvider>,
   );
 }
@@ -378,5 +383,15 @@ describe("NewClientForm", () => {
     expect(gqlMutate.mock.calls[0][1]).toMatchObject({
       input: { activityIds: [1, 2] },
     });
+  });
+
+  it("renders French copy when locale is fr", () => {
+    renderForm(vi.fn(), {}, "fr");
+
+    expect(screen.getByText("Nouveau client")).toBeInTheDocument();
+    expect(screen.getByLabelText("Nom de l'entreprise *")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Créer le client" }),
+    ).toBeInTheDocument();
   });
 });

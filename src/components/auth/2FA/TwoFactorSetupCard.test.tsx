@@ -1,7 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { messages } from "@/i18n/messages";
+import type { Locale } from "@/i18n/useLocale";
 import type { AuthUser } from "@/types/auth.types";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -23,11 +26,13 @@ function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
   } as AuthUser;
 }
 
-function renderCard() {
+function renderCard(locale: Locale = "en") {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <TwoFactorSetupCard />
-    </QueryClientProvider>,
+    <IntlProvider locale={locale} messages={messages[locale]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <TwoFactorSetupCard />
+      </QueryClientProvider>
+    </IntlProvider>,
   );
 }
 
@@ -58,5 +63,13 @@ describe("TwoFactorSetupCard", () => {
         screen.getByText("Your account is protected with TOTP-based 2FA."),
       ).toBeInTheDocument(),
     );
+  });
+
+  it("renders French copy when locale is fr", async () => {
+    gqlFetch.mockResolvedValue({ me: makeUser({ twoFactorEnabled: false }) });
+
+    renderCard("fr");
+
+    expect(await screen.findByText("Configurer la 2FA")).toBeInTheDocument();
   });
 });

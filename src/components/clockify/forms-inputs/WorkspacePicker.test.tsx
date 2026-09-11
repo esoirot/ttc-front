@@ -10,6 +10,9 @@ vi.mock("@/hooks/integrations/useClockify", () => ({
 }));
 
 import { WorkspacePicker } from "./WorkspacePicker";
+import { createIntlWrapper } from "@/test/intlWrapper";
+
+const wrapper = createIntlWrapper();
 
 function makeWorkspace(
   overrides: Partial<ClockifyWorkspace> = {},
@@ -39,7 +42,7 @@ describe("WorkspacePicker", () => {
       data: undefined,
       isLoading: true,
     });
-    render(<WorkspacePicker />);
+    render(<WorkspacePicker />, { wrapper });
     expect(screen.getByText("Loading workspaces…")).toBeInTheDocument();
   });
 
@@ -51,7 +54,7 @@ describe("WorkspacePicker", () => {
       ],
       isLoading: false,
     });
-    render(<WorkspacePicker />);
+    render(<WorkspacePicker />, { wrapper });
     expect(
       screen.getByRole("button", { name: "Personal" }),
     ).toBeInTheDocument();
@@ -65,7 +68,7 @@ describe("WorkspacePicker", () => {
       data: [makeWorkspace({ id: "ws-1", name: "Personal" })],
       isLoading: false,
     });
-    render(<WorkspacePicker />);
+    render(<WorkspacePicker />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "Personal" }));
     expect(mutate).toHaveBeenCalledWith("ws-1");
   });
@@ -82,15 +85,22 @@ describe("WorkspacePicker", () => {
       ],
       isLoading: false,
     });
-    render(<WorkspacePicker />);
+    render(<WorkspacePicker />, { wrapper });
     expect(screen.getByRole("button", { name: "Personal" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Work" })).toBeDisabled();
   });
 
   it("shows the prompt text when not loading", () => {
-    render(<WorkspacePicker />);
+    render(<WorkspacePicker />, { wrapper });
     expect(
       screen.getByText("Select your default workspace:"),
+    ).toBeInTheDocument();
+  });
+
+  it("renders French copy when locale is fr", () => {
+    render(<WorkspacePicker />, { wrapper: createIntlWrapper("fr") });
+    expect(
+      screen.getByText("Sélectionnez votre espace de travail par défaut :"),
     ).toBeInTheDocument();
   });
 });

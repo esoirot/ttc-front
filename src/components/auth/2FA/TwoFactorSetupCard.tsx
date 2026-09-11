@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TwoFactorEnabledView } from "./TwoFactorEnabledView";
@@ -12,7 +13,12 @@ export function TwoFactorSetupCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Two-factor authentication</CardTitle>
+        <CardTitle className="text-base">
+          <FormattedMessage
+            id="auth.twoFactorSetupCard.title"
+            defaultMessage="Two-factor authentication"
+          />
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {shownCodes ? (

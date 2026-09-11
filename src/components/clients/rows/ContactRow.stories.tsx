@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { IntlProvider } from "react-intl";
+import { messages } from "@/i18n/messages";
 import type { CompanyContact } from "@/types/clients.types";
 import { ContactRow } from "./ContactRow";
 
@@ -23,9 +25,11 @@ const meta: Meta<typeof ContactRow> = {
   title: "Organisms/ContactRow",
   decorators: [
     (Story) => (
-      <div className="max-w-md">
-        <Story />
-      </div>
+      <IntlProvider locale="en" messages={messages.en}>
+        <div className="max-w-md">
+          <Story />
+        </div>
+      </IntlProvider>
     ),
   ],
   args: {
