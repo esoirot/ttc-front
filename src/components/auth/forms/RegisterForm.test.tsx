@@ -101,8 +101,6 @@ describe("RegisterForm", () => {
   it("renders French copy when locale is fr", () => {
     render(<RegisterForm />, { wrapper: frWrapper });
 
-    expect(
-      screen.getByRole("heading", { name: "Créer un compte" }),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Nom (facultatif)")).toBeInTheDocument();
   });
 });
