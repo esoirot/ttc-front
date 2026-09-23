@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { mockGraphQL, MOCK_USER, MOCK_USER_2FA } from "./helpers/mock";
+import {
+  mockGoogleCalendarStatus,
+  mockGraphQL,
+  MOCK_USER,
+  MOCK_USER_2FA,
+} from "./helpers/mock";
 
 test("dashboard shows heading and welcome message", async ({ page }) => {
   await mockGraphQL(page, { Me: { me: MOCK_USER } });
@@ -88,4 +93,25 @@ test("Prospects to contact widget shows empty state when nothing is due", async 
   await expect(
     page.getByText("No prospects need follow-up right now."),
   ).toBeVisible();
+});
+
+test("Active Projects KPI card navigates to the projects list", async ({
+  page,
+}) => {
+  await mockGraphQL(page, {
+    Me: { me: MOCK_USER },
+    Dashboard: {
+      dashboard: {
+        ...BASE_DASHBOARD_STATS,
+        activeProjectCount: 4,
+        yearToDateWords: 0,
+        prospectsToContact: [],
+      },
+    },
+  });
+  await mockGoogleCalendarStatus(page, { connected: false, email: null });
+  await page.goto("/");
+
+  await page.getByRole("link", { name: /Active Projects/ }).click();
+  await expect(page).toHaveURL("/projects");
 });

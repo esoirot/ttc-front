@@ -1,10 +1,23 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import type { DashboardData } from "@/types/dashboard.types";
 import { StatsGrid } from "./StatsGrid";
 import { createIntlWrapper } from "@/test/intlWrapper";
 
-const wrapper = createIntlWrapper();
+function makeWrapper(locale?: "en" | "fr") {
+  const IntlWrapper = createIntlWrapper(locale);
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <IntlWrapper>
+        <MemoryRouter>{children}</MemoryRouter>
+      </IntlWrapper>
+    );
+  };
+}
+
+const wrapper = makeWrapper();
 
 function makeDashboard(overrides: Partial<DashboardData> = {}): DashboardData {
   return {
@@ -48,9 +61,33 @@ describe("StatsGrid", () => {
 
   it("renders French copy when locale is fr", () => {
     render(<StatsGrid dashboard={makeDashboard()} />, {
-      wrapper: createIntlWrapper("fr"),
+      wrapper: makeWrapper("fr"),
     });
     expect(screen.getByText("Projets actifs")).toBeInTheDocument();
     expect(screen.getByText("12 345")).toBeInTheDocument();
+  });
+
+  it("navigates to the projects list when the Active Projects card is clicked", () => {
+    // given the dashboard stats grid on the home route
+    const IntlOnly = createIntlWrapper();
+    render(
+      <IntlOnly>
+        <MemoryRouter initialEntries={["/"]}>
+          <Routes>
+            <Route
+              path="/"
+              element={<StatsGrid dashboard={makeDashboard()} />}
+            />
+            <Route path="/projects" element={<p>Projects list page</p>} />
+          </Routes>
+        </MemoryRouter>
+      </IntlOnly>,
+    );
+
+    // when the user clicks anywhere on the Active Projects card
+    fireEvent.click(screen.getByText("3"));
+
+    // then the projects list page is shown
+    expect(screen.getByText("Projects list page")).toBeInTheDocument();
   });
 });
