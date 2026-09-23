@@ -16,6 +16,7 @@ pnpm run prune          # Find unused exports (ts-prune)
 pnpm run format         # Prettier write
 pnpm run format:check   # Prettier check
 pnpm run check          # Run all checks in sequence
+pnpm run test:mutation --mutate <files>  # StrykerJS on changed files only (incremental, unit tests via vitest.stryker.config.ts)
 pnpm run test:e2e       # Run Playwright E2E tests (headless)
 pnpm run test:e2e:ui    # Run Playwright with interactive UI
 pnpm run test:e2e:headed # Run Playwright with browser visible

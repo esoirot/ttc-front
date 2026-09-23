@@ -42,3 +42,8 @@ coverage/
 
 *storybook.log
 storybook-static
+/test-results
+
+# Stryker
+.stryker-tmp
+/reports
