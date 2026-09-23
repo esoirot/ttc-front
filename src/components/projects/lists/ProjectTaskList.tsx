@@ -40,7 +40,7 @@ import { useProjectTaskList } from "@/hooks/projects/useProjectTaskList";
 import { useTaskDragReorder } from "@/hooks/projects/useTaskDragReorder";
 import { useBulkSelection } from "@/hooks/admin/useBulkSelection";
 import { SortableRow } from "../rows/SortableRow";
-import { TaskSortControls } from "../filters/TaskSortControls";
+import { TaskToolbar } from "../filters/TaskToolbar";
 
 interface Props extends ProjectTaskListProps {
   onOpenModal: (taskId: number) => void;
@@ -121,73 +121,38 @@ export function ProjectTaskList({ projectId, onOpenModal }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Label htmlFor="ptl-filter" className="sr-only">
-            Filter by status
-          </Label>
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => setStatusFilter(v as TaskStatus | "ALL")}
-          >
-            <SelectTrigger id="ptl-filter" className="w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All statuses</SelectItem>
-              {TASK_STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {intl.formatMessage(STATUS_LABEL_MESSAGES[s])}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Label htmlFor="ptl-due-from" className="text-sm shrink-0">
-            Due from
-          </Label>
-          <Input
-            id="ptl-due-from"
-            type="date"
-            value={dueFrom}
-            onChange={(e) => setDueFrom(e.target.value)}
-            max={dueTo || undefined}
-            className="w-40"
-          />
-          <Label htmlFor="ptl-due-to" className="text-sm shrink-0">
-            Due to
-          </Label>
-          <Input
-            id="ptl-due-to"
-            type="date"
-            value={dueTo}
-            onChange={(e) => setDueTo(e.target.value)}
-            min={dueFrom || undefined}
-            className="w-40"
-          />
-          {dueDateFilterActive && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setDueFrom("");
-                setDueTo("");
-              }}
-            >
-              Clear filter
-            </Button>
-          )}
-          <TaskSortControls
-            field={sortField}
-            direction={sortDirection}
-            onFieldChange={setSortField}
-            onDirectionChange={setSortDirection}
-            idPrefix="ptl"
-          />
-        </div>
-        <Button variant="outline" size="sm" onClick={() => setShowCreate(true)}>
-          + New task
-        </Button>
-      </div>
+      <TaskToolbar
+        idPrefix="ptl"
+        dueFrom={dueFrom}
+        dueTo={dueTo}
+        onDueFromChange={setDueFrom}
+        onDueToChange={setDueTo}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSortFieldChange={setSortField}
+        onSortDirectionChange={setSortDirection}
+        onNewTask={() => setShowCreate(true)}
+      >
+        <Label htmlFor="ptl-filter" className="text-xs text-muted-foreground">
+          Status
+        </Label>
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => setStatusFilter(v as TaskStatus | "ALL")}
+        >
+          <SelectTrigger id="ptl-filter" className="w-full sm:w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All statuses</SelectItem>
+            {TASK_STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {intl.formatMessage(STATUS_LABEL_MESSAGES[s])}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </TaskToolbar>
 
       {showCreate && (
         <div className="border border-border rounded-lg p-3 bg-card flex flex-wrap items-end gap-2">

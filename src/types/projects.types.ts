@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Client } from "./clients.types";
 import type {
   Task,
@@ -75,6 +76,20 @@ export interface TaskSortControlsProps {
   onFieldChange: (field: TaskSortField) => void;
   onDirectionChange: (direction: TaskSortDirection) => void;
   idPrefix: string;
+}
+
+export interface TaskToolbarProps {
+  idPrefix: string;
+  dueFrom: string;
+  dueTo: string;
+  onDueFromChange: (date: string) => void;
+  onDueToChange: (date: string) => void;
+  sortField: TaskSortField;
+  sortDirection: TaskSortDirection;
+  onSortFieldChange: (field: TaskSortField) => void;
+  onSortDirectionChange: (direction: TaskSortDirection) => void;
+  onNewTask: () => void;
+  children?: ReactNode;
 }
 
 export interface ProjectCardProps {

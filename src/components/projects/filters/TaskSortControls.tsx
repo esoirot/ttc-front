@@ -24,48 +24,55 @@ export function TaskSortControls({
   const intl = useIntl();
   return (
     <>
-      <Label htmlFor={`${idPrefix}-sort-field`} className="text-sm shrink-0">
-        Sort
-      </Label>
-      <Select
-        value={field}
-        onValueChange={(v) => onFieldChange(v as TaskSortField)}
-      >
-        <SelectTrigger
-          id={`${idPrefix}-sort-field`}
-          className="h-8 text-sm w-36"
+      <div className="flex flex-col gap-1">
+        <Label
+          htmlFor={`${idPrefix}-sort-field`}
+          className="text-xs text-muted-foreground"
         >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {TASK_SORT_FIELDS.map((f) => (
-            <SelectItem key={f} value={f}>
-              {intl.formatMessage(TASK_SORT_FIELD_LABEL_MESSAGES[f])}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Label
-        htmlFor={`${idPrefix}-sort-direction`}
-        className="text-sm shrink-0"
-      >
-        Order
-      </Label>
-      <Select
-        value={direction}
-        onValueChange={(v) => onDirectionChange(v as TaskSortDirection)}
-      >
-        <SelectTrigger
-          id={`${idPrefix}-sort-direction`}
-          className="h-8 text-sm w-32"
+          Sort
+        </Label>
+        <Select
+          value={field}
+          onValueChange={(v) => onFieldChange(v as TaskSortField)}
         >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="desc">Descending</SelectItem>
-          <SelectItem value="asc">Ascending</SelectItem>
-        </SelectContent>
-      </Select>
+          <SelectTrigger
+            id={`${idPrefix}-sort-field`}
+            className="w-full sm:w-36"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {TASK_SORT_FIELDS.map((f) => (
+              <SelectItem key={f} value={f}>
+                {intl.formatMessage(TASK_SORT_FIELD_LABEL_MESSAGES[f])}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex flex-col gap-1">
+        <Label
+          htmlFor={`${idPrefix}-sort-direction`}
+          className="text-xs text-muted-foreground"
+        >
+          Order
+        </Label>
+        <Select
+          value={direction}
+          onValueChange={(v) => onDirectionChange(v as TaskSortDirection)}
+        >
+          <SelectTrigger
+            id={`${idPrefix}-sort-direction`}
+            className="w-full sm:w-32"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="desc">Descending</SelectItem>
+            <SelectItem value="asc">Ascending</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </>
   );
 }

@@ -17,8 +17,6 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import type {
   Task,
@@ -31,7 +29,7 @@ import { TASK_STATUSES, STATUS_LABEL_MESSAGES } from "@/constants/tasks";
 import { compareTasks } from "@/lib/taskSort";
 import { useDeleteTask, useUpdateTask } from "@/hooks/tasks/useTasks";
 import { SortableTask } from "../sortables/SortableTask";
-import { TaskSortControls } from "../filters/TaskSortControls";
+import { TaskToolbar } from "../filters/TaskToolbar";
 
 export function DroppableColumn({
   id,
@@ -144,57 +142,19 @@ export function TasksTab({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-3">
-          <Label htmlFor="task-due-from" className="text-sm shrink-0">
-            Due from
-          </Label>
-          <Input
-            id="task-due-from"
-            type="date"
-            value={dueFrom}
-            onChange={(e) => setDueFrom(e.target.value)}
-            max={dueTo || undefined}
-            className="w-40"
-          />
-          <Label htmlFor="task-due-to" className="text-sm shrink-0">
-            Due to
-          </Label>
-          <Input
-            id="task-due-to"
-            type="date"
-            value={dueTo}
-            onChange={(e) => setDueTo(e.target.value)}
-            min={dueFrom || undefined}
-            className="w-40"
-          />
-          {dueDateFilterActive && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setDueFrom("");
-                setDueTo("");
-              }}
-            >
-              Clear filter
-            </Button>
-          )}
-          <TaskSortControls
-            field={sortField}
-            direction={sortDirection}
-            onFieldChange={setSortField}
-            onDirectionChange={setSortDirection}
-            idPrefix="task"
-          />
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate(`/projects/${projectId}/tasks/new`)}
-        >
-          + New task
-        </Button>
+      <div className="mb-4">
+        <TaskToolbar
+          idPrefix="task"
+          dueFrom={dueFrom}
+          dueTo={dueTo}
+          onDueFromChange={setDueFrom}
+          onDueToChange={setDueTo}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSortFieldChange={setSortField}
+          onSortDirectionChange={setSortDirection}
+          onNewTask={() => navigate(`/projects/${projectId}/tasks/new`)}
+        />
       </div>
 
       {tasksLoading ? (
@@ -207,35 +167,42 @@ export function TasksTab({
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            <div className="grid grid-cols-4 gap-4">
-              {TASK_STATUSES.map((status) => (
-                <div key={status}>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">
-                    {intl.formatMessage(STATUS_LABEL_MESSAGES[status])}
-                  </h3>
-                  <DroppableColumn id={status}>
-                    <SortableContext
-                      items={orderedTasksForStatus(status).map((t) => t.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {orderedTasksForStatus(status).map((task) => (
-                        <SortableTask
-                          key={task.id}
-                          task={task}
-                          onDelete={(tid) => void deleteTask(tid)}
-                          onOpenModal={onOpenModal}
-                          memberMap={memberMap}
-                        />
-                      ))}
-                    </SortableContext>
-                    {tasksByStatus[status].length === 0 && (
-                      <p className="text-muted-foreground text-xs text-center py-4">
-                        Empty
-                      </p>
-                    )}
-                  </DroppableColumn>
-                </div>
-              ))}
+            <div
+              role="region"
+              aria-label="Kanban board"
+              tabIndex={0}
+              className="overflow-x-auto pb-2"
+            >
+              <div className="grid min-w-3xl grid-cols-4 gap-4">
+                {TASK_STATUSES.map((status) => (
+                  <div key={status}>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">
+                      {intl.formatMessage(STATUS_LABEL_MESSAGES[status])}
+                    </h3>
+                    <DroppableColumn id={status}>
+                      <SortableContext
+                        items={orderedTasksForStatus(status).map((t) => t.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {orderedTasksForStatus(status).map((task) => (
+                          <SortableTask
+                            key={task.id}
+                            task={task}
+                            onDelete={(tid) => void deleteTask(tid)}
+                            onOpenModal={onOpenModal}
+                            memberMap={memberMap}
+                          />
+                        ))}
+                      </SortableContext>
+                      {tasksByStatus[status].length === 0 && (
+                        <p className="text-muted-foreground text-xs text-center py-4">
+                          Empty
+                        </p>
+                      )}
+                    </DroppableColumn>
+                  </div>
+                ))}
+              </div>
             </div>
             <DragOverlay dropAnimation={null}>
               {activeTask && (

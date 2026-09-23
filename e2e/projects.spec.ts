@@ -247,3 +247,41 @@ test("project word count shows as SUM / TOTAL from totalWordsProcessed and wordC
 
   await expect(page.getByText("1,200 / 2,500 words")).toBeVisible();
 });
+
+test.describe("project task toolbar on a phone", () => {
+  test.use({ viewport: { width: 375, height: 800 } });
+
+  test("Tasks tab toolbar fits the screen with a full-width New task button", async ({
+    page,
+  }) => {
+    await mockProjectsApi(page, [makeProject({ id: 7 })]);
+    await page.goto("/projects/7");
+    await page.getByRole("tab", { name: "Tasks" }).click();
+
+    const toolbar = page.getByRole("toolbar", { name: "Task filters" });
+    const toolbarBox = await toolbar.boundingBox();
+    expect(toolbarBox).not.toBeNull();
+    expect(toolbarBox!.x + toolbarBox!.width).toBeLessThanOrEqual(375);
+
+    const newTaskBox = await toolbar
+      .getByRole("button", { name: "+ New task" })
+      .boundingBox();
+    expect(newTaskBox!.width).toBeCloseTo(toolbarBox!.width, 0);
+  });
+
+  test("Kanban board scrolls horizontally inside its own container", async ({
+    page,
+  }) => {
+    await mockProjectsApi(page, [makeProject({ id: 7 })]);
+    await page.goto("/projects/7");
+    await page.getByRole("tab", { name: "Kanban" }).click();
+
+    const board = page.getByRole("region", { name: "Kanban board" });
+    const boardBox = await board.boundingBox();
+    expect(boardBox!.x + boardBox!.width).toBeLessThanOrEqual(375);
+    const overflows = await board.evaluate(
+      (el) => el.scrollWidth > el.clientWidth,
+    );
+    expect(overflows).toBe(true);
+  });
+});
