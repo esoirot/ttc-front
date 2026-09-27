@@ -23,7 +23,6 @@ export interface DashboardProspect {
 
 export interface DashboardData {
   activeProjectCount: number;
-  unpaidInvoiceCount: number;
   monthToDateSeconds: number;
   monthToDateRevenue: number;
   yearToDateWords: number;

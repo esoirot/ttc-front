@@ -335,6 +335,53 @@ describe("ProjectTaskList", () => {
     expect(screen.getByText("Late")).toBeInTheDocument();
   });
 
+  it("shows a 'Task list' heading with the New task button beside it, outside the filters", () => {
+    // given the project task list
+    renderList();
+
+    // then a heading titles the list
+    const heading = screen.getByRole("heading", { name: "Task list" });
+    // and the New task button shares the heading row, not the filter toolbar
+    const row = heading.parentElement!;
+    expect(
+      within(row).getByRole("button", { name: "+ New task" }),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("toolbar", { name: "Task filters" })).queryByRole(
+        "button",
+        { name: "+ New task" },
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it("titles the list 'Liste des tâches' in French", () => {
+    // given the French locale
+    render(
+      <ProjectTaskList projectId={1} members={[]} onOpenModal={vi.fn()} />,
+      { wrapper: createIntlWrapper("fr") },
+    );
+
+    // then the heading is translated
+    expect(
+      screen.getByRole("heading", { name: "Liste des tâches" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the new task form above the filters", () => {
+    // given the project task list
+    renderList();
+
+    // when the user opens the create form
+    fireEvent.click(screen.getByText("+ New task"));
+
+    // then the form comes before the filter toolbar
+    const form = screen.getByLabelText("Title");
+    const toolbar = screen.getByRole("toolbar", { name: "Task filters" });
+    expect(
+      form.compareDocumentPosition(toolbar) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it("toggles the create form via '+ New task'", () => {
     renderList();
 

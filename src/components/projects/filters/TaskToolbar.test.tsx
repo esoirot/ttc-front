@@ -111,6 +111,16 @@ describe("TaskToolbar", () => {
     expect(props.onDueToChange).toHaveBeenCalledWith("");
   });
 
+  it("omits the New task button when no onNewTask handler is given", () => {
+    // given a toolbar without a New task handler
+    renderToolbar({ onNewTask: undefined });
+
+    // then no New task button is rendered
+    expect(
+      screen.queryByRole("button", { name: "+ New task" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("calls onNewTask when New task is clicked", () => {
     const props = renderToolbar();
 

@@ -12,7 +12,7 @@ function formatDuration(seconds: number): string {
 export function StatsGrid({ dashboard }: Props) {
   const intl = useIntl();
   return (
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <Link
         to="/projects"
         className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -33,21 +33,6 @@ export function StatsGrid({ dashboard }: Props) {
           </CardContent>
         </Card>
       </Link>
-      <Card>
-        <CardHeader className="pb-1">
-          <CardTitle className="text-xs text-muted-foreground font-normal">
-            <FormattedMessage
-              id="dashboard.statsGrid.unpaidInvoices"
-              defaultMessage="Unpaid Invoices"
-            />
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-semibold">
-            {dashboard.unpaidInvoiceCount}
-          </p>
-        </CardContent>
-      </Card>
       <Card>
         <CardHeader className="pb-1">
           <CardTitle className="text-xs text-muted-foreground font-normal">

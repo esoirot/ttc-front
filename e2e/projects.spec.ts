@@ -251,22 +251,31 @@ test("project word count shows as SUM / TOTAL from totalWordsProcessed and wordC
 test.describe("project task toolbar on a phone", () => {
   test.use({ viewport: { width: 375, height: 800 } });
 
-  test("Tasks tab toolbar fits the screen with a full-width New task button", async ({
+  test("Tasks tab shows the list title with New task beside it, above filters that fit the screen", async ({
     page,
   }) => {
     await mockProjectsApi(page, [makeProject({ id: 7 })]);
     await page.goto("/projects/7");
     await page.getByRole("tab", { name: "Tasks" }).click();
 
-    const toolbar = page.getByRole("toolbar", { name: "Task filters" });
-    const toolbarBox = await toolbar.boundingBox();
-    expect(toolbarBox).not.toBeNull();
-    expect(toolbarBox!.x + toolbarBox!.width).toBeLessThanOrEqual(375);
-
-    const newTaskBox = await toolbar
+    const titleBox = await page
+      .getByRole("heading", { name: "Task list" })
+      .boundingBox();
+    const newTaskBox = await page
       .getByRole("button", { name: "+ New task" })
       .boundingBox();
-    expect(newTaskBox!.width).toBeCloseTo(toolbarBox!.width, 0);
+    const toolbarBox = await page
+      .getByRole("toolbar", { name: "Task filters" })
+      .boundingBox();
+
+    // title and New task share one line, both above the filters
+    expect(newTaskBox!.y).toBeLessThan(titleBox!.y + titleBox!.height);
+    expect(newTaskBox!.x).toBeGreaterThan(titleBox!.x + titleBox!.width);
+    expect(newTaskBox!.x + newTaskBox!.width).toBeLessThanOrEqual(375);
+    expect(toolbarBox!.y).toBeGreaterThanOrEqual(
+      newTaskBox!.y + newTaskBox!.height,
+    );
+    expect(toolbarBox!.x + toolbarBox!.width).toBeLessThanOrEqual(375);
   });
 
   test("Kanban board scrolls horizontally inside its own container", async ({

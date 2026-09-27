@@ -15,7 +15,6 @@ import { useDashboard } from "./useDashboard";
 function makeDashboard(overrides: Partial<DashboardData> = {}): DashboardData {
   return {
     activeProjectCount: 3,
-    unpaidInvoiceCount: 1,
     monthToDateSeconds: 7200,
     monthToDateRevenue: 250,
     yearToDateWords: 8000,

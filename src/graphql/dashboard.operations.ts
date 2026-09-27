@@ -21,7 +21,6 @@ export const DASHBOARD_QUERY: TypedDocumentNode<
   query Dashboard {
     dashboard {
       activeProjectCount
-      unpaidInvoiceCount
       monthToDateSeconds
       monthToDateRevenue
       yearToDateWords

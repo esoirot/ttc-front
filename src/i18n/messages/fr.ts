@@ -786,7 +786,6 @@ export const fr: Record<keyof typeof en, string> = {
   "dashboard.recentTimeEntries.empty": "Aucune entrée de temps pour l'instant.",
 
   "dashboard.statsGrid.activeProjects": "Projets actifs",
-  "dashboard.statsGrid.unpaidInvoices": "Factures impayées",
   "dashboard.statsGrid.hoursThisMonth": "Heures ce mois-ci",
   "dashboard.statsGrid.revenueThisMonth": "Revenu ce mois-ci",
   "dashboard.statsGrid.wordsThisYear": "Mots cette année",
@@ -919,6 +918,7 @@ export const fr: Record<keyof typeof en, string> = {
 
   "projects.detail.notFound": "Projet introuvable.",
   "projects.detail.tabs.tasks": "Tâches",
+  "projects.taskList.title": "Liste des tâches",
   "projects.detail.tabs.kanban": "Kanban",
 
   "projects.sortableTask.deleteAria": "Supprimer la tâche",

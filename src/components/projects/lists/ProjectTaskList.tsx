@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useIntl } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -121,39 +121,15 @@ export function ProjectTaskList({ projectId, onOpenModal }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <TaskToolbar
-        idPrefix="ptl"
-        dueFrom={dueFrom}
-        dueTo={dueTo}
-        onDueFromChange={setDueFrom}
-        onDueToChange={setDueTo}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSortFieldChange={setSortField}
-        onSortDirectionChange={setSortDirection}
-        onNewTask={() => setShowCreate(true)}
-      >
-        <Label htmlFor="ptl-filter" className="text-xs text-muted-foreground">
-          Status
-        </Label>
-        <Select
-          value={statusFilter}
-          onValueChange={(v) => setStatusFilter(v as TaskStatus | "ALL")}
-        >
-          <SelectTrigger id="ptl-filter" className="w-full sm:w-36">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All statuses</SelectItem>
-            {TASK_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {intl.formatMessage(STATUS_LABEL_MESSAGES[s])}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </TaskToolbar>
-
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold">
+          <FormattedMessage
+            id="projects.taskList.title"
+            defaultMessage="Task list"
+          />
+        </h2>
+        <Button onClick={() => setShowCreate(true)}>+ New task</Button>
+      </div>
       {showCreate && (
         <div className="border border-border rounded-lg p-3 bg-card flex flex-wrap items-end gap-2">
           <div className="flex flex-col gap-1 flex-1 min-w-[160px]">
@@ -194,6 +170,38 @@ export function ProjectTaskList({ projectId, onOpenModal }: Props) {
           </div>
         </div>
       )}
+
+      <TaskToolbar
+        idPrefix="ptl"
+        dueFrom={dueFrom}
+        dueTo={dueTo}
+        onDueFromChange={setDueFrom}
+        onDueToChange={setDueTo}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSortFieldChange={setSortField}
+        onSortDirectionChange={setSortDirection}
+      >
+        <Label htmlFor="ptl-filter" className="text-xs text-muted-foreground">
+          Status
+        </Label>
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => setStatusFilter(v as TaskStatus | "ALL")}
+        >
+          <SelectTrigger id="ptl-filter" className="w-full sm:w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All statuses</SelectItem>
+            {TASK_STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {intl.formatMessage(STATUS_LABEL_MESSAGES[s])}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </TaskToolbar>
 
       {selected.size > 0 && (
         <div className="flex items-center gap-2 p-2 border border-border rounded-lg bg-muted">

@@ -39,7 +39,6 @@ const wrapper = createIntlWrapper();
 function makeDashboard(overrides: Partial<DashboardData> = {}): DashboardData {
   return {
     activeProjectCount: 1,
-    unpaidInvoiceCount: 0,
     monthToDateSeconds: 0,
     yearToDateWords: 0,
     monthToDateRevenue: 0,

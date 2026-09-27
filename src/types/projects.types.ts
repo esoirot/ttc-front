@@ -88,7 +88,7 @@ export interface TaskToolbarProps {
   sortDirection: TaskSortDirection;
   onSortFieldChange: (field: TaskSortField) => void;
   onSortDirectionChange: (direction: TaskSortDirection) => void;
-  onNewTask: () => void;
+  onNewTask?: () => void;
   children?: ReactNode;
 }
 

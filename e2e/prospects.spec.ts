@@ -7,6 +7,7 @@ type MockClient = {
   name: string;
   status: string;
   contactedAt: string | null;
+  color?: string | null;
 };
 
 function makeProspect(overrides: Partial<MockClient> = {}): MockClient {
@@ -41,6 +42,7 @@ const CLIENT_DEFAULTS = {
   billingEndOfMonth: false,
   website: null,
   industry: null,
+  color: null,
   tags: [],
   contacts: [],
   createdAt: "2026-01-01T00:00:00.000Z",
@@ -231,6 +233,17 @@ test("deletes a prospect via the confirm dialog", async ({ page }) => {
   await page.getByRole("button", { name: "Delete", exact: true }).click();
 
   await expect(page.getByText("To Delete")).not.toBeVisible();
+});
+
+test("shows the prospect's color swatch on its card", async ({ page }) => {
+  await mockProspectsApi(page, [
+    makeProspect({ id: 1, name: "Colored Co", color: "#ff0000" }),
+  ]);
+  await page.goto("/prospects");
+
+  await expect(
+    page.getByTestId("prospect-card-1").getByTestId("client-color-swatch"),
+  ).toHaveCSS("background-color", "rgb(255, 0, 0)");
 });
 
 test("search filters prospects by name", async ({ page }) => {

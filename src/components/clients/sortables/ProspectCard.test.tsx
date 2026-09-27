@@ -89,6 +89,24 @@ describe("ProspectCard", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows a color swatch when the prospect has a color", () => {
+    // given a prospect with a color
+    renderCard(makeClient({ color: "#ff0000" }));
+
+    // then its swatch is rendered in that color
+    expect(screen.getByTestId("client-color-swatch")).toHaveStyle({
+      backgroundColor: "#ff0000",
+    });
+  });
+
+  it("shows no color swatch when the prospect has no color", () => {
+    // given a prospect without a color
+    renderCard(makeClient({ color: null }));
+
+    // then no swatch is rendered
+    expect(screen.queryByTestId("client-color-swatch")).not.toBeInTheDocument();
+  });
+
   it("navigates to the client detail page when the card is clicked", () => {
     renderCard(makeClient({ id: 7, name: "Acme" }));
     fireEvent.click(screen.getByText("Acme"));

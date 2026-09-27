@@ -22,7 +22,6 @@ const wrapper = makeWrapper();
 function makeDashboard(overrides: Partial<DashboardData> = {}): DashboardData {
   return {
     activeProjectCount: 3,
-    unpaidInvoiceCount: 2,
     monthToDateSeconds: 5400,
     monthToDateRevenue: 1234.5,
     yearToDateWords: 12345,
@@ -34,11 +33,10 @@ function makeDashboard(overrides: Partial<DashboardData> = {}): DashboardData {
 }
 
 describe("StatsGrid", () => {
-  it("renders all five stat values", () => {
+  it("renders all four stat values", () => {
     render(<StatsGrid dashboard={makeDashboard()} />, { wrapper });
 
     expect(screen.getByText("3")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getByText("1h 30m")).toBeInTheDocument();
     expect(screen.getByText("1234.50")).toBeInTheDocument();
     expect(screen.getByText("12,345")).toBeInTheDocument();
@@ -51,6 +49,14 @@ describe("StatsGrid", () => {
     );
 
     expect(screen.getByText("15m")).toBeInTheDocument();
+  });
+
+  it("does not show an unpaid invoices KPI", () => {
+    // given the dashboard stats grid
+    render(<StatsGrid dashboard={makeDashboard()} />, { wrapper });
+
+    // then no unpaid invoices card is rendered
+    expect(screen.queryByText("Unpaid Invoices")).not.toBeInTheDocument();
   });
 
   it("shows the currency label next to revenue", () => {

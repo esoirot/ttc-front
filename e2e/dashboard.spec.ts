@@ -38,7 +38,6 @@ test("Enable 2FA link navigates to /settings/2fa", async ({ page }) => {
 
 const BASE_DASHBOARD_STATS = {
   activeProjectCount: 0,
-  unpaidInvoiceCount: 0,
   monthToDateSeconds: 0,
   monthToDateRevenue: 0,
   upcomingDeadlines: [],

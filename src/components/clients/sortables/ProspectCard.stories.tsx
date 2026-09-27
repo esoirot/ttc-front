@@ -84,3 +84,7 @@ export const Contacted: Story = {
     }),
   },
 };
+
+export const WithColor: Story = {
+  args: { client: makeClient({ name: "Gamma Media", color: "#6366f1" }) },
+};

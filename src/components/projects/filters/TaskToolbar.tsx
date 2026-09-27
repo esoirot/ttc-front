@@ -80,9 +80,11 @@ export function TaskToolbar({
           Clear filter
         </Button>
       )}
-      <Button className="col-span-2 sm:ml-auto" onClick={onNewTask}>
-        + New task
-      </Button>
+      {onNewTask && (
+        <Button className="col-span-2 sm:ml-auto" onClick={onNewTask}>
+          + New task
+        </Button>
+      )}
     </div>
   );
 }

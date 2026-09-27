@@ -111,6 +111,13 @@ export function ProspectCard({ client, onDelete }: ProspectCardProps) {
             >
               ⠿
             </Button>
+            {client.color && (
+              <span
+                data-testid="client-color-swatch"
+                className="h-4 w-4 shrink-0 rounded-sm border border-border"
+                style={{ backgroundColor: client.color }}
+              />
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm truncate">{client.name}</p>
               <p className="text-xs text-muted-foreground">

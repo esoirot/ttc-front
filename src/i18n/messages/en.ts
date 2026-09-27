@@ -768,7 +768,6 @@ export const en = {
   "dashboard.recentTimeEntries.empty": "No time entries yet.",
 
   "dashboard.statsGrid.activeProjects": "Active Projects",
-  "dashboard.statsGrid.unpaidInvoices": "Unpaid Invoices",
   "dashboard.statsGrid.hoursThisMonth": "Hours This Month",
   "dashboard.statsGrid.revenueThisMonth": "Revenue This Month",
   "dashboard.statsGrid.wordsThisYear": "Words This Year",
@@ -898,6 +897,7 @@ export const en = {
 
   "projects.detail.notFound": "Project not found.",
   "projects.detail.tabs.tasks": "Tasks",
+  "projects.taskList.title": "Task list",
   "projects.detail.tabs.kanban": "Kanban",
 
   "projects.sortableTask.deleteAria": "Delete task",
