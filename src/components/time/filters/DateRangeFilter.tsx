@@ -42,7 +42,7 @@ export function DateRangeFilter({
         value={endDate}
         onChange={(e) => setEndDate(e.target.value)}
         min={startDate}
-        max={endDate}
+        max={new Date().toISOString().slice(0, 10)}
         className="w-40"
       />
       <span className="ml-auto text-sm text-muted-foreground">
