@@ -28,6 +28,7 @@ describe("useAuthSSE", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -95,5 +96,84 @@ describe("useAuthSSE", () => {
     unmount();
 
     expect(es.closed).toBe(true);
+  });
+
+  async function connected() {
+    gqlFetch.mockResolvedValueOnce({ me: MOCK_AUTH_USER });
+    const queryClient = createQueryClient();
+    const clearSpy = vi.spyOn(queryClient, "clear");
+    const hook = renderHook(() => useAuthSSE(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+    await waitFor(() => expect(FakeEventSource.instances).toHaveLength(1));
+    return { ...hook, clearSpy };
+  }
+
+  it("ignores messages that are not valid JSON", async () => {
+    const { clearSpy } = await connected();
+
+    expect(() =>
+      FakeEventSource.last().onmessage?.({ data: "not json" }),
+    ).not.toThrow();
+    expect(clearSpy).not.toHaveBeenCalled();
+    expect(replaceLocation).not.toHaveBeenCalled();
+  });
+
+  it.each([null, "session_revoked", 42])(
+    "ignores a non-object message (%j)",
+    async (payload) => {
+      const { clearSpy } = await connected();
+
+      expect(() => FakeEventSource.last().emitMessage(payload)).not.toThrow();
+      expect(clearSpy).not.toHaveBeenCalled();
+      expect(replaceLocation).not.toHaveBeenCalled();
+    },
+  );
+
+  it("reconnects after a drop with exponential backoff, then gives up after 4 retries", async () => {
+    await connected();
+    vi.useFakeTimers();
+
+    for (const delay of [2_000, 4_000, 8_000, 16_000]) {
+      const before = FakeEventSource.instances.length;
+      const dropped = FakeEventSource.last();
+      dropped.emitError();
+      expect(dropped.closed).toBe(true);
+
+      vi.advanceTimersByTime(delay - 1);
+      expect(FakeEventSource.instances).toHaveLength(before);
+      vi.advanceTimersByTime(1);
+      expect(FakeEventSource.instances).toHaveLength(before + 1);
+    }
+
+    FakeEventSource.last().emitError();
+    vi.advanceTimersByTime(60_000);
+    expect(FakeEventSource.instances).toHaveLength(5);
+  });
+
+  it("resets the backoff once a reconnect succeeds", async () => {
+    await connected();
+    vi.useFakeTimers();
+
+    FakeEventSource.last().emitError();
+    vi.advanceTimersByTime(2_000);
+    FakeEventSource.last().emitError();
+    vi.advanceTimersByTime(4_000);
+    FakeEventSource.last().emitOpen();
+
+    FakeEventSource.last().emitError();
+    vi.advanceTimersByTime(2_000);
+    expect(FakeEventSource.instances).toHaveLength(4);
+  });
+
+  it("cancels a pending reconnect on unmount", async () => {
+    const { unmount } = await connected();
+    vi.useFakeTimers();
+
+    FakeEventSource.last().emitError();
+    unmount();
+    vi.advanceTimersByTime(60_000);
+
+    expect(FakeEventSource.instances).toHaveLength(1);
   });
 });

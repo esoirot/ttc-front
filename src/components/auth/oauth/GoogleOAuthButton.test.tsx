@@ -34,4 +34,18 @@ describe("GoogleOAuthButton", () => {
     const stored = JSON.parse(sessionStorage.getItem("oauth_from") ?? "{}");
     expect(stored.dest).toBe("/");
   });
+
+  it("defaults to the local API when VITE_API_URL is not set", async () => {
+    vi.stubEnv("VITE_API_URL", undefined);
+    vi.resetModules();
+    const { GoogleOAuthButton: Fresh } = await import("./GoogleOAuthButton");
+
+    render(<Fresh />, { wrapper });
+    fireEvent.click(screen.getByText("Continue with Google"));
+
+    expect(redirectTo).toHaveBeenCalledWith(
+      "http://localhost:3000/auth/google",
+    );
+    vi.unstubAllEnvs();
+  });
 });

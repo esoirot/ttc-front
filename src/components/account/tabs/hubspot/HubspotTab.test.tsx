@@ -23,9 +23,13 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/test/queryClientWrapper";
 import { HubspotTab } from "./HubspotTab";
 
-function renderTab(queryClient = createQueryClient(), locale: Locale = "en") {
+function renderTab(
+  queryClient = createQueryClient(),
+  locale: Locale = "en",
+  localeMessages: Record<string, string> = messages[locale],
+) {
   return render(
-    <IntlProvider locale={locale} messages={messages[locale]}>
+    <IntlProvider locale={locale} messages={localeMessages} onError={() => {}}>
       <QueryClientProvider client={queryClient}>
         <HubspotTab />
       </QueryClientProvider>
@@ -96,5 +100,72 @@ describe("HubspotTab", () => {
         "Connectez votre compte HubSpot pour synchroniser contacts, entreprises et transactions.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("shows a skeleton, not the Connect button, while the status loads", () => {
+    apiGet.mockReturnValueOnce(new Promise(() => {}));
+    const { container } = renderTab();
+
+    expect(
+      container.querySelectorAll('[data-slot="skeleton"]').length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText("Connect HubSpot")).not.toBeInTheDocument();
+  });
+
+  it("falls back to the connect prompt when the status request fails", async () => {
+    apiGet.mockRejectedValueOnce(new Error("Network down"));
+    renderTab();
+
+    expect(
+      await screen.findByText(
+        "Connect your HubSpot account to sync contacts, companies, and deals.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows Disconnecting… and disables the button while disconnecting", async () => {
+    apiGet.mockResolvedValueOnce({ connected: true, portalId: "12345" });
+    apiDelete.mockReturnValueOnce(new Promise(() => {}));
+    renderTab();
+
+    fireEvent.click(await screen.findByText("Disconnect HubSpot"));
+
+    const button = await screen.findByRole("button", {
+      name: "Disconnecting…",
+    });
+    expect(button).toBeDisabled();
+  });
+
+  it("falls back to its built-in English copy when translations are missing", async () => {
+    apiGet.mockResolvedValueOnce({ connected: false });
+    renderTab(createQueryClient(), "en", {});
+
+    expect(
+      await screen.findByText(
+        "Connect your HubSpot account to sync contacts, companies, and deals.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Connect HubSpot")).toBeInTheDocument();
+  });
+
+  it("falls back to its built-in English connected copy when translations are missing", async () => {
+    apiGet.mockResolvedValueOnce({ connected: true, portalId: "12345" });
+    renderTab(createQueryClient(), "en", {});
+
+    expect(await screen.findByText("✓ Connected")).toBeInTheDocument();
+    expect(screen.getByText("Disconnect HubSpot")).toBeInTheDocument();
+    expect(screen.getByText("Portal 12345")).toBeInTheDocument();
+  });
+
+  it("falls back to its built-in English Disconnecting… copy when translations are missing", async () => {
+    apiGet.mockResolvedValueOnce({ connected: true, portalId: "12345" });
+    apiDelete.mockReturnValueOnce(new Promise(() => {}));
+    renderTab(createQueryClient(), "en", {});
+
+    fireEvent.click(await screen.findByText("Disconnect HubSpot"));
+
+    expect(
+      await screen.findByRole("button", { name: "Disconnecting…" }),
+    ).toBeDisabled();
   });
 });

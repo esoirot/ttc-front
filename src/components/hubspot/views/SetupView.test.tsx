@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { redirectTo } = vi.hoisted(() => ({ redirectTo: vi.fn() }));
@@ -35,6 +36,25 @@ describe("SetupView", () => {
     render(<SetupView />, { wrapper: createIntlWrapper("fr") });
     expect(
       screen.getByRole("heading", { name: "Connecter HubSpot" }),
+    ).toBeInTheDocument();
+  });
+
+  it("falls back to its built-in English copy when translations are missing", () => {
+    render(
+      <IntlProvider locale="en" messages={{}} onError={() => {}}>
+        <SetupView />
+      </IntlProvider>,
+    );
+    expect(
+      screen.getByRole("heading", { name: "Connect HubSpot" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Authenticate with your HubSpot account to manage contacts, companies, and deals.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Connect HubSpot" }),
     ).toBeInTheDocument();
   });
 });
