@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { useDeleteTaskLabel } from "@/hooks/tasks/useTasks";
 import type { TaskLabel } from "@/types/tasks.types";
+import { Button } from "@/components/ui/button";
 
 export function TaskLabelBadges({
   taskId,
@@ -20,12 +21,14 @@ export function TaskLabelBadges({
           className="text-white text-xs gap-1 cursor-default"
         >
           {l.name}
-          <button
+          <Button
+            variant="ghost"
+            size="icon-xs"
             onClick={() => void deleteLabel(l.id)}
-            className="hover:opacity-70 leading-none"
+            className="size-4 rounded-sm text-inherit hover:bg-background/30 hover:text-inherit"
           >
             ✕
-          </button>
+          </Button>
         </Badge>
       ))}
     </div>

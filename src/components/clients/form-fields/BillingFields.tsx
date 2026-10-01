@@ -63,7 +63,7 @@ export function BillingFields({
             onChange("billingEndOfMonth", !!checked)
           }
         />
-        <Label htmlFor={`${idPrefix}-eom`} className="cursor-pointer">
+        <Label htmlFor={`${idPrefix}-eom`}>
           <FormattedMessage
             id="clients.billingFields.billEndOfMonth"
             defaultMessage="Bill at end of month"

@@ -1,4 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { ALL_PERMISSIONS } from "@/constants/admin";
 import type { AdminPermission } from "@/types/users.types";
 
@@ -12,10 +13,7 @@ export function PermissionsEditor({
   return (
     <div className="grid grid-cols-2 gap-2">
       {ALL_PERMISSIONS.map((p) => (
-        <label
-          key={p}
-          className="flex items-center gap-2 text-sm cursor-pointer"
-        >
+        <Label key={p} className="font-normal">
           <Checkbox
             checked={value.includes(p)}
             onCheckedChange={(checked) =>
@@ -23,7 +21,7 @@ export function PermissionsEditor({
             }
           />
           <span className="font-mono text-xs">{p}</span>
-        </label>
+        </Label>
       ))}
     </div>
   );

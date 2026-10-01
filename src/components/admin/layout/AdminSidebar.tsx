@@ -30,7 +30,7 @@ function NavItem({ to, label }: { to: string; label: string }) {
         cn(
           "flex items-center px-2 py-1.5 rounded text-sm transition-colors",
           isActive
-            ? "bg-primary text-primary-foreground font-medium"
+            ? "bg-primary text-primary-foreground font-medium hover:bg-primary/80"
             : "text-foreground/70 hover:text-foreground hover:bg-accent/50",
         )
       }

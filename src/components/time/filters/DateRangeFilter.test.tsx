@@ -70,6 +70,26 @@ describe("DateRangeFilter", () => {
     expect(screen.getByLabelText("To")).toHaveAttribute("min", "2026-06-01");
   });
 
+  it("lets the end date move past its current value, up to today", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-07-15T12:00:00Z"));
+    render(
+      <DateRangeFilter
+        startDate="2026-06-01"
+        setStartDate={vi.fn()}
+        endDate="2026-06-30"
+        setEndDate={vi.fn()}
+        count={0}
+        total={0}
+        totalSeconds={0}
+      />,
+      { wrapper },
+    );
+    vi.useRealTimers();
+
+    expect(screen.getByLabelText("To")).toHaveAttribute("max", "2026-07-15");
+  });
+
   it("renders French copy when locale is fr", () => {
     render(
       <DateRangeFilter

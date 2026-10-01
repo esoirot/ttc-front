@@ -3,6 +3,7 @@ import { useIntl } from "react-intl";
 import { Badge } from "@/components/ui/badge";
 import type { ClockifyTag } from "@/types/clockify.types";
 import { useCreateTag } from "@/hooks/integrations/useClockify";
+import { Button } from "@/components/ui/button";
 
 export function TagChips({
   workspaceId,
@@ -63,12 +64,14 @@ export function TagChips({
           className="gap-0.5 px-1.5 py-0 text-xs"
         >
           {tag.name}
-          <button
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            className="ml-0.5 size-4 rounded-sm text-muted-foreground hover:text-destructive"
             onClick={() => onRemove(tag.id)}
-            className="ml-0.5 text-muted-foreground hover:text-destructive leading-none"
           >
             ×
-          </button>
+          </Button>
         </Badge>
       ))}
       <div className="relative">
@@ -92,19 +95,21 @@ export function TagChips({
         {open && (filtered.length > 0 || showCreate) && (
           <div className="absolute top-full left-0 mt-1 z-20 min-w-28 bg-popover border border-border rounded shadow-lg py-1">
             {filtered.map((t) => (
-              <button
+              <Button
                 key={t.id}
+                variant="ghost"
                 onMouseDown={() => handleSelect(t.id)}
-                className="block w-full text-left px-2 py-1 text-xs text-popover-foreground hover:bg-accent"
+                className="h-auto w-full justify-start rounded-none px-2 py-1 text-left text-xs font-normal whitespace-normal text-popover-foreground hover:bg-accent"
               >
                 {t.name}
-              </button>
+              </Button>
             ))}
             {showCreate && (
-              <button
+              <Button
+                variant="ghost"
                 onMouseDown={handleCreate}
                 disabled={creating}
-                className="block w-full text-left px-2 py-1 text-xs text-primary hover:bg-accent disabled:opacity-50"
+                className="h-auto w-full justify-start rounded-none px-2 py-1 text-left text-xs font-normal whitespace-normal text-primary hover:bg-accent hover:text-primary"
               >
                 {creating
                   ? intl.formatMessage({
@@ -118,7 +123,7 @@ export function TagChips({
                       },
                       { query: query.trim() },
                     )}
-              </button>
+              </Button>
             )}
           </div>
         )}

@@ -81,17 +81,19 @@ export function LanguagePairsInput({
                 ))}
               </SelectContent>
             </Select>
-            <button
+            <Button
               type="button"
               onClick={() => onRemove(i)}
-              className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+              variant="ghost"
+              size="icon-xs"
+              className="text-muted-foreground hover:text-destructive"
               aria-label={intl.formatMessage({
                 id: "activities.languagePairs.removePair",
                 defaultMessage: "Remove pair",
               })}
             >
               ✕
-            </button>
+            </Button>
             {sameLanguage && (
               <span className="text-xs text-destructive">
                 <FormattedMessage

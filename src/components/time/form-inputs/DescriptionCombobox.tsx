@@ -3,6 +3,7 @@ import { useIntl } from "react-intl";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { DescriptionComboboxProps as Props } from "@/types/time-entries.types";
+import { Button } from "@/components/ui/button";
 
 export function DescriptionCombobox({
   value,
@@ -84,17 +85,18 @@ export function DescriptionCombobox({
       {showDropdown && (
         <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-popover border border-border rounded-md shadow-lg py-1 max-h-52 overflow-y-auto">
           {filtered.map((desc, i) => (
-            <button
+            <Button
               key={desc}
               type="button"
+              variant="ghost"
               onMouseDown={() => selectItem(desc)}
               className={cn(
-                "block w-full text-left px-3 py-1.5 text-sm text-popover-foreground hover:bg-accent",
+                "h-auto w-full justify-start rounded-none px-3 py-1.5 text-left font-normal whitespace-normal text-popover-foreground hover:bg-accent",
                 i === activeIndex && "bg-accent",
               )}
             >
               {desc}
-            </button>
+            </Button>
           ))}
         </div>
       )}

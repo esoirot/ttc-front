@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type {
   ClockifyTimeEntry,
@@ -82,19 +83,19 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
         <span className="text-xs text-muted-foreground">
           <FormattedMessage id="time.trackerView.from" defaultMessage="From:" />
         </span>
-        <input
+        <Input
           type="date"
           value={startDate}
           max={endDate}
           onChange={(e) => {
             if (e.target.value) setStartDate(e.target.value);
           }}
-          className="text-xs rounded border border-border bg-background text-foreground px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+          className="h-7 w-auto px-2 text-xs md:text-xs"
         />
         <span className="text-xs text-muted-foreground">
           <FormattedMessage id="time.trackerView.to" defaultMessage="To:" />
         </span>
-        <input
+        <Input
           type="date"
           value={endDate}
           min={startDate}
@@ -102,7 +103,7 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
           onChange={(e) => {
             if (e.target.value) setEndDate(e.target.value);
           }}
-          className="text-xs rounded border border-border bg-background text-foreground px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+          className="h-7 w-auto px-2 text-xs md:text-xs"
         />
       </div>
 
@@ -121,7 +122,7 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
             className={cn(
               "text-xs",
               selectedProject === null
-                ? "bg-primary/10 text-primary hover:bg-primary/10"
+                ? "bg-primary/10 text-primary hover:bg-primary/20"
                 : "text-muted-foreground",
             )}
           >
@@ -136,7 +137,7 @@ export function TrackerView({ workspaceId }: { workspaceId: string }) {
               className={cn(
                 "text-xs",
                 selectedProject === p.id
-                  ? "bg-primary/10 text-primary hover:bg-primary/10"
+                  ? "bg-primary/10 text-primary hover:bg-primary/20"
                   : "text-muted-foreground",
               )}
             >

@@ -224,7 +224,7 @@ export function RateSheetForm({
               checked={isDefault}
               onCheckedChange={(v) => setIsDefault(Boolean(v))}
             />
-            <Label htmlFor="rs-is-default" className="cursor-pointer">
+            <Label htmlFor="rs-is-default">
               <FormattedMessage
                 id="rates.sheetForm.defaultForClient"
                 defaultMessage="Default rate sheet for this client"

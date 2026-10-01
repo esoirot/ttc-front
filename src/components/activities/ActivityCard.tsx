@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ACTIVITY_TYPE_LABEL_MESSAGES } from "@/constants/activities";
 import type { ActivityCardProps } from "@/types/activities.types";
+import { Button } from "@/components/ui/button";
 
 export function ActivityCard({ activity: a, onDelete }: ActivityCardProps) {
   const navigate = useNavigate();
@@ -45,13 +46,15 @@ export function ActivityCard({ activity: a, onDelete }: ActivityCardProps) {
           )}
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <button
-                className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className="text-muted-foreground hover:text-destructive"
                 onClick={(e) => e.stopPropagation()}
                 aria-label="Delete activity"
               >
                 ✕
-              </button>
+              </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>

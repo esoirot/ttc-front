@@ -94,15 +94,17 @@ export function ActivityChips({
           className="gap-0.5 px-1.5 py-0 text-xs"
         >
           {activity.name}
-          <button
+          <Button
             type="button"
             onClick={() =>
               onChange(activityIds.filter((id) => id !== activity.id))
             }
-            className="ml-0.5 text-muted-foreground hover:text-destructive leading-none"
+            variant="ghost"
+            size="icon-xs"
+            className="ml-0.5 size-4 rounded-sm text-muted-foreground hover:text-destructive"
           >
             <XIcon className="size-3" />
-          </button>
+          </Button>
         </Badge>
       ))}
       <Popover open={open} onOpenChange={handleOpenChange}>

@@ -120,15 +120,17 @@ export function ActivityDetail() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 flex flex-col gap-6">
       <div className="flex items-center gap-3">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-ml-2 text-muted-foreground"
           onClick={() => navigate("/activities")}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <FormattedMessage
             id="activities.detail.activitiesBreadcrumb"
             defaultMessage="← Activities"
           />
-        </button>
+        </Button>
         {activity && <span className="text-sm text-muted-foreground">/</span>}
         {activity && (
           <span className="text-sm font-medium">{activity.name}</span>

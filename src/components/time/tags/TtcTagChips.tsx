@@ -134,13 +134,15 @@ export function TtcTagChips({ tagIds, tags, onChange }: Props) {
           className="gap-0.5 px-1.5 py-0 text-xs"
         >
           {tag.name}
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
+            className="ml-0.5 size-4 rounded-sm text-muted-foreground hover:text-destructive"
             onClick={() => onChange(tagIds.filter((id) => id !== tag.id))}
-            className="ml-0.5 text-muted-foreground hover:text-destructive leading-none"
           >
             <XIcon className="size-3" />
-          </button>
+          </Button>
         </Badge>
       ))}
       <Popover open={open} onOpenChange={handleOpenChange}>
@@ -220,13 +222,15 @@ export function TtcTagChips({ tagIds, tags, onChange }: Props) {
                     className="gap-0.5 px-1.5 py-0 text-xs"
                   >
                     {p.name}
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon-xs"
                       onClick={() => removePendingNew(p.key)}
-                      className="ml-0.5 text-muted-foreground hover:text-destructive leading-none"
+                      className="ml-0.5 size-4 rounded-sm text-muted-foreground hover:text-destructive"
                     >
                       <XIcon className="size-3" />
-                    </button>
+                    </Button>
                   </Badge>
                 ))}
               </div>

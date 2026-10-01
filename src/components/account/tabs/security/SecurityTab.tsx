@@ -112,15 +112,17 @@ export function SecurityTab() {
                 />
               </p>
               {!showDisableForm ? (
-                <button
+                <Button
+                  variant="link"
+                  size="xs"
                   onClick={() => setShowDisableForm(true)}
-                  className="self-start text-xs text-destructive hover:underline"
+                  className="h-auto self-start p-0 text-destructive"
                 >
                   <FormattedMessage
                     id="account.securityTab.disable2faEllipsis"
                     defaultMessage="Disable 2FA…"
                   />
-                </button>
+                </Button>
               ) : (
                 <form
                   onSubmit={async (e) => {
