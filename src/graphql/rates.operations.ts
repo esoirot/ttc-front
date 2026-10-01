@@ -24,10 +24,10 @@ export const CREATE_TRANSLATION_RATE_MUTATION: TypedDocumentNode<
       name: string;
       amount: number;
       currency: string;
-      description?: string;
+      description?: string | null;
       clientId?: number | null;
-      sourceLanguage?: string;
-      targetLanguage?: string;
+      sourceLanguage?: string | null;
+      targetLanguage?: string | null;
     };
   }
 > = gql`
@@ -46,10 +46,10 @@ export const UPDATE_TRANSLATION_RATE_MUTATION: TypedDocumentNode<
       name?: string;
       amount?: number;
       currency?: string;
-      description?: string;
+      description?: string | null;
       clientId?: number | null;
-      sourceLanguage?: string;
-      targetLanguage?: string;
+      sourceLanguage?: string | null;
+      targetLanguage?: string | null;
     };
   }
 > = gql`

@@ -108,26 +108,26 @@ export interface ClientHeaderProps {
   onUpdate: (input: {
     id: number;
     name?: string;
-    legalName?: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-    addressLine2?: string;
-    city?: string;
-    country?: string;
-    state?: string;
-    postalCode?: string;
-    vatNumber?: string;
-    legalForm?: string;
-    color?: string;
-    notes?: string;
+    legalName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    addressLine2?: string | null;
+    city?: string | null;
+    country?: string | null;
+    state?: string | null;
+    postalCode?: string | null;
+    vatNumber?: string | null;
+    legalForm?: string | null;
+    color?: string | null;
+    notes?: string | null;
     clientType?: ClientType;
-    firstName?: string;
-    lastName?: string;
-    paymentDelayDays?: number;
-    taxRate?: number;
+    firstName?: string | null;
+    lastName?: string | null;
+    paymentDelayDays?: number | null;
+    taxRate?: number | null;
     billingEndOfMonth?: boolean;
-    website?: string;
+    website?: string | null;
     industry?: ClientIndustry | null;
     status?: ClientStatus;
     contactedAt?: string | null;
@@ -148,21 +148,21 @@ export type ActivityTabProps = {
 
 export type EditInput = {
   id: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  jobTitle?: string;
-  color?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  jobTitle?: string | null;
+  color?: string | null;
 };
 
 export type ContactInput = {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  jobTitle?: string;
-  color?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  jobTitle?: string | null;
+  color?: string | null;
 };
 
 export type ContactsTabProps = {
@@ -242,27 +242,27 @@ export interface AddressFieldsProps {
 
 export type ClientInput = {
   name: string;
-  legalName?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  addressLine2?: string;
-  city?: string;
-  country?: string;
-  state?: string;
-  postalCode?: string;
-  vatNumber?: string;
-  legalForm?: string;
-  color?: string;
-  notes?: string;
+  legalName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  country?: string | null;
+  state?: string | null;
+  postalCode?: string | null;
+  vatNumber?: string | null;
+  legalForm?: string | null;
+  color?: string | null;
+  notes?: string | null;
   hubspotId?: string;
   clientType?: ClientType;
-  firstName?: string;
-  lastName?: string;
-  paymentDelayDays?: number;
-  taxRate?: number;
+  firstName?: string | null;
+  lastName?: string | null;
+  paymentDelayDays?: number | null;
+  taxRate?: number | null;
   billingEndOfMonth?: boolean;
-  website?: string;
+  website?: string | null;
   industry?: ClientIndustry | null;
   status?: ClientStatus;
   contactedAt?: string | null;

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInvoices } from "./useInvoices";
-import { useClients } from "../clients/useClients";
-import { useProjects } from "../projects/useProjects";
+import { useAllClients } from "../clients/useClients";
+import { useAllProjects } from "../projects/useProjects";
 import type { InvoiceStatus } from "@/types/invoices.types";
 
 export function useInvoicesPage() {
@@ -23,8 +23,8 @@ export function useInvoicesPage() {
     undefined,
     debouncedSearch || undefined,
   );
-  const { clients } = useClients();
-  const { projects } = useProjects();
+  const { clients } = useAllClients();
+  const { projects } = useAllProjects();
   const clientMap = Object.fromEntries(clients.map((c) => [c.id, c.name]));
 
   function toggleCreate() {

@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
-import { useClients } from "@/hooks/clients/useClients";
+import { useAllClients } from "@/hooks/clients/useClients";
 import { useMyActivities } from "@/hooks/activities/useActivities";
 import { CURRENCIES } from "@/constants/rates";
 import { LANGUAGES } from "@/constants/languages";
@@ -35,7 +35,7 @@ export function RateSheetForm({
   const { user } = useCurrentUser();
   const userCurrency = user?.defaultCurrency ?? "EUR";
 
-  const { clients } = useClients();
+  const { clients } = useAllClients();
   const { activities: allActivities } = useMyActivities();
   const activities = allActivities.filter(
     (a) => a.activityType === "TRANSLATOR",
@@ -123,7 +123,7 @@ export function RateSheetForm({
       activityId: activityId === "__none__" ? null : Number(activityId),
       clientId: clientId === "__none__" ? null : Number(clientId),
       name: name.trim(),
-      description: description.trim() || undefined,
+      description: description.trim() || null,
       sourceLanguage,
       targetLanguage,
       currency: activeCurrency,

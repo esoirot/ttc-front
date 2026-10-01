@@ -79,8 +79,8 @@ describe("ManualEntryForm", () => {
         expect.objectContaining({
           input: expect.objectContaining({
             description: "Translate",
-            startTime: "2026-06-01T09:00:00",
-            endTime: "2026-06-01T10:00:00",
+            startTime: new Date(2026, 5, 1, 9, 0).toISOString(),
+            endTime: new Date(2026, 5, 1, 10, 0).toISOString(),
           }),
         }),
       ),
@@ -155,8 +155,8 @@ describe("ManualEntryForm", () => {
         expect.anything(),
         expect.objectContaining({
           input: expect.objectContaining({
-            startTime: "2026-06-01T14:30:00",
-            endTime: "2026-06-01T16:00:00",
+            startTime: new Date(2026, 5, 1, 14, 30).toISOString(),
+            endTime: new Date(2026, 5, 1, 16, 0).toISOString(),
           }),
         }),
       ),

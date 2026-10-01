@@ -21,6 +21,7 @@ export function useClockifyStatus() {
 export function useSetClockifyCredentials() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { inlineError: true },
     mutationFn: (input: { apiKey: string; workspaceId?: string }) =>
       apiPost<void>("/clockify/credentials", input),
     onSuccess: () => {
@@ -199,6 +200,7 @@ export function useUpdateEntry(workspaceId: string | null) {
 
 export function useImportClockifyEntries(workspaceId: string | null) {
   return useMutation({
+    meta: { inlineError: true },
     mutationFn: (range: { start: string; end: string }) =>
       apiPost<{ imported: number; skipped: number }>(
         `/clockify/workspaces/${workspaceId}/entries/import`,

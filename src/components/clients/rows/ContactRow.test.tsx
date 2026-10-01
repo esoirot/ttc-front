@@ -138,10 +138,36 @@ describe("ContactRow", () => {
         lastName: "Doe",
         email: "jane@acme.com",
         phone: "+33100000000",
+        jobTitle: null,
+        color: null,
       }),
     );
     await waitFor(() =>
       expect(screen.queryByLabelText("First name")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("clearing a field sends null so the stored value is erased", async () => {
+    const onEdit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ContactRow
+        contact={makeContact({ id: 7 })}
+        onDelete={vi.fn()}
+        onEdit={onEdit}
+      />,
+      { wrapper },
+    );
+
+    fireEvent.click(screen.getByText("✎"));
+    fireEvent.change(screen.getByLabelText("Phone"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onEdit).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 7, phone: null }),
+      ),
     );
   });
 

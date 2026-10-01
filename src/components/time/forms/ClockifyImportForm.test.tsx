@@ -82,7 +82,10 @@ describe("ClockifyImportForm", () => {
     await waitFor(() =>
       expect(apiPost).toHaveBeenCalledWith(
         "/clockify/workspaces/ws-1/entries/import",
-        { start: "2026-06-01T00:00:00Z", end: "2026-06-10T23:59:59.999Z" },
+        {
+          start: new Date(2026, 5, 1).toISOString(),
+          end: new Date(2026, 5, 10, 23, 59, 59, 999).toISOString(),
+        },
       ),
     );
     expect(

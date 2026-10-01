@@ -1,5 +1,5 @@
 import { useIntl } from "react-intl";
-import { useProjects } from "@/hooks/projects/useProjects";
+import { useAllProjects } from "@/hooks/projects/useProjects";
 import { useTimeEntries } from "@/hooks/time/useTimeEntries";
 import { formatDuration } from "@/lib/time";
 import type { TimeEntry } from "@/types/time-entries.types";
@@ -22,7 +22,7 @@ function sumByProject(
 
 export function ProjectsOverviewCharts() {
   const intl = useIntl();
-  const { projects } = useProjects();
+  const { projects } = useAllProjects();
 
   const now = new Date();
   const monthStart = new Date(

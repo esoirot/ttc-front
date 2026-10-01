@@ -76,7 +76,7 @@ describe("useClientHeaderForm", () => {
     expect(result.current.isCompany).toBe(true);
   });
 
-  it("save: company branch omits firstName/lastName, includes legalName/vatNumber", async () => {
+  it("save: company branch erases firstName/lastName, includes legalName/vatNumber", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     const client = makeClient({
       id: 5,
@@ -99,8 +99,8 @@ describe("useClientHeaderForm", () => {
         clientType: "COMPANY",
         legalName: "Acme Legal",
         vatNumber: "VAT123",
-        firstName: undefined,
-        lastName: undefined,
+        firstName: null,
+        lastName: null,
       }),
     );
   });
@@ -136,7 +136,7 @@ describe("useClientHeaderForm", () => {
     );
   });
 
-  it("save: individual branch omits legalForm", async () => {
+  it("save: individual branch erases legalForm", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     const client = makeClient({
       id: 13,
@@ -154,11 +154,11 @@ describe("useClientHeaderForm", () => {
     });
 
     expect(onUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ legalForm: undefined }),
+      expect.objectContaining({ legalForm: null }),
     );
   });
 
-  it("save: individual branch omits legalName/vatNumber, includes firstName/lastName", async () => {
+  it("save: individual branch erases legalName/vatNumber, includes firstName/lastName", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     const client = makeClient({
       id: 6,
@@ -182,13 +182,13 @@ describe("useClientHeaderForm", () => {
         clientType: "INDIVIDUAL",
         firstName: "Jane",
         lastName: "Doe",
-        legalName: undefined,
-        vatNumber: undefined,
+        legalName: null,
+        vatNumber: null,
       }),
     );
   });
 
-  it("save: transforms contactedAt date string into a midnight ISO-local timestamp", async () => {
+  it("save: sends contactedAt as a plain YYYY-MM-DD date", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     const client = makeClient({ id: 7 });
     const { result } = renderHook(() => useClientHeaderForm(client, onUpdate), {
@@ -208,7 +208,7 @@ describe("useClientHeaderForm", () => {
     });
 
     expect(onUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ contactedAt: "2026-06-10T00:00:00" }),
+      expect.objectContaining({ contactedAt: "2026-06-10" }),
     );
   });
 
@@ -239,7 +239,7 @@ describe("useClientHeaderForm", () => {
     );
   });
 
-  it("omits optional empty-string fields from the save payload", async () => {
+  it("sends null for optional empty-string fields so they are erased", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     const client = makeClient({ id: 9, email: null, phone: null });
     const { result } = renderHook(() => useClientHeaderForm(client, onUpdate), {
@@ -253,7 +253,63 @@ describe("useClientHeaderForm", () => {
     });
 
     expect(onUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ email: undefined, phone: undefined }),
+      expect.objectContaining({ email: null, phone: null }),
+    );
+  });
+
+  it("keeps an existing industry on save", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    const client = makeClient({ id: 9, industry: "LEGAL" });
+    const { result } = renderHook(() => useClientHeaderForm(client, onUpdate), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.handleSave({
+        preventDefault: () => {},
+      } as React.SubmitEvent<HTMLFormElement>);
+    });
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ industry: "LEGAL" }),
+    );
+  });
+
+  it("erases cleared address and industry fields with null", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    const client = makeClient({
+      id: 9,
+      address: "1 Main St",
+      city: "Paris",
+      country: "FR",
+      postalCode: "75001",
+      industry: "LEGAL",
+    });
+    const { result } = renderHook(() => useClientHeaderForm(client, onUpdate), {
+      wrapper: createQueryWrapper(),
+    });
+
+    act(() => {
+      result.current.handleAddressChange("address", "");
+      result.current.handleAddressChange("city", "");
+      result.current.handleAddressChange("country", "");
+      result.current.handleAddressChange("postalCode", "");
+      result.current.setForm((prev) => ({ ...prev, industry: null }));
+    });
+    await act(async () => {
+      await result.current.handleSave({
+        preventDefault: () => {},
+      } as React.SubmitEvent<HTMLFormElement>);
+    });
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: null,
+        city: null,
+        country: null,
+        postalCode: null,
+        industry: null,
+      }),
     );
   });
 

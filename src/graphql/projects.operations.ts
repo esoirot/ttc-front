@@ -4,6 +4,7 @@ import type {
   Project,
   ProjectConnection,
   ProjectStatus,
+  ProjectInput,
 } from "@/types/projects.types";
 
 const PROJECT_FIELDS = `
@@ -38,26 +39,6 @@ export const PROJECT_QUERY: TypedDocumentNode<
     project(id: $id) { ${PROJECT_FIELDS} }
   }
 `;
-
-type ProjectInput = {
-  title: string;
-  description?: string;
-  clientId?: number | null;
-  status?: ProjectStatus;
-  sourceLanguage?: string;
-  targetLanguage?: string;
-  wordCount?: number;
-  unitPrice?: number;
-  fixedFee?: number | null;
-  hourlyRate?: number | null;
-  perWordRate?: number | null;
-  useCustomRate?: boolean;
-  rateSheetId?: number | null;
-  currency?: string;
-  deadline?: string;
-  startDate?: string;
-  activityIds?: number[];
-};
 
 export const CREATE_PROJECT_MUTATION: TypedDocumentNode<
   { createProject: Project },

@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toLocalIso } from "@/lib/time";
 
 const TIME_OPTIONS: string[] = Array.from({ length: 48 }, (_, i) => {
   const h = String(Math.floor(i / 2)).padStart(2, "0");
@@ -167,7 +168,7 @@ const REMINDER_OPTIONS: { value: string; labelMessage: MessageDescriptor }[] = [
 function parseISO(iso: string | null): { date: string; time: string } {
   if (!iso) return { date: "", time: "09:00" };
   const d = new Date(iso);
-  const date = d.toISOString().slice(0, 10);
+  const date = d.toLocaleDateString("en-CA");
   const h = String(d.getHours()).padStart(2, "0");
   const m = d.getMinutes() < 30 ? "00" : "30";
   return { date, time: `${h}:${m}` };
@@ -231,8 +232,11 @@ export function TaskDatePicker({
   function handleSave() {
     onUpdate({
       startDate:
-        startEnabled && startDateVal ? `${startDateVal}T${startTime}:00` : null,
-      dueDate: dueEnabled && dueDateVal ? `${dueDateVal}T${dueTime}:00` : null,
+        startEnabled && startDateVal
+          ? toLocalIso(startDateVal, startTime)
+          : null,
+      dueDate:
+        dueEnabled && dueDateVal ? toLocalIso(dueDateVal, dueTime) : null,
       recurring: recurringVal === "NEVER" ? null : recurringVal,
       reminderOffset: reminderVal === "NONE" ? null : reminderVal,
     });

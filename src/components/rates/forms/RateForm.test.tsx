@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createIntlWrapper } from "@/test/intlWrapper";
 import type { Locale } from "@/i18n/useLocale";
 
-const useClientsMock = vi.fn();
+const useAllClientsMock = vi.fn();
 vi.mock("@/hooks/clients/useClients", () => ({
-  useClients: () => useClientsMock(),
+  useAllClients: () => useAllClientsMock(),
 }));
 
 const useMyActivitiesMock = vi.fn();
@@ -28,7 +28,7 @@ const mockActivities = [
 const mockClients = [{ id: 1, name: "Acme Corp" }];
 
 function defaultHooks() {
-  useClientsMock.mockReturnValue({ clients: mockClients });
+  useAllClientsMock.mockReturnValue({ clients: mockClients });
   useMyActivitiesMock.mockReturnValue({ activities: mockActivities });
   useCurrentUserMock.mockReturnValue({ user: { defaultCurrency: "EUR" } });
 }
@@ -75,7 +75,7 @@ function renderForm(
 
 describe("RateForm", () => {
   beforeEach(() => {
-    useClientsMock.mockReset();
+    useAllClientsMock.mockReset();
     useMyActivitiesMock.mockReset();
     useCurrentUserMock.mockReset();
     defaultHooks();
@@ -159,12 +159,38 @@ describe("RateForm", () => {
       name: "Standard",
       amount: 75,
       currency: "EUR",
-      description: undefined,
+      description: null,
       activityId: null,
       clientId: null,
-      sourceLanguage: undefined,
-      targetLanguage: undefined,
+      sourceLanguage: null,
+      targetLanguage: null,
     });
+  });
+
+  it("clearing the description of an existing rate sends null so it is erased", () => {
+    const { onSave } = renderForm({
+      initial: makeInitial({ description: "Old desc" }),
+    });
+    fireEvent.change(screen.getByLabelText("Description"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ description: null }),
+    );
+  });
+
+  it("treats a whitespace-only description as empty", () => {
+    const { onSave } = renderForm({
+      initial: makeInitial({ description: "Old desc" }),
+    });
+    fireEvent.change(screen.getByLabelText("Description"), {
+      target: { value: "   " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ description: null }),
+    );
   });
 
   it("trims leading/trailing whitespace from name on submit", () => {

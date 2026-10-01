@@ -56,6 +56,16 @@ export function formatDateDDMMYYYY(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
+// The backend's DateTime scalar is `new Date(value)`: a string without an
+// offset is read in the server's timezone. Always send absolute instants.
 export function toLocalIso(date: string, time: string): string {
-  return `${date}T${time}:00`;
+  return new Date(`${date}T${time}:00`).toISOString();
+}
+
+export function toStartIso(dateStr: string): string {
+  return new Date(dateStr + "T00:00:00").toISOString();
+}
+
+export function toEndIso(dateStr: string): string {
+  return new Date(dateStr + "T23:59:59.999").toISOString();
 }

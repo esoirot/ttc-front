@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import type { ClockifyImportFormProps } from "@/types/time-entries.types";
 import { useImportClockifyEntries } from "@/hooks/integrations/useClockify";
+import { toEndIso, toStartIso } from "@/lib/time";
 
 export function ClockifyImportForm({
   workspaceId,
@@ -30,8 +31,8 @@ export function ClockifyImportForm({
     setImportResult(null);
     try {
       const result = await importMutation.mutateAsync({
-        start: `${importFrom}T00:00:00Z`,
-        end: `${importTo}T23:59:59.999Z`,
+        start: toStartIso(importFrom),
+        end: toEndIso(importTo),
       });
       setImportResult(result);
       void refetch();

@@ -7,13 +7,8 @@ import type {
   ClockifyTimeEntry,
   UpdateEntryInput,
 } from "@/types/clockify.types";
-import {
-  daysAgoStr,
-  groupByDay,
-  todayStr,
-  toEndIso,
-  toStartIso,
-} from "../helpers";
+import { daysAgoStr, groupByDay, todayStr } from "../helpers";
+import { toEndIso, toStartIso } from "@/lib/time";
 import {
   useClockifyEntries,
   useClockifyProjects,

@@ -106,19 +106,19 @@ export interface ProjectHeaderProps {
     id: number;
     clientId?: number | null;
     title?: string;
-    description?: string;
+    description?: string | null;
     status?: ProjectStatus;
-    sourceLanguage?: string;
-    targetLanguage?: string;
-    wordCount?: number;
+    sourceLanguage?: string | null;
+    targetLanguage?: string | null;
+    wordCount?: number | null;
     fixedFee?: number | null;
     hourlyRate?: number | null;
     perWordRate?: number | null;
     useCustomRate?: boolean;
     rateSheetId?: number | null;
     currency?: string;
-    deadline?: string;
-    startDate?: string;
+    deadline?: string | null;
+    startDate?: string | null;
     activityIds?: number[];
   }) => Promise<unknown>;
   saving: boolean;
@@ -169,12 +169,12 @@ export interface TasksTabProps {
 
 export type ProjectInput = {
   title: string;
-  description?: string;
+  description?: string | null;
   clientId?: number | null;
   status?: ProjectStatus;
-  sourceLanguage?: string;
-  targetLanguage?: string;
-  wordCount?: number;
+  sourceLanguage?: string | null;
+  targetLanguage?: string | null;
+  wordCount?: number | null;
   unitPrice?: number;
   fixedFee?: number | null;
   hourlyRate?: number | null;
@@ -182,8 +182,8 @@ export type ProjectInput = {
   useCustomRate?: boolean;
   rateSheetId?: number | null;
   currency?: string;
-  deadline?: string;
-  startDate?: string;
+  deadline?: string | null;
+  startDate?: string | null;
   activityIds?: number[];
 };
 

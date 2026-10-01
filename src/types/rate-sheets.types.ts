@@ -23,7 +23,7 @@ export interface CreateRateSheetInput {
   activityId?: number | null;
   clientId?: number | null;
   name: string;
-  description?: string;
+  description?: string | null;
   sourceLanguage: string;
   targetLanguage: string;
   currency: string;
@@ -37,7 +37,7 @@ export interface UpdateRateSheetInput {
   activityId?: number | null;
   clientId?: number | null;
   name?: string;
-  description?: string;
+  description?: string | null;
   sourceLanguage?: string;
   targetLanguage?: string;
   currency?: string;

@@ -8,6 +8,8 @@ import {
   secsToHms,
   timeAgo,
   toLocalIso,
+  toStartIso,
+  toEndIso,
 } from "./time";
 
 describe("secsToH", () => {
@@ -96,7 +98,23 @@ describe("formatDateDDMMYYYY", () => {
 });
 
 describe("toLocalIso", () => {
-  it("joins date and time with a T separator and :00 seconds", () => {
-    expect(toLocalIso("2026-06-17", "14:30")).toBe("2026-06-17T14:30:00");
+  it("turns a local date + time into an absolute UTC instant", () => {
+    expect(toLocalIso("2026-06-17", "14:30")).toBe(
+      new Date(2026, 5, 17, 14, 30).toISOString(),
+    );
+  });
+});
+
+describe("toStartIso / toEndIso", () => {
+  it("anchors the start of a local day to 00:00:00", () => {
+    expect(toStartIso("2026-06-17")).toBe(
+      new Date(2026, 5, 17, 0, 0, 0, 0).toISOString(),
+    );
+  });
+
+  it("anchors the end of a local day to 23:59:59.999", () => {
+    expect(toEndIso("2026-06-17")).toBe(
+      new Date(2026, 5, 17, 23, 59, 59, 999).toISOString(),
+    );
   });
 });

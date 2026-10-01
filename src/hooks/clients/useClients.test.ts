@@ -19,6 +19,7 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import {
+  useAllClients,
   useClient,
   useClients,
   useCreateClient,
@@ -367,5 +368,53 @@ describe("useDeleteClient", () => {
     await result.current.deleteClient(4);
 
     expect(queryClient.getQueryData(["client", 4])).toBeUndefined();
+  });
+});
+
+describe("useAllClients", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+  });
+
+  it("loads every client in one large page for dropdowns and lookups", async () => {
+    const client = makeClient();
+    gqlFetch.mockResolvedValueOnce({ clients: makeConnection([client]) });
+
+    const { result } = renderHook(() => useAllClients(), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.clients).toEqual([client]);
+    expect(gqlFetch).toHaveBeenCalledWith(expect.anything(), {
+      pagination: { limit: 1000 },
+    });
+  });
+
+  it("does not reuse the paginated 20-item list cache", async () => {
+    gqlFetch.mockResolvedValue({ clients: makeConnection([makeClient()]) });
+    const wrapper = createQueryWrapper(createQueryClient());
+
+    const list = renderHook(() => useClients(), { wrapper });
+    await waitFor(() => expect(list.result.current.loading).toBe(false));
+    const all = renderHook(() => useAllClients(), { wrapper });
+    await waitFor(() => expect(all.result.current.loading).toBe(false));
+
+    expect(gqlFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("reflects a client edited elsewhere, so dropdowns show the new name", async () => {
+    const client = makeClient({ id: 12, name: "Old Name" });
+    const updated = makeClient({ id: 12, name: "New Name" });
+    gqlFetch.mockResolvedValueOnce({ clients: makeConnection([client]) });
+    gqlMutate.mockResolvedValueOnce({ updateClient: updated });
+    const wrapper = createQueryWrapper(createQueryClient());
+
+    const all = renderHook(() => useAllClients(), { wrapper });
+    await waitFor(() => expect(all.result.current.loading).toBe(false));
+    const update = renderHook(() => useUpdateClient(), { wrapper });
+    await update.result.current.updateClient({ id: 12, name: "New Name" });
+
+    await waitFor(() => expect(all.result.current.clients).toEqual([updated]));
   });
 });

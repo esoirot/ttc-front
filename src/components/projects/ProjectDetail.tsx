@@ -4,7 +4,7 @@ import { FormattedMessage } from "react-intl";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProject, useUpdateProject } from "@/hooks/projects/useProjects";
-import { useClients } from "@/hooks/clients/useClients";
+import { useAllClients } from "@/hooks/clients/useClients";
 import { useTasks } from "@/hooks/tasks/useTasks";
 import { useProjectTimeTab } from "@/hooks/projects/useProjectTimeTab";
 import { useMembers } from "@/hooks/account/useUsers";
@@ -31,7 +31,7 @@ export function ProjectDetail() {
   } = useTasks(projectId);
   const timeTab = useProjectTimeTab(projectId);
   const { members } = useMembers();
-  const { clients } = useClients();
+  const { clients } = useAllClients();
   const { user: currentUser } = useCurrentUser();
 
   const [openTaskId, setOpenTaskId] = useState<number | null>(null);

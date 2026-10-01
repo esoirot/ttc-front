@@ -5,13 +5,13 @@ import {
   useDeleteCompanyContact,
   useUpdateClient,
 } from "./useClients";
-import { useProjects } from "../projects/useProjects";
+import { useAllProjects } from "../projects/useProjects";
 import { useInvoices } from "../invoices/useInvoices";
 import { useTimeEntries } from "../time/useTimeEntries";
 
 export function useClientDetail(clientId: number) {
   const { client, loading: clientLoading } = useClient(clientId);
-  const { projects, loading: projectsLoading } = useProjects();
+  const { projects, loading: projectsLoading } = useAllProjects();
   const clientProjects = projects.filter((p) => p.clientId === clientId);
   const clientProjectIds = clientProjects.map((p) => p.id);
   const { invoices, loading: invoicesLoading } = useInvoices(

@@ -40,6 +40,21 @@ export function useProjects(status?: ProjectStatus, search?: string) {
   return { projects: items, total, hasMore, loadMore, loading, error };
 }
 
+// Dropdowns and id→name lookups need every project, not the first list page;
+// otherwise a saved project outside page 1 renders as an empty Select.
+const ALL_LIMIT = 1000;
+
+export function useAllProjects() {
+  const { items, loading } = useGqlConnectionQuery({
+    queryKey: ["projects", { all: true }],
+    query: PROJECTS_QUERY,
+    variables: {},
+    select: (d) => d.projects,
+    limit: ALL_LIMIT,
+  });
+  return { projects: items, loading };
+}
+
 export function useProject(id: number) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["project", id],

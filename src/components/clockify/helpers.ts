@@ -75,11 +75,3 @@ export function daysAgoStr(n: number): string {
   d.setDate(d.getDate() - n);
   return d.toLocaleDateString("en-CA");
 }
-
-export function toStartIso(dateStr: string): string {
-  return new Date(dateStr + "T00:00:00").toISOString();
-}
-
-export function toEndIso(dateStr: string): string {
-  return new Date(dateStr + "T23:59:59.999").toISOString();
-}

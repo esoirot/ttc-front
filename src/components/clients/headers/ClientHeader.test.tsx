@@ -141,8 +141,8 @@ describe("ClientHeader", () => {
           id: 5,
           clientType: "COMPANY",
           name: "Acme Renamed",
-          firstName: undefined,
-          lastName: undefined,
+          firstName: null,
+          lastName: null,
         }),
       ),
     );
@@ -216,8 +216,74 @@ describe("ClientHeader", () => {
         expect.objectContaining({
           id: 5,
           status: "FOLLOW_UP_2",
-          contactedAt: "2026-06-10T00:00:00",
+          contactedAt: "2026-06-10",
         }),
+      ),
+    );
+  });
+
+  it("clearing an optional field sends null so the stored value is erased", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(
+      makeClient({ id: 5, email: "a@b.com", notes: "old" }),
+      onUpdate,
+    );
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "" } });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 5, email: null }),
+      ),
+    );
+  });
+
+  it("switching a company to an individual erases the company-only fields", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(
+      makeClient({
+        id: 5,
+        legalName: "Acme SAS",
+        vatNumber: "FR123",
+        legalForm: "SAS",
+      }),
+      onUpdate,
+    );
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Individual" }));
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clientType: "INDIVIDUAL",
+          legalName: null,
+          vatNumber: null,
+          legalForm: null,
+        }),
+      ),
+    );
+  });
+
+  it("clearing the contacted-at date sends null", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(
+      makeClient({ id: 5, contactedAt: "2026-06-01T00:00:00.000Z" }),
+      onUpdate,
+    );
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.change(screen.getByLabelText("Contacted At"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ contactedAt: null }),
       ),
     );
   });

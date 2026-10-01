@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toEndIso, toStartIso } from "@/lib/time";
 
 export function useDateRangeFilter() {
   const [startDate, setStartDate] = useState(() =>
@@ -13,7 +14,7 @@ export function useDateRangeFilter() {
     setStartDate,
     endDate,
     setEndDate,
-    startIso: `${startDate}T00:00:00`,
-    endIso: `${endDate}T23:59:59`,
+    startIso: toStartIso(startDate),
+    endIso: toEndIso(endDate),
   };
 }

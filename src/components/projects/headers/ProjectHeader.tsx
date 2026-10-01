@@ -146,11 +146,11 @@ export function ProjectHeader({
       id: project.id,
       clientId: form.clientId === "__none__" ? null : Number(form.clientId),
       title: form.title || undefined,
-      description: form.description || undefined,
+      description: form.description || null,
       status: form.status,
-      sourceLanguage: form.sourceLanguage || undefined,
-      targetLanguage: form.targetLanguage || undefined,
-      wordCount: parseNonNegative(form.wordCount) ?? undefined,
+      sourceLanguage: form.sourceLanguage || null,
+      targetLanguage: form.targetLanguage || null,
+      wordCount: parseNonNegative(form.wordCount),
       currency: form.currency || undefined,
       fixedFee: parseNonNegative(form.fixedFee),
       hourlyRate: parseNonNegative(form.hourlyRate),
@@ -160,8 +160,8 @@ export function ProjectHeader({
         effectiveRateSheetId === "__none__"
           ? null
           : Number(effectiveRateSheetId),
-      deadline: form.deadline || undefined,
-      startDate: form.startDate || undefined,
+      deadline: form.deadline || null,
+      startDate: form.startDate || null,
       activityIds: form.activityIds,
     });
     setEditing(false);

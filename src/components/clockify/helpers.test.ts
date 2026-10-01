@@ -9,8 +9,6 @@ import {
   groupByDay,
   groupByDescription,
   secsToHms,
-  toEndIso,
-  toStartIso,
   todayStr,
 } from "./helpers";
 
@@ -131,17 +129,5 @@ describe("groupByDay", () => {
 
     expect(groups).toHaveLength(2);
     expect(groups[0][0] > groups[1][0]).toBe(true);
-  });
-});
-
-describe("toStartIso / toEndIso", () => {
-  it("anchors the start of day to 00:00:00", () => {
-    const iso = new Date("2026-06-17T00:00:00").toISOString();
-    expect(toStartIso("2026-06-17")).toBe(iso);
-  });
-
-  it("anchors the end of day to 23:59:59.999", () => {
-    const iso = new Date("2026-06-17T23:59:59.999").toISOString();
-    expect(toEndIso("2026-06-17")).toBe(iso);
   });
 });

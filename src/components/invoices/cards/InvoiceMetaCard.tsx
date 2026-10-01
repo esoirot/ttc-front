@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { CURRENCIES } from "@/constants/invoices";
 import type { InvoiceMetaCardProps as Props } from "@/types/invoices.types";
-import { useClients } from "@/hooks/clients/useClients";
+import { useAllClients } from "@/hooks/clients/useClients";
 import { useInvoiceMetaEdit } from "@/hooks/invoices/useInvoiceMetaEdit";
 
 export function InvoiceMetaCard({
@@ -24,7 +24,7 @@ export function InvoiceMetaCard({
   onUpdate,
 }: Props) {
   const intl = useIntl();
-  const { clients } = useClients();
+  const { clients } = useAllClients();
   const { editing, saving, form, setForm, openEdit, cancelEdit, handleSave } =
     useInvoiceMetaEdit({ clientId, currency, dueDate, notes, onUpdate });
 

@@ -12,7 +12,7 @@ import {
   useUpdateRateSheet,
 } from "@/hooks/rate-sheets/useRateSheets";
 import { CURRENCY_SYMBOLS } from "@/constants/rates";
-import { useClients } from "@/hooks/clients/useClients";
+import { useAllClients } from "@/hooks/clients/useClients";
 import { OverviewSection } from "../sections/OverviewSection";
 import { RateList } from "../lists/RateList";
 import { RateSheetList } from "../lists/RateSheetList";
@@ -24,7 +24,7 @@ export function RatesTabs() {
   const { rateSheets } = useRateSheets();
   const { createRateSheet, loading: creating } = useCreateRateSheet();
   const { updateRateSheet, loading: updating } = useUpdateRateSheet();
-  const { clients } = useClients();
+  const { clients } = useAllClients();
   const [showSheetForm, setShowSheetForm] = useState(false);
   const [editingSheetId, setEditingSheetId] = useState<number | null>(null);
 

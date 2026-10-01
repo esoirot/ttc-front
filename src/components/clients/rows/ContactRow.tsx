@@ -65,12 +65,12 @@ export function ContactRow({
     }
     await onEdit({
       id: contact.id,
-      firstName: editForm.firstName || undefined,
-      lastName: editForm.lastName || undefined,
-      email: editForm.email || undefined,
-      phone: editForm.phone || undefined,
-      jobTitle: editForm.jobTitle || undefined,
-      color: editForm.color || undefined,
+      firstName: editForm.firstName || null,
+      lastName: editForm.lastName || null,
+      email: editForm.email || null,
+      phone: editForm.phone || null,
+      jobTitle: editForm.jobTitle || null,
+      color: editForm.color || null,
     });
     setEditing(false);
   }

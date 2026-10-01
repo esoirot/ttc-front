@@ -25,7 +25,7 @@ import {
   useUpdateRateSheet,
   useDeleteRateSheet,
 } from "@/hooks/rate-sheets/useRateSheets";
-import { useClients } from "@/hooks/clients/useClients";
+import { useAllClients } from "@/hooks/clients/useClients";
 import type {
   TranslationRateFormData,
   TranslationRateType,
@@ -56,7 +56,7 @@ export function ActivityDetail() {
   const { rateSheets } = useRateSheets();
   const { updateRateSheet, loading: updatingRateSheet } = useUpdateRateSheet();
   const { deleteRateSheet } = useDeleteRateSheet();
-  const { clients } = useClients();
+  const { clients } = useAllClients();
   const [editingRateSheetId, setEditingRateSheetId] = useState<number | null>(
     null,
   );

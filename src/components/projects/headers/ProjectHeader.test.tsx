@@ -768,7 +768,7 @@ describe("ProjectHeader", () => {
     );
   });
 
-  it("clearing monetization fields sends null while leaving word count blank sends undefined", async () => {
+  it("clearing monetization fields and leaving word count blank sends null", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     renderHeader(
       makeProject({
@@ -803,11 +803,61 @@ describe("ProjectHeader", () => {
           fixedFee: null,
           hourlyRate: null,
           perWordRate: null,
-          wordCount: undefined,
+          wordCount: null,
         }),
       ),
     );
   });
+
+  it("clearing description, languages, word count and dates sends null so they are erased", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(
+      makeProject({
+        id: 7,
+        description: "Old desc",
+        sourceLanguage: "EN",
+        targetLanguage: "FR",
+        wordCount: 1000,
+        startDate: "2026-01-01T00:00:00.000Z",
+        deadline: "2026-02-01T00:00:00.000Z",
+      }),
+      [],
+      onUpdate,
+    );
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.change(screen.getByLabelText("Description"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByLabelText("Source language"));
+    fireEvent.click(screen.getByRole("option", { name: "—" }));
+    fireEvent.click(screen.getByLabelText("Target language"));
+    fireEvent.click(screen.getByRole("option", { name: "—" }));
+    fireEvent.change(screen.getByLabelText("Word count"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByLabelText("Start date"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByLabelText("Deadline"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 7,
+          description: null,
+          sourceLanguage: null,
+          targetLanguage: null,
+          wordCount: null,
+          startDate: null,
+          deadline: null,
+        }),
+      ),
+    );
+  }, 15_000);
 
   it("renders French copy when locale is fr", () => {
     renderHeader(

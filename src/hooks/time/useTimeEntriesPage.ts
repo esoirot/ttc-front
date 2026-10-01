@@ -10,7 +10,7 @@ import {
 } from "./useTimeEntries";
 import { useDateRangeFilter } from "./useDateRangeFilter";
 import { useClockifyStatus } from "../integrations/useClockify";
-import { useProjects } from "../projects/useProjects";
+import { useAllProjects } from "../projects/useProjects";
 import { useTags } from "../tags/useTags";
 
 export function useTimeEntriesPage() {
@@ -25,7 +25,7 @@ export function useTimeEntriesPage() {
   const { updateTimeEntry } = useUpdateTimeEntry();
   const { startTimer } = useStartTimer();
   const { resumeTimeEntry } = useResumeTimeEntry();
-  const { projects } = useProjects();
+  const { projects } = useAllProjects();
   const { tags } = useTags();
 
   const { data: clockifyStatus } = useClockifyStatus();

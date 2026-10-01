@@ -19,7 +19,7 @@ import {
   TYPE_UNIT_MESSAGES,
 } from "@/constants/rates";
 import { LANGUAGES } from "@/constants/languages";
-import { useClients } from "@/hooks/clients/useClients";
+import { useAllClients } from "@/hooks/clients/useClients";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
 import { useMyActivities } from "@/hooks/activities/useActivities";
 
@@ -32,7 +32,7 @@ export function RateForm({
   saving,
 }: TranslationRateFormProps) {
   const intl = useIntl();
-  const { clients } = useClients();
+  const { clients } = useAllClients();
   const { activities } = useMyActivities();
   const { user } = useCurrentUser();
   const userCurrency = user?.defaultCurrency ?? "EUR";
@@ -117,11 +117,11 @@ export function RateForm({
       name: name.trim(),
       amount: parsed,
       currency: activeCurrency,
-      description: description.trim() || undefined,
+      description: description.trim() || null,
       activityId: activityId === "__none__" ? null : Number(activityId),
       clientId: clientId === "__none__" ? null : Number(clientId),
-      sourceLanguage: sourceLanguage || undefined,
-      targetLanguage: targetLanguage || undefined,
+      sourceLanguage: sourceLanguage || null,
+      targetLanguage: targetLanguage || null,
     });
   }
 

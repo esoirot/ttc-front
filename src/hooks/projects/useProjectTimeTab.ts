@@ -6,7 +6,7 @@ import {
   useUpdateTimeEntry,
   useResumeTimeEntry,
 } from "../time/useTimeEntries";
-import { useProjects } from "./useProjects";
+import { useAllProjects } from "./useProjects";
 import { useTags } from "../tags/useTags";
 import type { TimeEntry } from "@/types/time-entries.types";
 
@@ -19,7 +19,7 @@ export function useProjectTimeTab(projectId: number) {
   const { deleteTimeEntry } = useDeleteTimeEntry();
   const { updateTimeEntry } = useUpdateTimeEntry();
   const { resumeTimeEntry } = useResumeTimeEntry();
-  const { projects } = useProjects();
+  const { projects } = useAllProjects();
   const { tags } = useTags();
 
   const totalSeconds = entries.reduce(

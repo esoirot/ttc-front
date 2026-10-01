@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTask } from "@/hooks/tasks/useTasks";
-import { useProject, useProjects } from "@/hooks/projects/useProjects";
+import { useProject, useAllProjects } from "@/hooks/projects/useProjects";
 import {
   useActiveTimer,
   useStartTimer,
@@ -44,7 +44,7 @@ export function TaskTimeSection({
   const { deleteTimeEntry } = useDeleteTimeEntry();
   const { resumeTimeEntry } = useResumeTimeEntry();
   const { project } = useProject(projectId);
-  const { projects } = useProjects();
+  const { projects } = useAllProjects();
   const { tags } = useTags();
   const { task: taskDetail } = useTask(taskId);
   const subtasks = taskDetail?.subtasks ?? [];

@@ -157,7 +157,7 @@ export const UPDATE_ME_MUTATION: TypedDocumentNode<
     input: {
       name?: string;
       email?: string;
-      logoUrl?: string;
+      logoUrl?: string | null;
       defaultCurrency?: string;
       firstName?: string | null;
       lastName?: string | null;

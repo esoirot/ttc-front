@@ -62,6 +62,21 @@ export function useClients(
   return { clients: items, total, hasMore, loadMore, loading, error };
 }
 
+// Dropdowns and id→name lookups need every client, not the first list page;
+// otherwise a saved client outside page 1 renders as an empty Select.
+const ALL_LIMIT = 1000;
+
+export function useAllClients() {
+  const { items, loading } = useGqlConnectionQuery({
+    queryKey: ["clients", { all: true }],
+    query: CLIENTS_QUERY,
+    variables: {},
+    select: (d) => d.clients,
+    limit: ALL_LIMIT,
+  });
+  return { clients: items, loading };
+}
+
 export function useClient(id: number) {
   const { data, isLoading, error } = useGqlQuery({
     queryKey: ["client", id],

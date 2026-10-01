@@ -41,6 +41,7 @@ export function useDisconnectHubspot() {
 export function useCreateContact() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { inlineError: true },
     mutationFn: (input: CreateContactInput) =>
       apiPost<HubspotContact>("/hubspot/contacts", input),
     onSuccess: () =>
@@ -61,6 +62,7 @@ export function useUpdateContact() {
 export function useCreateDeal() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { inlineError: true },
     mutationFn: (input: CreateDealInput) =>
       apiPost<HubspotDeal>("/hubspot/deals", input),
     onSuccess: () =>

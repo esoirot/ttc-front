@@ -4,9 +4,9 @@ import { createIntlWrapper } from "@/test/intlWrapper";
 import type { Locale } from "@/i18n/useLocale";
 import type { Client } from "@/types/clients.types";
 
-const useClientsMock = vi.fn();
+const useAllClientsMock = vi.fn();
 vi.mock("@/hooks/clients/useClients", () => ({
-  useClients: () => useClientsMock(),
+  useAllClients: () => useAllClientsMock(),
 }));
 
 import { InvoiceMetaCard } from "./InvoiceMetaCard";
@@ -67,8 +67,8 @@ function renderCard(
 
 describe("InvoiceMetaCard", () => {
   beforeEach(() => {
-    useClientsMock.mockReset();
-    useClientsMock.mockReturnValue({ clients: [] });
+    useAllClientsMock.mockReset();
+    useAllClientsMock.mockReturnValue({ clients: [] });
   });
 
   it("shows 'No client' when clientId is null", () => {
@@ -77,7 +77,7 @@ describe("InvoiceMetaCard", () => {
   });
 
   it("shows the resolved client name for a known clientId", () => {
-    useClientsMock.mockReturnValue({
+    useAllClientsMock.mockReturnValue({
       clients: [makeClient({ id: 3, name: "Acme Corp" })],
     });
     renderCard({ clientId: 3 });
@@ -85,7 +85,7 @@ describe("InvoiceMetaCard", () => {
   });
 
   it("shows a fallback label for an unknown clientId", () => {
-    useClientsMock.mockReturnValue({ clients: [] });
+    useAllClientsMock.mockReturnValue({ clients: [] });
     renderCard({ clientId: 9 });
     expect(screen.getByText("Client #9")).toBeInTheDocument();
   });

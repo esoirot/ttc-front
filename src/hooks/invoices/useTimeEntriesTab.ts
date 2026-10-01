@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRates } from "../rates/useRates";
-import { useProjects } from "../projects/useProjects";
+import { useAllProjects } from "../projects/useProjects";
 import { useTimeEntries } from "../time/useTimeEntries";
 import { useRateSheets } from "../rate-sheets/useRateSheets";
 import {
@@ -15,7 +15,7 @@ export function useTimeEntriesTab(
   onAdd: (input: InvoiceAddItemInput) => Promise<unknown>,
 ) {
   const { rates } = useRates();
-  const { projects } = useProjects();
+  const { projects } = useAllProjects();
   const { rateSheets } = useRateSheets();
   const [selectedProjectId, setSelectedProjectId] = useState<string>("__all__");
   const [selectedRateId, setSelectedRateId] = useState<string>("");

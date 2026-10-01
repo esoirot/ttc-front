@@ -9,7 +9,7 @@ import {
   useUpdateRateSheet,
   useDeleteRateSheet,
 } from "@/hooks/rate-sheets/useRateSheets";
-import { useClients } from "@/hooks/clients/useClients";
+import { useAllClients } from "@/hooks/clients/useClients";
 import { RateSheetForm } from "../forms/RateSheetForm";
 import { RateSheetRow } from "../rows/RateSheetRow";
 import type { CreateRateSheetInput } from "@/types/rate-sheets.types";
@@ -20,7 +20,7 @@ export function RateSheetList() {
   const { createRateSheet, loading: creating } = useCreateRateSheet();
   const { updateRateSheet, loading: updating } = useUpdateRateSheet();
   const { deleteRateSheet } = useDeleteRateSheet();
-  const { clients } = useClients();
+  const { clients } = useAllClients();
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);

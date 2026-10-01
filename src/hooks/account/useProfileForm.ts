@@ -46,7 +46,7 @@ export function useProfileForm() {
         name:
           first || last ? [first, last].filter(Boolean).join(" ") : undefined,
         email: email.trim(),
-        logoUrl: logoUrl.trim() || undefined,
+        logoUrl: logoUrl.trim() || null,
         defaultCurrency,
         firstName: first,
         lastName: last,

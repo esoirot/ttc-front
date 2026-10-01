@@ -51,8 +51,54 @@ describe("TaskDatePicker", () => {
     fireEvent.click(screen.getByText("Save"));
 
     expect(onUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ dueDate: "2026-08-15T09:00:00" }),
+      expect.objectContaining({
+        dueDate: new Date(2026, 7, 15, 9, 0).toISOString(),
+      }),
     );
+  });
+
+  it("unchecking Start Date erases it while keeping the due date", () => {
+    const onUpdate = vi.fn();
+    const due = new Date(2026, 6, 1, 9, 0).toISOString();
+    renderPicker({
+      startDate: new Date(2026, 5, 1, 9, 0).toISOString(),
+      dueDate: due,
+      onUpdate,
+    });
+
+    fireEvent.click(screen.getByText(/Jul 1, 2026/));
+    fireEvent.click(screen.getByLabelText("Start Date"));
+    fireEvent.click(screen.getByText("Save"));
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ startDate: null, dueDate: due }),
+    );
+  });
+
+  it("unchecking Due Date erases it while keeping the start date", () => {
+    const onUpdate = vi.fn();
+    const start = new Date(2026, 5, 1, 9, 0).toISOString();
+    renderPicker({
+      startDate: start,
+      dueDate: new Date(2026, 6, 1, 9, 0).toISOString(),
+      onUpdate,
+    });
+
+    fireEvent.click(screen.getByText(/Jul 1, 2026/));
+    fireEvent.click(screen.getByLabelText("Due Date"));
+    fireEvent.click(screen.getByText("Save"));
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ startDate: start, dueDate: null }),
+    );
+  });
+
+  it("shows a just-after-midnight due date on its local calendar day", () => {
+    renderPicker({ dueDate: new Date(2026, 6, 1, 0, 30).toISOString() });
+
+    fireEvent.click(screen.getByText(/Jul 1, 2026/));
+
+    expect(screen.getByDisplayValue("2026-07-01")).toBeInTheDocument();
   });
 
   it("removes all dates when Remove is clicked", () => {

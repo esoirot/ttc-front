@@ -168,6 +168,46 @@ describe("useProfileForm", () => {
     });
   });
 
+  it("handleSaveProfile sends null logoUrl when the logo is cleared", async () => {
+    gqlMutate.mockResolvedValueOnce({ updateMe: makeUser() });
+    const { result } = setupWithUser(
+      makeUser({ logoUrl: "https://example.com/logo.png" }),
+    );
+
+    act(() => {
+      result.current.setLogoUrl("");
+    });
+    await act(async () => {
+      await result.current.handleSaveProfile({
+        preventDefault: () => {},
+      } as unknown as React.FormEvent<HTMLFormElement>);
+    });
+
+    expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
+      input: expect.objectContaining({ logoUrl: null }),
+    });
+  });
+
+  it("handleSaveProfile treats a whitespace-only logo URL as cleared", async () => {
+    gqlMutate.mockResolvedValueOnce({ updateMe: makeUser() });
+    const { result } = setupWithUser(
+      makeUser({ logoUrl: "https://example.com/logo.png" }),
+    );
+
+    act(() => {
+      result.current.setLogoUrl("   ");
+    });
+    await act(async () => {
+      await result.current.handleSaveProfile({
+        preventDefault: () => {},
+      } as unknown as React.FormEvent<HTMLFormElement>);
+    });
+
+    expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
+      input: expect.objectContaining({ logoUrl: null }),
+    });
+  });
+
   it("handleSaveProfile sets saved true, then false after 3s", async () => {
     vi.useFakeTimers();
     gqlMutate.mockResolvedValueOnce({ updateMe: makeUser() });

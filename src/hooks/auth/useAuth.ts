@@ -42,6 +42,7 @@ export function useCurrentUser() {
 export function useLogin() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
+    meta: { inlineError: true },
     mutationFn: (input: { email: string; password: string }) =>
       gqlMutate<{
         login: {
@@ -67,6 +68,7 @@ export function useLogin() {
 export function useRegister() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
+    meta: { inlineError: true },
     mutationFn: (input: { email: string; password: string; name?: string }) =>
       gqlMutate<{ register: AuthUser }>(REGISTER_MUTATION, { input }).then(
         (d) => d.register,
@@ -102,6 +104,7 @@ export function useLogout() {
 
 export function useSetupTwoFactor() {
   const { mutate, isPending, data } = useMutation({
+    meta: { inlineError: true },
     mutationFn: () =>
       gqlMutate<{ setupTwoFactor: { qrCodeUrl: string; secret: string } }>(
         SETUP_TWO_FACTOR_MUTATION,
@@ -118,6 +121,7 @@ export function useSetupTwoFactor() {
 export function useEnableTwoFactor() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error, data } = useMutation({
+    meta: { inlineError: true },
     mutationFn: (code: string) =>
       gqlMutate<{ enableTwoFactor: { backupCodes: string[] } }>(
         ENABLE_TWO_FACTOR_MUTATION,
@@ -138,6 +142,7 @@ export function useEnableTwoFactor() {
 export function useVerifyTwoFactorBackup() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
+    meta: { inlineError: true },
     mutationFn: (input: { tempToken: string; backupCode: string }) =>
       gqlMutate<{ verifyTwoFactorBackup: { user: AuthUser } }>(
         VERIFY_TWO_FACTOR_BACKUP_MUTATION,
@@ -158,6 +163,7 @@ export function useVerifyTwoFactorBackup() {
 export function useVerifyTwoFactor() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
+    meta: { inlineError: true },
     mutationFn: (input: { tempToken: string; code: string }) =>
       gqlMutate<{ verifyTwoFactor: { user: AuthUser } }>(
         VERIFY_TWO_FACTOR_MUTATION,
@@ -178,6 +184,7 @@ export function useVerifyTwoFactor() {
 export function useDisableTwoFactor() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
+    meta: { inlineError: true },
     mutationFn: (code: string) =>
       gqlMutate<{ disableTwoFactor: boolean }>(DISABLE_TWO_FACTOR_MUTATION, {
         code,
@@ -196,10 +203,11 @@ export function useDisableTwoFactor() {
 export function useUpdateMe() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useMutation({
+    meta: { inlineError: true },
     mutationFn: (input: {
       name?: string;
       email?: string;
-      logoUrl?: string;
+      logoUrl?: string | null;
       defaultCurrency?: string;
       firstName?: string | null;
       lastName?: string | null;
@@ -226,6 +234,7 @@ export function useUpdateMe() {
 
 export function useRequestPasswordReset() {
   const { mutateAsync, isPending } = useMutation({
+    meta: { inlineError: true },
     mutationFn: (email: string) =>
       gqlMutate<{ requestPasswordReset: boolean }>(
         REQUEST_PASSWORD_RESET_MUTATION,
@@ -240,6 +249,7 @@ export function useRequestPasswordReset() {
 
 export function useResetPassword() {
   const { mutateAsync, isPending } = useMutation({
+    meta: { inlineError: true },
     mutationFn: (vars: { token: string; newPassword: string }) =>
       gqlMutate<{ resetPassword: boolean }>(RESET_PASSWORD_MUTATION, vars).then(
         (d) => d.resetPassword,
@@ -254,6 +264,7 @@ export function useResetPassword() {
 
 export function useRegenerateBackupCodes() {
   const { mutateAsync, isPending, error } = useMutation({
+    meta: { inlineError: true },
     mutationFn: (code: string) =>
       gqlMutate<{ regenerateBackupCodes: { backupCodes: string[] } }>(
         REGENERATE_BACKUP_CODES_MUTATION,
@@ -300,6 +311,7 @@ export function useBackupCodeCount(skip = false) {
 
 export function useChangePassword() {
   const { mutateAsync, isPending, error } = useMutation({
+    meta: { inlineError: true },
     mutationFn: (vars: { currentPassword: string; newPassword: string }) =>
       gqlMutate<{ changePassword: boolean }>(
         CHANGE_PASSWORD_MUTATION,
@@ -317,6 +329,7 @@ export function useChangePassword() {
 export function useDeleteAccount() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
+    meta: { inlineError: true },
     mutationFn: () =>
       gqlMutate<{ deleteAccount: boolean }>(DELETE_ACCOUNT_MUTATION).then(
         (d) => d.deleteAccount,

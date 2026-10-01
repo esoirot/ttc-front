@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useProjects, useDeleteProject } from "@/hooks/projects/useProjects";
-import { useClients } from "@/hooks/clients/useClients";
+import { useAllClients } from "@/hooks/clients/useClients";
 import type { ProjectStatus } from "@/types/projects.types";
 import { PROJECT_STATUS_TABS } from "@/constants/projects";
 import { CreateProjectForm } from "../forms/CreateProjectForm";
@@ -31,7 +31,7 @@ export function ProjectsList() {
     tab === "ALL" ? undefined : tab,
     debouncedSearch || undefined,
   );
-  const { clients } = useClients();
+  const { clients } = useAllClients();
   const { deleteProject } = useDeleteProject();
 
   const clientMap = Object.fromEntries(clients.map((c) => [c.id, c.name]));

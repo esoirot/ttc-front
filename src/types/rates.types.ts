@@ -20,11 +20,11 @@ export type TranslationRateFormData = {
   name: string;
   amount: number;
   currency: string;
-  description?: string;
+  description?: string | null;
   activityId?: number | null;
   clientId?: number | null;
-  sourceLanguage?: string;
-  targetLanguage?: string;
+  sourceLanguage?: string | null;
+  targetLanguage?: string | null;
 };
 
 export interface OverviewSectionProps {
@@ -60,10 +60,10 @@ export type CreateRateInput = {
   name: string;
   amount: number;
   currency: string;
-  description?: string;
+  description?: string | null;
   clientId?: number | null;
-  sourceLanguage?: string;
-  targetLanguage?: string;
+  sourceLanguage?: string | null;
+  targetLanguage?: string | null;
 };
 
 export type UpdateRateInput = {
@@ -73,8 +73,8 @@ export type UpdateRateInput = {
   name?: string;
   amount?: number;
   currency?: string;
-  description?: string;
+  description?: string | null;
   clientId?: number | null;
-  sourceLanguage?: string;
-  targetLanguage?: string;
+  sourceLanguage?: string | null;
+  targetLanguage?: string | null;
 };

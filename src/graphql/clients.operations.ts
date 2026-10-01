@@ -4,8 +4,8 @@ import type {
   Client,
   ClientConnection,
   ClientType,
-  ClientIndustry,
   ClientStatus,
+  ClientInput,
   CompanyContact,
 } from "@/types/clients.types";
 
@@ -60,36 +60,6 @@ export const CLIENT_QUERY: TypedDocumentNode<
   }
 `;
 
-type ClientInput = {
-  name: string;
-  legalName?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  addressLine2?: string;
-  city?: string;
-  country?: string;
-  state?: string;
-  postalCode?: string;
-  vatNumber?: string;
-  legalForm?: string;
-  color?: string;
-  notes?: string;
-  hubspotId?: string;
-  clientType?: ClientType;
-  firstName?: string;
-  lastName?: string;
-  paymentDelayDays?: number;
-  taxRate?: number;
-  billingEndOfMonth?: boolean;
-  website?: string;
-  industry?: ClientIndustry | null;
-  status?: ClientStatus;
-  contactedAt?: string | null;
-  tagIds?: number[];
-  activityIds?: number[];
-};
-
 export const CREATE_CLIENT_MUTATION: TypedDocumentNode<
   { createClient: Client },
   { input: ClientInput }
@@ -119,12 +89,12 @@ export const DELETE_CLIENT_MUTATION: TypedDocumentNode<
 
 type ContactInput = {
   clientId: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  jobTitle?: string;
-  color?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  jobTitle?: string | null;
+  color?: string | null;
 };
 
 export const CREATE_COMPANY_CONTACT_MUTATION: TypedDocumentNode<

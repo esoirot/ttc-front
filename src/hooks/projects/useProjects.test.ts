@@ -14,6 +14,7 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import {
+  useAllProjects,
   useCreateProject,
   useDeleteProject,
   useProject,
@@ -187,5 +188,53 @@ describe("useDeleteProject", () => {
     await result.current.deleteProject(4);
 
     expect(queryClient.getQueryData(["project", 4])).toBeUndefined();
+  });
+});
+
+describe("useAllProjects", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+  });
+
+  it("loads every project in one large page for dropdowns and lookups", async () => {
+    const project = makeProject();
+    gqlFetch.mockResolvedValueOnce({ projects: makeConnection([project]) });
+
+    const { result } = renderHook(() => useAllProjects(), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.projects).toEqual([project]);
+    expect(gqlFetch).toHaveBeenCalledWith(expect.anything(), {
+      pagination: { limit: 1000 },
+    });
+  });
+
+  it("does not reuse the paginated 20-item list cache", async () => {
+    gqlFetch.mockResolvedValue({ projects: makeConnection([makeProject()]) });
+    const wrapper = createQueryWrapper(createQueryClient());
+
+    const list = renderHook(() => useProjects(), { wrapper });
+    await waitFor(() => expect(list.result.current.loading).toBe(false));
+    const all = renderHook(() => useAllProjects(), { wrapper });
+    await waitFor(() => expect(all.result.current.loading).toBe(false));
+
+    expect(gqlFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("reflects a project edited elsewhere, so dropdowns show the new title", async () => {
+    const project = makeProject({ id: 12, title: "Old" });
+    const updated = makeProject({ id: 12, title: "New" });
+    gqlFetch.mockResolvedValueOnce({ projects: makeConnection([project]) });
+    gqlMutate.mockResolvedValueOnce({ updateProject: updated });
+    const wrapper = createQueryWrapper(createQueryClient());
+
+    const all = renderHook(() => useAllProjects(), { wrapper });
+    await waitFor(() => expect(all.result.current.loading).toBe(false));
+    const update = renderHook(() => useUpdateProject(), { wrapper });
+    await update.result.current.updateProject({ id: 12, title: "New" });
+
+    await waitFor(() => expect(all.result.current.projects).toEqual([updated]));
   });
 });
