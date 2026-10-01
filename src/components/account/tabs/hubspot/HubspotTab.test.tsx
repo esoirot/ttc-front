@@ -1,6 +1,9 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { IntlProvider } from "react-intl";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { redirectTo } = vi.hoisted(() => ({ redirectTo: vi.fn() }));
+vi.mock("@/lib/navigation", () => ({ redirectTo }));
 import { messages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/useLocale";
 
@@ -31,24 +34,12 @@ function renderTab(queryClient = createQueryClient(), locale: Locale = "en") {
 }
 
 describe("HubspotTab", () => {
-  const originalLocation = window.location;
-
   beforeEach(() => {
     apiGet.mockReset();
     apiPost.mockReset();
     apiPatch.mockReset();
     apiDelete.mockReset();
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: { ...originalLocation, href: "" },
-    });
-  });
-
-  afterEach(() => {
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: originalLocation,
-    });
+    redirectTo.mockClear();
   });
 
   it("shows a connect prompt when not connected", async () => {
@@ -68,7 +59,9 @@ describe("HubspotTab", () => {
 
     fireEvent.click(await screen.findByText("Connect HubSpot"));
 
-    expect(window.location.href).toBe("http://localhost:3000/hubspot/auth");
+    expect(redirectTo).toHaveBeenCalledWith(
+      "http://localhost:3000/hubspot/auth",
+    );
   });
 
   it("shows Connected status with the portal id", async () => {

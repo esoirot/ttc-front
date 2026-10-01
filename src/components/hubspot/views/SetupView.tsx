@@ -1,6 +1,7 @@
 import { useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { API_BASE } from "@/constants/hubspot";
+import { redirectTo } from "@/lib/navigation";
 
 export function SetupView() {
   const intl = useIntl();
@@ -27,7 +28,7 @@ export function SetupView() {
       <Button
         type="button"
         onClick={() => {
-          window.location.href = `${API_BASE}/hubspot/auth`;
+          redirectTo(`${API_BASE}/hubspot/auth`);
         }}
       >
         {intl.formatMessage({

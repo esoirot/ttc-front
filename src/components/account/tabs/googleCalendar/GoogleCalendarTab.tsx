@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GOOGLE_CALENDAR_AUTH_URL } from "@/constants/googleCalendar";
+import { redirectTo } from "@/lib/navigation";
 
 export function GoogleCalendarTab() {
   const intl = useIntl();
@@ -35,7 +36,7 @@ export function GoogleCalendarTab() {
         <Button
           type="button"
           onClick={() => {
-            window.location.href = GOOGLE_CALENDAR_AUTH_URL;
+            redirectTo(GOOGLE_CALENDAR_AUTH_URL);
           }}
         >
           {intl.formatMessage({

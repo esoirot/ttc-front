@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HUBSPOT_AUTH_URL } from "@/constants/hubspot";
+import { redirectTo } from "@/lib/navigation";
 
 export function HubspotTab() {
   const intl = useIntl();
@@ -35,7 +36,7 @@ export function HubspotTab() {
         <Button
           type="button"
           onClick={() => {
-            window.location.href = HUBSPOT_AUTH_URL;
+            redirectTo(HUBSPOT_AUTH_URL);
           }}
         >
           {intl.formatMessage({

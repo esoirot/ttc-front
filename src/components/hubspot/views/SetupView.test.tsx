@@ -1,25 +1,16 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { redirectTo } = vi.hoisted(() => ({ redirectTo: vi.fn() }));
+vi.mock("@/lib/navigation", () => ({ redirectTo }));
 import { createIntlWrapper } from "@/test/intlWrapper";
 import { SetupView } from "./SetupView";
 
 const wrapper = createIntlWrapper();
 
 describe("SetupView", () => {
-  const originalLocation = window.location;
-
   beforeEach(() => {
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: { ...originalLocation, href: "" },
-    });
-  });
-
-  afterEach(() => {
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: originalLocation,
-    });
+    redirectTo.mockClear();
   });
 
   it("renders the connect heading and button", () => {
@@ -35,7 +26,9 @@ describe("SetupView", () => {
   it("navigates to the hubspot auth endpoint on click", () => {
     render(<SetupView />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "Connect HubSpot" }));
-    expect(window.location.href).toContain("/hubspot/auth");
+    expect(redirectTo).toHaveBeenCalledWith(
+      expect.stringContaining("/hubspot/auth"),
+    );
   });
 
   it("renders French copy when locale is fr", () => {

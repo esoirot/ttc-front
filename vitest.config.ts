@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import { playwright } from "@vitest/browser-playwright";
+import { unitTest } from "./vitest.unit";
 const dirname =
   typeof import.meta.dirname !== "undefined"
     ? import.meta.dirname
@@ -38,14 +39,7 @@ export default defineConfig({
     projects: [
       {
         extends: true,
-        test: {
-          environment: "jsdom",
-          setupFiles: ["./src/test/setup.ts"],
-          exclude: ["e2e/**", "node_modules/**"],
-          env: {
-            VITE_API_URL: "http://localhost:3000/graphql",
-          },
-        },
+        test: unitTest,
       },
       {
         extends: true,

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "./useAuth";
+import { replaceLocation } from "@/lib/navigation";
 
 const BASE_URL = (import.meta.env.VITE_API_URL as string).replace(
   "/graphql",
@@ -37,7 +38,7 @@ export function useAuthSSE() {
           const { type } = parsed as { type: string };
           if (type === "session_revoked") {
             queryClient.clear();
-            window.location.replace("/login");
+            replaceLocation("/login");
           }
           // All other typed messages (including "connected") are control frames — skip.
         }

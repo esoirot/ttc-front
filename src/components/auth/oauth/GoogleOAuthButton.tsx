@@ -1,6 +1,7 @@
 import { FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import type { GoogleOAuthButtonProps as Props } from "@/types/auth.types";
+import { redirectTo } from "@/lib/navigation";
 
 const API_URL =
   import.meta.env.VITE_API_URL?.replace("/graphql", "") ??
@@ -17,7 +18,7 @@ export function GoogleOAuthButton({ from = "/" }: Props) {
           "oauth_from",
           JSON.stringify({ dest: from, ts: Date.now() }),
         );
-        window.location.href = `${API_URL}/auth/google`;
+        redirectTo(`${API_URL}/auth/google`);
       }}
     >
       <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">

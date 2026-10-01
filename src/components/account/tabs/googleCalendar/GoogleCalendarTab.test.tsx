@@ -1,6 +1,9 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { IntlProvider } from "react-intl";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { redirectTo } = vi.hoisted(() => ({ redirectTo: vi.fn() }));
+vi.mock("@/lib/navigation", () => ({ redirectTo }));
 import { messages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/useLocale";
 
@@ -30,23 +33,11 @@ function renderTab(queryClient = createQueryClient(), locale: Locale = "en") {
 }
 
 describe("GoogleCalendarTab", () => {
-  const originalLocation = window.location;
-
   beforeEach(() => {
     apiGet.mockReset();
     apiPost.mockReset();
     apiDelete.mockReset();
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: { ...originalLocation, href: "" },
-    });
-  });
-
-  afterEach(() => {
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: originalLocation,
-    });
+    redirectTo.mockClear();
   });
 
   it("shows a connect prompt when not connected", async () => {
@@ -66,7 +57,7 @@ describe("GoogleCalendarTab", () => {
 
     fireEvent.click(await screen.findByText("Connect Google Calendar"));
 
-    expect(window.location.href).toBe(
+    expect(redirectTo).toHaveBeenCalledWith(
       "http://localhost:3000/google-calendar/auth",
     );
   });

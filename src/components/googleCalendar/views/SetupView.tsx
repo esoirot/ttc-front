@@ -1,6 +1,7 @@
 import { FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { GOOGLE_CALENDAR_AUTH_URL } from "@/constants/googleCalendar";
+import { redirectTo } from "@/lib/navigation";
 
 export function SetupView() {
   return (
@@ -25,7 +26,7 @@ export function SetupView() {
       <Button
         type="button"
         onClick={() => {
-          window.location.href = GOOGLE_CALENDAR_AUTH_URL;
+          redirectTo(GOOGLE_CALENDAR_AUTH_URL);
         }}
       >
         <FormattedMessage

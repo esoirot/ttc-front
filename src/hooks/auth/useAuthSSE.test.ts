@@ -1,5 +1,8 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const { replaceLocation } = vi.hoisted(() => ({ replaceLocation: vi.fn() }));
+vi.mock("@/lib/navigation", () => ({ replaceLocation }));
 import {
   createQueryClient,
   createQueryWrapper,
@@ -17,26 +20,15 @@ vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 import { useAuthSSE } from "./useAuthSSE";
 
 describe("useAuthSSE", () => {
-  const replaceSpy = vi.fn();
-  const originalLocation = window.location;
-
   beforeEach(() => {
     gqlFetch.mockReset();
     FakeEventSource.reset();
     vi.stubGlobal("EventSource", FakeEventSource);
-    replaceSpy.mockReset();
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: { ...originalLocation, replace: replaceSpy },
-    });
+    replaceLocation.mockClear();
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: originalLocation,
-    });
   });
 
   it("does not connect when there is no authenticated user", async () => {
@@ -72,7 +64,7 @@ describe("useAuthSSE", () => {
     FakeEventSource.last().emitMessage({ type: "session_revoked" });
 
     expect(clearSpy).toHaveBeenCalled();
-    expect(replaceSpy).toHaveBeenCalledWith("/login");
+    expect(replaceLocation).toHaveBeenCalledWith("/login");
   });
 
   it("ignores other control messages like 'connected'", async () => {
@@ -88,7 +80,7 @@ describe("useAuthSSE", () => {
     FakeEventSource.last().emitMessage({ type: "connected" });
 
     expect(clearSpy).not.toHaveBeenCalled();
-    expect(replaceSpy).not.toHaveBeenCalled();
+    expect(replaceLocation).not.toHaveBeenCalled();
   });
 
   it("closes the connection on unmount", async () => {
