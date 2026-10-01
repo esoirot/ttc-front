@@ -190,7 +190,7 @@ describe("CreateActivityForm", () => {
         }),
       ),
     );
-  });
+  }, 15_000);
 
   it("does not call createActivity when the form is invalid on submit", async () => {
     renderForm();

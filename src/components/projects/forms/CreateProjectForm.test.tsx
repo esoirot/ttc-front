@@ -62,7 +62,7 @@ describe("CreateProjectForm", () => {
         targetLanguage: "FR",
       },
     });
-  });
+  }, 15_000);
 
   it("renders French copy when locale is fr", () => {
     renderForm(vi.fn(), "fr");

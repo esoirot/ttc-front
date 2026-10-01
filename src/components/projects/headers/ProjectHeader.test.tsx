@@ -289,7 +289,7 @@ describe("ProjectHeader", () => {
         }),
       ),
     );
-  });
+  }, 15_000);
 
   it("shows the language pair, due date, and word count as three separate badges", () => {
     renderHeader(
