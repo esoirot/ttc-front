@@ -124,6 +124,21 @@ describe("ProspectCard", () => {
     expect(onDelete).toHaveBeenCalledWith(3);
   });
 
+  it("does not navigate when the drag handle is clicked", () => {
+    renderCard(makeClient({ id: 7, name: "Acme" }));
+    fireEvent.click(screen.getByLabelText("Drag to change status"));
+    expect(navigateMock).not.toHaveBeenCalled();
+  });
+
+  it("names the prospect in bold in the delete confirmation", () => {
+    renderCard(makeClient({ id: 3, name: "Acme Prospect" }));
+
+    fireEvent.click(screen.getByLabelText("Delete prospect"));
+
+    const name = screen.getByText("Acme Prospect", { selector: "strong" });
+    expect(name.closest("[role=alertdialog]")).not.toBeNull();
+  });
+
   it("renders French copy when locale is fr", () => {
     renderCard(makeClient({ id: 3, name: "Acme" }), vi.fn(), "fr");
     fireEvent.click(screen.getByLabelText("Supprimer le prospect"));

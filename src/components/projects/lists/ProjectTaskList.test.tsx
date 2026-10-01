@@ -14,6 +14,18 @@ vi.mock("@/hooks/projects/useTaskDragReorder", () => ({
   useTaskDragReorder: (...args: unknown[]) => useTaskDragReorderMock(...args),
 }));
 
+let dndOnDragEnd: ((e: unknown) => void) | undefined;
+vi.mock("@dnd-kit/core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@dnd-kit/core")>();
+  return {
+    ...actual,
+    DndContext: (props: React.ComponentProps<typeof actual.DndContext>) => {
+      dndOnDragEnd = props.onDragEnd as (e: unknown) => void;
+      return <actual.DndContext {...props} />;
+    },
+  };
+});
+
 let sortableRowProps: Record<string, unknown>[] = [];
 vi.mock("../rows/SortableRow", () => ({
   SortableRow: (props: Record<string, unknown>) => {
@@ -561,6 +573,230 @@ describe("ProjectTaskList", () => {
 
     fireEvent.click(screen.getByText("Load more"));
     expect(loadMore).toHaveBeenCalled();
+  });
+
+  it("loads the tasks of the given project", () => {
+    renderList();
+
+    expect(useProjectTaskListMock).toHaveBeenCalledWith({ projectId: 1 });
+  });
+
+  it("persists a drag reorder through updateTask with the new sortOrder", () => {
+    const updateTask = vi.fn();
+    useProjectTaskListMock.mockReturnValue(hookState({ updateTask }));
+    renderList();
+
+    const persist = useTaskDragReorderMock.mock.calls[0][1] as (
+      id: number,
+      sortOrder: number,
+    ) => void;
+    persist(4, 2);
+
+    expect(updateTask).toHaveBeenCalledWith({ id: 4, sortOrder: 2 });
+  });
+
+  it("hands drag end events the ids of the visible, sorted tasks", () => {
+    const handleDragEnd = vi.fn();
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({
+        handleDragEnd,
+        displayTasks: [
+          makeTask({ id: 1, dueDate: "2026-01-01T00:00:00.000Z" }),
+          makeTask({ id: 2, dueDate: "2026-05-01T00:00:00.000Z" }),
+        ],
+      }),
+    );
+    renderList();
+
+    const event = { active: { id: 1 }, over: { id: 2 } };
+    dndOnDragEnd!(event);
+
+    expect(handleDragEnd).toHaveBeenCalledWith(event, [2, 1]);
+  });
+
+  it("does not reorder the task list it receives when sorting", () => {
+    const displayTasks = [
+      makeTask({ id: 1, dueDate: "2026-01-01T00:00:00.000Z" }),
+      makeTask({ id: 2, dueDate: "2026-05-01T00:00:00.000Z" }),
+    ];
+    useTaskDragReorderMock.mockReturnValue(dragState({ displayTasks }));
+    renderList();
+
+    expect(displayTasks.map((t) => t.id)).toEqual([1, 2]);
+  });
+
+  it("hides tasks due after the 'Due to' date when only that bound is set", () => {
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({
+        displayTasks: [
+          makeTask({
+            id: 1,
+            title: "Early",
+            dueDate: "2026-01-05T00:00:00.000Z",
+          }),
+          makeTask({
+            id: 2,
+            title: "Late",
+            dueDate: "2026-03-05T00:00:00.000Z",
+          }),
+        ],
+      }),
+    );
+    renderList();
+
+    fireEvent.change(screen.getByLabelText("Due to"), {
+      target: { value: "2026-02-01" },
+    });
+
+    expect(screen.getByText("Early")).toBeInTheDocument();
+    expect(screen.queryByText("Late")).not.toBeInTheDocument();
+  });
+
+  it("keeps tasks due on the from/to dates themselves, whatever the time of day", () => {
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({
+        displayTasks: [
+          makeTask({
+            id: 1,
+            title: "On from",
+            dueDate: "2026-02-01T00:00:00.000Z",
+          }),
+          makeTask({
+            id: 2,
+            title: "On to",
+            dueDate: "2026-02-10T15:30:00.000Z",
+          }),
+        ],
+      }),
+    );
+    renderList();
+
+    fireEvent.change(screen.getByLabelText("Due from"), {
+      target: { value: "2026-02-01" },
+    });
+    fireEvent.change(screen.getByLabelText("Due to"), {
+      target: { value: "2026-02-10" },
+    });
+
+    expect(screen.getByText("On from")).toBeInTheDocument();
+    expect(screen.getByText("On to")).toBeInTheDocument();
+  });
+
+  it("choosing a status filter forwards it to the hook", () => {
+    const setStatusFilter = vi.fn();
+    useProjectTaskListMock.mockReturnValue(hookState({ setStatusFilter }));
+    renderList();
+
+    fireEvent.click(screen.getByLabelText("Status"));
+    fireEvent.click(screen.getByRole("option", { name: "Done" }));
+
+    expect(setStatusFilter).toHaveBeenCalledWith("DONE");
+  });
+
+  it("create form: trims the title before creating, then closes and resets", async () => {
+    const createTask = vi.fn().mockResolvedValue(undefined);
+    useProjectTaskListMock.mockReturnValue(hookState({ createTask }));
+    renderList();
+
+    fireEvent.click(screen.getByText("+ New task"));
+    fireEvent.change(screen.getByLabelText("Title"), {
+      target: { value: "  New task  " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+
+    expect(createTask).toHaveBeenCalledWith({
+      projectId: 1,
+      title: "New task",
+    });
+    await vi.waitFor(() =>
+      expect(screen.queryByLabelText("Title")).not.toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByText("+ New task"));
+    expect(screen.getByLabelText("Title")).toHaveValue("");
+  });
+
+  it("create form: a whitespace-only title cannot be submitted", () => {
+    const createTask = vi.fn().mockResolvedValue(undefined);
+    useProjectTaskListMock.mockReturnValue(hookState({ createTask }));
+    renderList();
+
+    fireEvent.click(screen.getByText("+ New task"));
+    const input = screen.getByLabelText("Title");
+    fireEvent.change(input, { target: { value: "   " } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
+    expect(createTask).not.toHaveBeenCalled();
+  });
+
+  it("create form: keys other than Enter/Escape neither submit nor close", () => {
+    const createTask = vi.fn().mockResolvedValue(undefined);
+    useProjectTaskListMock.mockReturnValue(hookState({ createTask }));
+    renderList();
+
+    fireEvent.click(screen.getByText("+ New task"));
+    const input = screen.getByLabelText("Title");
+    fireEvent.change(input, { target: { value: "Draft" } });
+    fireEvent.keyDown(input, { key: "a" });
+
+    expect(createTask).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Title")).toHaveValue("Draft");
+  });
+
+  it.each(["Escape", "Cancel"])(
+    "create form: reopening after %s starts with an empty title",
+    (how) => {
+      renderList();
+
+      fireEvent.click(screen.getByText("+ New task"));
+      const input = screen.getByLabelText("Title");
+      fireEvent.change(input, { target: { value: "Draft" } });
+      if (how === "Escape") fireEvent.keyDown(input, { key: "Escape" });
+      else fireEvent.click(screen.getByText("Cancel"));
+      fireEvent.click(screen.getByText("+ New task"));
+
+      expect(screen.getByLabelText("Title")).toHaveValue("");
+    },
+  );
+
+  it("'Set status' applies the status picked in the bulk bar", async () => {
+    const updateTask = vi.fn().mockResolvedValue(undefined);
+    useProjectTaskListMock.mockReturnValue(hookState({ updateTask }));
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({ displayTasks: [makeTask({ id: 1, title: "A" })] }),
+    );
+    renderList();
+
+    fireEvent.click(screen.getByText("select-1"));
+    fireEvent.click(screen.getByLabelText("Bulk status"));
+    fireEvent.click(screen.getByRole("option", { name: "Done" }));
+    fireEvent.click(screen.getByText("Set status"));
+
+    await vi.waitFor(() =>
+      expect(updateTask).toHaveBeenCalledWith({ id: 1, status: "DONE" }),
+    );
+  });
+
+  it.each([
+    [["select-1"], "Delete 1 task?"],
+    [["select-1", "select-2"], "Delete 2 tasks?"],
+  ])("bulk delete confirmation pluralizes: %j → %s", (clicks, title) => {
+    useTaskDragReorderMock.mockReturnValue(
+      dragState({
+        displayTasks: [
+          makeTask({ id: 1, title: "A" }),
+          makeTask({ id: 2, title: "B" }),
+        ],
+      }),
+    );
+    renderList();
+
+    for (const c of clicks) fireEvent.click(screen.getByText(c));
+    fireEvent.click(screen.getByText("Delete selected"));
+
+    expect(
+      within(screen.getByRole("alertdialog")).getByRole("heading"),
+    ).toHaveTextContent(title);
   });
 
   it("hides 'Load more' when hasMore is false", () => {
