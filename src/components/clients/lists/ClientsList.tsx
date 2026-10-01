@@ -76,22 +76,16 @@ export function ClientsList() {
           onValueChange={(v) => setTypeFilter(v as ClientType | "ALL")}
         >
           <TabsList>
-            <TabsTrigger value="ALL" className="data-[state=active]:text-white">
+            <TabsTrigger value="ALL">
               <FormattedMessage id="clients.list.all" defaultMessage="All" />
             </TabsTrigger>
-            <TabsTrigger
-              value="COMPANY"
-              className="data-[state=active]:text-white"
-            >
+            <TabsTrigger value="COMPANY">
               <FormattedMessage
                 id="clients.list.companies"
                 defaultMessage="Companies"
               />
             </TabsTrigger>
-            <TabsTrigger
-              value="INDIVIDUAL"
-              className="data-[state=active]:text-white"
-            >
+            <TabsTrigger value="INDIVIDUAL">
               <FormattedMessage
                 id="clients.list.individuals"
                 defaultMessage="Individuals"

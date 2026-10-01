@@ -498,7 +498,7 @@ function NavItemLink({ to, end, labelMessage, icon }: TranslatedNavItem) {
         cn(
           "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium no-underline transition-colors",
           isActive
-            ? "bg-primary/10 text-primary"
+            ? "bg-primary/10 text-primary hover:bg-primary/20"
             : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
         )
       }

@@ -78,17 +78,23 @@ export function ChargeRow({ charge, activityId }: ChargeRowProps) {
         <span className="text-sm font-mono text-muted-foreground">
           {formatCents(charge.amount, "EUR", intl.locale)}
         </span>
-        <button
-          className="text-xs text-muted-foreground hover:text-foreground"
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          className="text-muted-foreground"
           onClick={() => setEditing(true)}
         >
           ✎
-        </button>
+        </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <button className="text-xs text-muted-foreground hover:text-destructive">
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className="text-muted-foreground hover:text-destructive"
+            >
               ✕
-            </button>
+            </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>

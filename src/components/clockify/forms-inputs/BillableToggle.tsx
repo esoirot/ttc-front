@@ -41,7 +41,7 @@ export function BillableToggle({
         disabled
           ? "opacity-40 cursor-not-allowed"
           : billable
-            ? "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/40 hover:bg-emerald-100"
+            ? "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/40 hover:bg-emerald-200 dark:hover:bg-emerald-900/70"
             : "text-muted-foreground/40 hover:text-muted-foreground",
       )}
     >

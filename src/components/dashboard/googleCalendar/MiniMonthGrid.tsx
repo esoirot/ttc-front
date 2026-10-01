@@ -122,7 +122,7 @@ export function MiniMonthGrid({
                   !inMonth && "text-muted-foreground/40",
                   isToday && !isSelected && "font-semibold",
                   isSelected &&
-                    "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+                    "bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground",
                   !isSelected && isToday && "bg-accent",
                 )}
               >

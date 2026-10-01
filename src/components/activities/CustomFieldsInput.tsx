@@ -46,17 +46,19 @@ export function CustomFieldsInput({
             onChange={(e) => onUpdate(i, "value", e.target.value)}
             className="flex-1"
           />
-          <button
+          <Button
             type="button"
             onClick={() => onRemove(i)}
-            className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+            variant="ghost"
+            size="icon-xs"
+            className="text-muted-foreground hover:text-destructive"
             aria-label={intl.formatMessage({
               id: "activities.customFields.removeField",
               defaultMessage: "Remove field",
             })}
           >
             ✕
-          </button>
+          </Button>
         </div>
       ))}
     </div>

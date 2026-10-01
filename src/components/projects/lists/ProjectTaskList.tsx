@@ -290,11 +290,16 @@ export function ProjectTaskList({ projectId, onOpenModal }: Props) {
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 px-3 py-1 text-xs text-muted-foreground">
               <Checkbox
+                id="ptl-select-all"
                 checked={isAllSelected}
                 onCheckedChange={() => toggleAll()}
-                aria-label="Select all"
               />
-              <span>Select all</span>
+              <Label
+                htmlFor="ptl-select-all"
+                className="text-xs font-normal text-muted-foreground"
+              >
+                Select all
+              </Label>
             </div>
             <SortableContext
               items={filtered.map((t) => t.id)}

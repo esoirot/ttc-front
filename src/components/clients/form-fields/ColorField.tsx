@@ -7,6 +7,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PRESET_COLORS } from "@/constants/tasks";
+import { Button } from "@/components/ui/button";
 
 export interface ColorFieldProps {
   value: string;
@@ -36,25 +37,27 @@ export function ColorField({
       <div className="flex items-center gap-2">
         <Popover>
           <PopoverTrigger asChild>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               aria-label={intl.formatMessage({
                 id: "clients.colorField.pickColor",
                 defaultMessage: "Pick color",
               })}
-              className="h-9 w-9 shrink-0 rounded-md border border-border"
+              className="size-9 shrink-0 rounded-md border border-border p-0 hover:ring-2 hover:ring-ring"
               style={{ backgroundColor: value || "transparent" }}
             />
           </PopoverTrigger>
           <PopoverContent className="w-auto p-3" align="start">
             <div className="flex flex-wrap gap-1.5 w-40">
               {PRESET_COLORS.map((c) => (
-                <button
+                <Button
                   key={c}
                   type="button"
+                  variant="ghost"
                   aria-label={c}
                   style={{ backgroundColor: c }}
-                  className={`w-6 h-6 rounded-full transition-transform ${
+                  className={`size-6 rounded-full p-0 hover:scale-110 ${
                     value === c
                       ? "ring-2 ring-offset-1 ring-foreground scale-110"
                       : ""

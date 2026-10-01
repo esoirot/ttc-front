@@ -59,10 +59,11 @@ export function TaskLabelPicker({
         />
         <div className="flex flex-wrap gap-1.5">
           {PRESET_COLORS.map((c) => (
-            <button
+            <Button
               key={c}
+              variant="ghost"
               style={{ backgroundColor: c }}
-              className={`w-6 h-6 rounded-full transition-transform ${color === c ? "ring-2 ring-offset-1 ring-foreground scale-110" : ""}`}
+              className={`size-6 rounded-full p-0 hover:scale-110 ${color === c ? "ring-2 ring-offset-1 ring-foreground scale-110" : ""}`}
               onClick={() => setColor(c)}
             />
           ))}

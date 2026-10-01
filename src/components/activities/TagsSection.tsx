@@ -46,9 +46,13 @@ export function TagsSection() {
               <div className="flex items-center gap-0.5 bg-muted rounded-full px-3 py-1">
                 <span className="text-xs">{tag.name}</span>
                 <AlertDialogTrigger asChild>
-                  <button className="ml-1 text-xs text-muted-foreground hover:text-destructive leading-none">
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    className="ml-1 text-muted-foreground hover:text-destructive"
+                  >
                     ×
-                  </button>
+                  </Button>
                 </AlertDialogTrigger>
               </div>
               <AlertDialogContent>

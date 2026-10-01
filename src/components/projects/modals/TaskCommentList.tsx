@@ -63,24 +63,28 @@ export function TaskCommentList({
               <span>{timeAgo(c.createdAt)}</span>
               {c.authorId === currentUserId && (
                 <span className="ml-auto opacity-0 group-hover:opacity-100 flex gap-2">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="xs"
                     onClick={() => startEdit(c)}
-                    className="hover:text-foreground transition-colors"
+                    className="h-auto px-1 text-muted-foreground"
                   >
                     <FormattedMessage
                       id="common.actions.edit"
                       defaultMessage="Edit"
                     />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="xs"
                     onClick={() => void deleteComment(c.id)}
-                    className="hover:text-destructive transition-colors"
+                    className="h-auto px-1 text-muted-foreground hover:text-destructive"
                   >
                     <FormattedMessage
                       id="common.actions.delete"
                       defaultMessage="Delete"
                     />
-                  </button>
+                  </Button>
                 </span>
               )}
             </div>
