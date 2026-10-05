@@ -66,6 +66,7 @@ test("Prospects to contact widget lists due prospects and links to client detail
       },
     },
   });
+  await mockGoogleCalendarStatus(page, { connected: false, email: null });
   await page.goto("/");
 
   await expect(page.getByText("Prospects to contact")).toBeVisible();
@@ -87,6 +88,7 @@ test("Prospects to contact widget shows empty state when nothing is due", async 
       dashboard: { ...BASE_DASHBOARD_STATS, prospectsToContact: [] },
     },
   });
+  await mockGoogleCalendarStatus(page, { connected: false, email: null });
   await page.goto("/");
 
   await expect(

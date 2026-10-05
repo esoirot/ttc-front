@@ -221,6 +221,62 @@ describe("RateForm", () => {
     );
   });
 
+  it("keeps a rate's own currency when editing it, even if it differs from the user default", () => {
+    const { onSave } = renderForm({
+      initial: makeInitial({ currency: "USD" }),
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ currency: "USD" }),
+    );
+  });
+
+  it("keeps the existing client and activity links when editing", () => {
+    const { onSave } = renderForm({
+      initial: makeInitial({ clientId: 1, activityId: 2 }),
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ clientId: 1, activityId: 2 }),
+    );
+  });
+
+  it("ignores typing beyond 2 decimals for an hourly amount", () => {
+    renderForm();
+    const amount = screen.getByLabelText(/Amount/);
+    fireEvent.change(amount, { target: { value: "12.34" } });
+    fireEvent.change(amount, { target: { value: "12.345" } });
+    expect(amount).toHaveValue("12.34");
+  });
+
+  it("allows up to 4 decimals for a per-word amount, with a comma", () => {
+    renderForm({ type: "PER_WORD" });
+    const amount = screen.getByLabelText(/Amount/);
+    fireEvent.change(amount, { target: { value: "0,0525" } });
+    fireEvent.change(amount, { target: { value: "0,05251" } });
+    expect(amount).toHaveValue("0,0525");
+  });
+
+  it.each([
+    ["HOURLY", "e.g. Standard, Technical", "0.00"],
+    ["DAY", "e.g. Standard, Technical", "0.00"],
+    ["FIXED", "e.g. Document review, Proofreading", "0.00"],
+    ["PER_WORD", "e.g. General, Specialised", "0.0000"],
+  ] as const)(
+    "hints a %s rate's name and amount precision",
+    (type, namePlaceholder, amountPlaceholder) => {
+      renderForm({ type });
+      expect(screen.getByLabelText("Name")).toHaveAttribute(
+        "placeholder",
+        namePlaceholder,
+      );
+      expect(screen.getByLabelText(/Amount/)).toHaveAttribute(
+        "placeholder",
+        amountPlaceholder,
+      );
+    },
+  );
+
   it("calls onCancel when Cancel is clicked", () => {
     const { onCancel } = renderForm();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));

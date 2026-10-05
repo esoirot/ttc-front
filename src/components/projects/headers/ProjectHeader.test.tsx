@@ -732,6 +732,66 @@ describe("ProjectHeader", () => {
     );
   });
 
+  it.each([
+    ["PER_WORD", "Literary", 0.12, "perWordRate"],
+    ["FIXED", "Proofread pack", 250, "fixedFee"],
+  ] as const)(
+    "picking a %s rate fills only its own field and the currency",
+    async (type, name, amount, field) => {
+      gqlFetch.mockResolvedValue({
+        translationRates: [
+          {
+            id: 1,
+            userId: 1,
+            name,
+            amount,
+            currency: "GBP",
+            type,
+            description: null,
+            activityId: null,
+            clientId: null,
+            sourceLanguage: null,
+            targetLanguage: null,
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+          },
+        ],
+        clientRates: [],
+      });
+      const onUpdate = vi.fn().mockResolvedValue(undefined);
+      render(
+        <QueryClientProvider client={createQueryClient()}>
+          <IntlProvider locale="en" messages={messages.en}>
+            <ProjectHeader
+              project={makeProject({ id: 7 })}
+              clients={[]}
+              onUpdate={onUpdate}
+              saving={false}
+            />
+          </IntlProvider>
+        </QueryClientProvider>,
+      );
+      fireEvent.click(screen.getByText("Edit"));
+      fireEvent.click(
+        screen.getByRole("checkbox", { name: /use custom rate/i }),
+      );
+      const pickers = await screen.findAllByText("From rate…");
+      expect(pickers).toHaveLength(1);
+      fireEvent.click(pickers[0]);
+      fireEvent.click(
+        screen.getByRole("option", { name: `${name} — ${amount} GBP` }),
+      );
+      fireEvent.click(screen.getByText("Save"));
+
+      await waitFor(() =>
+        expect(onUpdate).toHaveBeenCalledWith(
+          expect.objectContaining({ [field]: amount, currency: "GBP" }),
+        ),
+      );
+    },
+    15_000,
+  );
+
   it("selecting a client and saving sends the numeric clientId", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     renderHeader(

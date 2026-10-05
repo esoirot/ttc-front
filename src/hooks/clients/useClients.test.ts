@@ -21,6 +21,9 @@ vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 import {
   useAllClients,
   useClient,
+  useCreateCompanyContact,
+  useDeleteCompanyContact,
+  useUpdateCompanyContact,
   useClients,
   useCreateClient,
   useDeleteClient,
@@ -416,5 +419,77 @@ describe("useAllClients", () => {
     await update.result.current.updateClient({ id: 12, name: "New Name" });
 
     await waitFor(() => expect(all.result.current.clients).toEqual([updated]));
+  });
+});
+
+describe("company contact mutations keep the client page in sync", () => {
+  const jane = {
+    id: 1,
+    clientId: 4,
+    firstName: "Jane",
+    lastName: "Doe",
+    email: null,
+    phone: null,
+    jobTitle: null,
+    color: null,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  };
+
+  function seeded() {
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(
+      ["client", 4],
+      makeClient({ id: 4, contacts: [jane] }),
+    );
+    return queryClient;
+  }
+
+  function cachedContacts(queryClient: ReturnType<typeof createQueryClient>) {
+    return queryClient.getQueryData<Client>(["client", 4])?.contacts;
+  }
+
+  beforeEach(() => gqlMutate.mockReset());
+
+  it("adds a created contact to the cached client", async () => {
+    const john = { ...jane, id: 2, firstName: "John" };
+    gqlMutate.mockResolvedValueOnce({ createCompanyContact: john });
+    const queryClient = seeded();
+    const { result } = renderHook(() => useCreateCompanyContact(4), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    await result.current.createContact({ firstName: "John" });
+
+    expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
+      input: { firstName: "John", clientId: 4 },
+    });
+    expect(cachedContacts(queryClient)).toEqual([jane, john]);
+  });
+
+  it("replaces an edited contact in the cached client", async () => {
+    const renamed = { ...jane, firstName: "Janet" };
+    gqlMutate.mockResolvedValueOnce({ updateCompanyContact: renamed });
+    const queryClient = seeded();
+    const { result } = renderHook(() => useUpdateCompanyContact(4), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    await result.current.updateContact({ id: 1, firstName: "Janet" });
+
+    expect(cachedContacts(queryClient)).toEqual([renamed]);
+  });
+
+  it("removes a deleted contact from the cached client", async () => {
+    gqlMutate.mockResolvedValueOnce({ deleteCompanyContact: true });
+    const queryClient = seeded();
+    const { result } = renderHook(() => useDeleteCompanyContact(4), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    await result.current.deleteContact(1);
+
+    expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), { id: 1 });
+    expect(cachedContacts(queryClient)).toEqual([]);
   });
 });

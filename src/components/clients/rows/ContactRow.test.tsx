@@ -65,6 +65,29 @@ describe("ContactRow", () => {
 
     expect(screen.getByLabelText("First name")).toHaveValue("Jane");
     expect(screen.getByLabelText("Last name")).toHaveValue("Doe");
+    expect(screen.getByLabelText("Email")).toHaveValue("jane@acme.com");
+    expect(screen.getByLabelText("Phone")).toHaveValue("+33100000000");
+  });
+
+  it("blocks saving an invalid email and explains why", async () => {
+    const onEdit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ContactRow contact={makeContact()} onDelete={vi.fn()} onEdit={onEdit} />,
+      { wrapper },
+    );
+
+    fireEvent.click(screen.getByText("✎"));
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "not-an-email" },
+    });
+    // Submit directly: the browser's own type="email" check would otherwise
+    // stop the click before the component's validation runs.
+    fireEvent.submit(screen.getByText("Save").closest("form")!);
+
+    expect(
+      await screen.findByText("Enter a valid email address."),
+    ).toBeInTheDocument();
+    expect(onEdit).not.toHaveBeenCalled();
   });
 
   it("edit form pre-fills jobTitle and color from the contact", () => {

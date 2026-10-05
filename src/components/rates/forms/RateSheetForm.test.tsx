@@ -207,6 +207,57 @@ describe("RateSheetForm", () => {
     );
   });
 
+  it("keeps a sheet's own currency when editing it, even if it differs from the user default", () => {
+    const { onSave } = renderForm({
+      initial: makeInitial({ currency: "USD" }),
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ currency: "USD" }),
+    );
+  });
+
+  it("keeps the default-sheet flag and custom match rates when editing", () => {
+    const matchRates = { ...defaultMatchRates(), perfectMatch: 15 };
+    const { onSave } = renderForm({
+      initial: makeInitial({ clientId: 1, isDefault: true, matchRates }),
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ isDefault: true, matchRates }),
+    );
+  });
+
+  it("caps a match percentage at 100", () => {
+    const { onSave } = renderForm({ initial: makeInitial() });
+    fireEvent.change(screen.getAllByRole("spinbutton")[0], {
+      target: { value: "150" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        matchRates: expect.objectContaining({ perfectMatch: 100 }),
+      }),
+    );
+  });
+
+  it("only offers translator activities, since rate sheets are per-word", () => {
+    useMyActivitiesMock.mockReturnValue({
+      activities: [
+        ...mockActivities,
+        { id: 2, name: "Consulting", activityType: "CUSTOM" },
+      ],
+    });
+    renderForm();
+    fireEvent.click(screen.getByLabelText("Activity (optional)"));
+    expect(
+      screen.getByRole("option", { name: "Translation" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("option", { name: "Consulting" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("calls onCancel when Cancel is clicked", () => {
     const { onCancel } = renderForm();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
