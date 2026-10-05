@@ -107,7 +107,7 @@ export function ProjectCard({
                 ✕
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
               <AlertDialogHeader>
                 <AlertDialogTitle>
                   <FormattedMessage

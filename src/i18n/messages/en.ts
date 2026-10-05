@@ -611,10 +611,10 @@ export const en = {
   "projects.overviewCharts.noProject": "No project",
   "projects.overviewCharts.timePerProject": "Time per project",
   "projects.overviewCharts.allTime": "All time",
-  "projects.overviewCharts.noTimeThisMonth": "No time logged yet this month.",
+  "projects.overviewCharts.noTimeInMonth": "No time logged in {month}.",
   "projects.overviewCharts.noTimeAllTime": "No time logged yet.",
   "projects.overviewCharts.wordsPerProject": "Words per project",
-  "projects.overviewCharts.noWordsThisMonth": "No words logged yet this month.",
+  "projects.overviewCharts.noWordsInMonth": "No words logged in {month}.",
   "projects.overviewCharts.noWordsAllTime": "No words logged yet.",
 
   "activities.infoForm.invalidEmail":
@@ -975,6 +975,12 @@ export const en = {
   "projects.statusTab.invoiceSent": "Invoice Sent",
   "projects.statusTab.invoicePaid": "Invoice Paid",
 
+  "projects.monthSelector.previous": "Previous month",
+  "projects.monthSelector.month": "Month",
+  "projects.monthSelector.year": "Year",
+  "projects.monthSelector.next": "Next month",
+  "projects.list.tabProjects": "Projects",
+  "projects.list.tabDashboard": "Dashboard",
   "projects.list.title": "Projects",
   "projects.list.newProject": "New project",
   "projects.list.searchLabel": "Search projects",

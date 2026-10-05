@@ -18,6 +18,8 @@ vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import {
   useActiveTimer,
+  useAllTimeEntries,
+  useFirstTimeEntryStart,
   useCreateTimeEntry,
   useDeleteTimeEntry,
   useStartTimer,
@@ -273,5 +275,124 @@ describe("useCreateTimeEntry", () => {
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["timeEntries"] });
+  });
+});
+
+describe("useAllTimeEntries", () => {
+  const range = {
+    start: "2026-09-01T00:00:00.000Z",
+    end: "2026-09-30T23:59:59.999Z",
+  };
+
+  beforeEach(() => {
+    gqlFetch.mockReset();
+  });
+
+  it("loads every entry in the range as one large page", async () => {
+    const entry = makeEntry();
+    gqlFetch.mockResolvedValueOnce({ timeEntries: makeConnection([entry]) });
+
+    const { result } = renderHook(() => useAllTimeEntries(range), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.entries).toEqual([entry]));
+    expect(gqlFetch).toHaveBeenCalledWith(expect.anything(), {
+      ...range,
+      pagination: { limit: 1000 },
+    });
+  });
+
+  it("does not reuse the paginated 20-entry list cache", async () => {
+    gqlFetch.mockResolvedValue({ timeEntries: makeConnection([makeEntry()]) });
+    const wrapper = createQueryWrapper(createQueryClient());
+
+    const list = renderHook(() => useTimeEntries(range), { wrapper });
+    await waitFor(() => expect(list.result.current.loading).toBe(false));
+    const all = renderHook(() => useAllTimeEntries(range), { wrapper });
+    await waitFor(() => expect(all.result.current.entries).toHaveLength(1));
+
+    expect(gqlFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("refetches when the range changes", async () => {
+    gqlFetch.mockResolvedValue({ timeEntries: makeConnection([]) });
+    const { rerender } = renderHook(
+      ({ start, end }: { start: string; end: string }) =>
+        useAllTimeEntries({ start, end }),
+      { wrapper: createQueryWrapper(), initialProps: range },
+    );
+    await waitFor(() => expect(gqlFetch).toHaveBeenCalledTimes(1));
+
+    const august = {
+      start: "2026-08-01T00:00:00.000Z",
+      end: "2026-08-31T23:59:59.999Z",
+    };
+    rerender(august);
+
+    await waitFor(() =>
+      expect(gqlFetch).toHaveBeenLastCalledWith(expect.anything(), {
+        ...august,
+        pagination: { limit: 1000 },
+      }),
+    );
+  });
+
+  it("reflects a time entry edited elsewhere, so the dashboard stays current", async () => {
+    const entry = makeEntry({ id: 3, durationSeconds: 600 });
+    const edited = { ...entry, durationSeconds: 1200 };
+    gqlFetch.mockResolvedValueOnce({ timeEntries: makeConnection([entry]) });
+    gqlMutate.mockResolvedValueOnce({ updateTimeEntry: edited });
+    const wrapper = createQueryWrapper(createQueryClient());
+
+    const all = renderHook(() => useAllTimeEntries(range), { wrapper });
+    await waitFor(() => expect(all.result.current.entries).toEqual([entry]));
+    const update = renderHook(() => useUpdateTimeEntry(), { wrapper });
+    await update.result.current.updateTimeEntry({
+      id: 3,
+      durationSeconds: 1200,
+    } as never);
+
+    await waitFor(() => expect(all.result.current.entries).toEqual([edited]));
+  });
+});
+
+describe("useFirstTimeEntryStart", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+  });
+
+  it("returns the start of the user's oldest time entry as a date", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      firstTimeEntryStart: "2024-03-04T09:00:00.000Z",
+    });
+
+    const { result } = renderHook(() => useFirstTimeEntryStart(), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await waitFor(() =>
+      expect(result.current.firstStart).toEqual(
+        new Date("2024-03-04T09:00:00.000Z"),
+      ),
+    );
+  });
+
+  it("returns null when nothing has been logged yet", async () => {
+    gqlFetch.mockResolvedValueOnce({ firstTimeEntryStart: null });
+
+    const { result } = renderHook(() => useFirstTimeEntryStart(), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.firstStart).toBeNull();
+  });
+
+  it("does not query while disabled", () => {
+    renderHook(() => useFirstTimeEntryStart({ enabled: false }), {
+      wrapper: createQueryWrapper(),
+    });
+    expect(gqlFetch).not.toHaveBeenCalled();
   });
 });

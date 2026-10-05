@@ -16,6 +16,7 @@ const meta: Meta<typeof ProjectsOverviewCharts> = {
       </QueryClientProvider>
     ),
   ],
+  args: { month: new Date() },
 };
 export default meta;
 type Story = StoryObj<typeof ProjectsOverviewCharts>;

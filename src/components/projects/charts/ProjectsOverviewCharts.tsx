@@ -1,8 +1,9 @@
 import { useIntl } from "react-intl";
 import { useAllProjects } from "@/hooks/projects/useProjects";
-import { useTimeEntries } from "@/hooks/time/useTimeEntries";
+import { useAllTimeEntries } from "@/hooks/time/useTimeEntries";
 import { formatDuration } from "@/lib/time";
 import type { TimeEntry } from "@/types/time-entries.types";
+import type { ProjectsOverviewChartsProps } from "@/types/projects.types";
 import { DistributionPie } from "./DistributionPie";
 
 function sumByProject(
@@ -20,31 +21,30 @@ function sumByProject(
   return [...totals.entries()].map(([name, value]) => ({ name, value }));
 }
 
-export function ProjectsOverviewCharts() {
+export function ProjectsOverviewCharts({ month }: ProjectsOverviewChartsProps) {
   const intl = useIntl();
   const { projects } = useAllProjects();
 
-  const now = new Date();
   const monthStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
+    month.getFullYear(),
+    month.getMonth(),
     1,
   ).toISOString();
   const monthEnd = new Date(
-    now.getFullYear(),
-    now.getMonth() + 1,
+    month.getFullYear(),
+    month.getMonth() + 1,
     0,
     23,
     59,
     59,
     999,
   ).toISOString();
-  const monthLabel = intl.formatDate(now, {
+  const monthLabel = intl.formatDate(month, {
     month: "long",
     year: "numeric",
   });
 
-  const { entries: monthlyEntries } = useTimeEntries({
+  const { entries: monthlyEntries } = useAllTimeEntries({
     start: monthStart,
     end: monthEnd,
   });
@@ -91,10 +91,13 @@ export function ProjectsOverviewCharts() {
         subtitle={monthLabel}
         data={monthlyTimeData}
         formatValue={formatDuration}
-        emptyMessage={intl.formatMessage({
-          id: "projects.overviewCharts.noTimeThisMonth",
-          defaultMessage: "No time logged yet this month.",
-        })}
+        emptyMessage={intl.formatMessage(
+          {
+            id: "projects.overviewCharts.noTimeInMonth",
+            defaultMessage: "No time logged in {month}.",
+          },
+          { month: monthLabel },
+        )}
       />
       <DistributionPie
         title={intl.formatMessage({
@@ -120,10 +123,13 @@ export function ProjectsOverviewCharts() {
         subtitle={monthLabel}
         data={monthlyWordsData}
         formatValue={(v) => intl.formatNumber(v)}
-        emptyMessage={intl.formatMessage({
-          id: "projects.overviewCharts.noWordsThisMonth",
-          defaultMessage: "No words logged yet this month.",
-        })}
+        emptyMessage={intl.formatMessage(
+          {
+            id: "projects.overviewCharts.noWordsInMonth",
+            defaultMessage: "No words logged in {month}.",
+          },
+          { month: monthLabel },
+        )}
       />
       <DistributionPie
         title={intl.formatMessage({

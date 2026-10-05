@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   TIME_ENTRIES_QUERY,
   ACTIVE_TIMER_QUERY,
+  FIRST_TIME_ENTRY_START_QUERY,
   CREATE_TIME_ENTRY_MUTATION,
   START_TIMER_MUTATION,
   STOP_TIMER_MUTATION,
@@ -53,6 +54,36 @@ export function useTimeEntries(filters?: TimeEntryFilters) {
     });
 
   return { entries: items, total, hasMore, loadMore, loading, error, refetch };
+}
+
+// Charts and totals need every entry in the range, not the first list page.
+const ALL_LIMIT = 1000;
+
+export function useAllTimeEntries(range: { start: string; end: string }) {
+  const { items, loading } = useGqlConnectionQuery({
+    queryKey: ["timeEntries", { ...range, all: true }],
+    query: TIME_ENTRIES_QUERY,
+    variables: range,
+    select: (d) => d.timeEntries,
+    limit: ALL_LIMIT,
+  });
+  return { entries: items, loading };
+}
+
+export function useFirstTimeEntryStart(options?: { enabled?: boolean }) {
+  const { data, isLoading } = useQuery({
+    // Own key: the ["timeEntries"] list patches expect paginated data.
+    queryKey: ["firstTimeEntryStart"],
+    queryFn: () =>
+      gqlFetch<{ firstTimeEntryStart: string | null }>(
+        FIRST_TIME_ENTRY_START_QUERY,
+      ).then((d) => d.firstTimeEntryStart),
+    enabled: options?.enabled ?? true,
+  });
+  return {
+    firstStart: data ? new Date(data) : null,
+    loading: isLoading,
+  };
 }
 
 export function useActiveTimer() {

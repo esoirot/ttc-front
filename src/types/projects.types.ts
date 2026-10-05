@@ -99,6 +99,21 @@ export interface ProjectCardProps {
   onClick: () => void;
 }
 
+export interface ProjectsOverviewChartsProps {
+  /** Any date inside the month shown by the monthly charts. */
+  month: Date;
+}
+
+export interface MonthSelectorProps {
+  /** Any date inside the selected month. */
+  month: Date;
+  onChange: (month: Date) => void;
+  /** Earliest selectable month (e.g. the month of the first logged entry). */
+  min: Date;
+  /** Latest selectable month; "next" is disabled once reached. */
+  max: Date;
+}
+
 export interface ProjectHeaderProps {
   project: Project;
   clients: Client[];

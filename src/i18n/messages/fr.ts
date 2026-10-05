@@ -622,12 +622,10 @@ export const fr: Record<keyof typeof en, string> = {
   "projects.overviewCharts.noProject": "Aucun projet",
   "projects.overviewCharts.timePerProject": "Temps par projet",
   "projects.overviewCharts.allTime": "Depuis toujours",
-  "projects.overviewCharts.noTimeThisMonth":
-    "Aucun temps enregistré ce mois-ci.",
+  "projects.overviewCharts.noTimeInMonth": "Aucun temps enregistré en {month}.",
   "projects.overviewCharts.noTimeAllTime": "Aucun temps enregistré.",
   "projects.overviewCharts.wordsPerProject": "Mots par projet",
-  "projects.overviewCharts.noWordsThisMonth":
-    "Aucun mot enregistré ce mois-ci.",
+  "projects.overviewCharts.noWordsInMonth": "Aucun mot enregistré en {month}.",
   "projects.overviewCharts.noWordsAllTime": "Aucun mot enregistré.",
 
   "activities.infoForm.invalidEmail":
@@ -1000,6 +998,12 @@ export const fr: Record<keyof typeof en, string> = {
   "projects.statusTab.invoiceSent": "Facture envoyée",
   "projects.statusTab.invoicePaid": "Facture payée",
 
+  "projects.monthSelector.previous": "Mois précédent",
+  "projects.monthSelector.month": "Mois",
+  "projects.monthSelector.year": "Année",
+  "projects.monthSelector.next": "Mois suivant",
+  "projects.list.tabProjects": "Projets",
+  "projects.list.tabDashboard": "Tableau de bord",
   "projects.list.title": "Projets",
   "projects.list.newProject": "Nouveau projet",
   "projects.list.searchLabel": "Rechercher des projets",

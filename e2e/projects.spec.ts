@@ -177,6 +177,12 @@ async function mockProjectsApi(
       });
     }
 
+    if (operationName === "FirstTimeEntryStart") {
+      return respond({
+        firstTimeEntryStart: "2024-03-04T09:00:00.000Z",
+      });
+    }
+
     if (operationName === "ActiveTimer") {
       return respond({ activeTimer: null });
     }
@@ -293,4 +299,90 @@ test.describe("project task toolbar on a phone", () => {
     );
     expect(overflows).toBe(true);
   });
+});
+
+test("projects page shows the list by default and the charts in the Dashboard tab", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date(2026, 9, 15, 10, 0));
+  await mockProjectsApi(page, [
+    makeProject({ id: 7, title: "Translate manual" }),
+  ]);
+  await page.goto("/projects");
+
+  await expect(page.getByText("Translate manual")).toBeVisible();
+  await expect(page.getByText("Time per project")).toHaveCount(0);
+
+  await page.getByRole("tab", { name: "Dashboard" }).click();
+
+  await expect(page.getByText("Time per project")).toHaveCount(2);
+  await expect(page.getByText("Words per project")).toHaveCount(2);
+  await expect(page.getByText("Translate manual")).toHaveCount(0);
+});
+
+test("the Dashboard month filter loads the selected month's time entries", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date(2026, 9, 15, 10, 0));
+  await mockProjectsApi(page, []);
+  const timeEntryRanges: Record<string, unknown>[] = [];
+  page.on("request", (req) => {
+    if (!req.url().includes("/graphql") || req.method() !== "POST") return;
+    const body = req.postDataJSON() as {
+      operationName: string;
+      variables?: Record<string, unknown>;
+    };
+    if (body.operationName === "TimeEntries" && body.variables) {
+      timeEntryRanges.push(body.variables);
+    }
+  });
+  await page.goto("/projects");
+  await page.getByRole("tab", { name: "Dashboard" }).click();
+
+  await expect(page.getByRole("combobox", { name: "Month" })).toHaveText(
+    "October",
+  );
+  await expect(page.getByRole("combobox", { name: "Year" })).toHaveText("2026");
+  await expect(page.getByRole("button", { name: "Next month" })).toBeDisabled();
+
+  await page.getByRole("button", { name: "Previous month" }).click();
+
+  await expect(page.getByRole("combobox", { name: "Month" })).toHaveText(
+    "September",
+  );
+  // the two monthly chart subtitles
+  await expect(page.getByText("September 2026", { exact: true })).toHaveCount(
+    2,
+  );
+  await expect(
+    page.getByText("No time logged in September 2026."),
+  ).toBeVisible();
+  const september = await page.evaluate(() => ({
+    start: new Date(2026, 8, 1).toISOString(),
+    end: new Date(2026, 8, 30, 23, 59, 59, 999).toISOString(),
+  }));
+  await expect
+    .poll(() => timeEntryRanges)
+    .toContainEqual({ ...september, pagination: { limit: 1000 } });
+});
+
+test("the Dashboard month and year pickers jump to any month since the first entry", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date(2026, 9, 15, 10, 0));
+  await mockProjectsApi(page, []);
+  await page.goto("/projects");
+  await page.getByRole("tab", { name: "Dashboard" }).click();
+  // the year range is known once the first logged entry has loaded
+  await expect(
+    page.getByRole("button", { name: "Previous month" }),
+  ).toBeEnabled();
+
+  await page.getByRole("combobox", { name: "Year" }).click();
+  await expect(page.getByRole("option")).toHaveText(["2024", "2025", "2026"]);
+  await page.getByRole("option", { name: "2024" }).click();
+  await page.getByRole("combobox", { name: "Month" }).click();
+  await page.getByRole("option", { name: "June" }).click();
+
+  await expect(page.getByText("No time logged in June 2024.")).toBeVisible();
 });

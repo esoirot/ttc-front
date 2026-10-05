@@ -122,6 +122,8 @@ function makeWrapper(locale: Locale = "en") {
   };
 }
 
+const september = new Date(2026, 8, 1);
+
 describe("ProjectsOverviewCharts", () => {
   beforeEach(() => {
     gqlFetch.mockReset();
@@ -129,18 +131,18 @@ describe("ProjectsOverviewCharts", () => {
 
   it("always shows all 4 chart cards, with empty-state messages when there is no data", async () => {
     setupGqlFetch();
-    render(<ProjectsOverviewCharts />, {
+    render(<ProjectsOverviewCharts month={september} />, {
       wrapper: makeWrapper(),
     });
 
     expect(await screen.findAllByText("Time per project")).toHaveLength(2);
     expect(screen.getAllByText("Words per project")).toHaveLength(2);
     expect(
-      screen.getByText("No time logged yet this month."),
+      screen.getByText("No time logged in September 2026."),
     ).toBeInTheDocument();
     expect(screen.getByText("No time logged yet.")).toBeInTheDocument();
     expect(
-      screen.getByText("No words logged yet this month."),
+      screen.getByText("No words logged in September 2026."),
     ).toBeInTheDocument();
     expect(screen.getByText("No words logged yet.")).toBeInTheDocument();
   });
@@ -162,17 +164,19 @@ describe("ProjectsOverviewCharts", () => {
         }),
       ],
     });
-    render(<ProjectsOverviewCharts />, { wrapper: makeWrapper() });
+    render(<ProjectsOverviewCharts month={september} />, {
+      wrapper: makeWrapper(),
+    });
 
     const timeCharts = await screen.findAllByText("Time per project");
     expect(timeCharts).toHaveLength(2);
     expect(screen.getAllByText("All time").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Words per project")).toHaveLength(2);
     expect(
-      screen.getByText("No time logged yet this month."),
+      screen.getByText("No time logged in September 2026."),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("No words logged yet this month."),
+      screen.getByText("No words logged in September 2026."),
     ).toBeInTheDocument();
   });
 
@@ -194,14 +198,12 @@ describe("ProjectsOverviewCharts", () => {
         }),
       ],
     });
-    render(<ProjectsOverviewCharts />, { wrapper: makeWrapper() });
-
-    const monthLabel = new Date().toLocaleDateString(undefined, {
-      month: "long",
-      year: "numeric",
+    render(<ProjectsOverviewCharts month={september} />, {
+      wrapper: makeWrapper(),
     });
+
     expect(await screen.findAllByText("Time per project")).toHaveLength(2);
-    expect(screen.getAllByText(monthLabel).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("September 2026")).toHaveLength(2);
     expect(screen.getAllByText("Words per project")).toHaveLength(2);
     expect(screen.getByText("No time logged yet.")).toBeInTheDocument();
     expect(screen.getByText("No words logged yet.")).toBeInTheDocument();
@@ -209,10 +211,46 @@ describe("ProjectsOverviewCharts", () => {
 
   it("renders French copy when locale is fr", async () => {
     setupGqlFetch();
-    render(<ProjectsOverviewCharts />, { wrapper: makeWrapper("fr") });
+    render(<ProjectsOverviewCharts month={september} />, {
+      wrapper: makeWrapper("fr"),
+    });
 
     expect(await screen.findAllByText("Temps par projet")).toHaveLength(2);
     expect(screen.getAllByText("Mots par projet")).toHaveLength(2);
     expect(screen.getByText("Aucun temps enregistré.")).toBeInTheDocument();
+  });
+
+  it("loads every time entry of the selected month, in local time", async () => {
+    setupGqlFetch();
+    render(<ProjectsOverviewCharts month={september} />, {
+      wrapper: makeWrapper(),
+    });
+
+    await screen.findAllByText("Time per project");
+    expect(gqlFetch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        definitions: expect.arrayContaining([
+          expect.objectContaining({
+            name: expect.objectContaining({ value: "TimeEntries" }),
+          }),
+        ]),
+      }),
+      {
+        start: new Date(2026, 8, 1).toISOString(),
+        end: new Date(2026, 8, 30, 23, 59, 59, 999).toISOString(),
+        pagination: { limit: 1000 },
+      },
+    );
+  });
+
+  it("names the selected month in French", async () => {
+    setupGqlFetch();
+    render(<ProjectsOverviewCharts month={september} />, {
+      wrapper: makeWrapper("fr"),
+    });
+
+    expect(
+      await screen.findByText("Aucun temps enregistré en septembre 2026."),
+    ).toBeInTheDocument();
   });
 });
