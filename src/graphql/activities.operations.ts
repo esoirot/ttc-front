@@ -126,6 +126,7 @@ export const UPDATE_ACTIVITY_MUTATION: TypedDocumentNode<
       objectiveQ3?: number | null;
       objectiveQ4?: number | null;
       languagePairs?: { fromLanguage: string; toLanguage: string }[] | null;
+      customFields?: { key: string; value: string }[] | null;
     };
   }
 > = gql`

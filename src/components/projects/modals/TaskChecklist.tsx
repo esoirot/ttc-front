@@ -48,7 +48,7 @@ function formatTimeSlot(slot: string): string {
 }
 
 function isoToDateStr(iso: string): string {
-  return iso.slice(0, 10);
+  return new Date(iso).toLocaleDateString("en-CA");
 }
 
 function isoToTimeSlot(iso: string): string {

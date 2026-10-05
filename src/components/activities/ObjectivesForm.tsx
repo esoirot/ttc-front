@@ -13,7 +13,7 @@ export function ObjectivesForm({ activityId, initial }: ObjectivesFormProps) {
     updateActivity,
     loading: saving,
     error: saveError,
-  } = useUpdateActivity();
+  } = useUpdateActivity({ inlineError: true });
   const [q1, setQ1] = useState(centsToEuros(initial.objectiveQ1));
   const [q2, setQ2] = useState(centsToEuros(initial.objectiveQ2));
   const [q3, setQ3] = useState(centsToEuros(initial.objectiveQ3));

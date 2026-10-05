@@ -89,9 +89,29 @@ describe("DealsTab", () => {
     });
     render(<DealsTab />, { wrapper });
     expect(screen.getByText("Big Contract")).toBeInTheDocument();
-    expect(screen.getByText("$1000")).toBeInTheDocument();
+    expect(screen.getByText("1,000")).toBeInTheDocument();
     expect(screen.getByText("negotiation")).toBeInTheDocument();
     expect(screen.getByText("2026-12-31")).toBeInTheDocument();
+  });
+
+  it("shows the amount in the deal's own currency", () => {
+    useInfiniteHubspotDealsMock.mockReturnValue({
+      ...defaultInfinite(),
+      data: {
+        pages: [{ results: [makeDeal({ deal_currency_code: "EUR" })] }],
+      },
+    });
+    render(<DealsTab />, { wrapper });
+    expect(screen.getByText("€1,000.00")).toBeInTheDocument();
+  });
+
+  it("does not invent a dollar sign when the deal has no currency", () => {
+    useInfiniteHubspotDealsMock.mockReturnValue({
+      ...defaultInfinite(),
+      data: { pages: [{ results: [makeDeal()] }] },
+    });
+    render(<DealsTab />, { wrapper });
+    expect(screen.queryByText(/\$/)).not.toBeInTheDocument();
   });
 
   it("shows — for missing name/amount/stage/close date fields", () => {

@@ -361,6 +361,25 @@ describe("TaskChecklist", () => {
     );
   });
 
+  it("shows a just-after-midnight subtask due date on its local calendar day", () => {
+    renderChecklist({
+      subtasks: [
+        makeSubtask({
+          id: 1,
+          checklistTitle: "Setup",
+          title: "Review draft",
+          dueDate: new Date(2026, 7, 1, 0, 30).toISOString(),
+        }),
+      ],
+    });
+
+    fireEvent.click(screen.getByText("Review draft"));
+
+    expect(document.querySelector('input[type="date"]')).toHaveValue(
+      "2026-08-01",
+    );
+  });
+
   it("saving an edit with Due Date unchecked clears the dueDate", async () => {
     gqlMutate.mockResolvedValueOnce({
       updateSubtask: makeSubtask({ id: 5 }),

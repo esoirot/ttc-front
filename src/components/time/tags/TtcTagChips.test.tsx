@@ -8,9 +8,13 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
+const { toastError } = vi.hoisted(() => ({ toastError: vi.fn() }));
+vi.mock("sonner", () => ({ toast: { error: toastError } }));
+
 import { QueryClientProvider } from "@tanstack/react-query";
 import { IntlProvider } from "react-intl";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { createAppQueryClient } from "@/lib/queryClient";
 import { messages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/useLocale";
 import type { Tag } from "@/types/tags.types";
@@ -25,9 +29,10 @@ const TAGS: Tag[] = [
 function renderChips(
   overrides: Partial<Parameters<typeof TtcTagChips>[0]> = {},
   locale: Locale = "en",
+  queryClient = createQueryClient(),
 ) {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
+    <QueryClientProvider client={queryClient}>
       <IntlProvider
         locale={locale}
         defaultLocale="en"
@@ -212,6 +217,22 @@ describe("TtcTagChips", () => {
         screen.queryByRole("button", { name: "Saving…" }),
       ).not.toBeInTheDocument(),
     );
+  });
+
+  it("a createTag failure is explained inline only, without also raising a toast", async () => {
+    gqlMutate.mockRejectedValueOnce(new Error("network error"));
+    renderChips({}, "en", createAppQueryClient());
+
+    openEditor();
+    const input = screen.getByPlaceholderText("Search or add tag…");
+    fireEvent.change(input, { target: { value: "Brand New" } });
+    fireEvent.click(screen.getByText('Add "Brand New"'));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/Couldn't create/)).toBeInTheDocument(),
+    );
+    expect(toastError).not.toHaveBeenCalled();
   });
 
   it("a createTag failure during Save keeps staged state intact for retry", async () => {

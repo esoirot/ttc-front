@@ -1,5 +1,18 @@
 import { gql } from "@apollo/client/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const { tryRefresh, replaceLocation, currentPathname } = vi.hoisted(() => ({
+  tryRefresh: vi.fn(),
+  replaceLocation: vi.fn(),
+  currentPathname: vi.fn(() => "/"),
+}));
+vi.mock("./api", () => ({ tryRefresh }));
+vi.mock("./navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./navigation")>()),
+  replaceLocation,
+  currentPathname,
+}));
+
 import { gqlFetch, gqlMutate } from "./apollo";
 
 const TEST_QUERY = gql`
@@ -90,4 +103,49 @@ describe("gqlFetch / gqlMutate", () => {
 
     expect(result).toEqual({ setTest: true });
   });
+});
+
+describe("expired session handling", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse(200, {
+        data: null,
+        errors: [
+          { message: "Unauthorized", extensions: { code: "UNAUTHENTICATED" } },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    tryRefresh.mockReset().mockResolvedValue(false);
+    replaceLocation.mockClear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("tries a token refresh on a protected page, then sends the user to /login when it fails", async () => {
+    currentPathname.mockReturnValue("/clients");
+
+    await gqlFetch(TEST_QUERY).catch(() => {});
+
+    await vi.waitFor(() =>
+      expect(replaceLocation).toHaveBeenCalledWith("/login"),
+    );
+    expect(tryRefresh).toHaveBeenCalled();
+  });
+
+  it.each(["/forgot-password", "/reset-password"])(
+    "does not refresh or redirect while on the public page %s",
+    async (path) => {
+      currentPathname.mockReturnValue(path);
+
+      await gqlFetch(TEST_QUERY).catch(() => {});
+
+      expect(tryRefresh).not.toHaveBeenCalled();
+      expect(replaceLocation).not.toHaveBeenCalled();
+    },
+  );
 });

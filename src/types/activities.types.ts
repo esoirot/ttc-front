@@ -86,6 +86,10 @@ export function isTranslatorActivity(a: AnyActivity): a is TranslatorActivity {
   return a.activityType === "TRANSLATOR";
 }
 
+export function isCustomActivity(a: AnyActivity): a is CustomActivity {
+  return a.activityType === "CUSTOM";
+}
+
 export interface ActivityCardProps {
   activity: AnyActivity;
   onDelete: (id: number) => void;
@@ -127,6 +131,11 @@ export interface CustomFieldsInputProps {
     value: string,
   ) => void;
   onRemove: (index: number) => void;
+}
+
+export interface CustomFieldsSectionProps {
+  activityId: number;
+  initialFields: CustomField[];
 }
 
 export interface LanguagePairsInputProps {

@@ -24,8 +24,12 @@ vi.mock("./headers/InvoiceDetailHeader", () => ({
     <div>Header: {number}</div>
   ),
 }));
+let metaCardProps: { onUpdate: (input: unknown) => Promise<unknown> };
 vi.mock("./cards/InvoiceMetaCard", () => ({
-  InvoiceMetaCard: () => <div>Meta card</div>,
+  InvoiceMetaCard: (props: typeof metaCardProps) => {
+    metaCardProps = props;
+    return <div>Meta card</div>;
+  },
 }));
 vi.mock("./lineItems/InvoiceLineItems", () => ({
   InvoiceLineItems: () => <div>Line items</div>,
@@ -113,5 +117,26 @@ describe("InvoiceDetail", () => {
     });
     render(<InvoiceDetail />, { wrapper: createIntlWrapper("fr") });
     expect(screen.getByText("Facture introuvable.")).toBeInTheDocument();
+  });
+
+  it("clearing client, due date or notes in the meta card erases them", async () => {
+    const state = defaultState();
+    useInvoiceDetailMock.mockReturnValue(state);
+    render(<InvoiceDetail />, { wrapper });
+
+    await metaCardProps.onUpdate({
+      clientId: null,
+      currency: "EUR",
+      dueDate: null,
+      notes: null,
+    });
+
+    expect(state.updateInvoice).toHaveBeenCalledWith({
+      id: 7,
+      clientId: null,
+      currency: "EUR",
+      dueDate: null,
+      notes: null,
+    });
   });
 });

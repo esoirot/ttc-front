@@ -67,15 +67,7 @@ export function InvoiceDetail() {
         currency={invoice.currency}
         dueDate={invoice.dueDate}
         notes={invoice.notes}
-        onUpdate={(input) =>
-          updateInvoice({
-            id: invoiceId,
-            clientId: input.clientId ?? undefined,
-            currency: input.currency,
-            dueDate: input.dueDate ?? undefined,
-            notes: input.notes ?? undefined,
-          })
-        }
+        onUpdate={(input) => updateInvoice({ id: invoiceId, ...input })}
       />
 
       <InvoiceLineItems

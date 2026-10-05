@@ -14,6 +14,7 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
 import {
+  useAllTasks,
   useCreateComment,
   useCreateTask,
   useCreateTaskLabel,
@@ -415,5 +416,67 @@ describe("useCreateTaskLabel", () => {
 
     const detail = queryClient.getQueryData<TaskDetail>(["task", 4]);
     expect(detail?.labels).toEqual([label]);
+  });
+});
+
+describe("useAllTasks", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+  });
+
+  it("loads every task of a project in one large page for pickers", async () => {
+    const task = makeTask();
+    gqlFetch.mockResolvedValueOnce({ tasks: makeConnection([task]) });
+
+    const { result } = renderHook(() => useAllTasks(3), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.tasks).toEqual([task]));
+    expect(gqlFetch).toHaveBeenCalledWith(expect.anything(), {
+      projectId: 3,
+      pagination: { limit: 1000 },
+    });
+  });
+
+  it("does not reuse the paginated 50-item task list cache", async () => {
+    gqlFetch.mockResolvedValue({ tasks: makeConnection([makeTask()]) });
+    const wrapper = createQueryWrapper(createQueryClient());
+
+    const list = renderHook(() => useTasks(3), { wrapper });
+    await waitFor(() => expect(list.result.current.loading).toBe(false));
+    const all = renderHook(() => useAllTasks(3), { wrapper });
+    await waitFor(() => expect(all.result.current.tasks).toHaveLength(1));
+
+    expect(gqlFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not fetch while disabled", () => {
+    renderHook(() => useAllTasks(3, { enabled: false }), {
+      wrapper: createQueryWrapper(),
+    });
+
+    expect(gqlFetch).not.toHaveBeenCalled();
+  });
+
+  it("does not fetch for an entry with no project", () => {
+    renderHook(() => useAllTasks(0), { wrapper: createQueryWrapper() });
+
+    expect(gqlFetch).not.toHaveBeenCalled();
+  });
+
+  it("reflects a task edited elsewhere, so the picker shows the new title", async () => {
+    const task = makeTask({ id: 4, projectId: 3, title: "Old" });
+    const renamed = { ...task, title: "New" };
+    gqlFetch.mockResolvedValueOnce({ tasks: makeConnection([task]) });
+    gqlMutate.mockResolvedValueOnce({ updateTask: renamed });
+    const wrapper = createQueryWrapper(createQueryClient());
+
+    const all = renderHook(() => useAllTasks(3), { wrapper });
+    await waitFor(() => expect(all.result.current.tasks).toEqual([task]));
+    const update = renderHook(() => useUpdateTask(3), { wrapper });
+    await update.result.current.updateTask({ id: 4, title: "New" });
+
+    await waitFor(() => expect(all.result.current.tasks).toEqual([renamed]));
   });
 });

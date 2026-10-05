@@ -1,5 +1,9 @@
 import type { TypedDocumentNode } from "@apollo/client/core";
-import { useMutation, type UseMutationResult } from "@tanstack/react-query";
+import {
+  useMutation,
+  type MutationMeta,
+  type UseMutationResult,
+} from "@tanstack/react-query";
 import { gqlMutate } from "@/lib/apollo";
 
 export function useGqlMutation<
@@ -10,10 +14,12 @@ export function useGqlMutation<
   mutation: TypedDocumentNode<TData, TVariables>;
   unwrap: (data: TData) => TResult;
   onSuccess?: (result: TResult, variables: TVariables) => void;
+  meta?: MutationMeta;
 }): UseMutationResult<TResult, Error, TVariables> {
   return useMutation({
     mutationFn: (variables: TVariables) =>
       gqlMutate<TData>(opts.mutation, variables).then((d) => opts.unwrap(d)),
     onSuccess: opts.onSuccess,
+    meta: opts.meta,
   });
 }

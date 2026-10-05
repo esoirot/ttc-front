@@ -2,7 +2,10 @@ import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createQueryWrapper } from "@/test/queryClientWrapper";
+import {
+  createQueryClient,
+  createQueryWrapper,
+} from "@/test/queryClientWrapper";
 
 const { gqlMutate } = vi.hoisted(() => ({ gqlMutate: vi.fn() }));
 vi.mock("@/lib/apollo", () => ({ gqlFetch: vi.fn(), gqlMutate }));
@@ -89,5 +92,27 @@ describe("useGqlMutation", () => {
     await expect(
       result.current.mutateAsync({ name: "Sprocket" }),
     ).rejects.toThrow("network down");
+  });
+
+  it("attaches the given meta to the mutation", async () => {
+    gqlMutate.mockResolvedValueOnce({
+      createWidget: { id: 1, name: "Sprocket" },
+    });
+    const queryClient = createQueryClient();
+
+    const { result } = renderHook(
+      () =>
+        useGqlMutation({
+          mutation: CREATE_WIDGET_MUTATION,
+          unwrap: (d) => d.createWidget,
+          meta: { inlineError: true },
+        }),
+      { wrapper: createQueryWrapper(queryClient) },
+    );
+    await result.current.mutateAsync({ name: "Sprocket" });
+
+    expect(queryClient.getMutationCache().getAll()[0].meta).toEqual({
+      inlineError: true,
+    });
   });
 });

@@ -19,7 +19,7 @@ import type { TtcUpdateInput } from "@/types/time-entries.types";
 import { TtcTagChips } from "../tags/TtcTagChips";
 import { EditableTimeField } from "../EditableTimeField";
 import { secsToHms } from "../ttcHelpers";
-import { useTasks, useTask } from "@/hooks/tasks/useTasks";
+import { useAllTasks, useTask } from "@/hooks/tasks/useTasks";
 
 export function TtcEntryRow({
   entry,
@@ -67,7 +67,7 @@ export function TtcEntryRow({
   const descInputRef = useRef<HTMLInputElement>(null);
 
   const project = projects.find((p) => p.id === entry.projectId) ?? null;
-  const { tasks } = useTasks(entry.projectId ?? 0, {
+  const { tasks } = useAllTasks(entry.projectId ?? 0, {
     enabled: editingTask && entry.projectId != null,
   });
   const { task: taskDetail } = useTask(entry.taskId ?? 0, {

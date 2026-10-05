@@ -351,6 +351,8 @@ export const en = {
   "projects.taskDatePicker.reminder.before1w": "1 week before",
   "projects.taskDatePicker.reminder.before2w": "2 weeks before",
   "projects.taskDatePicker.noDate": "No date",
+  "projects.taskDatePicker.startTime": "Start time",
+  "projects.taskDatePicker.dueTime": "Due time",
   "projects.taskDatePicker.startDate": "Start Date",
   "projects.taskDatePicker.dueDate": "Due Date",
   "projects.taskDatePicker.recurringLabel": "Recurring",
@@ -1003,6 +1005,8 @@ export const en = {
   "invoices.lineItems.qty": "Qty",
   "invoices.lineItems.total": "Total",
   "invoices.lineItems.empty": "No items yet.",
+  "invoices.lineItems.invalidNumber":
+    "Quantity and unit price must be valid numbers.",
   "invoices.lineItems.addItem": "+ Add item",
 
   "invoices.subtotal.title": "Subtotal",

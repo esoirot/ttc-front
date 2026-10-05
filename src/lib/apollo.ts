@@ -9,8 +9,8 @@ import { ErrorLink } from "@apollo/client/link/error";
 import { CombinedGraphQLErrors, ServerError } from "@apollo/client/errors";
 import { Observable } from "@apollo/client/utilities";
 import { tryRefresh } from "./api";
+import { currentPathname, isPublicPath, replaceLocation } from "./navigation";
 
-const PUBLIC_PATHS = ["/login", "/register", "/2fa"];
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/graphql";
 
 const errorLink = new ErrorLink(({ error, operation, forward }) => {
@@ -23,16 +23,13 @@ const errorLink = new ErrorLink(({ error, operation, forward }) => {
       )) ||
     (ServerError.is(error) && error.statusCode === 401);
 
-  if (
-    isUnauth &&
-    !PUBLIC_PATHS.some((p) => window.location.pathname.startsWith(p))
-  ) {
+  if (isUnauth && !isPublicPath(currentPathname())) {
     return new Observable((observer) => {
       void tryRefresh().then((refreshed) => {
         if (refreshed) {
           forward(operation).subscribe(observer);
         } else {
-          window.location.replace("/login");
+          replaceLocation("/login");
           observer.complete();
         }
       });

@@ -209,6 +209,114 @@ describe("InvoiceLineItems", () => {
     expect(onUpdateItem).not.toHaveBeenCalled();
   });
 
+  it("accepts a comma as the decimal separator", async () => {
+    const onUpdateItem = vi.fn().mockResolvedValue({});
+    renderLineItems([makeItem({ id: 1 })], { onUpdateItem });
+    fireEvent.click(screen.getByText("start-1"));
+    fireEvent.change(screen.getByLabelText("qty-1"), {
+      target: { value: "1,5" },
+    });
+    fireEvent.change(screen.getByLabelText("price-1"), {
+      target: { value: "12,50" },
+    });
+    fireEvent.click(screen.getByText("save-1"));
+
+    await vi.waitFor(() =>
+      expect(onUpdateItem).toHaveBeenCalledWith(
+        expect.objectContaining({ quantity: 1.5, unitPrice: 12.5 }),
+      ),
+    );
+  });
+
+  it("rejects a value with trailing garbage instead of truncating it", async () => {
+    const onUpdateItem = vi.fn().mockResolvedValue({});
+    renderLineItems([makeItem({ id: 1 })], { onUpdateItem });
+    fireEvent.click(screen.getByText("start-1"));
+    fireEvent.change(screen.getByLabelText("qty-1"), {
+      target: { value: "3abc" },
+    });
+    fireEvent.click(screen.getByText("save-1"));
+
+    await new Promise((r) => setTimeout(r, 0));
+    expect(onUpdateItem).not.toHaveBeenCalled();
+  });
+
+  it("explains why an invalid quantity or price was not saved", async () => {
+    renderLineItems([makeItem({ id: 1 })]);
+    fireEvent.click(screen.getByText("start-1"));
+    fireEvent.change(screen.getByLabelText("price-1"), {
+      target: { value: "abc" },
+    });
+    fireEvent.click(screen.getByText("save-1"));
+
+    expect(
+      await screen.findByText("Quantity and unit price must be valid numbers."),
+    ).toBeInTheDocument();
+  });
+
+  it("rejects an emptied quantity instead of saving it as 0", async () => {
+    const onUpdateItem = vi.fn().mockResolvedValue({});
+    renderLineItems([makeItem({ id: 1 })], { onUpdateItem });
+    fireEvent.click(screen.getByText("start-1"));
+    fireEvent.change(screen.getByLabelText("qty-1"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByText("save-1"));
+
+    expect(
+      await screen.findByText("Quantity and unit price must be valid numbers."),
+    ).toBeInTheDocument();
+    expect(onUpdateItem).not.toHaveBeenCalled();
+  });
+
+  it("shows no number warning while editing until a save is attempted", () => {
+    renderLineItems([makeItem({ id: 1 })]);
+    fireEvent.click(screen.getByText("start-1"));
+
+    expect(
+      screen.queryByText("Quantity and unit price must be valid numbers."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("clears the number warning once a corrected value is saved", async () => {
+    const onUpdateItem = vi.fn().mockResolvedValue({});
+    renderLineItems([makeItem({ id: 1 })], { onUpdateItem });
+    fireEvent.click(screen.getByText("start-1"));
+    fireEvent.change(screen.getByLabelText("qty-1"), {
+      target: { value: "abc" },
+    });
+    fireEvent.click(screen.getByText("save-1"));
+    await screen.findByText("Quantity and unit price must be valid numbers.");
+
+    fireEvent.change(screen.getByLabelText("qty-1"), {
+      target: { value: "2" },
+    });
+    fireEvent.click(screen.getByText("save-1"));
+    await vi.waitFor(() => expect(onUpdateItem).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByText("start-1"));
+    expect(
+      screen.queryByText("Quantity and unit price must be valid numbers."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("clears the number warning when the edit is cancelled", async () => {
+    renderLineItems([makeItem({ id: 1 })]);
+    fireEvent.click(screen.getByText("start-1"));
+    fireEvent.change(screen.getByLabelText("qty-1"), {
+      target: { value: "abc" },
+    });
+    fireEvent.click(screen.getByText("save-1"));
+    await screen.findByText("Quantity and unit price must be valid numbers.");
+
+    fireEvent.click(screen.getByText("cancel-1"));
+    fireEvent.click(screen.getByText("start-1"));
+
+    expect(
+      screen.queryByText("Quantity and unit price must be valid numbers."),
+    ).not.toBeInTheDocument();
+  });
+
   it("calls onRemoveItem with the item id", () => {
     const onRemoveItem = vi.fn();
     renderLineItems([makeItem({ id: 7 })], { onRemoveItem });

@@ -11,12 +11,21 @@ import {
 } from "@/hooks/integrations/useHubspot";
 
 function DealRow({ deal }: { deal: HubspotDeal }) {
+  const intl = useIntl();
   const p = deal.properties;
+  const amount = p.amount ? Number(p.amount) : null;
   return (
     <tr className="border-b border-border">
       <td className="py-2.5 pr-4 text-sm">{p.dealname ?? "—"}</td>
       <td className="py-2.5 pr-4 text-sm text-muted-foreground">
-        {p.amount ? `$${p.amount}` : "—"}
+        {amount == null || isNaN(amount)
+          ? "—"
+          : p.deal_currency_code
+            ? intl.formatNumber(amount, {
+                style: "currency",
+                currency: p.deal_currency_code,
+              })
+            : intl.formatNumber(amount)}
       </td>
       <td className="py-2.5 pr-4 text-sm text-muted-foreground">
         {p.dealstage ?? "—"}

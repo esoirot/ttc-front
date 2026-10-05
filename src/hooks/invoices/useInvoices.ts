@@ -127,10 +127,10 @@ export function useUpdateInvoice(id: number) {
       id: number;
       status?: InvoiceStatus;
       currency?: string;
-      dueDate?: string;
+      dueDate?: string | null;
       paidAt?: string;
-      notes?: string;
-      clientId?: number;
+      notes?: string | null;
+      clientId?: number | null;
     }) => mutateAsync({ input }),
     loading: isPending,
     error,

@@ -1,15 +1,7 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ApiError } from "./api";
-import { currentPathname, replaceLocation } from "./navigation";
-
-const PUBLIC_PATHS = [
-  "/login",
-  "/register",
-  "/2fa",
-  "/forgot-password",
-  "/reset-password",
-];
+import { currentPathname, isPublicPath, replaceLocation } from "./navigation";
 
 export function createAppQueryClient() {
   return new QueryClient({
@@ -17,9 +9,7 @@ export function createAppQueryClient() {
       onError: (error, query) => {
         if (error instanceof ApiError && error.status === 401) {
           const key = query.queryKey[0];
-          const isPublic = PUBLIC_PATHS.some((p) =>
-            currentPathname().startsWith(p),
-          );
+          const isPublic = isPublicPath(currentPathname());
           if (key !== "me" && !isPublic) replaceLocation("/login");
         }
       },

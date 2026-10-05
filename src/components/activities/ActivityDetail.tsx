@@ -10,7 +10,11 @@ import { ObjectivesForm } from "./ObjectivesForm";
 import { ActivityInfoForm } from "./ActivityInfoForm";
 import { TagsSection } from "./TagsSection";
 import { LanguagePairsSection } from "./LanguagePairsSection";
-import { isTranslatorActivity } from "@/types/activities.types";
+import { CustomFieldsSection } from "./CustomFieldsSection";
+import {
+  isCustomActivity,
+  isTranslatorActivity,
+} from "@/types/activities.types";
 import { RateForm } from "@/components/rates/forms/RateForm";
 import { RateRow } from "@/components/rates/rows/RateRow";
 import { RateSheetForm } from "@/components/rates/forms/RateSheetForm";
@@ -403,6 +407,18 @@ export function ActivityDetail() {
                   key={`langpairs-${activityId}`}
                   activityId={activityId}
                   initialPairs={activity.languagePairs}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {isCustomActivity(activity) && (
+            <Card>
+              <CardContent className="pt-6">
+                <CustomFieldsSection
+                  key={`customfields-${activityId}`}
+                  activityId={activityId}
+                  initialFields={activity.customFields}
                 />
               </CardContent>
             </Card>

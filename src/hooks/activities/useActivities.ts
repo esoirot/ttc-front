@@ -75,12 +75,15 @@ interface UpdateActivityInput {
   objectiveQ3?: number | null;
   objectiveQ4?: number | null;
   languagePairs?: { fromLanguage: string; toLanguage: string }[] | null;
+  customFields?: { key: string; value: string }[] | null;
 }
 
-export function useUpdateActivity() {
+// inlineError: the calling form renders the error itself, so skip the global toast.
+export function useUpdateActivity(opts: { inlineError?: boolean } = {}) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useGqlMutation({
     mutation: UPDATE_ACTIVITY_MUTATION,
+    meta: { inlineError: opts.inlineError },
     unwrap: (d) => d.updateActivity,
     onSuccess: (updated) => {
       patchFlatArray(queryClient, ["activities"], updated, (a) => a.id);

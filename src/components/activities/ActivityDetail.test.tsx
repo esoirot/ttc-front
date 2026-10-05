@@ -209,6 +209,101 @@ describe("ActivityDetail", () => {
     expect(screen.getByText("Software")).toBeInTheDocument();
   });
 
+  it("shows editable custom fields only for a CUSTOM activity", async () => {
+    mockGql({
+      Activity: {
+        activity: makeActivity({
+          customFields: [
+            { id: 1, activityId: 5, key: "Platform", value: "Upwork" },
+          ],
+        }),
+      },
+      MyActivities: { myActivities: [] },
+      Clients: { clients: { items: [], total: 0, nextCursor: null } },
+      Me: { me: null },
+      RateSheets: { rateSheets: [] },
+      Tags: { tags: [] },
+    });
+    renderDetail();
+
+    await screen.findByText("Freelance");
+    expect(screen.getByText("Custom fields")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Platform")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Upwork")).toBeInTheDocument();
+  });
+
+  it("shows the new activity's custom fields after switching activities", async () => {
+    const byId: Record<number, AnyActivity> = {
+      5: makeActivity({
+        customFields: [
+          { id: 1, activityId: 5, key: "Platform", value: "Upwork" },
+        ],
+      }),
+      6: makeActivity({
+        id: 6,
+        name: "Agency",
+        customFields: [{ id: 2, activityId: 6, key: "Agency", value: "Acme" }],
+      }),
+    };
+    gqlFetch.mockImplementation(
+      (
+        doc: { definitions: { kind: string; name?: { value: string } }[] },
+        vars?: { id?: number },
+      ) => {
+        const op = doc.definitions.find(
+          (d) => d.kind === "OperationDefinition",
+        );
+        const name = op?.name?.value ?? "";
+        if (name === "Activity")
+          return Promise.resolve({ activity: byId[vars?.id ?? 0] });
+        if (name === "Clients")
+          return Promise.resolve({
+            clients: { items: [], total: 0, nextCursor: null },
+          });
+        return Promise.resolve({
+          myActivities: [],
+          me: null,
+          rateSheets: [],
+          tags: [],
+        });
+      },
+    );
+    const { rerender } = renderDetail();
+    expect(await screen.findByDisplayValue("Upwork")).toBeInTheDocument();
+
+    paramsMock.mockReturnValue({ id: "6" });
+    rerender(
+      <QueryClientProvider client={createQueryClient()}>
+        <IntlProvider locale="en" messages={messages.en}>
+          <ActivityDetail />
+        </IntlProvider>
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByDisplayValue("Acme")).toBeInTheDocument();
+    expect(screen.queryByDisplayValue("Upwork")).not.toBeInTheDocument();
+  });
+
+  it("hides custom fields for a TRANSLATOR activity", async () => {
+    mockGql({
+      Activity: {
+        activity: makeActivity({
+          activityType: "TRANSLATOR",
+          languagePairs: [],
+        }),
+      },
+      MyActivities: { myActivities: [] },
+      Clients: { clients: { items: [], total: 0, nextCursor: null } },
+      Me: { me: null },
+      RateSheets: { rateSheets: [] },
+      Tags: { tags: [] },
+    });
+    renderDetail();
+
+    await screen.findByText("Freelance");
+    expect(screen.queryByText("Custom fields")).not.toBeInTheDocument();
+  });
+
   it("shows the Language Pairs card only for a TRANSLATOR activity", async () => {
     mockGql({
       Activity: {

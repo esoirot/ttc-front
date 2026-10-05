@@ -302,17 +302,25 @@ export function TaskDatePicker({
                 onChange={(e) => setStartDateVal(e.target.value)}
                 className="h-7 text-xs flex-1"
               />
-              <select
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="h-7 text-xs rounded-md border border-input bg-background px-2 w-20 shrink-0"
-              >
-                {TIME_OPTIONS.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
+              <Select value={startTime} onValueChange={setStartTime}>
+                <SelectTrigger
+                  size="sm"
+                  className="h-7 w-20 shrink-0 text-xs"
+                  aria-label={intl.formatMessage({
+                    id: "projects.taskDatePicker.startTime",
+                    defaultMessage: "Start time",
+                  })}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-56">
+                  {TIME_OPTIONS.map((t) => (
+                    <SelectItem key={t} value={t} className="text-xs">
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
         </div>
@@ -343,17 +351,25 @@ export function TaskDatePicker({
                 onChange={(e) => setDueDateVal(e.target.value)}
                 className="h-7 text-xs flex-1"
               />
-              <select
-                value={dueTime}
-                onChange={(e) => setDueTime(e.target.value)}
-                className="h-7 text-xs rounded-md border border-input bg-background px-2 w-20 shrink-0"
-              >
-                {TIME_OPTIONS.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
+              <Select value={dueTime} onValueChange={setDueTime}>
+                <SelectTrigger
+                  size="sm"
+                  className="h-7 w-20 shrink-0 text-xs"
+                  aria-label={intl.formatMessage({
+                    id: "projects.taskDatePicker.dueTime",
+                    defaultMessage: "Due time",
+                  })}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-56">
+                  {TIME_OPTIONS.map((t) => (
+                    <SelectItem key={t} value={t} className="text-xs">
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
         </div>

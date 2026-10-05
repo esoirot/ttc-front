@@ -354,6 +354,8 @@ export const fr: Record<keyof typeof en, string> = {
   "projects.taskDatePicker.reminder.before1w": "1 semaine avant",
   "projects.taskDatePicker.reminder.before2w": "2 semaines avant",
   "projects.taskDatePicker.noDate": "Aucune date",
+  "projects.taskDatePicker.startTime": "Heure de début",
+  "projects.taskDatePicker.dueTime": "Heure d'échéance",
   "projects.taskDatePicker.startDate": "Date de début",
   "projects.taskDatePicker.dueDate": "Date d'échéance",
   "projects.taskDatePicker.recurringLabel": "Récurrence",
@@ -1028,6 +1030,8 @@ export const fr: Record<keyof typeof en, string> = {
   "invoices.lineItems.qty": "Qté",
   "invoices.lineItems.total": "Total",
   "invoices.lineItems.empty": "Aucune ligne pour l'instant.",
+  "invoices.lineItems.invalidNumber":
+    "La quantité et le prix unitaire doivent être des nombres valides.",
   "invoices.lineItems.addItem": "+ Ajouter une ligne",
 
   "invoices.subtotal.title": "Sous-total",

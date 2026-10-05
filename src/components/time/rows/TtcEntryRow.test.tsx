@@ -500,6 +500,53 @@ describe("TtcEntryRow", () => {
     await screen.findByText("No task");
   });
 
+  it("does not load the project's tasks until the task picker is opened", () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              projectId: 1,
+              taskId: 9,
+              task: { id: 9, title: "Draft chapter" },
+            }),
+            projects: [makeProject({ id: 1, title: "Website copy" })],
+          })}
+        />,
+      ),
+    );
+
+    expect(gqlFetch).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ projectId: 1 }),
+    );
+  });
+
+  it("loads every task of the project in the task picker, not just the first page", async () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              projectId: 1,
+              taskId: 9,
+              task: { id: 9, title: "Draft chapter" },
+            }),
+            projects: [makeProject({ id: 1, title: "Website copy" })],
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Edit task"));
+    await screen.findByText("No task");
+
+    expect(gqlFetch).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ projectId: 1, pagination: { limit: 1000 } }),
+    );
+  });
+
   it("linking a task with no description auto-fills 'Task X of project Y'", async () => {
     const onUpdate = vi.fn();
     render(

@@ -13,3 +13,17 @@ export function replaceLocation(url: string): void {
 export function currentPathname(): string {
   return window.location.pathname;
 }
+
+// Pages reachable without a session: an auth failure here must not trigger a
+// token refresh or a redirect to /login.
+const PUBLIC_PATHS = [
+  "/login",
+  "/register",
+  "/2fa",
+  "/forgot-password",
+  "/reset-password",
+];
+
+export function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+}

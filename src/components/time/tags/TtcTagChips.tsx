@@ -24,7 +24,7 @@ type PendingNew = { key: string; name: string };
 
 export function TtcTagChips({ tagIds, tags, onChange }: Props) {
   const intl = useIntl();
-  const { createTag } = useCreateTag();
+  const { createTag } = useCreateTag({ inlineError: true });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [stagedIds, setStagedIds] = useState<number[]>([]);

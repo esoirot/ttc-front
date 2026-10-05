@@ -101,6 +101,116 @@ describe("TaskDatePicker", () => {
     expect(screen.getByDisplayValue("2026-07-01")).toBeInTheDocument();
   });
 
+  function openWithDue(
+    extra: Partial<Parameters<typeof TaskDatePicker>[0]> = {},
+  ) {
+    const onUpdate = vi.fn();
+    renderPicker({
+      dueDate: new Date(2026, 6, 1, 9, 0).toISOString(),
+      onUpdate,
+      ...extra,
+    });
+    fireEvent.click(screen.getByText(/Jul 1, 2026/));
+    // [due time, recurring, reminder]
+    const [, recurringSelect, reminderSelect] = screen.getAllByRole("combobox");
+    return { onUpdate, recurringSelect, reminderSelect };
+  }
+
+  it("saves a changed start time as the matching local instant", () => {
+    const onUpdate = vi.fn();
+    renderPicker({
+      startDate: new Date(2026, 5, 1, 9, 0).toISOString(),
+      dueDate: new Date(2026, 6, 1, 9, 0).toISOString(),
+      onUpdate,
+    });
+    fireEvent.click(screen.getByText(/Jul 1, 2026/));
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Start time" }));
+    fireEvent.click(screen.getByRole("option", { name: "08:30" }));
+    fireEvent.click(screen.getByText("Save"));
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        startDate: new Date(2026, 5, 1, 8, 30).toISOString(),
+      }),
+    );
+  });
+
+  it("offers every half hour of the day as a time", () => {
+    openWithDue();
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Due time" }));
+    const times = screen.getAllByRole("option").map((o) => o.textContent);
+    expect(times).toHaveLength(48);
+    expect(times[0]).toBe("00:00");
+    expect(times[1]).toBe("00:30");
+    expect(times[47]).toBe("23:30");
+  });
+
+  it("saves the chosen recurrence and reminder", () => {
+    const { onUpdate, recurringSelect, reminderSelect } = openWithDue();
+
+    fireEvent.click(recurringSelect);
+    fireEvent.click(screen.getByRole("option", { name: "Weekly" }));
+    fireEvent.click(reminderSelect);
+    fireEvent.click(screen.getByRole("option", { name: "1 day before" }));
+    fireEvent.click(screen.getByText("Save"));
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recurring: "WEEKLY",
+        reminderOffset: "BEFORE_1D",
+      }),
+    );
+  });
+
+  it("choosing Never and None clears an existing recurrence and reminder", () => {
+    const { onUpdate, recurringSelect, reminderSelect } = openWithDue({
+      recurring: "DAILY",
+      reminderOffset: "AT_DUE",
+    });
+
+    fireEvent.click(recurringSelect);
+    fireEvent.click(screen.getByRole("option", { name: "Never" }));
+    fireEvent.click(reminderSelect);
+    fireEvent.click(screen.getByRole("option", { name: "None" }));
+    fireEvent.click(screen.getByText("Save"));
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ recurring: null, reminderOffset: null }),
+    );
+  });
+
+  it("saves a changed due time as the matching local instant", () => {
+    const { onUpdate } = openWithDue();
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Due time" }));
+    fireEvent.click(screen.getByRole("option", { name: "14:30" }));
+    fireEvent.click(screen.getByText("Save"));
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dueDate: new Date(2026, 6, 1, 14, 30).toISOString(),
+      }),
+    );
+  });
+
+  it("discards unsaved changes when the picker is closed and reopened", () => {
+    const { onUpdate, recurringSelect } = openWithDue();
+
+    fireEvent.click(recurringSelect);
+    fireEvent.click(screen.getByRole("option", { name: "Weekly" }));
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: "Escape",
+    });
+    fireEvent.click(screen.getByText(/Jul 1, 2026/));
+    fireEvent.click(screen.getByText("Save"));
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ recurring: null }),
+    );
+  });
+
   it("removes all dates when Remove is clicked", () => {
     const onUpdate = vi.fn();
     renderPicker({ dueDate: "2026-07-01T00:00:00.000Z", onUpdate });

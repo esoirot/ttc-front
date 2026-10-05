@@ -6,7 +6,11 @@ const { toastError, replaceLocation, currentPathname } = vi.hoisted(() => ({
   currentPathname: vi.fn(() => "/"),
 }));
 vi.mock("sonner", () => ({ toast: { error: toastError } }));
-vi.mock("@/lib/navigation", () => ({ replaceLocation, currentPathname }));
+vi.mock("@/lib/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/navigation")>()),
+  replaceLocation,
+  currentPathname,
+}));
 
 import { ApiError } from "./api";
 import { createAppQueryClient } from "./queryClient";

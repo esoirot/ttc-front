@@ -18,10 +18,12 @@ export function useTags() {
   return { tags: data ?? [], loading: isLoading };
 }
 
-export function useCreateTag() {
+// inlineError: the calling form renders the error itself, so skip the global toast.
+export function useCreateTag(opts: { inlineError?: boolean } = {}) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useGqlMutation({
     mutation: CREATE_TAG_MUTATION,
+    meta: { inlineError: opts.inlineError },
     unwrap: (d) => d.createTag,
     onSuccess: (newTag) => {
       appendToFlatArray(queryClient, ["tags"], newTag);

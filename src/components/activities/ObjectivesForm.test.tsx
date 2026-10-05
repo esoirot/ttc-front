@@ -8,9 +8,13 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
+const { toastError } = vi.hoisted(() => ({ toastError: vi.fn() }));
+vi.mock("sonner", () => ({ toast: { error: toastError } }));
+
 import { QueryClientProvider } from "@tanstack/react-query";
 import { IntlProvider } from "react-intl";
 import { createQueryClient } from "@/test/queryClientWrapper";
+import { createAppQueryClient } from "@/lib/queryClient";
 import { messages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/useLocale";
 import { ObjectivesForm } from "./ObjectivesForm";
@@ -23,10 +27,11 @@ function renderForm(
     objectiveQ4?: number | null;
   } = {},
   locale: Locale = "en",
+  queryClient = createQueryClient(),
 ) {
   return render(
     <IntlProvider locale={locale} messages={messages[locale]}>
-      <QueryClientProvider client={createQueryClient()}>
+      <QueryClientProvider client={queryClient}>
         <ObjectivesForm activityId={3} initial={initial} />
       </QueryClientProvider>
     </IntlProvider>,
@@ -95,6 +100,16 @@ describe("ObjectivesForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save objectives" }));
 
     expect(await screen.findByText("Server error")).toBeInTheDocument();
+  });
+
+  it("shows a failed save once, inline, without also raising a toast", async () => {
+    gqlMutate.mockRejectedValueOnce(new Error("Server error"));
+    renderForm({}, "en", createAppQueryClient());
+
+    fireEvent.click(screen.getByRole("button", { name: "Save objectives" }));
+
+    expect(await screen.findByText("Server error")).toBeInTheDocument();
+    expect(toastError).not.toHaveBeenCalled();
   });
 
   it("disables submit and shows 'Saving…' while the mutation is pending", async () => {

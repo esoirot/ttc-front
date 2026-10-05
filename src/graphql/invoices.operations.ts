@@ -76,10 +76,10 @@ export const UPDATE_INVOICE_MUTATION: TypedDocumentNode<
       id: number;
       status?: InvoiceStatus;
       currency?: string;
-      dueDate?: string;
+      dueDate?: string | null;
       paidAt?: string;
-      notes?: string;
-      clientId?: number;
+      notes?: string | null;
+      clientId?: number | null;
     };
   }
 > = gql`

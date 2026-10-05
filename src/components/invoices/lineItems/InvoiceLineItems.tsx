@@ -9,6 +9,13 @@ import { useItemEdit } from "@/hooks/invoices/useItemEdit";
 import { InvoiceItemRow } from "../itemRows/InvoiceItemRow";
 import { AddItemDialog } from "../dialogs/AddItemDialog";
 
+// Strict decimal parse that also accepts a comma ("1,5"); parseFloat would
+// silently truncate "1,5" to 1 and "3abc" to 3.
+function parseDecimal(value: string): number {
+  const v = value.trim().replace(",", ".");
+  return v === "" ? NaN : Number(v);
+}
+
 export function InvoiceLineItems({
   invoiceId,
   items,
@@ -18,6 +25,7 @@ export function InvoiceLineItems({
   adding,
 }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [invalidNumber, setInvalidNumber] = useState(false);
   const {
     editingId,
     editState,
@@ -35,9 +43,13 @@ export function InvoiceLineItems({
   );
 
   async function handleSave(itemId: number) {
-    const qty = parseFloat(editState.qty);
-    const price = parseFloat(editState.price);
-    if (isNaN(qty) || isNaN(price)) return;
+    const qty = parseDecimal(editState.qty);
+    const price = parseDecimal(editState.price);
+    if (isNaN(qty) || isNaN(price)) {
+      setInvalidNumber(true);
+      return;
+    }
+    setInvalidNumber(false);
     await onUpdateItem({
       id: itemId,
       description: editState.desc,
@@ -105,10 +117,22 @@ export function InvoiceLineItems({
             onChangeQty={setEditQty}
             onChangePrice={setEditPrice}
             onSave={() => void handleSave(item.id)}
-            onCancel={cancelEdit}
+            onCancel={() => {
+              setInvalidNumber(false);
+              cancelEdit();
+            }}
             onRemove={() => onRemoveItem(item.id)}
           />
         ))}
+
+        {invalidNumber && editingId != null && (
+          <p className="text-sm text-destructive mt-2">
+            <FormattedMessage
+              id="invoices.lineItems.invalidNumber"
+              defaultMessage="Quantity and unit price must be valid numbers."
+            />
+          </p>
+        )}
 
         <Button
           variant="ghost"
