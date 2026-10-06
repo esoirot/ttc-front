@@ -21,12 +21,12 @@ import {
 } from "@/constants/rates";
 import { LANGUAGES } from "@/constants/languages";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
-import { useMyActivities } from "@/hooks/activities/useActivities";
+import { useMyOccupations } from "@/hooks/occupations/useOccupations";
 
 export function RateForm({
   type,
   initial,
-  defaultActivityId,
+  defaultOccupationId,
   onSave,
   onCancel,
   saving,
@@ -36,16 +36,16 @@ export function RateForm({
     id: "rates.form.noClient",
     defaultMessage: "No client",
   });
-  const { activities } = useMyActivities();
+  const { occupations } = useMyOccupations();
   const { user } = useCurrentUser();
   const userCurrency = user?.defaultCurrency ?? "EUR";
 
   const [name, setName] = useState(initial?.name ?? "");
-  const [activityId, setActivityId] = useState<string>(
-    initial?.activityId != null
-      ? String(initial.activityId)
-      : defaultActivityId != null
-        ? String(defaultActivityId)
+  const [occupationId, setOccupationId] = useState<string>(
+    initial?.occupationId != null
+      ? String(initial.occupationId)
+      : defaultOccupationId != null
+        ? String(defaultOccupationId)
         : "__none__",
   );
   const [clientId, setClientId] = useState<string>(
@@ -70,11 +70,12 @@ export function RateForm({
   const activeCurrency = useOtherCurrency ? currency : userCurrency;
   const sym = CURRENCY_SYMBOLS[activeCurrency] ?? activeCurrency;
   const maxDp = type === "PER_WORD" ? 4 : 2;
-  const selectedActivity =
-    activityId !== "__none__"
-      ? activities.find((a) => String(a.id) === activityId)
+  const selectedOccupation =
+    occupationId !== "__none__"
+      ? occupations.find((a) => String(a.id) === occupationId)
       : undefined;
-  const showLanguageFields = selectedActivity?.activityType === "TRANSLATOR";
+  const showLanguageFields =
+    selectedOccupation?.occupationType === "TRANSLATOR";
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -121,7 +122,7 @@ export function RateForm({
       amount: parsed,
       currency: activeCurrency,
       description: description.trim() || null,
-      activityId: activityId === "__none__" ? null : Number(activityId),
+      occupationId: occupationId === "__none__" ? null : Number(occupationId),
       clientId: clientId === "__none__" ? null : Number(clientId),
       sourceLanguage: sourceLanguage || null,
       targetLanguage: targetLanguage || null,
@@ -160,29 +161,29 @@ export function RateForm({
         </div>
 
         <div className="col-span-2 flex flex-col gap-1.5">
-          <Label htmlFor="rate-activity">
+          <Label htmlFor="rate-occupation">
             <FormattedMessage
-              id="rates.form.activityOptional"
-              defaultMessage="Activity (optional)"
+              id="rates.form.occupationOptional"
+              defaultMessage="Occupation (optional)"
             />
           </Label>
-          <Select value={activityId} onValueChange={setActivityId}>
-            <SelectTrigger id="rate-activity">
+          <Select value={occupationId} onValueChange={setOccupationId}>
+            <SelectTrigger id="rate-occupation">
               <SelectValue
                 placeholder={intl.formatMessage({
-                  id: "rates.form.noActivity",
-                  defaultMessage: "No activity",
+                  id: "rates.form.noOccupation",
+                  defaultMessage: "No occupation",
                 })}
               />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__none__">
                 <FormattedMessage
-                  id="rates.form.noActivity"
-                  defaultMessage="No activity"
+                  id="rates.form.noOccupation"
+                  defaultMessage="No occupation"
                 />
               </SelectItem>
-              {activities.map((a) => (
+              {occupations.map((a) => (
                 <SelectItem key={a.id} value={String(a.id)}>
                   {a.name}
                 </SelectItem>

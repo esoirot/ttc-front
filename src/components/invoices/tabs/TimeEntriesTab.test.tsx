@@ -138,7 +138,11 @@ describe("TimeEntriesTab", () => {
       billableEntries: [
         makeEntry({
           wordsProcessed: 1234,
-          activity: { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          occupation: {
+            id: 1,
+            name: "Translation",
+            occupationType: "TRANSLATOR",
+          },
         }),
       ],
     });
@@ -150,7 +154,11 @@ describe("TimeEntriesTab", () => {
       billableEntries: [
         makeEntry({
           wordsProcessed: null,
-          activity: { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          occupation: {
+            id: 1,
+            name: "Translation",
+            occupationType: "TRANSLATOR",
+          },
         }),
       ],
     });

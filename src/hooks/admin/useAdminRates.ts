@@ -44,7 +44,7 @@ export function useAdminCrudRates() {
       amount?: number;
       currency?: string;
       description?: string;
-      activityId?: number | null;
+      occupationId?: number | null;
     }) =>
       gqlMutate<{ adminUpdateRate: AdminRate }>(ADMIN_UPDATE_RATE_MUTATION, {
         input,
@@ -96,7 +96,7 @@ export function useAdminCrudRates() {
       amount: number;
       currency: string;
       description?: string;
-      activityId?: number | null;
+      occupationId?: number | null;
     }) => create({ input }),
     updateRate: (input: Parameters<typeof update>[0]) => update(input),
     deleteRate: (id: number) => remove(id),

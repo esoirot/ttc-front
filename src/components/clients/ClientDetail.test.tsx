@@ -149,7 +149,7 @@ function makeRateSheet(overrides: Partial<RateSheet> = {}): RateSheet {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: 1,
     name: "EN-FR standard",
     description: null,
@@ -183,11 +183,11 @@ function renderNavigable(
           return Promise.resolve({
             client: clientsById[vars.id as number] ?? null,
           });
-        case "MyActivities":
+        case "MyOccupations":
           return Promise.resolve({
-            myActivities: [
-              { id: 1, name: "Translation", activityType: "TRANSLATOR" },
-              { id: 2, name: "Correction", activityType: "CORRECTOR" },
+            myOccupations: [
+              { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
+              { id: 2, name: "Correction", occupationType: "CORRECTOR" },
             ],
           });
         case "Projects":
@@ -346,19 +346,21 @@ describe("ClientDetail", () => {
     });
   });
 
-  it("shows the newly-navigated client's own linked activities in the edit form, not the previous client's", async () => {
+  it("shows the newly-navigated client's own linked occupations in the edit form, not the previous client's", async () => {
     renderNavigable({
       1: makeClient({
         id: 1,
         name: "Acme",
-        activities: [
-          { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        occupations: [
+          { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
         ],
       }),
       2: makeClient({
         id: 2,
         name: "Globex",
-        activities: [{ id: 2, name: "Correction", activityType: "CORRECTOR" }],
+        occupations: [
+          { id: 2, name: "Correction", occupationType: "CORRECTOR" },
+        ],
       }),
     });
 

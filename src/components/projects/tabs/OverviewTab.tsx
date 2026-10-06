@@ -41,10 +41,11 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
     project.hourlyRate != null ||
     project.perWordRate != null;
 
-  const isTranslationActivity =
-    project.activities?.some((a) => a.activityType === "TRANSLATOR") ?? false;
+  const isTranslationOccupation =
+    project.occupations?.some((a) => a.occupationType === "TRANSLATOR") ??
+    false;
   const wordsProcessed = project.totalWordsProcessed ?? 0;
-  const showRevenue = isTranslationActivity && wordsProcessed > 0;
+  const showRevenue = isTranslationOccupation && wordsProcessed > 0;
   const revenue = showRevenue
     ? calculateProjectRevenue(project, totalSeconds, clientRateSheet)
     : 0;
@@ -85,17 +86,17 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
     id: "time.entryRow.noTask",
     defaultMessage: "No task",
   });
-  const noActivityLabel = intl.formatMessage({
-    id: "time.entryRow.noActivity",
-    defaultMessage: "No activity",
+  const noOccupationLabel = intl.formatMessage({
+    id: "time.entryRow.noOccupation",
+    defaultMessage: "No occupation",
   });
   const taskPieData = sumSecondsByLabel(
     monthlyEntries,
     (e) => e.task?.title ?? noTaskLabel,
   );
-  const activityPieData = sumSecondsByLabel(
+  const occupationPieData = sumSecondsByLabel(
     monthlyEntries,
-    (e) => e.activity?.name ?? noActivityLabel,
+    (e) => e.occupation?.name ?? noOccupationLabel,
   );
 
   return (
@@ -111,7 +112,7 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
           }
           value={formatDuration(totalSeconds)}
         />
-        {isTranslationActivity && (
+        {isTranslationOccupation && (
           <KpiCard
             mono
             label={
@@ -263,11 +264,11 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
         />
         <DistributionPie
           title={intl.formatMessage({
-            id: "projects.overviewTab.timePerActivity",
-            defaultMessage: "Time per activity",
+            id: "projects.overviewTab.timePerOccupation",
+            defaultMessage: "Time per occupation",
           })}
           subtitle={monthLabel}
-          data={activityPieData}
+          data={occupationPieData}
           formatValue={formatDuration}
           emptyMessage={intl.formatMessage(
             {

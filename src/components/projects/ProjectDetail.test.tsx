@@ -126,7 +126,7 @@ describe("ProjectDetail", () => {
 
     expect(await screen.findByText("Time logged")).toBeInTheDocument();
     expect(screen.getByText("Time per task")).toBeInTheDocument();
-    expect(screen.getByText("Time per activity")).toBeInTheDocument();
+    expect(screen.getByText("Time per occupation")).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Month" })).toBeInTheDocument();
   });
 

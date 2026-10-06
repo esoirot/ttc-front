@@ -19,7 +19,7 @@ function makeAdminRate(overrides: Partial<AdminRate> = {}): AdminRate {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: null,
     type: "HOURLY",
     name: "Standard",

@@ -1,6 +1,6 @@
 import type { Tag } from "./tags.types";
 import type { Connection } from "./common.types";
-import type { ActivityRef } from "./activities.types";
+import type { OccupationRef } from "./occupations.types";
 
 export type InvoicingStatus = "NO" | "INVOICED";
 
@@ -18,8 +18,8 @@ export interface TimeEntry {
   durationSeconds: number | null;
   billable: boolean;
   clockifyEntryId: string | null;
-  activityId?: number | null;
-  activity?: ActivityRef | null;
+  occupationId?: number | null;
+  occupation?: OccupationRef | null;
   wordsProcessed?: number | null;
   invoicingStatus?: InvoicingStatus;
   tags: { id: number; name: string }[];
@@ -39,7 +39,7 @@ export type TtcUpdateInput = {
   tagIds?: number[];
   startTime?: string;
   endTime?: string;
-  activityId?: number | null;
+  occupationId?: number | null;
   wordsProcessed?: number | null;
 };
 
@@ -105,6 +105,6 @@ export type UpdateTimeEntryInput = {
   endTime?: string;
   billable?: boolean;
   tagIds?: number[];
-  activityId?: number | null;
+  occupationId?: number | null;
   wordsProcessed?: number | null;
 };

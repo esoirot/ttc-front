@@ -74,7 +74,7 @@ export const ADMIN_EMPTY_RATE_FORM = {
   amount: "",
   currency: "EUR",
   description: "",
-  activityId: "",
+  occupationId: "",
 };
 
 export const RESOURCE_LINKS: {

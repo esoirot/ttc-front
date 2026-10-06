@@ -39,8 +39,8 @@ import { TimeEntriesPage } from "./pages/time/TimeEntriesPage";
 import { InvoicesPage } from "./pages/invoices/InvoicesPage";
 import { InvoiceDetailPage } from "./pages/invoices/InvoiceDetailPage";
 import { RatesPage } from "./pages/rates/RatesPage";
-import { ActivitiesPage } from "./pages/activities/ActivitiesPage";
-import { ActivityDetailPage } from "./pages/activities/ActivityDetailPage";
+import { OccupationsPage } from "./pages/occupations/OccupationsPage";
+import { OccupationDetailPage } from "./pages/occupations/OccupationDetailPage";
 import { AdminLayout } from "./components/admin/layout/AdminLayout";
 
 function RootLayout() {
@@ -106,8 +106,8 @@ const router = createBrowserRouter([
               { path: "/invoices", element: <InvoicesPage /> },
               { path: "/invoices/:id", element: <InvoiceDetailPage /> },
               { path: "/rates", element: <RatesPage /> },
-              { path: "/activities", element: <ActivitiesPage /> },
-              { path: "/activities/:id", element: <ActivityDetailPage /> },
+              { path: "/occupations", element: <OccupationsPage /> },
+              { path: "/occupations/:id", element: <OccupationDetailPage /> },
             ],
           },
         ],

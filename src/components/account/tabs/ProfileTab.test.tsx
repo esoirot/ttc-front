@@ -64,7 +64,7 @@ describe("ProfileTab", () => {
     expect(screen.getByLabelText("Last name")).toHaveValue("Smith");
     expect(screen.getByLabelText("Email")).toHaveValue("alice@example.com");
     expect(screen.getByLabelText("Mobile phone")).toHaveValue("+1234");
-    expect(screen.getByLabelText("Job title")).toHaveValue("Translator");
+    expect(screen.getByLabelText("Occupation title")).toHaveValue("Translator");
   });
 
   it("shows the user's role badge", () => {
@@ -153,7 +153,7 @@ describe("ProfileTab", () => {
     fireEvent.change(screen.getByLabelText("Mobile phone"), {
       target: { value: "+9876" },
     });
-    fireEvent.change(screen.getByLabelText("Job title"), {
+    fireEvent.change(screen.getByLabelText("Occupation title"), {
       target: { value: "Project Manager" },
     });
     fireEvent.change(screen.getByLabelText("Logo URL"), {
@@ -190,7 +190,7 @@ describe("ProfileTab", () => {
     fireEvent.change(screen.getByLabelText("Mobile phone"), {
       target: { value: "" },
     });
-    fireEvent.change(screen.getByLabelText("Job title"), {
+    fireEvent.change(screen.getByLabelText("Occupation title"), {
       target: { value: "" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
@@ -251,7 +251,7 @@ describe("ProfileTab", () => {
     expect(screen.getByLabelText("First name")).toHaveValue("");
     expect(screen.getByLabelText("Last name")).toHaveValue("");
     expect(screen.getByLabelText("Mobile phone")).toHaveValue("");
-    expect(screen.getByLabelText("Job title")).toHaveValue("");
+    expect(screen.getByLabelText("Occupation title")).toHaveValue("");
     const comboboxText = screen
       .getAllByRole("combobox")
       .map((el) => el.textContent)

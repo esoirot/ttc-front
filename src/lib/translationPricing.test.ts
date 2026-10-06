@@ -13,7 +13,7 @@ function makeSheet(overrides: Partial<RateSheet> = {}): RateSheet {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: 5,
     name: "EN-FR standard",
     description: null,
@@ -52,24 +52,32 @@ function makeProject(overrides: Partial<PriceProject> = {}): PriceProject {
 }
 
 describe("isTranslationEntry", () => {
-  it("returns true when the entry's activity is TRANSLATOR", () => {
+  it("returns true when the entry's occupation is TRANSLATOR", () => {
     expect(
       isTranslationEntry({
-        activity: { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        occupation: {
+          id: 1,
+          name: "Translation",
+          occupationType: "TRANSLATOR",
+        },
       }),
     ).toBe(true);
   });
 
-  it("returns false for a non-TRANSLATOR activity", () => {
+  it("returns false for a non-TRANSLATOR occupation", () => {
     expect(
       isTranslationEntry({
-        activity: { id: 2, name: "Proofreading", activityType: "CORRECTOR" },
+        occupation: {
+          id: 2,
+          name: "Proofreading",
+          occupationType: "CORRECTOR",
+        },
       }),
     ).toBe(false);
   });
 
-  it("returns false when there is no activity", () => {
-    expect(isTranslationEntry({ activity: null })).toBe(false);
+  it("returns false when there is no occupation", () => {
+    expect(isTranslationEntry({ occupation: null })).toBe(false);
     expect(isTranslationEntry({})).toBe(false);
   });
 });

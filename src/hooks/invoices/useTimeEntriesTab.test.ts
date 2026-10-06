@@ -65,7 +65,7 @@ function makeSheet(overrides: Partial<RateSheet> = {}): RateSheet {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: 5,
     name: "EN-FR standard",
     description: null,
@@ -138,7 +138,9 @@ describe("useTimeEntriesTab", () => {
       sourceLanguage: sheet.sourceLanguage,
       targetLanguage: sheet.targetLanguage,
       useCustomRate: false,
-      activities: [{ id: 1, name: "Translation", activityType: "TRANSLATOR" }],
+      occupations: [
+        { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
+      ],
     });
     gqlFetch.mockImplementation(
       (doc: unknown, vars?: Record<string, unknown>) =>
@@ -168,7 +170,9 @@ describe("useTimeEntriesTab", () => {
   it("handleProjectChange leaves unit price blank for a non-translation project", async () => {
     const project = makeProject({
       id: 3,
-      activities: [{ id: 2, name: "Proofreading", activityType: "CORRECTOR" }],
+      occupations: [
+        { id: 2, name: "Proofreading", occupationType: "CORRECTOR" },
+      ],
     });
     gqlFetch.mockImplementation(
       (doc: unknown, vars?: Record<string, unknown>) =>
@@ -306,7 +310,11 @@ describe("useTimeEntriesTab", () => {
         id: 1,
         description: "Translate",
         wordsProcessed: 1000,
-        activity: { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        occupation: {
+          id: 1,
+          name: "Translation",
+          occupationType: "TRANSLATOR",
+        },
       }),
     ];
     gqlFetch.mockImplementation(
@@ -346,7 +354,11 @@ describe("useTimeEntriesTab", () => {
         id: 1,
         description: "Translate",
         wordsProcessed: null,
-        activity: { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        occupation: {
+          id: 1,
+          name: "Translation",
+          occupationType: "TRANSLATOR",
+        },
       }),
     ];
     gqlFetch.mockImplementation(

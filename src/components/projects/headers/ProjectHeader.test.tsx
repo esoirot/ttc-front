@@ -22,11 +22,11 @@ const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
 
 vi.mock("@/lib/apollo", () => ({ gqlFetch, gqlMutate }));
 
-let activityChipsProps: Record<string, unknown> = {};
-vi.mock("@/components/activities/ActivityChips", () => ({
-  ActivityChips: (props: Record<string, unknown>) => {
-    activityChipsProps = props;
-    return <div data-testid="activity-chips" />;
+let occupationChipsProps: Record<string, unknown> = {};
+vi.mock("@/components/occupations/OccupationChips", () => ({
+  OccupationChips: (props: Record<string, unknown>) => {
+    occupationChipsProps = props;
+    return <div data-testid="occupation-chips" />;
   },
 }));
 
@@ -93,7 +93,7 @@ function makeRateSheet(overrides: Record<string, unknown> = {}) {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: 3,
     name: "Sheet",
     description: null,
@@ -335,32 +335,36 @@ describe("ProjectHeader", () => {
     expect(screen.getByText("0 / 2,500 words")).toBeInTheDocument();
   });
 
-  it("wires activity chip onChange to the edit form's activityIds, seeded from project.activities", () => {
+  it("wires occupation chip onChange to the edit form's occupationIds, seeded from project.occupations", () => {
     renderHeader(
       makeProject({
-        activities: [
-          { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        occupations: [
+          { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
         ],
       }),
     );
     fireEvent.click(screen.getByText("Edit"));
-    expect(activityChipsProps.activityIds).toEqual([1]);
+    expect(occupationChipsProps.occupationIds).toEqual([1]);
 
-    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([1, 2]));
-    expect(activityChipsProps.activityIds).toEqual([1, 2]);
+    act(() =>
+      (occupationChipsProps.onChange as (ids: number[]) => void)([1, 2]),
+    );
+    expect(occupationChipsProps.occupationIds).toEqual([1, 2]);
   });
 
-  it("saves the edited activityIds", async () => {
+  it("saves the edited occupationIds", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     renderHeader(makeProject({ id: 7 }), [], onUpdate);
 
     fireEvent.click(screen.getByText("Edit"));
-    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([3, 4]));
+    act(() =>
+      (occupationChipsProps.onChange as (ids: number[]) => void)([3, 4]),
+    );
     fireEvent.click(screen.getByText("Save"));
 
     await waitFor(() =>
       expect(onUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ activityIds: [3, 4] }),
+        expect.objectContaining({ occupationIds: [3, 4] }),
       ),
     );
   });
@@ -455,7 +459,7 @@ describe("ProjectHeader", () => {
         {
           id: 1,
           userId: 1,
-          activityId: null,
+          occupationId: null,
           clientId: 3,
           name: "EN-FR standard",
           description: null,
@@ -677,7 +681,7 @@ describe("ProjectHeader", () => {
           currency: "EUR",
           type: "HOURLY",
           description: null,
-          activityId: null,
+          occupationId: null,
           clientId: null,
           sourceLanguage: null,
           targetLanguage: null,
@@ -715,7 +719,7 @@ describe("ProjectHeader", () => {
           currency: "USD",
           type: "HOURLY",
           description: null,
-          activityId: null,
+          occupationId: null,
           clientId: null,
           sourceLanguage: null,
           targetLanguage: null,
@@ -771,7 +775,7 @@ describe("ProjectHeader", () => {
             currency: "GBP",
             type,
             description: null,
-            activityId: null,
+            occupationId: null,
             clientId: null,
             sourceLanguage: null,
             targetLanguage: null,

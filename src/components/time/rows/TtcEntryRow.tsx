@@ -54,16 +54,16 @@ export function TtcEntryRow({
     id: "time.entryRow.noSubtask",
     defaultMessage: "No subtask",
   });
-  const noActivity = intl.formatMessage({
-    id: "time.entryRow.noActivity",
-    defaultMessage: "No activity",
+  const noOccupation = intl.formatMessage({
+    id: "time.entryRow.noOccupation",
+    defaultMessage: "No occupation",
   });
   const [editingDesc, setEditingDesc] = useState(false);
   const [descValue, setDescValue] = useState(entry.description ?? "");
   const [editingProject, setEditingProject] = useState(false);
   const [editingTask, setEditingTask] = useState(false);
   const [editingSubtask, setEditingSubtask] = useState(false);
-  const [editingActivity, setEditingActivity] = useState(false);
+  const [editingOccupation, setEditingOccupation] = useState(false);
   const [editingWords, setEditingWords] = useState(false);
   const [wordsValue, setWordsValue] = useState("");
   const descInputRef = useRef<HTMLInputElement>(null);
@@ -349,49 +349,49 @@ export function TtcEntryRow({
               </Button>
             ))}
           {entry.projectId != null &&
-            (editingActivity ? (
+            (editingOccupation ? (
               <Select
                 open
-                onOpenChange={(o) => !o && setEditingActivity(false)}
+                onOpenChange={(o) => !o && setEditingOccupation(false)}
                 value={
-                  entry.activityId != null
-                    ? String(entry.activityId)
+                  entry.occupationId != null
+                    ? String(entry.occupationId)
                     : "__none__"
                 }
                 onValueChange={(v) => {
                   onUpdate({
                     id: entry.id,
-                    activityId: v === "__none__" ? null : Number(v),
+                    occupationId: v === "__none__" ? null : Number(v),
                   });
-                  setEditingActivity(false);
+                  setEditingOccupation(false);
                 }}
               >
                 <SelectTrigger className="h-6 text-xs w-[160px]">
-                  <SelectValue placeholder={noActivity} />
+                  <SelectValue placeholder={noOccupation} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">{noActivity}</SelectItem>
-                  {(project?.activities ?? []).map((a) => (
+                  <SelectItem value="__none__">{noOccupation}</SelectItem>
+                  {(project?.occupations ?? []).map((a) => (
                     <SelectItem key={a.id} value={String(a.id)}>
                       {a.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            ) : entry.activity ? (
+            ) : entry.occupation ? (
               <Badge
                 variant="outline"
                 className="h-5 px-1.5 text-xs font-normal cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setEditingActivity(true);
+                  setEditingOccupation(true);
                 }}
                 title={intl.formatMessage({
-                  id: "time.entryRow.editActivityTitle",
-                  defaultMessage: "Edit activity",
+                  id: "time.entryRow.editOccupationTitle",
+                  defaultMessage: "Edit occupation",
                 })}
               >
-                {entry.activity.name}
+                {entry.occupation.name}
               </Badge>
             ) : (
               <Button
@@ -399,15 +399,15 @@ export function TtcEntryRow({
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setEditingActivity(true);
+                  setEditingOccupation(true);
                 }}
                 className="h-5 px-1.5 text-xs font-normal text-muted-foreground border-dashed"
                 title={intl.formatMessage({
-                  id: "time.entryRow.linkActivityTitle",
-                  defaultMessage: "Link activity",
+                  id: "time.entryRow.linkOccupationTitle",
+                  defaultMessage: "Link occupation",
                 })}
               >
-                {noActivity}
+                {noOccupation}
               </Button>
             ))}
           <TtcTagChips
@@ -446,7 +446,7 @@ export function TtcEntryRow({
               />
             </Badge>
           )}
-          {entry.activity?.activityType === "TRANSLATOR" &&
+          {entry.occupation?.occupationType === "TRANSLATOR" &&
             (editingWords ? (
               <Input
                 type="number"

@@ -46,7 +46,7 @@ function makeRateSheet(overrides: Partial<RateSheet> = {}): RateSheet {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: null,
     name: "General",
     description: null,

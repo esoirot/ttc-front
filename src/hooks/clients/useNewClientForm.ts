@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useCreateClient } from "@/hooks/clients/useClients";
 import { useTags } from "@/hooks/tags/useTags";
-import { useMyActivities } from "@/hooks/activities/useActivities";
+import { useMyOccupations } from "@/hooks/occupations/useOccupations";
 import { isValidHttpUrl, isValidOptionalEmail } from "@/lib/schemas";
 import { EMPTY_CLIENT_FORM } from "@/constants/clients";
 import type {
@@ -18,10 +18,10 @@ export function useNewClientForm(
 ) {
   const { createClient, loading } = useCreateClient();
   const { tags } = useTags();
-  const { activities } = useMyActivities();
+  const { occupations } = useMyOccupations();
   const [form, setForm] = useState<FormState>(EMPTY_CLIENT_FORM);
   const [tagIds, setTagIds] = useState<number[]>([]);
-  const [activityIds, setActivityIds] = useState<number[]>([]);
+  const [occupationIds, setOccupationIds] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   function setField(
@@ -103,11 +103,11 @@ export function useNewClientForm(
       industry: form.industry || undefined,
       status: defaultStatus,
       tagIds,
-      activityIds,
+      occupationIds,
     });
     setForm(EMPTY_CLIENT_FORM);
     setTagIds([]);
-    setActivityIds([]);
+    setOccupationIds([]);
     onClose();
   }
 
@@ -116,12 +116,12 @@ export function useNewClientForm(
     setField,
     tagIds,
     setTagIds,
-    activityIds,
-    setActivityIds,
+    occupationIds,
+    setOccupationIds,
     error,
     loading,
     tags,
-    activities,
+    occupations,
     handleAddressChange,
     handleBillingChange,
     handleSubmit,

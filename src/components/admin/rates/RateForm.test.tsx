@@ -1,10 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { AnyActivity } from "@/types/activities.types";
+import type { AnyOccupation } from "@/types/occupations.types";
 
-const useMyActivitiesMock = vi.fn();
-vi.mock("@/hooks/activities/useActivities", () => ({
-  useMyActivities: () => useMyActivitiesMock(),
+const useMyOccupationsMock = vi.fn();
+vi.mock("@/hooks/occupations/useOccupations", () => ({
+  useMyOccupations: () => useMyOccupationsMock(),
 }));
 
 import { RateForm } from "./RateForm";
@@ -18,34 +18,34 @@ function makeForm(
     amount: "",
     currency: "EUR",
     description: "",
-    activityId: "",
+    occupationId: "",
     ...overrides,
   };
 }
 
 describe("RateForm", () => {
   beforeEach(() => {
-    useMyActivitiesMock.mockReset();
-    useMyActivitiesMock.mockReturnValue({
-      activities: [
-        { id: 1, userId: 1, name: "Translation", activityType: "TRANSLATOR" },
-      ] as AnyActivity[],
+    useMyOccupationsMock.mockReset();
+    useMyOccupationsMock.mockReturnValue({
+      occupations: [
+        { id: 1, userId: 1, name: "Translation", occupationType: "TRANSLATOR" },
+      ] as AnyOccupation[],
     });
   });
 
-  it("renders Name, Activity, Type, Amount, Currency, and Description fields", () => {
+  it("renders Name, Occupation, Type, Amount, Currency, and Description fields", () => {
     render(<RateForm form={makeForm()} onChange={vi.fn()} />);
     expect(screen.getByText("Name *")).toBeInTheDocument();
-    expect(screen.getByText("Activity *")).toBeInTheDocument();
+    expect(screen.getByText("Occupation *")).toBeInTheDocument();
     expect(screen.getByText("Type")).toBeInTheDocument();
     expect(screen.getByText("Amount *")).toBeInTheDocument();
     expect(screen.getByText("Currency")).toBeInTheDocument();
     expect(screen.getByText("Description")).toBeInTheDocument();
   });
 
-  it("shows the placeholder when no activity is selected", () => {
+  it("shows the placeholder when no occupation is selected", () => {
     render(<RateForm form={makeForm()} onChange={vi.fn()} />);
-    expect(screen.getByText("Select activity…")).toBeInTheDocument();
+    expect(screen.getByText("Select occupation…")).toBeInTheDocument();
   });
 
   it("calls onChange with updated name as the Name input changes", () => {

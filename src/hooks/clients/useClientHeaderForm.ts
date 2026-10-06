@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTags } from "@/hooks/tags/useTags";
-import { useMyActivities } from "@/hooks/activities/useActivities";
+import { useMyOccupations } from "@/hooks/occupations/useOccupations";
 import { isValidHttpUrl, isValidOptionalEmail } from "@/lib/schemas";
 import type {
   Client,
@@ -37,7 +37,7 @@ function formFromClient(client: Client): ClientHeaderFormState {
     status: client.status,
     contactedAt: client.contactedAt ? client.contactedAt.slice(0, 10) : "",
     tagIds: client.tags.map((t) => t.id),
-    activityIds: (client.activities ?? []).map((a) => a.id),
+    occupationIds: (client.occupations ?? []).map((a) => a.id),
   };
 }
 
@@ -47,7 +47,7 @@ export function useClientHeaderForm(
 ) {
   const [editing, setEditing] = useState(false);
   const { tags } = useTags();
-  const { activities } = useMyActivities();
+  const { occupations } = useMyOccupations();
   const [form, setForm] = useState<ClientHeaderFormState>(() =>
     formFromClient(client),
   );
@@ -141,7 +141,7 @@ export function useClientHeaderForm(
       status: form.status,
       contactedAt: form.contactedAt || null,
       tagIds: form.tagIds,
-      activityIds: form.activityIds,
+      occupationIds: form.occupationIds,
     });
     setEditing(false);
   }
@@ -150,7 +150,7 @@ export function useClientHeaderForm(
     editing,
     setEditing,
     tags,
-    activities,
+    occupations,
     form,
     setForm,
     resetForm,

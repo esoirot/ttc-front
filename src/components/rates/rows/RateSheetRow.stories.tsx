@@ -8,7 +8,7 @@ import { RateSheetRow } from "./RateSheetRow";
 const sheet: RateSheet = {
   id: 1,
   userId: 1,
-  activityId: null,
+  occupationId: null,
   clientId: 1,
   name: "EN>FR standard",
   description: "Standard sheet for the Acme account",

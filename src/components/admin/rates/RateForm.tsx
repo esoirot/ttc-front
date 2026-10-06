@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { CURRENCIES, TRANSLATION_RATE_TYPES } from "@/constants/rates";
 import type { TranslationRateType } from "@/types/rates.types";
-import { useMyActivities } from "@/hooks/activities/useActivities";
+import { useMyOccupations } from "@/hooks/occupations/useOccupations";
 
 export function RateForm({
   form,
@@ -21,11 +21,11 @@ export function RateForm({
     amount: string;
     currency: string;
     description: string;
-    activityId: string;
+    occupationId: string;
   };
   onChange: (f: typeof form) => void;
 }) {
-  const { activities } = useMyActivities();
+  const { occupations } = useMyOccupations();
 
   return (
     <div className="flex flex-col gap-3">
@@ -38,16 +38,16 @@ export function RateForm({
         />
       </div>
       <div>
-        <Label>Activity *</Label>
+        <Label>Occupation *</Label>
         <Select
-          value={form.activityId}
-          onValueChange={(v) => onChange({ ...form, activityId: v })}
+          value={form.occupationId}
+          onValueChange={(v) => onChange({ ...form, occupationId: v })}
         >
           <SelectTrigger className="mt-1">
-            <SelectValue placeholder="Select activity…" />
+            <SelectValue placeholder="Select occupation…" />
           </SelectTrigger>
           <SelectContent>
-            {activities.map((a) => (
+            {occupations.map((a) => (
               <SelectItem key={a.id} value={String(a.id)}>
                 {a.name}
               </SelectItem>

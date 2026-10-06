@@ -1,7 +1,7 @@
 import type { Invoice } from "./invoices.types";
 import type { ClientRate } from "./client-rates.types";
 import type { Connection } from "./common.types";
-import type { ActivityRef } from "./activities.types";
+import type { OccupationRef } from "./occupations.types";
 
 export type ClientType = "COMPANY" | "INDIVIDUAL";
 
@@ -92,7 +92,7 @@ export interface Client {
   status: ClientStatus;
   contactedAt: string | null;
   tags: { id: number; name: string }[];
-  activities?: ActivityRef[];
+  occupations?: OccupationRef[];
   contacts: CompanyContact[];
   // Only populated by CLIENT_QUERY (detail fetch) — CLIENTS_QUERY (paginated
   // list) omits it to avoid an N+1 resolver hit per row the list never renders.
@@ -132,7 +132,7 @@ export interface ClientHeaderProps {
     status?: ClientStatus;
     contactedAt?: string | null;
     tagIds?: number[];
-    activityIds?: number[];
+    occupationIds?: number[];
   }) => Promise<unknown>;
   saving: boolean;
 }
@@ -206,7 +206,7 @@ export type ClientHeaderFormState = {
   status: ClientStatus;
   contactedAt: string;
   tagIds: number[];
-  activityIds: number[];
+  occupationIds: number[];
 };
 
 export interface ClientCardProps {
@@ -267,7 +267,7 @@ export type ClientInput = {
   status?: ClientStatus;
   contactedAt?: string | null;
   tagIds?: number[];
-  activityIds?: number[];
+  occupationIds?: number[];
 };
 
 export type CreateClientRateInput = Omit<

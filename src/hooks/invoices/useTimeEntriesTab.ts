@@ -43,8 +43,8 @@ export function useTimeEntriesTab(
     setSelectedEntryIds(new Set());
     setSelectedRateId("");
     const proj = projects.find((p) => String(p.id) === val);
-    const isTranslationProject = proj?.activities?.some(
-      (a) => a.activityType === "TRANSLATOR",
+    const isTranslationProject = proj?.occupations?.some(
+      (a) => a.occupationType === "TRANSLATOR",
     );
     const perWordPrice =
       proj && isTranslationProject

@@ -26,20 +26,20 @@ type MockProject = {
   totalTimeSeconds: number;
   totalWordsProcessed?: number | null;
   totalTaskWords?: number | null;
-  activities?: { id: number; name: string; activityType: string }[];
+  occupations?: { id: number; name: string; occupationType: string }[];
   createdAt: string;
   updatedAt: string;
 };
 
-const TRANSLATION_ACTIVITY = {
+const TRANSLATION_OCCUPATION = {
   id: 1,
   name: "Translation",
-  activityType: "TRANSLATOR",
+  occupationType: "TRANSLATOR",
 };
-const CORRECTOR_ACTIVITY = {
+const CORRECTOR_OCCUPATION = {
   id: 2,
   name: "Proofreading",
-  activityType: "CORRECTOR",
+  occupationType: "CORRECTOR",
 };
 
 function makeProject(overrides: Partial<MockProject> = {}): MockProject {
@@ -64,7 +64,7 @@ function makeProject(overrides: Partial<MockProject> = {}): MockProject {
     startDate: null,
     totalTimeSeconds: 0,
     totalWordsProcessed: null,
-    activities: [],
+    occupations: [],
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
@@ -79,7 +79,7 @@ function makeProject(overrides: Partial<MockProject> = {}): MockProject {
 type MockClient = {
   id: number;
   name: string;
-  activities?: { id: number; name: string; activityType: string }[];
+  occupations?: { id: number; name: string; occupationType: string }[];
 };
 
 async function mockProjectsApi(
@@ -150,9 +150,9 @@ async function mockProjectsApi(
       return respond({ client: clients.find((c) => c.id === id) ?? null });
     }
 
-    if (operationName === "MyActivities") {
+    if (operationName === "MyOccupations") {
       return respond({
-        myActivities: [TRANSLATION_ACTIVITY, CORRECTOR_ACTIVITY],
+        myOccupations: [TRANSLATION_OCCUPATION, CORRECTOR_OCCUPATION],
       });
     }
 
@@ -167,10 +167,10 @@ async function mockProjectsApi(
         clientId: input.clientId ?? null,
         sourceLanguage: input.sourceLanguage ?? null,
         targetLanguage: input.targetLanguage ?? null,
-        // Simulates the backend's "inherit client's activities on create"
+        // Simulates the backend's "inherit client's occupations on create"
         // rule (ProjectsService.create) — the create form never sends
-        // activityIds itself, so the mock always inherits here.
-        activities: client?.activities ?? [],
+        // occupationIds itself, so the mock always inherits here.
+        occupations: client?.occupations ?? [],
       });
       projects = [...projects, created];
       return respond({ createProject: created });
@@ -232,13 +232,13 @@ test("ProjectHeader Edit -> change the title -> Save persists the new value", as
   await expect(page.getByText("Translate handbook")).toBeVisible();
 });
 
-test("creating a project for a client with activities inherits that client's activities", async ({
+test("creating a project for a client with occupations inherits that client's occupations", async ({
   page,
 }) => {
   await mockProjectsApi(
     page,
     [],
-    [{ id: 5, name: "Acme Corp", activities: [TRANSLATION_ACTIVITY] }],
+    [{ id: 5, name: "Acme Corp", occupations: [TRANSLATION_OCCUPATION] }],
   );
   await page.goto("/projects");
 
@@ -261,7 +261,7 @@ test("the client picker finds a client past the first page by searching the serv
   const clients = Array.from({ length: 25 }, (_, i) => ({
     id: i + 1,
     name: i === 24 ? "Zeta Corp" : `Client ${i + 1}`,
-    activities: [],
+    occupations: [],
   }));
   await mockProjectsApi(page, [], clients);
   await page.goto("/projects");
@@ -285,7 +285,7 @@ test("the project Dashboard shows its KPIs first, then the month filter, then th
   await mockProjectsApi(page, [
     makeProject({
       id: 7,
-      activities: [TRANSLATION_ACTIVITY],
+      occupations: [TRANSLATION_OCCUPATION],
       totalTaskWords: 2_500_000,
     }),
   ]);
@@ -534,7 +534,7 @@ test("a translation task shows its own words plus its checklist words next to it
     makeProject({
       id: 7,
       title: "Translate manual",
-      activities: [TRANSLATION_ACTIVITY],
+      occupations: [TRANSLATION_OCCUPATION],
     }),
   ]);
   const task = {

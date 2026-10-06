@@ -95,7 +95,7 @@ export function ClientDetail() {
           </TabsTrigger>
           <TabsTrigger value="activity">
             <FormattedMessage
-              id="activities.detail.activity"
+              id="clients.detail.tabs.activity"
               defaultMessage="Activity"
             />
             {invoices.length > 0 && (
@@ -106,7 +106,7 @@ export function ClientDetail() {
           </TabsTrigger>
           <TabsTrigger value="rates">
             <FormattedMessage
-              id="activities.detail.rates"
+              id="occupations.detail.rates"
               defaultMessage="Rates"
             />
             {ratesCount > 0 && (

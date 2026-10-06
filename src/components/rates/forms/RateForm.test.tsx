@@ -14,9 +14,9 @@ vi.mock("@/hooks/clients/useClients", () => ({
   }),
 }));
 
-const useMyActivitiesMock = vi.fn();
-vi.mock("@/hooks/activities/useActivities", () => ({
-  useMyActivities: () => useMyActivitiesMock(),
+const useMyOccupationsMock = vi.fn();
+vi.mock("@/hooks/occupations/useOccupations", () => ({
+  useMyOccupations: () => useMyOccupationsMock(),
 }));
 
 const useCurrentUserMock = vi.fn();
@@ -27,15 +27,15 @@ vi.mock("@/hooks/auth/useAuth", () => ({
 import type { TranslationRate } from "@/types/rates.types";
 import { RateForm } from "./RateForm";
 
-const mockActivities = [
-  { id: 1, name: "Translation", activityType: "TRANSLATOR" },
-  { id: 2, name: "Consulting", activityType: "OTHER" },
+const mockOccupations = [
+  { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
+  { id: 2, name: "Consulting", occupationType: "OTHER" },
 ];
 const mockClients = [{ id: 1, name: "Acme Corp" }];
 
 function defaultHooks() {
   clientsMock.mockReturnValue({ clients: mockClients });
-  useMyActivitiesMock.mockReturnValue({ activities: mockActivities });
+  useMyOccupationsMock.mockReturnValue({ occupations: mockOccupations });
   useCurrentUserMock.mockReturnValue({ user: { defaultCurrency: "EUR" } });
 }
 
@@ -45,7 +45,7 @@ function makeInitial(
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: null,
     type: "HOURLY",
     name: "Standard",
@@ -82,7 +82,7 @@ function renderForm(
 describe("RateForm", () => {
   beforeEach(() => {
     clientsMock.mockReset();
-    useMyActivitiesMock.mockReset();
+    useMyOccupationsMock.mockReset();
     useCurrentUserMock.mockReset();
     defaultHooks();
   });
@@ -166,7 +166,7 @@ describe("RateForm", () => {
       amount: 75,
       currency: "EUR",
       description: null,
-      activityId: null,
+      occupationId: null,
       clientId: null,
       sourceLanguage: null,
       targetLanguage: null,
@@ -237,13 +237,13 @@ describe("RateForm", () => {
     );
   });
 
-  it("keeps the existing client and activity links when editing", () => {
+  it("keeps the existing client and occupation links when editing", () => {
     const { onSave } = renderForm({
-      initial: makeInitial({ clientId: 1, activityId: 2 }),
+      initial: makeInitial({ clientId: 1, occupationId: 2 }),
     });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ clientId: 1, activityId: 2 }),
+      expect.objectContaining({ clientId: 1, occupationId: 2 }),
     );
   });
 
@@ -305,37 +305,37 @@ describe("RateForm", () => {
     expect(screen.getByText("$")).toBeInTheDocument();
   });
 
-  it("does not show language fields when no activity selected", () => {
+  it("does not show language fields when no occupation selected", () => {
     renderForm();
     expect(screen.queryByText("Source language")).not.toBeInTheDocument();
     expect(screen.queryByText("Target language")).not.toBeInTheDocument();
   });
 
-  it("shows language fields when initial has a TRANSLATOR activity", () => {
-    // activity id 1 has activityType TRANSLATOR in mockActivities
-    renderForm({ initial: makeInitial({ activityId: 1 }) });
+  it("shows language fields when initial has a TRANSLATOR occupation", () => {
+    // occupation id 1 has occupationType TRANSLATOR in mockOccupations
+    renderForm({ initial: makeInitial({ occupationId: 1 }) });
     expect(screen.getByText("Source language")).toBeInTheDocument();
     expect(screen.getByText("Target language")).toBeInTheDocument();
   });
 
-  it("does not show language fields when initial has a non-TRANSLATOR activity", () => {
-    // activity id 2 has activityType OTHER in mockActivities
-    renderForm({ initial: makeInitial({ activityId: 2 }) });
+  it("does not show language fields when initial has a non-TRANSLATOR occupation", () => {
+    // occupation id 2 has occupationType OTHER in mockOccupations
+    renderForm({ initial: makeInitial({ occupationId: 2 }) });
     expect(screen.queryByText("Source language")).not.toBeInTheDocument();
   });
 
-  it("shows error when TRANSLATOR activity is set but sourceLanguage is missing", () => {
-    renderForm({ initial: makeInitial({ activityId: 1, name: "Test" }) });
+  it("shows error when TRANSLATOR occupation is set but sourceLanguage is missing", () => {
+    renderForm({ initial: makeInitial({ occupationId: 1, name: "Test" }) });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(
       screen.getByText("Source language is required."),
     ).toBeInTheDocument();
   });
 
-  it("shows error when TRANSLATOR activity is set but targetLanguage is missing", () => {
+  it("shows error when TRANSLATOR occupation is set but targetLanguage is missing", () => {
     renderForm({
       initial: makeInitial({
-        activityId: 1,
+        occupationId: 1,
         name: "Test",
         sourceLanguage: "EN",
         targetLanguage: null,

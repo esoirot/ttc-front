@@ -146,7 +146,7 @@ describe("Sidebar", () => {
       "Clients",
       "Projects",
       "Time",
-      "My Activity",
+      "My Occupations",
       "Invoices",
       "Rates",
       "HubSpot",

@@ -13,7 +13,7 @@ function makeSheet(overrides: Partial<RateSheet> = {}): RateSheet {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: 5,
     name: "EN-FR standard",
     description: null,

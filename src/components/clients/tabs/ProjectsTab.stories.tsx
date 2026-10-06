@@ -80,8 +80,8 @@ export const WithStatsAndRevenue: Story = {
         hourlyRate: 50,
         totalTimeSeconds: 7200,
         deadline: "2026-09-15T00:00:00.000Z",
-        activities: [
-          { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        occupations: [
+          { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
         ],
       }),
       makeProject({
@@ -94,9 +94,9 @@ export const WithStatsAndRevenue: Story = {
         totalWordsProcessed: 5000,
         totalTimeSeconds: 3600,
         deadline: "2026-08-30T00:00:00.000Z",
-        activities: [
-          { id: 1, name: "Translation", activityType: "TRANSLATOR" },
-          { id: 2, name: "Proofreading", activityType: "CORRECTOR" },
+        occupations: [
+          { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
+          { id: 2, name: "Proofreading", occupationType: "CORRECTOR" },
         ],
       }),
     ],

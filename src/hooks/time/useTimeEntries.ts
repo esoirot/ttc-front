@@ -115,7 +115,7 @@ type CreateTimeEntryInput = {
   billable?: boolean;
   clockifyEntryId?: string;
   tagIds?: number[];
-  activityId?: number | null;
+  occupationId?: number | null;
   wordsProcessed?: number | null;
 };
 
@@ -146,7 +146,7 @@ type StartTimerInput = {
   description?: string;
   billable?: boolean;
   tagIds?: number[];
-  activityId?: number | null;
+  occupationId?: number | null;
   wordsProcessed?: number | null;
 };
 

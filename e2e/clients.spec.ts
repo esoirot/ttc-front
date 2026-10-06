@@ -18,18 +18,18 @@ type MockClient = {
   contactedAt: string | null;
   email?: string | null;
   contacts?: MockContact[];
-  activities?: { id: number; name: string; activityType: string }[];
+  occupations?: { id: number; name: string; occupationType: string }[];
 };
 
-const TRANSLATION_ACTIVITY = {
+const TRANSLATION_OCCUPATION = {
   id: 1,
   name: "Translation",
-  activityType: "TRANSLATOR",
+  occupationType: "TRANSLATOR",
 };
-const CORRECTOR_ACTIVITY = {
+const CORRECTOR_OCCUPATION = {
   id: 2,
   name: "Proofreading",
-  activityType: "CORRECTOR",
+  occupationType: "CORRECTOR",
 };
 
 function makeClient(overrides: Partial<MockClient> = {}): MockClient {
@@ -65,7 +65,7 @@ const CLIENT_DEFAULTS = {
   website: null,
   industry: null,
   tags: [],
-  activities: [] as { id: number; name: string; activityType: string }[],
+  occupations: [] as { id: number; name: string; occupationType: string }[],
   contacts: [] as MockContact[],
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
@@ -99,9 +99,9 @@ async function mockClientsApi(page: Page, initial: MockClient[]) {
       return respond({ me: MOCK_USER });
     }
 
-    if (operationName === "MyActivities") {
+    if (operationName === "MyOccupations") {
       return respond({
-        myActivities: [TRANSLATION_ACTIVITY, CORRECTOR_ACTIVITY],
+        myOccupations: [TRANSLATION_OCCUPATION, CORRECTOR_OCCUPATION],
       });
     }
 
@@ -128,9 +128,9 @@ async function mockClientsApi(page: Page, initial: MockClient[]) {
 
     if (operationName === "CreateClient") {
       const input = (variables?.["input"] ?? {}) as Partial<MockClient> & {
-        activityIds?: number[];
+        occupationIds?: number[];
       };
-      const allActivities = [TRANSLATION_ACTIVITY, CORRECTOR_ACTIVITY];
+      const allOccupations = [TRANSLATION_OCCUPATION, CORRECTOR_OCCUPATION];
       const created = {
         ...CLIENT_DEFAULTS,
         id: nextClientId++,
@@ -138,8 +138,8 @@ async function mockClientsApi(page: Page, initial: MockClient[]) {
         status: input.status ?? "CLIENT",
         clientType: input.clientType ?? "COMPANY",
         contactedAt: null,
-        activities: (input.activityIds ?? []).flatMap((id) =>
-          allActivities.filter((a) => a.id === id),
+        occupations: (input.occupationIds ?? []).flatMap((id) =>
+          allOccupations.filter((a) => a.id === id),
         ),
       };
       clients = [...clients, created];
@@ -309,7 +309,7 @@ test("ContactsTab: add, edit, then delete a contact", async ({ page }) => {
   await expect(page.getByText("No contacts yet.")).toBeVisible();
 });
 
-test("creates a client with an activity selected, and it persists to the detail page", async ({
+test("creates a client with an occupation selected, and it persists to the detail page", async ({
   page,
 }) => {
   await mockClientsApi(page, []);
@@ -317,7 +317,7 @@ test("creates a client with an activity selected, and it persists to the detail 
 
   await page.getByRole("button", { name: "New client" }).click();
   await page.getByLabel("Company name *").fill("Brand New Co");
-  await page.getByRole("button", { name: "+ activity" }).click();
+  await page.getByRole("button", { name: "+ occupation" }).click();
   await page.getByRole("option", { name: "Translation" }).click();
   await page.getByRole("button", { name: "Save" }).click();
   await page.getByRole("button", { name: "Create client" }).click();

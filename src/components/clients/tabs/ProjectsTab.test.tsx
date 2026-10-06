@@ -115,13 +115,13 @@ describe("ProjectsTab", () => {
     expect(screen.getByRole("link")).toHaveClass("border-b", "justify-between");
   });
 
-  it("shows activity name badges when the project has activities", () => {
+  it("shows occupation name badges when the project has occupations", () => {
     renderTab({
       projects: [
         makeProject({
-          activities: [
-            { id: 1, name: "Translation", activityType: "TRANSLATOR" },
-            { id: 2, name: "Proofreading", activityType: "CORRECTOR" },
+          occupations: [
+            { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
+            { id: 2, name: "Proofreading", occupationType: "CORRECTOR" },
           ],
         }),
       ],

@@ -30,8 +30,8 @@ import {
 } from "@/lib/projectRate";
 import { STATUSES } from "@/constants/projects";
 import { LANGUAGES } from "@/constants/languages";
-import { useMyActivities } from "@/hooks/activities/useActivities";
-import { ActivityChips } from "@/components/activities/ActivityChips";
+import { useMyOccupations } from "@/hooks/occupations/useOccupations";
+import { OccupationChips } from "@/components/occupations/OccupationChips";
 
 type RateOption = TranslationRate | ClientRate;
 
@@ -93,7 +93,7 @@ function buildFormState(project: ProjectHeaderProps["project"]) {
       project.rateSheetId != null ? String(project.rateSheetId) : undefined,
     deadline: project.deadline?.slice(0, 10) ?? "",
     startDate: project.startDate?.slice(0, 10) ?? "",
-    activityIds: (project.activities ?? []).map((a) => a.id),
+    occupationIds: (project.occupations ?? []).map((a) => a.id),
   };
 }
 
@@ -104,7 +104,7 @@ export function ProjectHeader({
 }: ProjectHeaderProps) {
   const intl = useIntl();
   const { rates: userRates } = useRates();
-  const { activities } = useMyActivities();
+  const { occupations } = useMyOccupations();
   const clientIdNum = project.clientId;
   const { clientRates } = useClientRates(clientIdNum);
   const { client } = useClient(clientIdNum ?? 0);
@@ -166,7 +166,7 @@ export function ProjectHeader({
           : Number(effectiveRateSheetId),
       deadline: form.deadline || null,
       startDate: form.startDate || null,
-      activityIds: form.activityIds,
+      occupationIds: form.occupationIds,
     });
     setEditing(false);
   }
@@ -386,16 +386,16 @@ export function ProjectHeader({
           <div className="col-span-2 flex flex-col gap-2">
             <Label>
               <FormattedMessage
-                id="projects.header.field.activities"
-                defaultMessage="Activities"
+                id="projects.header.field.occupations"
+                defaultMessage="Occupations"
               />
             </Label>
-            <ActivityChips
-              activityIds={form.activityIds}
-              activities={activities}
-              linkedActivities={project.activities}
-              onChange={(activityIds) =>
-                setForm((prev) => ({ ...prev, activityIds }))
+            <OccupationChips
+              occupationIds={form.occupationIds}
+              occupations={occupations}
+              linkedOccupations={project.occupations}
+              onChange={(occupationIds) =>
+                setForm((prev) => ({ ...prev, occupationIds }))
               }
             />
           </div>

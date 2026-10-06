@@ -41,8 +41,12 @@ vi.mock("./RateForm", () => ({
     form,
     onChange,
   }: {
-    form: { name: string; amount: string; activityId: string };
-    onChange: (f: { name: string; amount: string; activityId: string }) => void;
+    form: { name: string; amount: string; occupationId: string };
+    onChange: (f: {
+      name: string;
+      amount: string;
+      occupationId: string;
+    }) => void;
   }) => (
     <div>
       <input
@@ -56,9 +60,9 @@ vi.mock("./RateForm", () => ({
         onChange={(e) => onChange({ ...form, amount: e.target.value })}
       />
       <input
-        aria-label="rate-activity"
-        value={form.activityId}
-        onChange={(e) => onChange({ ...form, activityId: e.target.value })}
+        aria-label="rate-occupation"
+        value={form.occupationId}
+        onChange={(e) => onChange({ ...form, occupationId: e.target.value })}
       />
     </div>
   ),
@@ -76,7 +80,7 @@ function makeRate(overrides: Partial<AdminRate> = {}): AdminRate {
     currency: "EUR",
     type: "PER_WORD",
     description: null,
-    activityId: null,
+    occupationId: null,
     clientId: null,
     sourceLanguage: null,
     targetLanguage: null,
@@ -223,7 +227,7 @@ describe("AdminRatesTable", () => {
     fireEvent.change(screen.getByLabelText("rate-amount"), {
       target: { value: "10" },
     });
-    fireEvent.change(screen.getByLabelText("rate-activity"), {
+    fireEvent.change(screen.getByLabelText("rate-occupation"), {
       target: { value: "1" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Create" }));
@@ -289,24 +293,24 @@ describe("AdminRatesTable", () => {
     );
   });
 
-  it("sends activityId as a number when editing a rate that has one", async () => {
+  it("sends occupationId as a number when editing a rate that has one", async () => {
     gqlFetch.mockResolvedValueOnce({
       adminRates: makeConnection([
-        makeRate({ id: 6, name: "Has activity", activityId: 7 }),
+        makeRate({ id: 6, name: "Has occupation", occupationId: 7 }),
       ]),
     });
     gqlMutate.mockResolvedValueOnce({
       adminUpdateRate: makeRate({ id: 6 }),
     });
     renderTable();
-    await screen.findByText("Has activity");
+    await screen.findByText("Has occupation");
 
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() =>
       expect(gqlMutate.mock.calls[0][1]).toMatchObject({
-        input: expect.objectContaining({ id: 6, activityId: 7 }),
+        input: expect.objectContaining({ id: 6, occupationId: 7 }),
       }),
     );
   });

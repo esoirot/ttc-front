@@ -7,7 +7,7 @@ import { RateRow } from "./RateRow";
 const rate: TranslationRate = {
   id: 1,
   userId: 1,
-  activityId: null,
+  occupationId: null,
   clientId: null,
   type: "HOURLY",
   name: "Standard hourly rate",

@@ -51,7 +51,7 @@ function makeRate(overrides: Partial<TranslationRate> = {}): TranslationRate {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: null,
     type: "HOURLY",
     name: "Standard",
@@ -70,7 +70,7 @@ function makeRateSheet(overrides: Partial<RateSheet> = {}): RateSheet {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: null,
     name: "General",
     description: null,

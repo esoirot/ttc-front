@@ -17,7 +17,7 @@ const CLIENT_FIELDS = `
   notes hubspotId
   clientType firstName lastName paymentDelayDays taxRate billingEndOfMonth
   website industry status contactedAt tags { id name }
-  activities { id name activityType }
+  occupations { id name occupationType }
   createdAt updatedAt
   contacts { ${CONTACT_FIELDS} }
 `;

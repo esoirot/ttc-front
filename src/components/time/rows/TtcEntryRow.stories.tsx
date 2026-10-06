@@ -25,9 +25,9 @@ const project: Project = {
   currency: "EUR",
   deadline: null,
   startDate: null,
-  activities: [
-    { id: 1, name: "Translation", activityType: "TRANSLATOR" },
-    { id: 2, name: "Proofreading", activityType: "CORRECTOR" },
+  occupations: [
+    { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
+    { id: 2, name: "Proofreading", occupationType: "CORRECTOR" },
   ],
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
@@ -93,11 +93,11 @@ export const StackedTime: Story = {
   args: { entry: makeEntry(), stackedTime: true },
 };
 
-export const WithTranslationActivity: Story = {
+export const WithTranslationOccupation: Story = {
   args: {
     entry: makeEntry({
-      activityId: 1,
-      activity: { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+      occupationId: 1,
+      occupation: { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
       wordsProcessed: 1200,
     }),
   },

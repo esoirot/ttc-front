@@ -70,7 +70,9 @@ export const WithRevenue: Story = {
       fixedFee: 300,
       hourlyRate: 50,
       perWordRate: 0.1,
-      activities: [{ id: 1, name: "Translation", activityType: "TRANSLATOR" }],
+      occupations: [
+        { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
+      ],
     },
     totalSeconds: 7200,
   },

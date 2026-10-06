@@ -145,7 +145,7 @@ export function ProfileTab() {
             <Label htmlFor="profile-jobtitle">
               <FormattedMessage
                 id="account.profileTab.jobTitle"
-                defaultMessage="Job title"
+                defaultMessage="Occupation title"
               />
             </Label>
             <Input

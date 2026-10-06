@@ -5,7 +5,7 @@ import { MOCK_USER } from "./helpers/mock";
 type MockRate = {
   id: number;
   userId: number;
-  activityId: number | null;
+  occupationId: number | null;
   clientId: number | null;
   type: string;
   name: string;
@@ -18,12 +18,12 @@ type MockRate = {
 
 const NOW = "2026-01-01T00:00:00.000Z";
 
-const ACTIVITY_STUB = {
-  __typename: "TranslatorActivity",
+const OCCUPATION_STUB = {
+  __typename: "TranslatorOccupation",
   id: 10,
   userId: 1,
   name: "Translation Biz",
-  activityType: "TRANSLATOR",
+  occupationType: "TRANSLATOR",
   companyName: null,
   legalForm: null,
   professionalEmail: null,
@@ -44,7 +44,7 @@ function makeRate(overrides: Partial<MockRate> = {}): MockRate {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: null,
     type: "HOURLY",
     name: "Standard",
@@ -57,9 +57,9 @@ function makeRate(overrides: Partial<MockRate> = {}): MockRate {
   };
 }
 
-// Mocks /graphql for the Rates + Activity Rates-section flows: TranslationRate
+// Mocks /graphql for the Rates + Occupation Rates-section flows: TranslationRate
 // CRUD backed by one mutable array, shared by both the /rates index page and
-// the /activities/:id page's embedded `activity.translationRates` — so a
+// the /occupations/:id page's embedded `occupation.translationRates` — so a
 // mutation made on one page is visible from the other via the real
 // GraphQL response shape, not a canned static fixture.
 async function mockRatesApi(page: Page, initialRates: MockRate[]) {
@@ -83,19 +83,19 @@ async function mockRatesApi(page: Page, initialRates: MockRate[]) {
       return respond({ me: MOCK_USER });
     }
 
-    if (operationName === "MyActivities") {
+    if (operationName === "MyOccupations") {
       return respond({
-        myActivities: [{ ...ACTIVITY_STUB, translationRates: [] }],
+        myOccupations: [{ ...OCCUPATION_STUB, translationRates: [] }],
       });
     }
 
-    if (operationName === "Activity") {
+    if (operationName === "Occupation") {
       const id = variables?.["id"] as number;
       return respond({
-        activity: {
-          ...ACTIVITY_STUB,
+        occupation: {
+          ...OCCUPATION_STUB,
           id,
-          translationRates: rates.filter((r) => r.activityId === id),
+          translationRates: rates.filter((r) => r.occupationId === id),
         },
       });
     }
@@ -137,11 +137,11 @@ async function mockRatesApi(page: Page, initialRates: MockRate[]) {
   });
 }
 
-test("ActivityDetail: adding a Rate auto-scopes to the current Translator activity and shows the language pair chip", async ({
+test("OccupationDetail: adding a Rate auto-scopes to the current Translator occupation and shows the language pair chip", async ({
   page,
 }) => {
   await mockRatesApi(page, []);
-  await page.goto("/activities/10");
+  await page.goto("/occupations/10");
 
   await page.getByRole("button", { name: "+ Add Rate" }).click();
   await page.getByLabel("Name", { exact: true }).fill("Legal EN-FR");
@@ -156,20 +156,20 @@ test("ActivityDetail: adding a Rate auto-scopes to the current Translator activi
   await expect(page.getByText("EN → FR")).toBeVisible();
 });
 
-test("editing a rate's amount on the Rates index page is reflected on the Activity page without a hard refresh", async ({
+test("editing a rate's amount on the Rates index page is reflected on the Occupation page without a hard refresh", async ({
   page,
 }) => {
   await mockRatesApi(page, [
     makeRate({
       id: 501,
-      activityId: 10,
+      occupationId: 10,
       amount: 40,
       sourceLanguage: "EN",
       targetLanguage: "FR",
     }),
   ]);
 
-  await page.goto("/activities/10");
+  await page.goto("/occupations/10");
   await expect(page.getByText("40.00 €")).toBeVisible();
 
   await page.getByRole("link", { name: "Rates" }).click();
@@ -183,6 +183,6 @@ test("editing a rate's amount on the Rates index page is reflected on the Activi
   await expect(page.getByText("55.00 €")).toBeVisible();
 
   await page.goBack();
-  await expect(page).toHaveURL("/activities/10");
+  await expect(page).toHaveURL("/occupations/10");
   await expect(page.getByText("55.00 €")).toBeVisible();
 });

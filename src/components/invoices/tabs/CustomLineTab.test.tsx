@@ -21,7 +21,7 @@ function makeRate(overrides: Partial<TranslationRate> = {}): TranslationRate {
     currency: "EUR",
     type: "PER_WORD",
     description: null,
-    activityId: null,
+    occupationId: null,
     clientId: null,
     sourceLanguage: null,
     targetLanguage: null,

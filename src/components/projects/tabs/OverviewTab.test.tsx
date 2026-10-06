@@ -112,8 +112,8 @@ function makeTimeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
     durationSeconds: 1000,
     billable: true,
     clockifyEntryId: null,
-    activityId: null,
-    activity: null,
+    occupationId: null,
+    occupation: null,
     tags: [],
     createdAt: "2026-06-10T00:00:00.000Z",
     updatedAt: "2026-06-10T00:00:00.000Z",
@@ -310,7 +310,7 @@ describe("OverviewTab", () => {
         {
           id: 1,
           userId: 1,
-          activityId: null,
+          occupationId: null,
           clientId: 5,
           name: "EN-FR standard",
           description: null,
@@ -361,7 +361,7 @@ describe("OverviewTab", () => {
         {
           id: 1,
           userId: 1,
-          activityId: null,
+          occupationId: null,
           clientId: 5,
           name: "EN-FR language match",
           description: null,
@@ -377,7 +377,7 @@ describe("OverviewTab", () => {
         {
           id: 2,
           userId: 1,
-          activityId: null,
+          occupationId: null,
           clientId: 5,
           name: "Explicitly chosen sheet",
           description: null,
@@ -411,12 +411,12 @@ describe("OverviewTab", () => {
     ).toBeInTheDocument();
   });
 
-  it("hides the Revenue card when the project has no TRANSLATOR activity", () => {
+  it("hides the Revenue card when the project has no TRANSLATOR occupation", () => {
     render(
       <OverviewTab
         project={makeProject({
-          activities: [
-            { id: 1, name: "Correction", activityType: "CORRECTOR" },
+          occupations: [
+            { id: 1, name: "Correction", occupationType: "CORRECTOR" },
           ],
           totalWordsProcessed: 1000,
           useCustomRate: true,
@@ -433,8 +433,8 @@ describe("OverviewTab", () => {
     render(
       <OverviewTab
         project={makeProject({
-          activities: [
-            { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          occupations: [
+            { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
           ],
           totalWordsProcessed: 0,
           useCustomRate: true,
@@ -451,8 +451,8 @@ describe("OverviewTab", () => {
     render(
       <OverviewTab
         project={makeProject({
-          activities: [
-            { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          occupations: [
+            { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
           ],
           totalWordsProcessed: 1000,
           useCustomRate: true,
@@ -477,7 +477,7 @@ describe("OverviewTab", () => {
         {
           id: 1,
           userId: 1,
-          activityId: null,
+          occupationId: null,
           clientId: 5,
           name: "EN-FR standard",
           description: null,
@@ -494,8 +494,8 @@ describe("OverviewTab", () => {
     render(
       <OverviewTab
         project={makeProject({
-          activities: [
-            { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          occupations: [
+            { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
           ],
           clientId: 5,
           sourceLanguage: "EN",
@@ -565,20 +565,20 @@ describe("OverviewTab", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows a Time per activity pie grouped by activity name", async () => {
+  it("shows a Time per occupation pie grouped by occupation name", async () => {
     setupGqlFetch({
       timeEntries: [
         makeTimeEntry({
           id: 1,
-          activity: { id: 1, name: "Short title", activityType: "CUSTOM" },
+          occupation: { id: 1, name: "Short title", occupationType: "CUSTOM" },
           durationSeconds: 1000,
         }),
         makeTimeEntry({
           id: 2,
-          activity: {
+          occupation: {
             id: 2,
             name: "A Very Long Task Title Exceeding Eighteen Chars",
-            activityType: "CUSTOM",
+            occupationType: "CUSTOM",
           },
           durationSeconds: 2000,
         }),
@@ -589,7 +589,7 @@ describe("OverviewTab", () => {
     });
 
     await screen.findAllByTestId("tooltip-preview");
-    expect(screen.getByText("Time per activity")).toBeInTheDocument();
+    expect(screen.getByText("Time per occupation")).toBeInTheDocument();
     const legends = screen.getAllByTestId("legend-preview");
     expect(legends[legends.length - 1]).toHaveTextContent(
       `Short title — ${formatDuration(1000)}`,
@@ -601,7 +601,7 @@ describe("OverviewTab", () => {
       wrapper: createIntlQueryWrapper(),
     });
     expect(await screen.findByText("Time per task")).toBeInTheDocument();
-    expect(screen.getByText("Time per activity")).toBeInTheDocument();
+    expect(screen.getByText("Time per occupation")).toBeInTheDocument();
     expect(screen.getAllByText("No time logged in October 2026.")).toHaveLength(
       2,
     );
@@ -694,8 +694,8 @@ describe("OverviewTab", () => {
     render(
       <OverviewTab
         project={makeProject({
-          activities: [
-            { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          occupations: [
+            { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
           ],
           totalTaskWords: 1000,
         })}
@@ -712,8 +712,8 @@ describe("OverviewTab", () => {
     render(
       <OverviewTab
         project={makeProject({
-          activities: [
-            { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          occupations: [
+            { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
           ],
           totalTaskWords: null,
         })}
@@ -729,7 +729,7 @@ describe("OverviewTab", () => {
   it("hides the Task words KPI on non-translation projects", () => {
     render(
       <OverviewTab
-        project={makeProject({ activities: [], totalTaskWords: 1000 })}
+        project={makeProject({ occupations: [], totalTaskWords: 1000 })}
         totalSeconds={0}
       />,
       { wrapper: createIntlQueryWrapper() },

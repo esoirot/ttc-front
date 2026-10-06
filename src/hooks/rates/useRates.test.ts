@@ -24,7 +24,7 @@ function makeRate(overrides: Partial<TranslationRate> = {}): TranslationRate {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: null,
     type: "HOURLY",
     name: "Standard",
@@ -99,9 +99,9 @@ describe("useCreateRate", () => {
     ]);
   });
 
-  it("invalidates the activity cache when the created rate has an activityId", async () => {
+  it("invalidates the occupation cache when the created rate has an occupationId", async () => {
     gqlMutate.mockResolvedValueOnce({
-      createTranslationRate: makeRate({ activityId: 42 }),
+      createTranslationRate: makeRate({ occupationId: 42 }),
     });
     const queryClient = createQueryClient();
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
@@ -117,7 +117,9 @@ describe("useCreateRate", () => {
       currency: "EUR",
     });
 
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["activity", 42] });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["occupation", 42],
+    });
   });
 });
 
@@ -157,8 +159,8 @@ describe("useUpdateRate", () => {
     ).toEqual([updated]);
   });
 
-  it("invalidates the activity cache when the updated rate has an activityId", async () => {
-    const updated = makeRate({ id: 3, type: "HOURLY", activityId: 42 });
+  it("invalidates the occupation cache when the updated rate has an occupationId", async () => {
+    const updated = makeRate({ id: 3, type: "HOURLY", occupationId: 42 });
     gqlMutate.mockResolvedValueOnce({ updateTranslationRate: updated });
     const queryClient = createQueryClient();
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
@@ -169,7 +171,9 @@ describe("useUpdateRate", () => {
 
     await result.current.updateRate({ id: 3, sourceLanguage: "EN" });
 
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["activity", 42] });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["occupation", 42],
+    });
   });
 });
 

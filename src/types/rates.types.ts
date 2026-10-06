@@ -3,7 +3,7 @@ export type TranslationRateType = "HOURLY" | "DAY" | "PER_WORD" | "FIXED";
 export interface TranslationRate {
   id: number;
   userId: number;
-  activityId?: number | null;
+  occupationId?: number | null;
   clientId?: number | null;
   type: TranslationRateType;
   name: string;
@@ -21,7 +21,7 @@ export type TranslationRateFormData = {
   amount: number;
   currency: string;
   description?: string | null;
-  activityId?: number | null;
+  occupationId?: number | null;
   clientId?: number | null;
   sourceLanguage?: string | null;
   targetLanguage?: string | null;
@@ -36,7 +36,7 @@ export interface OverviewSectionProps {
 export interface TranslationRateFormProps {
   type: TranslationRateType;
   initial?: TranslationRate;
-  defaultActivityId?: number;
+  defaultOccupationId?: number;
   onSave: (data: TranslationRateFormData) => void;
   onCancel: () => void;
   saving: boolean;
@@ -56,7 +56,7 @@ export type Rate = TranslationRate;
 
 export type CreateRateInput = {
   type: TranslationRateType;
-  activityId?: number | null;
+  occupationId?: number | null;
   name: string;
   amount: number;
   currency: string;
@@ -69,7 +69,7 @@ export type CreateRateInput = {
 export type UpdateRateInput = {
   id: number;
   type?: TranslationRateType;
-  activityId?: number | null;
+  occupationId?: number | null;
   name?: string;
   amount?: number;
   currency?: string;

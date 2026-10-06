@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
-import { useMyActivities } from "@/hooks/activities/useActivities";
+import { useMyOccupations } from "@/hooks/occupations/useOccupations";
 import { CURRENCIES } from "@/constants/rates";
 import { LANGUAGES } from "@/constants/languages";
 import {
@@ -39,14 +39,14 @@ export function RateSheetForm({
     id: "rates.form.noClient",
     defaultMessage: "No client",
   });
-  const { activities: allActivities } = useMyActivities();
-  const activities = allActivities.filter(
-    (a) => a.activityType === "TRANSLATOR",
+  const { occupations: allOccupations } = useMyOccupations();
+  const occupations = allOccupations.filter(
+    (a) => a.occupationType === "TRANSLATOR",
   );
 
   const [name, setName] = useState(initial?.name ?? "");
-  const [activityId, setActivityId] = useState<string>(
-    initial?.activityId != null ? String(initial.activityId) : "__none__",
+  const [occupationId, setOccupationId] = useState<string>(
+    initial?.occupationId != null ? String(initial.occupationId) : "__none__",
   );
   const [clientId, setClientId] = useState<string>(
     initial?.clientId != null ? String(initial.clientId) : "__none__",
@@ -76,7 +76,7 @@ export function RateSheetForm({
 
   const activeCurrency = useOtherCurrency ? currency : userCurrency;
   const pricePerWord = parseFloat(pricePerWordStr.replace(",", ".")) || 0;
-  const showLanguageFields = activityId !== "__none__";
+  const showLanguageFields = occupationId !== "__none__";
 
   function setMatchRate(key: string, value: number) {
     setMatchRates((prev) => ({ ...prev, [key]: value }));
@@ -123,7 +123,7 @@ export function RateSheetForm({
     }
     setError(null);
     onSave({
-      activityId: activityId === "__none__" ? null : Number(activityId),
+      occupationId: occupationId === "__none__" ? null : Number(occupationId),
       clientId: clientId === "__none__" ? null : Number(clientId),
       name: name.trim(),
       description: description.trim() || null,
@@ -157,29 +157,29 @@ export function RateSheetForm({
         </div>
 
         <div className="col-span-2 flex flex-col gap-1.5">
-          <Label htmlFor="rs-activity">
+          <Label htmlFor="rs-occupation">
             <FormattedMessage
-              id="rates.form.activityOptional"
-              defaultMessage="Activity (optional)"
+              id="rates.form.occupationOptional"
+              defaultMessage="Occupation (optional)"
             />
           </Label>
-          <Select value={activityId} onValueChange={setActivityId}>
-            <SelectTrigger id="rs-activity">
+          <Select value={occupationId} onValueChange={setOccupationId}>
+            <SelectTrigger id="rs-occupation">
               <SelectValue
                 placeholder={intl.formatMessage({
-                  id: "rates.form.noActivity",
-                  defaultMessage: "No activity",
+                  id: "rates.form.noOccupation",
+                  defaultMessage: "No occupation",
                 })}
               />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__none__">
                 <FormattedMessage
-                  id="rates.form.noActivity"
-                  defaultMessage="No activity"
+                  id="rates.form.noOccupation"
+                  defaultMessage="No occupation"
                 />
               </SelectItem>
-              {activities.map((a) => (
+              {occupations.map((a) => (
                 <SelectItem key={a.id} value={String(a.id)}>
                   {a.name}
                 </SelectItem>

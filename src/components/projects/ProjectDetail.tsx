@@ -90,7 +90,7 @@ export function ProjectDetail() {
           </TabsTrigger>
           <TabsTrigger value="activity">
             <FormattedMessage
-              id="activities.detail.activity"
+              id="projects.detail.tabs.activity"
               defaultMessage="Activity"
             />
           </TabsTrigger>

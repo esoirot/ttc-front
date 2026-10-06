@@ -4,9 +4,9 @@ import type { RateSheet } from "@/types/rate-sheets.types";
 import { resolveProjectRateSheet } from "./projectRate";
 
 export function isTranslationEntry(
-  entry: Pick<TimeEntry, "activity">,
+  entry: Pick<TimeEntry, "occupation">,
 ): boolean {
-  return entry.activity?.activityType === "TRANSLATOR";
+  return entry.occupation?.occupationType === "TRANSLATOR";
 }
 
 export function resolvePerWordPrice(

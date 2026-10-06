@@ -4,21 +4,21 @@ import { MOCK_USER, mockClockifyStatus } from "./helpers/mock";
 
 const NOW = "2026-01-01T00:00:00.000Z";
 
-const TRANSLATION_ACTIVITY = {
+const TRANSLATION_OCCUPATION = {
   id: 1,
   name: "Translation",
-  activityType: "TRANSLATOR",
+  occupationType: "TRANSLATOR",
 };
-const CORRECTOR_ACTIVITY = {
+const CORRECTOR_OCCUPATION = {
   id: 2,
   name: "Proofreading",
-  activityType: "CORRECTOR",
+  occupationType: "CORRECTOR",
 };
 
 type MockProject = {
   id: number;
   title: string;
-  activities: { id: number; name: string; activityType: string }[];
+  occupations: { id: number; name: string; occupationType: string }[];
 };
 
 type MockEntry = {
@@ -33,8 +33,8 @@ type MockEntry = {
   durationSeconds: number | null;
   billable: boolean;
   clockifyEntryId: string | null;
-  activityId: number | null;
-  activity: { id: number; name: string; activityType: string } | null;
+  occupationId: number | null;
+  occupation: { id: number; name: string; occupationType: string } | null;
   wordsProcessed: number | null;
   tags: { id: number; name: string }[];
   createdAt: string;
@@ -54,8 +54,8 @@ function makeEntry(overrides: Partial<MockEntry> = {}): MockEntry {
     durationSeconds: 3600,
     billable: true,
     clockifyEntryId: null,
-    activityId: null,
-    activity: null,
+    occupationId: null,
+    occupation: null,
     wordsProcessed: null,
     tags: [],
     createdAt: NOW,
@@ -65,7 +65,7 @@ function makeEntry(overrides: Partial<MockEntry> = {}): MockEntry {
 }
 
 // Mocks /graphql for the TTC-native /time page (TimeEntriesPage ->
-// useTimeEntriesPage): TimeEntries/ActiveTimer/Projects/Tags/MyActivities,
+// useTimeEntriesPage): TimeEntries/ActiveTimer/Projects/Tags/MyOccupations,
 // plus the UpdateTimeEntry mutation with real state so edits are observable.
 async function mockTimeEntriesApi(
   page: Page,
@@ -93,9 +93,9 @@ async function mockTimeEntriesApi(
       return respond({ me: MOCK_USER });
     }
 
-    if (operationName === "MyActivities") {
+    if (operationName === "MyOccupations") {
       return respond({
-        myActivities: [TRANSLATION_ACTIVITY, CORRECTOR_ACTIVITY],
+        myOccupations: [TRANSLATION_OCCUPATION, CORRECTOR_OCCUPATION],
       });
     }
 
@@ -129,9 +129,10 @@ async function mockTimeEntriesApi(
       entries = entries.map((e) => {
         if (e.id !== input?.id) return e;
         const updated = { ...e, ...input };
-        if (input.activityId !== undefined) {
-          const all = [TRANSLATION_ACTIVITY, CORRECTOR_ACTIVITY];
-          updated.activity = all.find((a) => a.id === input.activityId) ?? null;
+        if (input.occupationId !== undefined) {
+          const all = [TRANSLATION_OCCUPATION, CORRECTOR_OCCUPATION];
+          updated.occupation =
+            all.find((a) => a.id === input.occupationId) ?? null;
         }
         return updated;
       });
@@ -143,7 +144,7 @@ async function mockTimeEntriesApi(
   });
 }
 
-test("the Activity select on a row is scoped to its project's activities, and changing it fires UpdateTimeEntry", async ({
+test("the Occupation select on a row is scoped to its project's occupations, and changing it fires UpdateTimeEntry", async ({
   page,
 }) => {
   await mockTimeEntriesApi(
@@ -155,13 +156,13 @@ test("the Activity select on a row is scoped to its project's activities, and ch
         description: "Translate homepage",
       }),
     ],
-    [{ id: 1, title: "Website copy", activities: [TRANSLATION_ACTIVITY] }],
+    [{ id: 1, title: "Website copy", occupations: [TRANSLATION_OCCUPATION] }],
   );
   await page.goto("/time");
 
   await page.getByRole("button", { name: /Jan 1/ }).click();
   await expect(page.getByText("Translate homepage")).toBeVisible();
-  await page.getByTitle("Link activity").click();
+  await page.getByTitle("Link occupation").click();
   await expect(page.getByRole("option", { name: "Translation" })).toBeVisible();
   await expect(
     page.getByRole("option", { name: "Proofreading" }),
@@ -171,7 +172,7 @@ test("the Activity select on a row is scoped to its project's activities, and ch
   await expect(page.getByText("Translation", { exact: true })).toBeVisible();
 });
 
-test("the words-processed control only appears once the entry's activity is Translator", async ({
+test("the words-processed control only appears once the entry's occupation is Translator", async ({
   page,
 }) => {
   await mockTimeEntriesApi(
@@ -181,11 +182,11 @@ test("the words-processed control only appears once the entry's activity is Tran
         id: 1,
         projectId: 1,
         description: "Translate homepage",
-        activityId: 1,
-        activity: TRANSLATION_ACTIVITY,
+        occupationId: 1,
+        occupation: TRANSLATION_OCCUPATION,
       }),
     ],
-    [{ id: 1, title: "Website copy", activities: [TRANSLATION_ACTIVITY] }],
+    [{ id: 1, title: "Website copy", occupations: [TRANSLATION_OCCUPATION] }],
   );
   await page.goto("/time");
 
@@ -199,7 +200,7 @@ test("the words-processed control only appears once the entry's activity is Tran
   await expect(page.getByText("1,200 words")).toBeVisible();
 });
 
-test("the words-processed control is absent when the entry has no activity", async ({
+test("the words-processed control is absent when the entry has no occupation", async ({
   page,
 }) => {
   await mockTimeEntriesApi(page, [

@@ -24,7 +24,7 @@ import { AddressFields } from "../form-fields/AddressFields";
 import { BillingFields } from "../form-fields/BillingFields";
 import { ColorField } from "../form-fields/ColorField";
 import { TtcTagChips } from "@/components/time/tags/TtcTagChips";
-import { ActivityChips } from "@/components/activities/ActivityChips";
+import { OccupationChips } from "@/components/occupations/OccupationChips";
 
 export function NewClientForm({ onClose, defaultStatus, title }: Props) {
   const intl = useIntl();
@@ -33,12 +33,12 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
     setField,
     tagIds,
     setTagIds,
-    activityIds,
-    setActivityIds,
+    occupationIds,
+    setOccupationIds,
     error,
     loading,
     tags,
-    activities,
+    occupations,
     handleAddressChange,
     handleBillingChange,
     handleSubmit,
@@ -320,14 +320,14 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
             <div className="col-span-2 pt-4 border-t border-border flex flex-col gap-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 <FormattedMessage
-                  id="clients.newClientForm.activities"
-                  defaultMessage="Activities"
+                  id="clients.newClientForm.occupations"
+                  defaultMessage="Occupations"
                 />
               </p>
-              <ActivityChips
-                activityIds={activityIds}
-                activities={activities}
-                onChange={setActivityIds}
+              <OccupationChips
+                occupationIds={occupationIds}
+                occupations={occupations}
+                onChange={setOccupationIds}
               />
             </div>
           </div>

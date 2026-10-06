@@ -28,7 +28,7 @@ import { BillingFields } from "../form-fields/BillingFields";
 import { AddressFields } from "../form-fields/AddressFields";
 import { ColorField } from "../form-fields/ColorField";
 import { TtcTagChips } from "@/components/time/tags/TtcTagChips";
-import { ActivityChips } from "@/components/activities/ActivityChips";
+import { OccupationChips } from "@/components/occupations/OccupationChips";
 import { toSafeHref } from "@/lib/schemas";
 
 const MSG = {
@@ -47,7 +47,7 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
     editing,
     setEditing,
     tags,
-    activities,
+    occupations,
     form,
     setForm,
     resetForm,
@@ -398,16 +398,16 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
           <div className="pt-4 border-t border-border flex flex-col gap-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <FormattedMessage
-                id="clients.header.field.activities"
-                defaultMessage="Activities"
+                id="clients.header.field.occupations"
+                defaultMessage="Occupations"
               />
             </p>
-            <ActivityChips
-              activityIds={form.activityIds}
-              activities={activities}
-              linkedActivities={client.activities}
-              onChange={(activityIds) =>
-                setForm((prev) => ({ ...prev, activityIds }))
+            <OccupationChips
+              occupationIds={form.occupationIds}
+              occupations={occupations}
+              linkedOccupations={client.occupations}
+              onChange={(occupationIds) =>
+                setForm((prev) => ({ ...prev, occupationIds }))
               }
             />
           </div>
@@ -628,9 +628,9 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
         </div>
       )}
 
-      {client.activities && client.activities.length > 0 && (
+      {client.occupations && client.occupations.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">
-          {client.activities.map((a) => (
+          {client.occupations.map((a) => (
             <Badge key={a.id} variant="outline" className="text-xs">
               {a.name}
             </Badge>

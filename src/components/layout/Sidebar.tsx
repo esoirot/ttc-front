@@ -218,11 +218,11 @@ const NAV_GROUPS: {
     },
     items: [
       {
-        to: "/activities",
+        to: "/occupations",
         end: false,
         labelMessage: {
-          id: "layout.sidebar.nav.myActivity",
-          defaultMessage: "My Activity",
+          id: "layout.sidebar.nav.myOccupation",
+          defaultMessage: "My Occupations",
         },
         icon: (
           <svg

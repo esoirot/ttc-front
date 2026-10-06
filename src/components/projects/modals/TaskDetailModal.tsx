@@ -61,7 +61,8 @@ export function TaskDetailModal({
   const { updateTask } = useUpdateTask(projectId);
   const { project } = useProject(projectId);
   const isTranslation =
-    project?.activities?.some((a) => a.activityType === "TRANSLATOR") ?? false;
+    project?.occupations?.some((a) => a.occupationType === "TRANSLATOR") ??
+    false;
 
   const [addingChecklist, setAddingChecklist] = useState(false);
   const [checklistSectionOpen, setChecklistSectionOpen] = useState(false);

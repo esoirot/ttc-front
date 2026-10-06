@@ -26,11 +26,11 @@ vi.mock("@/components/time/tags/TtcTagChips", () => ({
   },
 }));
 
-let activityChipsProps: Record<string, unknown> = {};
-vi.mock("@/components/activities/ActivityChips", () => ({
-  ActivityChips: (props: Record<string, unknown>) => {
-    activityChipsProps = props;
-    return <div data-testid="activity-chips" />;
+let occupationChipsProps: Record<string, unknown> = {};
+vi.mock("@/components/occupations/OccupationChips", () => ({
+  OccupationChips: (props: Record<string, unknown>) => {
+    occupationChipsProps = props;
+    return <div data-testid="occupation-chips" />;
   },
 }));
 
@@ -355,33 +355,35 @@ describe("NewClientForm", () => {
     expect(tagChipsProps.tagIds).toEqual([4]);
   });
 
-  it("shows the Activities section label", () => {
+  it("shows the Occupations section label", () => {
     renderForm();
-    expect(screen.getByText("Activities")).toBeInTheDocument();
+    expect(screen.getByText("Occupations")).toBeInTheDocument();
   });
 
-  it("wires activity chip onChange to the activityIds state", () => {
+  it("wires occupation chip onChange to the occupationIds state", () => {
     renderForm();
-    expect(activityChipsProps.activityIds).toEqual([]);
+    expect(occupationChipsProps.occupationIds).toEqual([]);
 
-    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([7]));
+    act(() => (occupationChipsProps.onChange as (ids: number[]) => void)([7]));
 
-    expect(activityChipsProps.activityIds).toEqual([7]);
+    expect(occupationChipsProps.occupationIds).toEqual([7]);
   });
 
-  it("includes activityIds in the create payload", async () => {
+  it("includes occupationIds in the create payload", async () => {
     gqlMutate.mockResolvedValueOnce({ createClient: { id: 9, name: "Acme" } });
     renderForm();
 
     fireEvent.change(screen.getByLabelText("Company name *"), {
       target: { value: "Acme" },
     });
-    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([1, 2]));
+    act(() =>
+      (occupationChipsProps.onChange as (ids: number[]) => void)([1, 2]),
+    );
     fireEvent.click(screen.getByText("Create client"));
 
     await waitFor(() => expect(gqlMutate).toHaveBeenCalled());
     expect(gqlMutate.mock.calls[0][1]).toMatchObject({
-      input: { activityIds: [1, 2] },
+      input: { occupationIds: [1, 2] },
     });
   });
 

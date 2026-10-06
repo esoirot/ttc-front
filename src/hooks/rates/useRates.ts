@@ -40,9 +40,9 @@ export function useCreateRate() {
         ["translationRates", created.type],
         created,
       );
-      if (created.activityId != null) {
+      if (created.occupationId != null) {
         void queryClient.invalidateQueries({
-          queryKey: ["activity", created.activityId],
+          queryKey: ["occupation", created.occupationId],
         });
       }
     },
@@ -71,9 +71,9 @@ export function useUpdateRate() {
         updated,
         (r) => r.id,
       );
-      if (updated.activityId != null) {
+      if (updated.occupationId != null) {
         void queryClient.invalidateQueries({
-          queryKey: ["activity", updated.activityId],
+          queryKey: ["occupation", updated.occupationId],
         });
       }
     },
@@ -109,7 +109,7 @@ export function useDeleteRate() {
           (r: TranslationRate) => r.id,
         );
       }
-      void queryClient.invalidateQueries({ queryKey: ["activity"] });
+      void queryClient.invalidateQueries({ queryKey: ["occupation"] });
     },
   });
   return { deleteRate: (id: number) => mutateAsync({ id }) };

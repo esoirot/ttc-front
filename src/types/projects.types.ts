@@ -7,7 +7,7 @@ import type {
 } from "./tasks.types";
 import type { Member } from "./users.types";
 import type { Connection } from "./common.types";
-import type { ActivityRef } from "./activities.types";
+import type { OccupationRef } from "./occupations.types";
 
 export type ProjectStatus =
   | "DRAFT"
@@ -40,7 +40,7 @@ export interface Project {
   totalTimeSeconds?: number | null;
   totalWordsProcessed?: number | null;
   totalTaskWords?: number | null;
-  activities?: ActivityRef[];
+  occupations?: OccupationRef[];
   createdAt: string;
   updatedAt: string;
 }
@@ -132,7 +132,7 @@ export interface ProjectHeaderProps {
     currency?: string;
     deadline?: string | null;
     startDate?: string | null;
-    activityIds?: number[];
+    occupationIds?: number[];
   }) => Promise<unknown>;
   saving: boolean;
 }
@@ -197,7 +197,7 @@ export type ProjectInput = {
   currency?: string;
   deadline?: string | null;
   startDate?: string | null;
-  activityIds?: number[];
+  occupationIds?: number[];
 };
 
 export type ProjectsVars = {

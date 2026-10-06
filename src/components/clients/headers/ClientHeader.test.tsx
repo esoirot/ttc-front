@@ -27,11 +27,11 @@ vi.mock("@/components/time/tags/TtcTagChips", () => ({
   },
 }));
 
-let activityChipsProps: Record<string, unknown> = {};
-vi.mock("@/components/activities/ActivityChips", () => ({
-  ActivityChips: (props: Record<string, unknown>) => {
-    activityChipsProps = props;
-    return <div data-testid="activity-chips" />;
+let occupationChipsProps: Record<string, unknown> = {};
+vi.mock("@/components/occupations/OccupationChips", () => ({
+  OccupationChips: (props: Record<string, unknown>) => {
+    occupationChipsProps = props;
+    return <div data-testid="occupation-chips" />;
   },
 }));
 
@@ -607,41 +607,45 @@ describe("ClientHeader", () => {
     expect(tagChipsProps.tagIds).toEqual([2]);
   });
 
-  it("wires activity chip onChange to the edit form's activityIds, seeded from client.activities", () => {
+  it("wires occupation chip onChange to the edit form's occupationIds, seeded from client.occupations", () => {
     renderHeader(
       makeClient({
-        activities: [
-          { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        occupations: [
+          { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
         ],
       }),
     );
     fireEvent.click(screen.getByText("Edit"));
-    expect(activityChipsProps.activityIds).toEqual([1]);
+    expect(occupationChipsProps.occupationIds).toEqual([1]);
 
-    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([1, 2]));
-    expect(activityChipsProps.activityIds).toEqual([1, 2]);
+    act(() =>
+      (occupationChipsProps.onChange as (ids: number[]) => void)([1, 2]),
+    );
+    expect(occupationChipsProps.occupationIds).toEqual([1, 2]);
   });
 
-  it("saves the edited activityIds", async () => {
+  it("saves the edited occupationIds", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     renderHeader(makeClient(), onUpdate);
     fireEvent.click(screen.getByText("Edit"));
 
-    act(() => (activityChipsProps.onChange as (ids: number[]) => void)([3, 4]));
+    act(() =>
+      (occupationChipsProps.onChange as (ids: number[]) => void)([3, 4]),
+    );
     fireEvent.click(screen.getByText("Save"));
 
     await waitFor(() =>
       expect(onUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ activityIds: [3, 4] }),
+        expect.objectContaining({ occupationIds: [3, 4] }),
       ),
     );
   });
 
-  it("shows activity badges in view mode when the client has activities", () => {
+  it("shows occupation badges in view mode when the client has occupations", () => {
     renderHeader(
       makeClient({
-        activities: [
-          { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+        occupations: [
+          { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
         ],
       }),
     );

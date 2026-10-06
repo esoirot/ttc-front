@@ -731,12 +731,14 @@ describe("TaskDetailModal", () => {
     const translatorProject = {
       id: 1,
       title: "Manual",
-      activities: [{ id: 1, name: "Translation", activityType: "TRANSLATOR" }],
+      occupations: [
+        { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
+      ],
     };
     const consultingProject = {
       id: 1,
       title: "Consulting",
-      activities: [{ id: 2, name: "Consulting", activityType: "CUSTOM" }],
+      occupations: [{ id: 2, name: "Consulting", occupationType: "CUSTOM" }],
     };
     const item = {
       id: 1,
@@ -867,7 +869,7 @@ describe("TaskDetailModal", () => {
       expect(gqlMutate).not.toHaveBeenCalled();
     });
 
-    it("counts a project with a Translator activity among others as a translation project", async () => {
+    it("counts a project with a Translator occupation among others as a translation project", async () => {
       renderModal(
         makeTaskDetail({ wordCount: 500 }),
         {},
@@ -875,9 +877,9 @@ describe("TaskDetailModal", () => {
           project: {
             id: 1,
             title: "Mixed",
-            activities: [
-              { id: 2, name: "Consulting", activityType: "CUSTOM" },
-              { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+            occupations: [
+              { id: 2, name: "Consulting", occupationType: "CUSTOM" },
+              { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
             ],
           },
         },
@@ -892,7 +894,7 @@ describe("TaskDetailModal", () => {
       expect(screen.queryByLabelText("Words")).not.toBeInTheDocument();
     });
 
-    it("treats a project without an activity list as non-translation", async () => {
+    it("treats a project without an occupation list as non-translation", async () => {
       renderModal(
         makeTaskDetail({ wordCount: 500 }),
         {},

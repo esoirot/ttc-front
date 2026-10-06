@@ -14,9 +14,9 @@ vi.mock("@/hooks/clients/useClients", () => ({
   }),
 }));
 
-const useMyActivitiesMock = vi.fn();
-vi.mock("@/hooks/activities/useActivities", () => ({
-  useMyActivities: () => useMyActivitiesMock(),
+const useMyOccupationsMock = vi.fn();
+vi.mock("@/hooks/occupations/useOccupations", () => ({
+  useMyOccupations: () => useMyOccupationsMock(),
 }));
 
 const useCurrentUserMock = vi.fn();
@@ -31,14 +31,14 @@ import {
 import type { RateSheet } from "@/types/rate-sheets.types";
 import { RateSheetForm } from "./RateSheetForm";
 
-const mockActivities = [
-  { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+const mockOccupations = [
+  { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
 ];
 const mockClients = [{ id: 1, name: "Acme Corp" }];
 
 function defaultHooks() {
   clientsMock.mockReturnValue({ clients: mockClients });
-  useMyActivitiesMock.mockReturnValue({ activities: mockActivities });
+  useMyOccupationsMock.mockReturnValue({ occupations: mockOccupations });
   useCurrentUserMock.mockReturnValue({ user: { defaultCurrency: "EUR" } });
 }
 
@@ -46,7 +46,7 @@ function makeInitial(overrides: Partial<RateSheet> = {}): RateSheet {
   return {
     id: 1,
     userId: 1,
-    activityId: null,
+    occupationId: null,
     clientId: null,
     name: "EN→FR General",
     description: null,
@@ -83,7 +83,7 @@ function renderForm(
 describe("RateSheetForm", () => {
   beforeEach(() => {
     clientsMock.mockReset();
-    useMyActivitiesMock.mockReset();
+    useMyOccupationsMock.mockReset();
     useCurrentUserMock.mockReset();
     defaultHooks();
   });
@@ -134,11 +134,11 @@ describe("RateSheetForm", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows error when activity selected but sourceLanguage is missing", () => {
-    // activityId set ⇒ showLanguageFields=true; empty sourceLanguage fails validation
+  it("shows error when occupation selected but sourceLanguage is missing", () => {
+    // occupationId set ⇒ showLanguageFields=true; empty sourceLanguage fails validation
     renderForm({
       initial: makeInitial({
-        activityId: 1,
+        occupationId: 1,
         sourceLanguage: "",
         name: "Sheet",
       }),
@@ -149,10 +149,10 @@ describe("RateSheetForm", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows error when activity selected but targetLanguage is missing", () => {
+  it("shows error when occupation selected but targetLanguage is missing", () => {
     renderForm({
       initial: makeInitial({
-        activityId: 1,
+        occupationId: 1,
         sourceLanguage: "EN",
         targetLanguage: "",
         name: "Sheet",
@@ -174,7 +174,7 @@ describe("RateSheetForm", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(onSave).toHaveBeenCalledWith({
-      activityId: null,
+      occupationId: null,
       clientId: null,
       name: "Test Sheet",
       description: null,
@@ -247,15 +247,15 @@ describe("RateSheetForm", () => {
     );
   });
 
-  it("only offers translator activities, since rate sheets are per-word", () => {
-    useMyActivitiesMock.mockReturnValue({
-      activities: [
-        ...mockActivities,
-        { id: 2, name: "Consulting", activityType: "CUSTOM" },
+  it("only offers translator occupations, since rate sheets are per-word", () => {
+    useMyOccupationsMock.mockReturnValue({
+      occupations: [
+        ...mockOccupations,
+        { id: 2, name: "Consulting", occupationType: "CUSTOM" },
       ],
     });
     renderForm();
-    fireEvent.click(screen.getByLabelText("Activity (optional)"));
+    fireEvent.click(screen.getByLabelText("Occupation (optional)"));
     expect(
       screen.getByRole("option", { name: "Translation" }),
     ).toBeInTheDocument();
@@ -308,15 +308,15 @@ describe("RateSheetForm", () => {
     expect(screen.getByText("1.0000€")).toBeInTheDocument();
   });
 
-  it("does not show language fields when no activity selected", () => {
+  it("does not show language fields when no occupation selected", () => {
     renderForm();
     expect(screen.queryByText("Source language")).not.toBeInTheDocument();
     expect(screen.queryByText("Target language")).not.toBeInTheDocument();
   });
 
-  it("shows language fields when initial has activityId set", () => {
-    // showLanguageFields = activityId !== "__none__"
-    renderForm({ initial: makeInitial({ activityId: 1 }) });
+  it("shows language fields when initial has occupationId set", () => {
+    // showLanguageFields = occupationId !== "__none__"
+    renderForm({ initial: makeInitial({ occupationId: 1 }) });
     expect(screen.getByText("Source language")).toBeInTheDocument();
     expect(screen.getByText("Target language")).toBeInTheDocument();
   });

@@ -846,17 +846,17 @@ describe("TtcEntryRow", () => {
     expect(onUpdate).toHaveBeenCalledWith({ id: 1, subtaskId: null });
   });
 
-  it("does not render the activity control when the entry has no project", () => {
+  it("does not render the occupation control when the entry has no project", () => {
     render(wrap(<TtcEntryRow {...baseProps()} />));
-    expect(screen.queryByTitle("Link activity")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Link occupation")).not.toBeInTheDocument();
   });
 
-  it("shows 'No activity' when unset, or the linked activity's name, scoped to the entry's project", () => {
+  it("shows 'No occupation' when unset, or the linked occupation's name, scoped to the entry's project", () => {
     const project = makeProject({
       id: 1,
-      activities: [
-        { id: 1, name: "Translation", activityType: "TRANSLATOR" },
-        { id: 2, name: "Proofreading", activityType: "CORRECTOR" },
+      occupations: [
+        { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
+        { id: 2, name: "Proofreading", occupationType: "CORRECTOR" },
       ],
     });
     const { rerender } = render(
@@ -869,7 +869,7 @@ describe("TtcEntryRow", () => {
         />,
       ),
     );
-    expect(screen.getByText("No activity")).toBeInTheDocument();
+    expect(screen.getByText("No occupation")).toBeInTheDocument();
 
     rerender(
       wrap(
@@ -877,11 +877,11 @@ describe("TtcEntryRow", () => {
           {...baseProps({
             entry: makeEntry({
               projectId: 1,
-              activityId: 1,
-              activity: {
+              occupationId: 1,
+              occupation: {
                 id: 1,
                 name: "Translation",
-                activityType: "TRANSLATOR",
+                occupationType: "TRANSLATOR",
               },
             }),
             projects: [project],
@@ -892,11 +892,13 @@ describe("TtcEntryRow", () => {
     expect(screen.getByText("Translation")).toBeInTheDocument();
   });
 
-  it("selecting an activity from the edit Select calls onUpdate with its id", () => {
+  it("selecting an occupation from the edit Select calls onUpdate with its id", () => {
     const onUpdate = vi.fn();
     const project = makeProject({
       id: 1,
-      activities: [{ id: 1, name: "Translation", activityType: "TRANSLATOR" }],
+      occupations: [
+        { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
+      ],
     });
     render(
       wrap(
@@ -910,13 +912,13 @@ describe("TtcEntryRow", () => {
       ),
     );
 
-    fireEvent.click(screen.getByTitle("Link activity"));
+    fireEvent.click(screen.getByTitle("Link occupation"));
     fireEvent.click(screen.getByText("Translation"));
 
-    expect(onUpdate).toHaveBeenCalledWith({ id: 1, activityId: 1 });
+    expect(onUpdate).toHaveBeenCalledWith({ id: 1, occupationId: 1 });
   });
 
-  it("does not show a words-processed control when the entry has no activity or a non-Translator one", () => {
+  it("does not show a words-processed control when the entry has no occupation or a non-Translator one", () => {
     const { rerender } = render(wrap(<TtcEntryRow {...baseProps()} />));
     expect(screen.queryByLabelText("Words processed")).not.toBeInTheDocument();
 
@@ -925,10 +927,10 @@ describe("TtcEntryRow", () => {
         <TtcEntryRow
           {...baseProps({
             entry: makeEntry({
-              activity: {
+              occupation: {
                 id: 2,
                 name: "Proofreading",
-                activityType: "CORRECTOR",
+                occupationType: "CORRECTOR",
               },
             }),
           })}
@@ -938,16 +940,16 @@ describe("TtcEntryRow", () => {
     expect(screen.queryByLabelText("Words processed")).not.toBeInTheDocument();
   });
 
-  it("shows a words-processed control when the entry's activity is Translator", () => {
+  it("shows a words-processed control when the entry's occupation is Translator", () => {
     render(
       wrap(
         <TtcEntryRow
           {...baseProps({
             entry: makeEntry({
-              activity: {
+              occupation: {
                 id: 1,
                 name: "Translation",
-                activityType: "TRANSLATOR",
+                occupationType: "TRANSLATOR",
               },
               wordsProcessed: 1200,
             }),
@@ -965,10 +967,10 @@ describe("TtcEntryRow", () => {
         <TtcEntryRow
           {...baseProps({
             entry: makeEntry({
-              activity: {
+              occupation: {
                 id: 1,
                 name: "Translation",
-                activityType: "TRANSLATOR",
+                occupationType: "TRANSLATOR",
               },
             }),
             onUpdate,
@@ -992,10 +994,10 @@ describe("TtcEntryRow", () => {
         <TtcEntryRow
           {...baseProps({
             entry: makeEntry({
-              activity: {
+              occupation: {
                 id: 1,
                 name: "Translation",
-                activityType: "TRANSLATOR",
+                occupationType: "TRANSLATOR",
               },
               wordsProcessed: 500,
             }),

@@ -140,7 +140,7 @@ export function ProjectsTab({
                 <Badge className={STATUS_COLORS[p.status] ?? ""}>
                   {p.status}
                 </Badge>
-                {p.activities?.map((a) => (
+                {p.occupations?.map((a) => (
                   <Badge
                     key={a.id}
                     variant="outline"
