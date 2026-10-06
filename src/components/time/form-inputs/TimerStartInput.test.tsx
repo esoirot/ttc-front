@@ -47,12 +47,7 @@ function renderInput(
 ) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <TimerStartInput
-        projects={[]}
-        tags={[]}
-        recentDescriptions={[]}
-        {...overrides}
-      />
+      <TimerStartInput tags={[]} recentDescriptions={[]} {...overrides} />
     </QueryClientProvider>,
     { wrapper: locale === "en" ? wrapper : createIntlWrapper(locale) },
   );
@@ -128,13 +123,38 @@ describe("TimerStartInput", () => {
     );
   });
 
-  it("uses initialProjectId to pre-select a project", () => {
-    renderInput({
-      projects: [makeProject({ id: 7, title: "Website copy" })],
-      initialProjectId: 7,
+  it("uses initialProjectId to pre-select a project", async () => {
+    gqlFetch.mockResolvedValue({
+      project: makeProject({ id: 7, title: "Website copy" }),
     });
+    renderInput({ initialProjectId: 7 });
 
-    expect(screen.getByText("Website copy")).toBeInTheDocument();
+    expect(await screen.findByText("Website copy")).toBeInTheDocument();
+  });
+
+  it("starts the timer on the picked project", async () => {
+    gqlFetch.mockResolvedValue({
+      projects: {
+        items: [makeProject({ id: 5, title: "Docs" })],
+        nextCursor: null,
+        total: 1,
+      },
+    });
+    gqlMutate.mockResolvedValueOnce({ startTimer: { id: 1 } });
+    renderInput();
+
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(await screen.findByRole("option", { name: "Docs" }));
+    fireEvent.click(screen.getByRole("button", { name: "▶ Start" }));
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          input: expect.objectContaining({ projectId: 5 }),
+        }),
+      ),
+    );
   });
 
   it("passes billable=false when the toggle is clicked before starting", async () => {
@@ -164,7 +184,7 @@ describe("TimerStartInput", () => {
 
   it("omits projectId from the mutation when no project is selected", async () => {
     gqlMutate.mockResolvedValueOnce({ startTimer: { id: 1 } });
-    renderInput({ projects: [makeProject({ id: 5, title: "Docs" })] });
+    renderInput();
 
     fireEvent.click(screen.getByRole("button", { name: "▶ Start" }));
 

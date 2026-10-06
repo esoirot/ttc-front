@@ -3,9 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createIntlWrapper } from "@/test/intlWrapper";
 import type { Locale } from "@/i18n/useLocale";
 
-const useAllClientsMock = vi.fn();
+const clientsMock = vi.fn();
 vi.mock("@/hooks/clients/useClients", () => ({
-  useAllClients: () => useAllClientsMock(),
+  useClientOptions: () => ({ ...clientsMock(), loading: false }),
+  useClient: (id: number) => ({
+    client:
+      (clientsMock() as { clients: { id: number }[] }).clients.find(
+        (c) => c.id === id,
+      ) ?? null,
+  }),
 }));
 
 const useMyActivitiesMock = vi.fn();
@@ -28,7 +34,7 @@ const mockActivities = [
 const mockClients = [{ id: 1, name: "Acme Corp" }];
 
 function defaultHooks() {
-  useAllClientsMock.mockReturnValue({ clients: mockClients });
+  clientsMock.mockReturnValue({ clients: mockClients });
   useMyActivitiesMock.mockReturnValue({ activities: mockActivities });
   useCurrentUserMock.mockReturnValue({ user: { defaultCurrency: "EUR" } });
 }
@@ -75,7 +81,7 @@ function renderForm(
 
 describe("RateForm", () => {
   beforeEach(() => {
-    useAllClientsMock.mockReset();
+    clientsMock.mockReset();
     useMyActivitiesMock.mockReset();
     useCurrentUserMock.mockReset();
     defaultHooks();

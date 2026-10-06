@@ -9,6 +9,14 @@ vi.mock("@/hooks/invoices/useTimeEntriesTab", () => ({
   useTimeEntriesTab: (...args: unknown[]) => useTimeEntriesTabMock(...args),
 }));
 
+vi.mock("@/hooks/projects/useProjects", () => ({
+  useProjectOptions: () => ({
+    projects: [{ id: 4, title: "Brochure" }],
+    loading: false,
+  }),
+  useProject: () => ({ project: null }),
+}));
+
 import { TimeEntriesTab } from "./TimeEntriesTab";
 
 function makeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
@@ -32,7 +40,6 @@ function makeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
 function defaultState() {
   return {
     rates: [],
-    projects: [],
     selectedProjectId: "__all__",
     selectedRateId: "",
     unitPrice: "",
@@ -70,6 +77,22 @@ function renderTab(
 }
 
 describe("TimeEntriesTab", () => {
+  it("filters by the picked project", () => {
+    const handleProjectChange = vi.fn();
+    renderTab({ handleProjectChange });
+    fireEvent.click(screen.getByRole("combobox", { name: "Project" }));
+    fireEvent.click(screen.getByRole("option", { name: "Brochure" }));
+    expect(handleProjectChange).toHaveBeenCalledWith("4");
+  });
+
+  it("goes back to all projects", () => {
+    const handleProjectChange = vi.fn();
+    renderTab({ selectedProjectId: "4", handleProjectChange });
+    fireEvent.click(screen.getByRole("combobox", { name: "Project" }));
+    fireEvent.click(screen.getByRole("option", { name: "All projects" }));
+    expect(handleProjectChange).toHaveBeenCalledWith("__all__");
+  });
+
   beforeEach(() => {
     useTimeEntriesTabMock.mockReset();
   });

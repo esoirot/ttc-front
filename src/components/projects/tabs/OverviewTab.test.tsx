@@ -65,6 +65,12 @@ vi.mock("recharts", () => ({
 
 import { OverviewTab } from "./OverviewTab";
 
+/** Matches a paragraph by its whole text, even when split across spans. */
+function paragraph(text: string) {
+  return (_: string, el: Element | null) =>
+    el?.tagName === "P" && el.textContent === text;
+}
+
 function makeProject(overrides: Partial<Project> = {}): Project {
   return {
     id: 1,
@@ -231,7 +237,7 @@ describe("OverviewTab", () => {
       />,
       { wrapper: createIntlQueryWrapper() },
     );
-    expect(screen.getByText("0 / 1,000")).toBeInTheDocument();
+    expect(screen.getByText(paragraph("0 / 1,000"))).toBeInTheDocument();
     expect(screen.getByText("Pricing")).toBeInTheDocument();
     expect(screen.queryByText(/^Fixed /)).not.toBeInTheDocument();
     expect(screen.getByText("50 USD/hr")).toBeInTheDocument();
@@ -265,7 +271,22 @@ describe("OverviewTab", () => {
       />,
       { wrapper: createIntlQueryWrapper() },
     );
-    expect(screen.getByText("400 / 1,000")).toBeInTheDocument();
+    expect(screen.getByText(paragraph("400 / 1,000"))).toBeInTheDocument();
+  });
+
+  it("shortens a word count target of a million or more", () => {
+    render(
+      <OverviewTab
+        project={makeProject({
+          wordCount: 2_500_000,
+          totalWordsProcessed: 400,
+        })}
+        totalSeconds={0}
+      />,
+      { wrapper: createIntlQueryWrapper() },
+    );
+    expect(screen.getByText(paragraph("400 / 2.5M"))).toBeInTheDocument();
+    expect(screen.getByTitle("2,500,000")).toBeInTheDocument();
   });
 
   it("shows the client rate sheet price per word when useCustomRate is off and a sheet matches", async () => {

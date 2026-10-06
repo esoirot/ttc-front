@@ -1,3 +1,4 @@
+import { ClientPicker } from "@/components/clients/pickers/ClientPicker";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useIntl, FormattedMessage } from "react-intl";
@@ -20,6 +21,7 @@ import type { TranslationRate } from "@/types/rates.types";
 import type { ClientRate } from "@/types/client-rates.types";
 import { useRates } from "@/hooks/rates/useRates";
 import { useClientRates } from "@/hooks/clients/useClientRates";
+import { useClient } from "@/hooks/clients/useClients";
 import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
 import {
   defaultClientRateSheetId,
@@ -96,7 +98,6 @@ function buildFormState(project: ProjectHeaderProps["project"]) {
 
 export function ProjectHeader({
   project,
-  clients,
   onUpdate,
   saving,
 }: ProjectHeaderProps) {
@@ -105,6 +106,7 @@ export function ProjectHeader({
   const { activities } = useMyActivities();
   const clientIdNum = project.clientId;
   const { clientRates } = useClientRates(clientIdNum);
+  const { client } = useClient(clientIdNum ?? 0);
   const { rateSheets, loading: rateSheetsLoading } = useRateSheets();
   const resolvedRateSheet = resolveProjectRateSheet(rateSheets, project);
 
@@ -254,29 +256,19 @@ export function ProjectHeader({
                 defaultMessage="Client"
               />
             </Label>
-            <Select value={form.clientId} onValueChange={handleClientChange}>
-              <SelectTrigger id="pj-client">
-                <SelectValue
-                  placeholder={intl.formatMessage({
-                    id: "projects.header.field.noClient",
-                    defaultMessage: "No client",
-                  })}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">
-                  <FormattedMessage
-                    id="projects.header.field.noClient"
-                    defaultMessage="No client"
-                  />
-                </SelectItem>
-                {clients.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ClientPicker
+              id="pj-client"
+              value={form.clientId === "__none__" ? "" : form.clientId}
+              onChange={(v) => handleClientChange(v || "__none__")}
+              placeholder={intl.formatMessage({
+                id: "projects.header.field.noClient",
+                defaultMessage: "No client",
+              })}
+              noneLabel={intl.formatMessage({
+                id: "projects.header.field.noClient",
+                defaultMessage: "No client",
+              })}
+            />
           </div>
           <div className="flex flex-col gap-1">
             <Label htmlFor="pj-src">
@@ -631,8 +623,6 @@ export function ProjectHeader({
       </form>
     );
   }
-
-  const client = clients.find((c) => c.id === project.clientId);
 
   const pricing = project.useCustomRate
     ? [

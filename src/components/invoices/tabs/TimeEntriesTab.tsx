@@ -1,3 +1,4 @@
+import { ProjectPicker } from "@/components/projects/pickers/ProjectPicker";
 import { useIntl, FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,9 +25,12 @@ export function TimeEntriesTab({
   adding,
 }: Props) {
   const intl = useIntl();
+  const allProjects = intl.formatMessage({
+    id: "invoices.timeEntriesTab.allProjects",
+    defaultMessage: "All projects",
+  });
   const {
     rates,
-    projects,
     selectedProjectId,
     selectedRateId,
     unitPrice,
@@ -53,29 +57,17 @@ export function TimeEntriesTab({
             defaultMessage="Project"
           />
         </Label>
-        <Select value={selectedProjectId} onValueChange={handleProjectChange}>
-          <SelectTrigger className="h-8 text-sm">
-            <SelectValue
-              placeholder={intl.formatMessage({
-                id: "invoices.timeEntriesTab.allProjects",
-                defaultMessage: "All projects",
-              })}
-            />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all__">
-              <FormattedMessage
-                id="invoices.timeEntriesTab.allProjects"
-                defaultMessage="All projects"
-              />
-            </SelectItem>
-            {projects.map((p) => (
-              <SelectItem key={p.id} value={String(p.id)}>
-                {p.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <ProjectPicker
+          className="h-8 text-sm"
+          aria-label={intl.formatMessage({
+            id: "invoices.timeEntriesTab.project",
+            defaultMessage: "Project",
+          })}
+          value={selectedProjectId === "__all__" ? "" : selectedProjectId}
+          onChange={(v) => handleProjectChange(v || "__all__")}
+          placeholder={allProjects}
+          noneLabel={allProjects}
+        />
       </div>
 
       <div className="flex flex-col gap-1">

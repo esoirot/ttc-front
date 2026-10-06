@@ -1,14 +1,8 @@
+import { ProjectPicker } from "@/components/projects/pickers/ProjectPicker";
 import { useState } from "react";
 import { useIntl } from "react-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { TimerStartInputProps as Props } from "@/types/shared-ui.types";
 import { cn } from "@/lib/utils";
 import { useStartTimer } from "@/hooks/time/useTimeEntries";
@@ -16,7 +10,6 @@ import { DescriptionCombobox } from "./DescriptionCombobox";
 import { TtcTagChips } from "../tags/TtcTagChips";
 
 export function TimerStartInput({
-  projects,
   tags,
   recentDescriptions,
   initialProjectId,
@@ -24,6 +17,10 @@ export function TimerStartInput({
   initialTaskTitle,
 }: Props) {
   const intl = useIntl();
+  const noProject = intl.formatMessage({
+    id: "time.entryRow.noProject",
+    defaultMessage: "No project",
+  });
   const { startTimer, loading: starting } = useStartTimer();
   const [desc, setDesc] = useState("");
   const [projectId, setProjectId] = useState<string | null>(
@@ -78,32 +75,13 @@ export function TimerStartInput({
             )}
           </Badge>
         )}
-        <Select
-          value={projectId ?? "__none__"}
-          onValueChange={(v) => setProjectId(v === "__none__" ? null : v)}
-        >
-          <SelectTrigger className="h-6 text-xs w-auto min-w-[100px] border-dashed">
-            <SelectValue
-              placeholder={intl.formatMessage({
-                id: "time.entryRow.noProject",
-                defaultMessage: "No project",
-              })}
-            />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__none__">
-              {intl.formatMessage({
-                id: "time.entryRow.noProject",
-                defaultMessage: "No project",
-              })}
-            </SelectItem>
-            {projects.map((p) => (
-              <SelectItem key={p.id} value={String(p.id)}>
-                {p.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <ProjectPicker
+          className="h-6 text-xs w-auto min-w-[100px] border-dashed"
+          value={projectId ?? ""}
+          onChange={(v) => setProjectId(v || null)}
+          placeholder={noProject}
+          noneLabel={noProject}
+        />
         <TtcTagChips tagIds={tagIds} tags={tags} onChange={setTagIds} />
         <Button
           type="button"

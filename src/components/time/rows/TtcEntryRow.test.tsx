@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -101,6 +101,15 @@ describe("TtcEntryRow", () => {
     gqlFetch.mockReset();
     gqlFetch.mockImplementation(
       (_query: unknown, vars: Record<string, unknown>) => {
+        if ("pagination" in vars && !("projectId" in vars)) {
+          return Promise.resolve({
+            projects: {
+              items: [{ id: 5, title: "Manual" }],
+              nextCursor: null,
+              total: 1,
+            },
+          });
+        }
         if ("projectId" in vars) {
           return Promise.resolve({
             tasks: {
@@ -318,7 +327,7 @@ describe("TtcEntryRow", () => {
     expect(screen.getByText("Website copy")).toBeInTheDocument();
   });
 
-  it("selecting a project from the edit Select calls onUpdate with its id", () => {
+  it("selecting a project from the edit Select calls onUpdate with its id", async () => {
     const onUpdate = vi.fn();
     render(
       wrap(
@@ -332,7 +341,7 @@ describe("TtcEntryRow", () => {
     );
 
     fireEvent.click(screen.getByTitle("Edit project"));
-    fireEvent.click(screen.getByText("Manual"));
+    fireEvent.click(await screen.findByRole("option", { name: "Manual" }));
 
     expect(onUpdate).toHaveBeenCalledWith({
       id: 1,
@@ -342,7 +351,7 @@ describe("TtcEntryRow", () => {
     });
   });
 
-  it("selecting 'No project' clears the project", () => {
+  it("selecting 'No project' clears the project", async () => {
     const onUpdate = vi.fn();
     render(
       wrap(
@@ -357,7 +366,7 @@ describe("TtcEntryRow", () => {
     );
 
     fireEvent.click(screen.getByTitle("Edit project"));
-    fireEvent.click(screen.getAllByText("No project")[0]);
+    fireEvent.click(await screen.findByRole("option", { name: "No project" }));
 
     expect(onUpdate).toHaveBeenCalledWith({
       id: 1,
@@ -522,7 +531,7 @@ describe("TtcEntryRow", () => {
     );
   });
 
-  it("loads every task of the project in the task picker, not just the first page", async () => {
+  it("searches the project's tasks on the server from the task picker", async () => {
     render(
       wrap(
         <TtcEntryRow
@@ -539,11 +548,15 @@ describe("TtcEntryRow", () => {
     );
 
     fireEvent.click(screen.getByTitle("Edit task"));
-    await screen.findByText("No task");
+    fireEvent.change(await screen.findByPlaceholderText("Search…"), {
+      target: { value: "chap" },
+    });
 
-    expect(gqlFetch).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ projectId: 1, pagination: { limit: 1000 } }),
+    await waitFor(() =>
+      expect(gqlFetch).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ projectId: 1, search: "chap" }),
+      ),
     );
   });
 
@@ -569,6 +582,86 @@ describe("TtcEntryRow", () => {
       taskId: 9,
       description: "Task Draft chapter of project Website copy",
     });
+  });
+
+  it("linking a task to a blank-space description auto-fills it", async () => {
+    const onUpdate = vi.fn();
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({ projectId: 1, description: "   " }),
+            projects: [makeProject({ id: 1, title: "Website copy" })],
+            onUpdate,
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Link task"));
+    fireEvent.click(await screen.findByText("Draft chapter"));
+
+    expect(onUpdate).toHaveBeenCalledWith({
+      id: 1,
+      taskId: 9,
+      description: "Task Draft chapter of project Website copy",
+    });
+  });
+
+  it("the task picker marks the linked task and closes back to its badge on Escape", async () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              projectId: 1,
+              taskId: 9,
+              task: { id: 9, title: "Draft chapter" },
+            }),
+            projects: [makeProject({ id: 1, title: "Website copy" })],
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Edit task"));
+    expect(
+      await screen.findByRole("option", { name: "Draft chapter" }),
+    ).toHaveAttribute("data-checked", "true");
+
+    fireEvent.keyDown(screen.getByPlaceholderText("Search…"), {
+      key: "Escape",
+    });
+    await waitFor(() =>
+      expect(screen.queryByRole("combobox")).not.toBeInTheDocument(),
+    );
+    expect(screen.getByTitle("Edit task")).toBeInTheDocument();
+  });
+
+  it("the project picker marks the current project and closes back to its button on Escape", async () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({ projectId: 5 }),
+            projects: [makeProject({ id: 5, title: "Manual" })],
+          })}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByTitle("Edit project"));
+    expect(
+      await screen.findByRole("option", { name: "Manual" }),
+    ).toHaveAttribute("data-checked", "true");
+
+    fireEvent.keyDown(screen.getByPlaceholderText("Search…"), {
+      key: "Escape",
+    });
+    await waitFor(() =>
+      expect(screen.queryByRole("combobox")).not.toBeInTheDocument(),
+    );
+    expect(screen.getByTitle("Edit project")).toBeInTheDocument();
   });
 
   it("linking a task leaves an existing description untouched", async () => {

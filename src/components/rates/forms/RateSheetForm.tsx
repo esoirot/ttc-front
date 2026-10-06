@@ -1,3 +1,4 @@
+import { ClientPicker } from "@/components/clients/pickers/ClientPicker";
 import { useState } from "react";
 import { useIntl, FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
-import { useAllClients } from "@/hooks/clients/useClients";
 import { useMyActivities } from "@/hooks/activities/useActivities";
 import { CURRENCIES } from "@/constants/rates";
 import { LANGUAGES } from "@/constants/languages";
@@ -35,7 +35,10 @@ export function RateSheetForm({
   const { user } = useCurrentUser();
   const userCurrency = user?.defaultCurrency ?? "EUR";
 
-  const { clients } = useAllClients();
+  const noClient = intl.formatMessage({
+    id: "rates.form.noClient",
+    defaultMessage: "No client",
+  });
   const { activities: allActivities } = useMyActivities();
   const activities = allActivities.filter(
     (a) => a.activityType === "TRANSLATOR",
@@ -192,29 +195,13 @@ export function RateSheetForm({
               defaultMessage="Client (optional)"
             />
           </Label>
-          <Select value={clientId} onValueChange={setClientId}>
-            <SelectTrigger id="rs-client">
-              <SelectValue
-                placeholder={intl.formatMessage({
-                  id: "rates.form.noClient",
-                  defaultMessage: "No client",
-                })}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">
-                <FormattedMessage
-                  id="rates.form.noClient"
-                  defaultMessage="No client"
-                />
-              </SelectItem>
-              {clients.map((c) => (
-                <SelectItem key={c.id} value={String(c.id)}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ClientPicker
+            id="rs-client"
+            value={clientId === "__none__" ? "" : clientId}
+            onChange={(v) => setClientId(v || "__none__")}
+            placeholder={noClient}
+            noneLabel={noClient}
+          />
         </div>
 
         {clientId !== "__none__" && (

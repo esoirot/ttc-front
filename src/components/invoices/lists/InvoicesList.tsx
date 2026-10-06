@@ -26,8 +26,6 @@ export function InvoicesList() {
     hasMore,
     loadMore,
     total,
-    clients,
-    projects,
     clientMap,
     showCreate,
     setShowCreate,
@@ -46,7 +44,6 @@ export function InvoicesList() {
 
       {showCreate && (
         <CreateInvoiceForm
-          clients={clients}
           onClose={() => setShowCreate(false)}
           onCreated={(id) => navigate(`/invoices/${id}`)}
         />
@@ -54,8 +51,6 @@ export function InvoicesList() {
 
       {showGenerate && (
         <GenerateInvoiceForm
-          clients={clients}
-          projects={projects}
           onClose={() => setShowGenerate(false)}
           onGenerated={(id) => navigate(`/invoices/${id}`)}
         />

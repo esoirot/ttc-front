@@ -1,20 +1,14 @@
+import { ClientPicker } from "@/components/clients/pickers/ClientPicker";
 import { useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { CreateInvoiceFormProps as Props } from "@/types/shared-ui.types";
 import { useCreateInvoice } from "@/hooks/invoices/useInvoices";
 
-export function CreateInvoiceForm({ clients, onClose, onCreated }: Props) {
+export function CreateInvoiceForm({ onClose, onCreated }: Props) {
   const intl = useIntl();
   const { createInvoice, loading } = useCreateInvoice();
   const [clientId, setClientId] = useState("");
@@ -42,34 +36,19 @@ export function CreateInvoiceForm({ clients, onClose, onCreated }: Props) {
                   defaultMessage="Client"
                 />
               </Label>
-              <Select
-                value={clientId || "__none__"}
-                onValueChange={(val) =>
-                  setClientId(val === "__none__" ? "" : val)
-                }
-              >
-                <SelectTrigger id="cif-client" className="w-full">
-                  <SelectValue
-                    placeholder={intl.formatMessage({
-                      id: "invoices.metaCard.noClient",
-                      defaultMessage: "No client",
-                    })}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">
-                    <FormattedMessage
-                      id="invoices.metaCard.noClient"
-                      defaultMessage="No client"
-                    />
-                  </SelectItem>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ClientPicker
+                id="cif-client"
+                value={clientId}
+                onChange={setClientId}
+                placeholder={intl.formatMessage({
+                  id: "invoices.metaCard.noClient",
+                  defaultMessage: "No client",
+                })}
+                noneLabel={intl.formatMessage({
+                  id: "invoices.metaCard.noClient",
+                  defaultMessage: "No client",
+                })}
+              />
             </div>
             <div className="flex flex-col gap-1">
               <Label htmlFor="cif-due">

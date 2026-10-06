@@ -19,7 +19,7 @@ function renderForm(onClose = vi.fn(), locale: Locale = "en") {
   return render(
     <IntlProvider locale={locale} messages={messages[locale]}>
       <QueryClientProvider client={createQueryClient()}>
-        <CreateProjectForm clients={[]} onClose={onClose} />
+        <CreateProjectForm onClose={onClose} />
       </QueryClientProvider>
     </IntlProvider>,
   );
@@ -63,6 +63,31 @@ describe("CreateProjectForm", () => {
       },
     });
   }, 15_000);
+
+  it("links the picked client to the new project", async () => {
+    gqlFetch.mockResolvedValue({
+      clients: {
+        items: [{ id: 4, name: "Zeta Corp" }],
+        nextCursor: null,
+        total: 1,
+      },
+    });
+    gqlMutate.mockResolvedValueOnce({ createProject: { id: 9 } });
+    const onClose = vi.fn();
+    renderForm(onClose);
+
+    fireEvent.change(screen.getByLabelText("Title *"), {
+      target: { value: "New project" },
+    });
+    fireEvent.click(screen.getByLabelText("Client"));
+    fireEvent.click(await screen.findByRole("option", { name: "Zeta Corp" }));
+    fireEvent.click(screen.getByText("Create project"));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+      input: { title: "New project", clientId: 4 },
+    });
+  });
 
   it("renders French copy when locale is fr", () => {
     renderForm(vi.fn(), "fr");

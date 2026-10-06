@@ -3,49 +3,24 @@ import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { messages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/useLocale";
-import type { Client } from "@/types/clients.types";
 
 const useCreateInvoiceMock = vi.fn();
 vi.mock("@/hooks/invoices/useInvoices", () => ({
   useCreateInvoice: () => useCreateInvoiceMock(),
 }));
 
-import { CreateInvoiceForm } from "./CreateInvoiceForm";
+vi.mock("@/hooks/clients/useClients", () => ({
+  useClientOptions: () => ({
+    clients: [{ id: 7, name: "Zeta Corp" }],
+    loading: false,
+  }),
+  useClient: () => ({ client: null }),
+}));
 
-function makeClient(overrides: Partial<Client> = {}): Client {
-  return {
-    id: 1,
-    userId: 1,
-    name: "Acme",
-    legalName: null,
-    email: null,
-    phone: null,
-    company: null,
-    address: null,
-    city: null,
-    country: null,
-    postalCode: null,
-    vatNumber: null,
-    notes: null,
-    hubspotId: null,
-    clientType: "COMPANY",
-    firstName: null,
-    lastName: null,
-    paymentDelayDays: null,
-    taxRate: null,
-    billingEndOfMonth: false,
-    website: null,
-    industry: null,
-    tags: [],
-    contacts: [],
-    createdAt: "2026-01-01T00:00:00.000Z",
-    ...overrides,
-  } as Client;
-}
+import { CreateInvoiceForm } from "./CreateInvoiceForm";
 
 function renderForm(
   overrides: Partial<{
-    clients: Client[];
     onClose: () => void;
     onCreated: (id: number) => void;
   }> = {},
@@ -53,12 +28,7 @@ function renderForm(
 ) {
   return render(
     <IntlProvider locale={locale} messages={messages[locale]}>
-      <CreateInvoiceForm
-        clients={[]}
-        onClose={vi.fn()}
-        onCreated={vi.fn()}
-        {...overrides}
-      />
+      <CreateInvoiceForm onClose={vi.fn()} onCreated={vi.fn()} {...overrides} />
     </IntlProvider>,
   );
 }
@@ -105,6 +75,23 @@ describe("CreateInvoiceForm", () => {
     expect(onCreated).toHaveBeenCalledWith(42);
   });
 
+  it("submits the picked client", async () => {
+    const createInvoice = vi.fn().mockResolvedValue({ id: 1 });
+    useCreateInvoiceMock.mockReturnValue({ createInvoice, loading: false });
+    renderForm();
+
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("option", { name: "Zeta Corp" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create invoice" }));
+
+    await vi.waitFor(() =>
+      expect(createInvoice).toHaveBeenCalledWith({
+        clientId: 7,
+        dueDate: undefined,
+      }),
+    );
+  });
+
   it("submits with a due date set", async () => {
     const createInvoice = vi.fn().mockResolvedValue({ id: 1 });
     useCreateInvoiceMock.mockReturnValue({ createInvoice, loading: false });
@@ -145,7 +132,7 @@ describe("CreateInvoiceForm", () => {
   });
 
   it("shows 'No client' as the default selection", () => {
-    renderForm({ clients: [makeClient({ id: 1, name: "Acme" })] });
+    renderForm();
     expect(screen.getByRole("combobox")).toHaveTextContent("No client");
   });
 

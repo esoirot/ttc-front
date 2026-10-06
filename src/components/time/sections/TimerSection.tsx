@@ -7,7 +7,6 @@ export function TimerSection({
   stopTimer,
   stopping,
   refetch,
-  projects,
   tags,
   recentDescriptions,
   initialProjectId,
@@ -27,7 +26,6 @@ export function TimerSection({
 
   return (
     <TimerStartInput
-      projects={projects}
       tags={tags}
       recentDescriptions={recentDescriptions}
       initialProjectId={initialProjectId}

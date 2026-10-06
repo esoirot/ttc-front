@@ -1,4 +1,5 @@
-import { FormattedMessage, useIntl } from "react-intl";
+import { FormattedMessage } from "react-intl";
+import { CompactNumber } from "@/components/kpi/CompactNumber";
 import { KpiCard, KpiGrid } from "@/components/kpi/KpiCard";
 import type { StatsGridProps as Props } from "@/types/dashboard.types";
 
@@ -9,7 +10,6 @@ function formatDuration(seconds: number): string {
 }
 
 export function StatsGrid({ dashboard }: Props) {
-  const intl = useIntl();
   return (
     <KpiGrid className="mb-6">
       <KpiCard
@@ -20,7 +20,7 @@ export function StatsGrid({ dashboard }: Props) {
             defaultMessage="Active Projects"
           />
         }
-        value={dashboard.activeProjectCount}
+        value={<CompactNumber value={dashboard.activeProjectCount} />}
       />
       <KpiCard
         mono
@@ -39,7 +39,12 @@ export function StatsGrid({ dashboard }: Props) {
             defaultMessage="Revenue This Month"
           />
         }
-        value={dashboard.monthToDateRevenue.toFixed(2)}
+        value={
+          <CompactNumber
+            value={dashboard.monthToDateRevenue}
+            fractionDigits={2}
+          />
+        }
         unit="EUR"
       />
       <KpiCard
@@ -50,7 +55,7 @@ export function StatsGrid({ dashboard }: Props) {
             defaultMessage="Words This Year"
           />
         }
-        value={intl.formatNumber(dashboard.yearToDateWords)}
+        value={<CompactNumber value={dashboard.yearToDateWords} />}
       />
     </KpiGrid>
   );

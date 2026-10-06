@@ -1,3 +1,4 @@
+import { ClientPicker } from "@/components/clients/pickers/ClientPicker";
 import { useIntl, FormattedMessage } from "react-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { CURRENCIES } from "@/constants/invoices";
 import type { InvoiceMetaCardProps as Props } from "@/types/invoices.types";
-import { useAllClients } from "@/hooks/clients/useClients";
+import { useClient } from "@/hooks/clients/useClients";
 import { useInvoiceMetaEdit } from "@/hooks/invoices/useInvoiceMetaEdit";
 
 export function InvoiceMetaCard({
@@ -24,13 +25,17 @@ export function InvoiceMetaCard({
   onUpdate,
 }: Props) {
   const intl = useIntl();
-  const { clients } = useAllClients();
+  const { client } = useClient(clientId ?? 0);
   const { editing, saving, form, setForm, openEdit, cancelEdit, handleSave } =
     useInvoiceMetaEdit({ clientId, currency, dueDate, notes, onUpdate });
 
+  const noClient = intl.formatMessage({
+    id: "invoices.metaCard.noClient",
+    defaultMessage: "No client",
+  });
   const clientName =
     clientId != null
-      ? (clients.find((c) => c.id === clientId)?.name ??
+      ? (client?.name ??
         intl.formatMessage(
           {
             id: "invoices.metaCard.clientNumber",
@@ -38,10 +43,7 @@ export function InvoiceMetaCard({
           },
           { num: clientId },
         ))
-      : intl.formatMessage({
-          id: "invoices.metaCard.noClient",
-          defaultMessage: "No client",
-        });
+      : noClient;
 
   if (editing) {
     return (
@@ -62,32 +64,19 @@ export function InvoiceMetaCard({
                 defaultMessage="Client"
               />
             </Label>
-            <Select
-              value={form.clientId}
-              onValueChange={(v) => setForm((f) => ({ ...f, clientId: v }))}
-            >
-              <SelectTrigger className="h-8 text-sm">
-                <SelectValue
-                  placeholder={intl.formatMessage({
-                    id: "invoices.metaCard.noClient",
-                    defaultMessage: "No client",
-                  })}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">
-                  <FormattedMessage
-                    id="invoices.metaCard.noClient"
-                    defaultMessage="No client"
-                  />
-                </SelectItem>
-                {clients.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ClientPicker
+              className="h-8 text-sm"
+              aria-label={intl.formatMessage({
+                id: "invoices.metaCard.client",
+                defaultMessage: "Client",
+              })}
+              value={form.clientId === "none" ? "" : form.clientId}
+              onChange={(v) =>
+                setForm((f) => ({ ...f, clientId: v || "none" }))
+              }
+              placeholder={noClient}
+              noneLabel={noClient}
+            />
           </div>
 
           <div className="flex flex-col gap-1">

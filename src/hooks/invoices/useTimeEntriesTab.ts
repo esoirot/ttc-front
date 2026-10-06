@@ -114,7 +114,6 @@ export function useTimeEntriesTab(
 
   return {
     rates,
-    projects,
     selectedProjectId,
     selectedRateId,
     unitPrice,

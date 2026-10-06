@@ -4,7 +4,6 @@ import { MemoryRouter } from "react-router-dom";
 import { IntlProvider } from "react-intl";
 import { messages } from "@/i18n/messages";
 import type { Project } from "@/types/projects.types";
-import type { Client } from "@/types/clients.types";
 import { ProjectHeader } from "./ProjectHeader";
 
 function makeProject(overrides: Partial<Project> = {}): Project {
@@ -35,46 +34,6 @@ function makeProject(overrides: Partial<Project> = {}): Project {
   };
 }
 
-function makeClient(overrides: Partial<Client> = {}): Client {
-  return {
-    id: 1,
-    userId: 1,
-    name: "Acme Corp",
-    legalName: "Acme Corporation Ltd.",
-    email: "contact@acme.com",
-    phone: "+1 555 0100",
-    company: "Acme",
-    address: "123 Main St",
-    addressLine2: null,
-    city: "Springfield",
-    country: "US",
-    state: null,
-    postalCode: "12345",
-    vatNumber: "US123456789",
-    legalForm: null,
-    color: null,
-    notes: null,
-    hubspotId: null,
-    clientType: "COMPANY",
-    firstName: null,
-    lastName: null,
-    paymentDelayDays: 30,
-    taxRate: 0,
-    billingEndOfMonth: false,
-    website: "https://acme.com",
-    industry: "TECHNOLOGY",
-    status: "CLIENT",
-    contactedAt: null,
-    tags: [],
-    contacts: [],
-    createdAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: "2026-01-01T00:00:00.000Z",
-    ...overrides,
-  };
-}
-
-const clients: Client[] = [makeClient()];
-
 const meta: Meta<typeof ProjectHeader> = {
   component: ProjectHeader,
   title: "Organisms/ProjectHeader",
@@ -91,7 +50,6 @@ const meta: Meta<typeof ProjectHeader> = {
   ],
   args: {
     project: makeProject(),
-    clients,
     onUpdate: () => Promise.resolve(),
     saving: false,
   },

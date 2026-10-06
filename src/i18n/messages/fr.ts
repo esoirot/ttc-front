@@ -378,6 +378,9 @@ export const fr: Record<keyof typeof en, string> = {
   "projects.taskTimeSection.noTimeLogged": "Aucun temps enregistré.",
 
   "common.dialog.close": "Fermer",
+  "pickers.search": "Rechercher…",
+  "pickers.noResults": "Aucun résultat.",
+  "pickers.loading": "Chargement…",
 
   "activities.detail.activityNotFound": "Activité introuvable.",
   "activities.detail.backToActivities": "← Retour aux activités",

@@ -1,3 +1,4 @@
+import { ClientPicker } from "@/components/clients/pickers/ClientPicker";
 import { useState } from "react";
 import { useIntl, FormattedMessage } from "react-intl";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,6 @@ import {
   TYPE_UNIT_MESSAGES,
 } from "@/constants/rates";
 import { LANGUAGES } from "@/constants/languages";
-import { useAllClients } from "@/hooks/clients/useClients";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
 import { useMyActivities } from "@/hooks/activities/useActivities";
 
@@ -32,7 +32,10 @@ export function RateForm({
   saving,
 }: TranslationRateFormProps) {
   const intl = useIntl();
-  const { clients } = useAllClients();
+  const noClient = intl.formatMessage({
+    id: "rates.form.noClient",
+    defaultMessage: "No client",
+  });
   const { activities } = useMyActivities();
   const { user } = useCurrentUser();
   const userCurrency = user?.defaultCurrency ?? "EUR";
@@ -195,29 +198,13 @@ export function RateForm({
               defaultMessage="Client (optional)"
             />
           </Label>
-          <Select value={clientId} onValueChange={setClientId}>
-            <SelectTrigger id="rate-client">
-              <SelectValue
-                placeholder={intl.formatMessage({
-                  id: "rates.form.noClient",
-                  defaultMessage: "No client",
-                })}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">
-                <FormattedMessage
-                  id="rates.form.noClient"
-                  defaultMessage="No client"
-                />
-              </SelectItem>
-              {clients.map((c) => (
-                <SelectItem key={c.id} value={String(c.id)}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ClientPicker
+            id="rate-client"
+            value={clientId === "__none__" ? "" : clientId}
+            onChange={(v) => setClientId(v || "__none__")}
+            placeholder={noClient}
+            noneLabel={noClient}
+          />
         </div>
 
         <div className="col-span-2 flex flex-col gap-1.5">

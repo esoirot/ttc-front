@@ -1,3 +1,5 @@
+import { TaskPicker } from "@/components/projects/pickers/TaskPicker";
+import { ProjectPicker } from "@/components/projects/pickers/ProjectPicker";
 import { useState, useRef } from "react";
 import { useIntl, FormattedMessage } from "react-intl";
 import type { TimeEntry } from "@/types/time-entries.types";
@@ -19,7 +21,7 @@ import type { TtcUpdateInput } from "@/types/time-entries.types";
 import { TtcTagChips } from "../tags/TtcTagChips";
 import { EditableTimeField } from "../EditableTimeField";
 import { secsToHms } from "../ttcHelpers";
-import { useAllTasks, useTask } from "@/hooks/tasks/useTasks";
+import { useTask } from "@/hooks/tasks/useTasks";
 
 export function TtcEntryRow({
   entry,
@@ -67,9 +69,6 @@ export function TtcEntryRow({
   const descInputRef = useRef<HTMLInputElement>(null);
 
   const project = projects.find((p) => p.id === entry.projectId) ?? null;
-  const { tasks } = useAllTasks(entry.projectId ?? 0, {
-    enabled: editingTask && entry.projectId != null,
-  });
   const { task: taskDetail } = useTask(entry.taskId ?? 0, {
     enabled: editingSubtask && entry.taskId != null,
   });
@@ -158,34 +157,22 @@ export function TtcEntryRow({
         )}
         <div className="flex items-center gap-2 flex-wrap">
           {editingProject ? (
-            <Select
-              open
+            <ProjectPicker
+              defaultOpen
               onOpenChange={(o) => !o && setEditingProject(false)}
-              value={
-                entry.projectId != null ? String(entry.projectId) : "__none__"
-              }
-              onValueChange={(v) => {
+              className="h-6 text-xs w-[160px]"
+              value={entry.projectId != null ? String(entry.projectId) : ""}
+              onChange={(v) =>
                 onUpdate({
                   id: entry.id,
-                  projectId: v === "__none__" ? null : Number(v),
+                  projectId: v ? Number(v) : null,
                   taskId: null,
                   subtaskId: null,
-                });
-                setEditingProject(false);
-              }}
-            >
-              <SelectTrigger className="h-6 text-xs w-[160px]">
-                <SelectValue placeholder={noProject} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">{noProject}</SelectItem>
-                {projects.map((p) => (
-                  <SelectItem key={p.id} value={String(p.id)}>
-                    {p.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                })
+              }
+              placeholder={noProject}
+              noneLabel={noProject}
+            />
           ) : (
             <Button
               variant="outline"
@@ -210,50 +197,37 @@ export function TtcEntryRow({
           )}
           {entry.projectId != null &&
             (editingTask ? (
-              <Select
-                open
+              <TaskPicker
+                projectId={entry.projectId}
+                defaultOpen
                 onOpenChange={(o) => !o && setEditingTask(false)}
-                value={entry.taskId != null ? String(entry.taskId) : "__none__"}
-                onValueChange={(v) => {
-                  if (v === "__none__") {
+                className="h-6 text-xs w-[160px]"
+                value={entry.taskId != null ? String(entry.taskId) : ""}
+                onChange={(v, title) => {
+                  if (!v || !title) {
                     onUpdate({ id: entry.id, taskId: null, subtaskId: null });
-                  } else {
-                    const selected = tasks.find((t) => t.id === Number(v));
-                    const needsDesc = !entry.description?.trim();
-                    const autoDesc =
-                      selected && needsDesc
-                        ? project
-                          ? intl.formatMessage(
-                              {
-                                id: "time.entryRow.autoDescTaskOfProject",
-                                defaultMessage:
-                                  "Task {task} of project {project}",
-                              },
-                              { task: selected.title, project: project.title },
-                            )
-                          : selected.title
-                        : null;
-                    onUpdate({
-                      id: entry.id,
-                      taskId: Number(v),
-                      ...(autoDesc ? { description: autoDesc } : {}),
-                    });
+                    return;
                   }
-                  setEditingTask(false);
+                  const autoDesc = entry.description?.trim()
+                    ? null
+                    : project
+                      ? intl.formatMessage(
+                          {
+                            id: "time.entryRow.autoDescTaskOfProject",
+                            defaultMessage: "Task {task} of project {project}",
+                          },
+                          { task: title, project: project.title },
+                        )
+                      : title;
+                  onUpdate({
+                    id: entry.id,
+                    taskId: Number(v),
+                    ...(autoDesc ? { description: autoDesc } : {}),
+                  });
                 }}
-              >
-                <SelectTrigger className="h-6 text-xs w-[160px]">
-                  <SelectValue placeholder={noTask} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">{noTask}</SelectItem>
-                  {tasks.map((t) => (
-                    <SelectItem key={t.id} value={String(t.id)}>
-                      {t.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder={noTask}
+                noneLabel={noTask}
+              />
             ) : entry.task ? (
               <Badge
                 variant="secondary"

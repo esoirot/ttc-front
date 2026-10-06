@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { KpiCard, KpiGrid } from "@/components/kpi/KpiCard";
+import { CompactNumber } from "@/components/kpi/CompactNumber";
 import { formatDuration } from "@/lib/time";
 import {
   calculateProjectRevenue,
@@ -97,8 +98,8 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
   );
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-      <KpiGrid className="flex-1">
+    <div className="flex flex-col gap-4">
+      <KpiGrid>
         <KpiCard
           mono
           label={
@@ -118,7 +119,7 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
                 defaultMessage="Task words"
               />
             }
-            value={intl.formatNumber(project.totalTaskWords ?? 0)}
+            value={<CompactNumber value={project.totalTaskWords ?? 0} />}
           />
         )}
         {project.wordCount && (
@@ -134,10 +135,10 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
                 id="projects.overviewTab.wordsProgress"
                 defaultMessage="{processed} / {total}"
                 values={{
-                  processed: intl.formatNumber(
-                    project.totalWordsProcessed ?? 0,
+                  processed: (
+                    <CompactNumber value={project.totalWordsProcessed ?? 0} />
                   ),
-                  total: intl.formatNumber(project.wordCount),
+                  total: <CompactNumber value={project.wordCount} />,
                 }}
               />
             }
@@ -230,19 +231,19 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
                 defaultMessage="Revenue"
               />
             }
-            value={revenue.toFixed(2)}
+            value={<CompactNumber value={revenue} fractionDigits={2} />}
             unit={project.currency}
           />
         )}
       </KpiGrid>
 
-      <div className="flex flex-col gap-4 sm:w-72 shrink-0">
-        <MonthSelector
-          month={month}
-          onChange={setMonth}
-          min={firstMonth}
-          max={currentMonth}
-        />
+      <MonthSelector
+        month={month}
+        onChange={setMonth}
+        min={firstMonth}
+        max={currentMonth}
+      />
+      <div className="flex flex-wrap gap-4">
         <DistributionPie
           title={intl.formatMessage({
             id: "projects.overviewTab.timePerTask",

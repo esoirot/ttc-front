@@ -44,7 +44,6 @@ function baseProps(
       stopTimer: vi.fn(),
       stopping: false,
       refetch: vi.fn(),
-      projects: [],
       tags: [],
       recentDescriptions: [],
       initialProjectId: 5,

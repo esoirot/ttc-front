@@ -75,12 +75,7 @@ export function ProjectsList() {
         </Button>
       </div>
 
-      {showForm && (
-        <CreateProjectForm
-          clients={clients}
-          onClose={() => setShowForm(false)}
-        />
-      )}
+      {showForm && <CreateProjectForm onClose={() => setShowForm(false)} />}
 
       <Tabs
         value={view}

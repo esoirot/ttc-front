@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import type { Client } from "./clients.types";
 import type {
   Task,
   TaskStatus,
@@ -49,7 +48,6 @@ export interface Project {
 export type ProjectConnection = Connection<Project>;
 
 export interface CreateProjectFormProps {
-  clients: Client[];
   onClose: () => void;
 }
 
@@ -117,7 +115,6 @@ export interface MonthSelectorProps {
 
 export interface ProjectHeaderProps {
   project: Project;
-  clients: Client[];
   onUpdate: (input: {
     id: number;
     clientId?: number | null;

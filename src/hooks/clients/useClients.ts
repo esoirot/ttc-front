@@ -77,6 +77,19 @@ export function useAllClients() {
   return { clients: items, loading };
 }
 
+/** First clients matching `search` for a picker; searched on the server. */
+export function useClientOptions(search: string, enabled: boolean) {
+  const { items, loading } = useGqlConnectionQuery({
+    queryKey: ["clients", { options: true, search }],
+    query: CLIENTS_QUERY,
+    variables: search ? { search } : {},
+    select: (d) => d.clients,
+    limit: LIMIT,
+    enabled,
+  });
+  return { clients: items, loading };
+}
+
 export function useClient(id: number) {
   const { data, isLoading, error } = useGqlQuery({
     queryKey: ["client", id],

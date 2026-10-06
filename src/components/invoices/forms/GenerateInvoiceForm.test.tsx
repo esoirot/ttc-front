@@ -3,77 +3,29 @@ import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { messages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/useLocale";
-import type { Client } from "@/types/clients.types";
-import type { Project } from "@/types/projects.types";
 
 const useGenerateInvoiceMock = vi.fn();
 vi.mock("@/hooks/invoices/useInvoices", () => ({
   useGenerateInvoice: () => useGenerateInvoiceMock(),
 }));
 
+vi.mock("@/hooks/clients/useClients", () => ({
+  useClientOptions: () => ({ clients: [], loading: false }),
+  useClient: () => ({ client: null }),
+}));
+
+vi.mock("@/hooks/projects/useProjects", () => ({
+  useProjectOptions: () => ({
+    projects: [{ id: 3, title: "Translate manual" }],
+    loading: false,
+  }),
+  useProject: () => ({ project: null }),
+}));
+
 import { GenerateInvoiceForm } from "./GenerateInvoiceForm";
-
-function makeClient(overrides: Partial<Client> = {}): Client {
-  return {
-    id: 1,
-    userId: 1,
-    name: "Acme",
-    legalName: null,
-    email: null,
-    phone: null,
-    company: null,
-    address: null,
-    city: null,
-    country: null,
-    postalCode: null,
-    vatNumber: null,
-    notes: null,
-    hubspotId: null,
-    clientType: "COMPANY",
-    firstName: null,
-    lastName: null,
-    paymentDelayDays: null,
-    taxRate: null,
-    billingEndOfMonth: false,
-    website: null,
-    industry: null,
-    tags: [],
-    contacts: [],
-    createdAt: "2026-01-01T00:00:00.000Z",
-    ...overrides,
-  } as Client;
-}
-
-function makeProject(overrides: Partial<Project> = {}): Project {
-  return {
-    id: 1,
-    userId: 1,
-    clientId: null,
-    title: "Translate manual",
-    description: null,
-    status: "ACTIVE",
-    sourceLanguage: null,
-    targetLanguage: null,
-    wordCount: null,
-    unitPrice: null,
-    fixedFee: null,
-    hourlyRate: null,
-    perWordRate: null,
-    useCustomRate: false,
-    rateSheetId: null,
-    currency: "EUR",
-    deadline: null,
-    startDate: null,
-    createdAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: "2026-01-01T00:00:00.000Z",
-    ...overrides,
-  };
-}
 
 function renderForm(
   overrides: Partial<{
-    clients: Client[];
-    projects: Project[];
     onClose: () => void;
     onGenerated: (id: number) => void;
   }> = {},
@@ -82,8 +34,6 @@ function renderForm(
   return render(
     <IntlProvider locale={locale} messages={messages[locale]}>
       <GenerateInvoiceForm
-        clients={[]}
-        projects={[]}
         onClose={vi.fn()}
         onGenerated={vi.fn()}
         {...overrides}
@@ -132,6 +82,24 @@ describe("GenerateInvoiceForm", () => {
     expect(generateInvoice).not.toHaveBeenCalled();
   });
 
+  it("generates an invoice for the picked project", async () => {
+    const generateInvoice = vi.fn().mockResolvedValue({ id: 9 });
+    const onGenerated = vi.fn();
+    useGenerateInvoiceMock.mockReturnValue({ generateInvoice, loading: false });
+    renderForm({ onGenerated });
+
+    fireEvent.click(screen.getAllByRole("combobox")[0]);
+    fireEvent.click(screen.getByRole("option", { name: "Translate manual" }));
+    fireEvent.click(screen.getByRole("button", { name: "Generate invoice" }));
+
+    await vi.waitFor(() =>
+      expect(generateInvoice).toHaveBeenCalledWith(
+        expect.objectContaining({ projectId: 3 }),
+      ),
+    );
+    expect(onGenerated).toHaveBeenCalledWith(9);
+  });
+
   it("shows Generating… and disables the button while loading", () => {
     useGenerateInvoiceMock.mockReturnValue({
       generateInvoice: vi.fn(),
@@ -150,10 +118,7 @@ describe("GenerateInvoiceForm", () => {
   });
 
   it("shows 'Select project' and 'No client' as default selections", () => {
-    renderForm({
-      clients: [makeClient()],
-      projects: [makeProject()],
-    });
+    renderForm();
     const [projectSelect, clientSelect] = screen.getAllByRole("combobox");
     expect(projectSelect).toHaveTextContent("Select project");
     expect(clientSelect).toHaveTextContent("No client");

@@ -38,8 +38,23 @@ describe("StatsGrid", () => {
 
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("1h 30m")).toBeInTheDocument();
-    expect(screen.getByText("1234.50")).toBeInTheDocument();
+    expect(screen.getByText("1,234.50")).toBeInTheDocument();
     expect(screen.getByText("12,345")).toBeInTheDocument();
+  });
+
+  it("shortens revenue and words of a million or more", () => {
+    render(
+      <StatsGrid
+        dashboard={makeDashboard({
+          monthToDateRevenue: 8_240_000,
+          yearToDateWords: 10_000_000_000,
+        })}
+      />,
+      { wrapper },
+    );
+
+    expect(screen.getByText("8.2M")).toHaveAttribute("title", "8,240,000.00");
+    expect(screen.getByText("10B")).toBeInTheDocument();
   });
 
   it("formats minutes-only durations without an hours prefix", () => {

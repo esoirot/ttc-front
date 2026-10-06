@@ -1,3 +1,4 @@
+import { ClientPicker } from "@/components/clients/pickers/ClientPicker";
 import { useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,10 +16,7 @@ import type { CreateProjectFormProps } from "@/types/projects.types";
 import { useCreateProject } from "@/hooks/projects/useProjects";
 import { LANGUAGES } from "@/constants/languages";
 
-export function CreateProjectForm({
-  clients,
-  onClose,
-}: CreateProjectFormProps) {
+export function CreateProjectForm({ onClose }: CreateProjectFormProps) {
   const intl = useIntl();
   const { createProject, loading: creating } = useCreateProject();
   const [title, setTitle] = useState("");
@@ -81,34 +79,19 @@ export function CreateProjectForm({
                   defaultMessage="Client"
                 />
               </Label>
-              <Select
-                value={clientId || "__none__"}
-                onValueChange={(val) =>
-                  setClientId(val === "__none__" ? "" : val)
-                }
-              >
-                <SelectTrigger id="cpf-client" className="w-full">
-                  <SelectValue
-                    placeholder={intl.formatMessage({
-                      id: "projects.header.field.noClient",
-                      defaultMessage: "No client",
-                    })}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">
-                    <FormattedMessage
-                      id="projects.header.field.noClient"
-                      defaultMessage="No client"
-                    />
-                  </SelectItem>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ClientPicker
+                id="cpf-client"
+                value={clientId}
+                onChange={setClientId}
+                placeholder={intl.formatMessage({
+                  id: "projects.header.field.noClient",
+                  defaultMessage: "No client",
+                })}
+                noneLabel={intl.formatMessage({
+                  id: "projects.header.field.noClient",
+                  defaultMessage: "No client",
+                })}
+              />
             </div>
             <div className="flex flex-col gap-1">
               <Label htmlFor="srcLang">

@@ -4,7 +4,6 @@ import { FormattedMessage } from "react-intl";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProject, useUpdateProject } from "@/hooks/projects/useProjects";
-import { useAllClients } from "@/hooks/clients/useClients";
 import { useTasks } from "@/hooks/tasks/useTasks";
 import { useProjectTimeTab } from "@/hooks/projects/useProjectTimeTab";
 import { useMembers } from "@/hooks/account/useUsers";
@@ -31,7 +30,6 @@ export function ProjectDetail() {
   } = useTasks(projectId);
   const timeTab = useProjectTimeTab(projectId);
   const { members } = useMembers();
-  const { clients } = useAllClients();
   const { user: currentUser } = useCurrentUser();
 
   const [openTaskId, setOpenTaskId] = useState<number | null>(null);
@@ -66,7 +64,6 @@ export function ProjectDetail() {
     <div className="w-full px-8 py-8">
       <ProjectHeader
         project={project}
-        clients={clients}
         onUpdate={updateProject}
         saving={updatingProject}
       />
@@ -147,7 +144,6 @@ export function ProjectDetail() {
               stopTimer: timeTab.stopTimer,
               stopping: timeTab.stopping,
               refetch: timeTab.refetch,
-              projects: timeTab.projects,
               tags: timeTab.tags,
               recentDescriptions: timeTab.recentDescriptions,
               initialProjectId: projectId,

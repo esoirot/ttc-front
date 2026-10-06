@@ -71,7 +71,6 @@ const meta: Meta<typeof TimerSection> = {
     stopTimer: () => Promise.resolve(),
     stopping: false,
     refetch: () => {},
-    projects: [project],
     tags,
     recentDescriptions: ["Translate homepage copy", "Review glossary terms"],
   },

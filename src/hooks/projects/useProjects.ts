@@ -55,6 +55,19 @@ export function useAllProjects() {
   return { projects: items, loading };
 }
 
+/** First projects matching `search` for a picker; searched on the server. */
+export function useProjectOptions(search: string, enabled: boolean) {
+  const { items, loading } = useGqlConnectionQuery({
+    queryKey: ["projects", { options: true, search }],
+    query: PROJECTS_QUERY,
+    variables: search ? { search } : {},
+    select: (d) => d.projects,
+    limit: LIMIT,
+    enabled,
+  });
+  return { projects: items, loading };
+}
+
 export function useProject(id: number) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["project", id],

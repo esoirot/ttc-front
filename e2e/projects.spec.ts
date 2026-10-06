@@ -25,6 +25,7 @@ type MockProject = {
   startDate: string | null;
   totalTimeSeconds: number;
   totalWordsProcessed?: number | null;
+  totalTaskWords?: number | null;
   activities?: { id: number; name: string; activityType: string }[];
   createdAt: string;
   updatedAt: string;
@@ -128,9 +129,25 @@ async function mockProjectsApi(
     }
 
     if (operationName === "Clients") {
+      // Like the backend: a title search over every client, 20 per page.
+      const search = (
+        variables?.["search"] as string | undefined
+      )?.toLowerCase();
+      const matches = search
+        ? clients.filter((c) => c.name.toLowerCase().includes(search))
+        : clients;
       return respond({
-        clients: { items: clients, nextCursor: null, total: clients.length },
+        clients: {
+          items: matches.slice(0, 20),
+          nextCursor: matches.length > 20 ? matches[19].id : null,
+          total: matches.length,
+        },
       });
+    }
+
+    if (operationName === "Client") {
+      const id = variables?.["id"] as number;
+      return respond({ client: clients.find((c) => c.id === id) ?? null });
     }
 
     if (operationName === "MyActivities") {
@@ -236,6 +253,59 @@ test("creating a project for a client with activities inherits that client's act
   await page.getByRole("button", { name: "Edit" }).click();
 
   await expect(page.getByText("Translation")).toBeVisible();
+});
+
+test("the client picker finds a client past the first page by searching the server", async ({
+  page,
+}) => {
+  const clients = Array.from({ length: 25 }, (_, i) => ({
+    id: i + 1,
+    name: i === 24 ? "Zeta Corp" : `Client ${i + 1}`,
+    activities: [],
+  }));
+  await mockProjectsApi(page, [], clients);
+  await page.goto("/projects");
+
+  await page.getByRole("button", { name: "New project" }).click();
+  await page.getByLabel("Client").click();
+  await expect(
+    page.getByRole("option", { name: "Client 1", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("option", { name: "Zeta Corp" })).toHaveCount(0);
+
+  await page.getByPlaceholder("Search…").fill("zeta");
+  await page.getByRole("option", { name: "Zeta Corp" }).click();
+
+  await expect(page.getByLabel("Client")).toHaveText("Zeta Corp");
+});
+
+test("the project Dashboard shows its KPIs first, then the month filter, then the charts", async ({
+  page,
+}) => {
+  await mockProjectsApi(page, [
+    makeProject({
+      id: 7,
+      activities: [TRANSLATION_ACTIVITY],
+      totalTaskWords: 2_500_000,
+    }),
+  ]);
+  await page.goto("/projects/7");
+  await page.getByRole("tab", { name: "Dashboard" }).click();
+
+  const kpi = page.getByText("Task words", { exact: true });
+  const filter = page.getByRole("button", { name: "Previous month" });
+  const chart = page.getByText("Time per task");
+  await expect(chart).toBeVisible();
+  const [kpiBox, filterBox, chartBox] = await Promise.all(
+    [kpi, filter, chart].map((l) => l.boundingBox()),
+  );
+  expect(kpiBox!.y).toBeLessThan(filterBox!.y);
+  expect(filterBox!.y).toBeLessThan(chartBox!.y);
+
+  await expect(page.getByText("2.5M", { exact: true })).toHaveAttribute(
+    "title",
+    "2,500,000",
+  );
 });
 
 test("project word count shows as SUM / TOTAL from totalWordsProcessed and wordCount", async ({

@@ -14,10 +14,14 @@ const TASK_FIELDS = `id projectId assigneeId title description status dueDate wo
 
 export const TASKS_QUERY: TypedDocumentNode<
   { tasks: TaskConnection },
-  { projectId: number; pagination?: { limit?: number; cursor?: number } }
+  {
+    projectId: number;
+    search?: string;
+    pagination?: { limit?: number; cursor?: number };
+  }
 > = gql`
-  query Tasks($projectId: Int!, $pagination: PaginationInput) {
-    tasks(projectId: $projectId, pagination: $pagination) {
+  query Tasks($projectId: Int!, $search: String, $pagination: PaginationInput) {
+    tasks(projectId: $projectId, search: $search, pagination: $pagination) {
       items {
         ${TASK_FIELDS}
         activities {

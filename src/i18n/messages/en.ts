@@ -375,6 +375,9 @@ export const en = {
   "projects.taskTimeSection.noTimeLogged": "No time logged yet.",
 
   "common.dialog.close": "Close",
+  "pickers.search": "Search…",
+  "pickers.noResults": "No results.",
+  "pickers.loading": "Loading…",
 
   "activities.detail.activityNotFound": "Activity not found.",
   "activities.detail.backToActivities": "← Back to activities",

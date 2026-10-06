@@ -58,7 +58,6 @@ export function TimeEntriesView() {
         stopTimer={stopTimer}
         stopping={stopping}
         refetch={refetch}
-        projects={projects}
         tags={tags}
         recentDescriptions={recentDescriptions}
       />

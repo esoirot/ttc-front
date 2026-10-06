@@ -109,23 +109,31 @@ function makeRateSheet(overrides: Record<string, unknown> = {}) {
   };
 }
 
+/** Answers every query; the client picker reads `clients`, lookups `client`. */
+function mockApi(clients: Client[] = [], extra: Record<string, unknown> = {}) {
+  gqlFetch.mockImplementation((_query: unknown, vars?: { id?: number }) =>
+    Promise.resolve({
+      translationRates: [],
+      clientRates: [],
+      clients: { items: clients, nextCursor: null, total: clients.length },
+      client: clients.find((c) => c.id === vars?.id) ?? null,
+      ...extra,
+    }),
+  );
+}
+
 function renderHeader(
   project: Project,
   clients: Client[] = [],
   onUpdate = vi.fn(),
   locale: Locale = "en",
 ) {
-  gqlFetch.mockResolvedValue({ translationRates: [], clientRates: [] });
+  mockApi(clients);
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <IntlProvider locale={locale} messages={messages[locale]}>
         <MemoryRouter>
-          <ProjectHeader
-            project={project}
-            clients={clients}
-            onUpdate={onUpdate}
-            saving={false}
-          />
+          <ProjectHeader project={project} onUpdate={onUpdate} saving={false} />
         </MemoryRouter>
       </IntlProvider>
     </QueryClientProvider>,
@@ -177,13 +185,13 @@ describe("ProjectHeader", () => {
     expect(screen.queryByText(/words/)).not.toBeInTheDocument();
   });
 
-  it("shows the client name prefix when linked", () => {
+  it("shows the client name prefix when linked", async () => {
     renderHeader(makeProject({ clientId: 1 }), [
       makeClient({ id: 1, name: "Acme" }),
     ]);
     // "Acme" (a <Link>) and the " — " separator are separate sibling
     // elements, not one text node, so match the link directly.
-    expect(screen.getByRole("link", { name: "Acme" })).toHaveAttribute(
+    expect(await screen.findByRole("link", { name: "Acme" })).toHaveAttribute(
       "href",
       "/clients/1",
     );
@@ -385,7 +393,6 @@ describe("ProjectHeader", () => {
               sourceLanguage: "EN",
               targetLanguage: "FR",
             })}
-            clients={[]}
             onUpdate={vi.fn()}
             saving={false}
           />
@@ -462,7 +469,6 @@ describe("ProjectHeader", () => {
               sourceLanguage: "EN",
               targetLanguage: "FR",
             })}
-            clients={[]}
             onUpdate={vi.fn()}
             saving={false}
           />
@@ -489,7 +495,6 @@ describe("ProjectHeader", () => {
         <IntlProvider locale="en" messages={messages.en}>
           <ProjectHeader
             project={makeProject({ id: 7, clientId: 3 })}
-            clients={[]}
             onUpdate={onUpdate}
             saving={false}
           />
@@ -518,7 +523,6 @@ describe("ProjectHeader", () => {
         <IntlProvider locale="en" messages={messages.en}>
           <ProjectHeader
             project={makeProject({ id: 7, clientId: 3 })}
-            clients={[]}
             onUpdate={onUpdate}
             saving={false}
           />
@@ -560,7 +564,6 @@ describe("ProjectHeader", () => {
         <IntlProvider locale="en" messages={messages.en}>
           <ProjectHeader
             project={makeProject({ id: 7, clientId: 3 })}
-            clients={[]}
             onUpdate={onUpdate}
             saving={false}
           />
@@ -579,14 +582,18 @@ describe("ProjectHeader", () => {
   });
 
   it("resets the rate sheet default when the client changes", async () => {
-    gqlFetch.mockResolvedValue({
-      translationRates: [],
-      clientRates: [],
-      rateSheets: [
-        makeRateSheet({ id: 10, clientId: 1, isDefault: true }),
-        makeRateSheet({ id: 20, clientId: 2, isDefault: true }),
+    mockApi(
+      [
+        makeClient({ id: 1, name: "Alpha" }),
+        makeClient({ id: 2, name: "Beta" }),
       ],
-    });
+      {
+        rateSheets: [
+          makeRateSheet({ id: 10, clientId: 1, isDefault: true }),
+          makeRateSheet({ id: 20, clientId: 2, isDefault: true }),
+        ],
+      },
+    );
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     render(
       <QueryClientProvider client={createQueryClient()}>
@@ -594,10 +601,6 @@ describe("ProjectHeader", () => {
           <MemoryRouter>
             <ProjectHeader
               project={makeProject({ id: 7, clientId: 1 })}
-              clients={[
-                makeClient({ id: 1, name: "Alpha" }),
-                makeClient({ id: 2, name: "Beta" }),
-              ]}
               onUpdate={onUpdate}
               saving={false}
             />
@@ -667,7 +670,6 @@ describe("ProjectHeader", () => {
         <IntlProvider locale="en" messages={messages.en}>
           <ProjectHeader
             project={makeProject()}
-            clients={[]}
             onUpdate={vi.fn()}
             saving={false}
           />
@@ -707,7 +709,6 @@ describe("ProjectHeader", () => {
         <IntlProvider locale="en" messages={messages.en}>
           <ProjectHeader
             project={makeProject({ id: 7 })}
-            clients={[]}
             onUpdate={onUpdate}
             saving={false}
           />
@@ -764,7 +765,6 @@ describe("ProjectHeader", () => {
           <IntlProvider locale="en" messages={messages.en}>
             <ProjectHeader
               project={makeProject({ id: 7 })}
-              clients={[]}
               onUpdate={onUpdate}
               saving={false}
             />
@@ -802,7 +802,7 @@ describe("ProjectHeader", () => {
 
     fireEvent.click(screen.getByText("Edit"));
     fireEvent.click(screen.getByLabelText("Client"));
-    fireEvent.click(screen.getByRole("option", { name: "Beta Corp" }));
+    fireEvent.click(await screen.findByRole("option", { name: "Beta Corp" }));
     fireEvent.click(screen.getByText("Save"));
 
     await waitFor(() =>

@@ -59,23 +59,21 @@ export function useTasks(projectId: number, options?: { enabled?: boolean }) {
   return { tasks: items, total, hasMore, loadMore, loading, error };
 }
 
-// Pickers need every task of the project, not the first list page; otherwise
-// a linked task outside page 1 cannot be shown or chosen.
-const ALL_LIMIT = 1000;
-
-export function useAllTasks(
+/** First tasks of a project matching `search` for a picker; searched on the server. */
+export function useTaskOptions(
   projectId: number,
-  options?: { enabled?: boolean },
+  search: string,
+  enabled: boolean,
 ) {
-  const { items } = useGqlConnectionQuery({
-    queryKey: ["tasks", projectId, { all: true }],
+  const { items, loading } = useGqlConnectionQuery({
+    queryKey: ["tasks", projectId, { options: true, search }],
     query: TASKS_QUERY,
-    variables: { projectId },
+    variables: { projectId, ...(search ? { search } : {}) },
     select: (d) => d.tasks,
-    limit: ALL_LIMIT,
-    enabled: (options?.enabled ?? true) && projectId > 0,
+    limit: LIMIT,
+    enabled: enabled && projectId > 0,
   });
-  return { tasks: items };
+  return { tasks: items, loading };
 }
 
 export function useMyTasks() {
