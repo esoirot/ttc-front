@@ -10,7 +10,7 @@ import type {
 const PROJECT_FIELDS = `
   id userId clientId title description status
   sourceLanguage targetLanguage wordCount unitPrice fixedFee hourlyRate perWordRate useCustomRate rateSheetId currency
-  deadline startDate totalTimeSeconds totalWordsProcessed createdAt updatedAt
+  deadline startDate totalTimeSeconds totalWordsProcessed totalTaskWords createdAt updatedAt
   activities { id name activityType }
 `;
 

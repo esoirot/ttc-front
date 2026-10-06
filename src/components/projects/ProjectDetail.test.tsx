@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { IntlProvider } from "react-intl";
@@ -96,14 +96,46 @@ describe("ProjectDetail", () => {
     expect(await screen.findByText("Projet introuvable.")).toBeInTheDocument();
   });
 
-  it("renders the project header, overview, and tab list once loaded", async () => {
+  it("renders the project header and tab list once loaded, Tasks first", async () => {
     renderAt("1", makeProject());
 
     expect(await screen.findByText("Translate manual")).toBeInTheDocument();
-    expect(screen.getByText("Time logged")).toBeInTheDocument();
-    expect(screen.getByText("Tasks")).toBeInTheDocument();
-    expect(screen.getByText("Kanban")).toBeInTheDocument();
-    expect(screen.getByText("Time")).toBeInTheDocument();
-    expect(screen.getByText("Activity")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Tasks" })).toHaveAttribute(
+      "data-state",
+      "active",
+    );
+    expect(screen.getByRole("tab", { name: "Kanban" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Time" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Activity" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Dashboard" })).toBeInTheDocument();
+  });
+
+  it("keeps the KPIs and charts out of the way until Dashboard is opened", async () => {
+    renderAt("1", makeProject());
+
+    await screen.findByText("Translate manual");
+    expect(screen.queryByText("Time logged")).not.toBeInTheDocument();
+    expect(screen.queryByText("Time per task")).not.toBeInTheDocument();
+  });
+
+  it("shows the KPIs and charts in the Dashboard tab", async () => {
+    renderAt("1", makeProject());
+
+    await screen.findByText("Translate manual");
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Dashboard" }));
+
+    expect(await screen.findByText("Time logged")).toBeInTheDocument();
+    expect(screen.getByText("Time per task")).toBeInTheDocument();
+    expect(screen.getByText("Time per activity")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Month" })).toBeInTheDocument();
+  });
+
+  it("names the Dashboard tab in French", async () => {
+    renderAt("1", makeProject(), "fr");
+
+    await screen.findByText("Translate manual");
+    expect(
+      screen.getByRole("tab", { name: "Tableau de bord" }),
+    ).toBeInTheDocument();
   });
 });

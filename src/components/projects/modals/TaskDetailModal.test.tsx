@@ -47,6 +47,7 @@ function setupGqlFetch(
   overrides: {
     activeTimer?: TimeEntryLike | null;
     timeEntries?: TimeEntryLike[];
+    project?: unknown;
   } = {},
 ) {
   gqlFetch.mockImplementation((query: unknown) => {
@@ -67,7 +68,7 @@ function setupGqlFetch(
           },
         });
       case "Project":
-        return Promise.resolve({ project: null });
+        return Promise.resolve({ project: overrides.project ?? null });
       case "Projects":
         return Promise.resolve({
           projects: { items: [], nextCursor: null, total: 0 },
@@ -86,6 +87,7 @@ function renderModal(
   overrides: {
     activeTimer?: TimeEntryLike | null;
     timeEntries?: TimeEntryLike[];
+    project?: unknown;
   } = {},
 ) {
   setupGqlFetch(task, overrides);
@@ -200,6 +202,7 @@ describe("TaskDetailModal", () => {
             title: "Step 1",
             done: false,
             dueDate: null,
+            wordCount: null,
             createdAt: "",
             updatedAt: "",
           },
@@ -721,6 +724,170 @@ describe("TaskDetailModal", () => {
       fireEvent.click(addButtons[addButtons.length - 1]);
 
       expect(screen.getByText("Add attachment")).toBeInTheDocument();
+    });
+  });
+
+  describe("word counts on translation projects", () => {
+    const translatorProject = {
+      id: 1,
+      title: "Manual",
+      activities: [{ id: 1, name: "Translation", activityType: "TRANSLATOR" }],
+    };
+    const consultingProject = {
+      id: 1,
+      title: "Consulting",
+      activities: [{ id: 2, name: "Consulting", activityType: "CUSTOM" }],
+    };
+    const item = {
+      id: 1,
+      taskId: 4,
+      checklistTitle: "Setup",
+      title: "Section A",
+      done: false,
+      dueDate: null,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    };
+
+    it("shows the task total (own words + checklist words) next to the task name", async () => {
+      renderModal(
+        makeTaskDetail({
+          wordCount: 500,
+          subtasks: [{ ...item, wordCount: 200 }],
+        }),
+        {},
+        { project: translatorProject },
+      );
+
+      const total = await screen.findByText("700 words");
+      const title = screen.getByText("Translate doc");
+      expect(title.nextElementSibling).toBe(total);
+    });
+
+    it("shows no total when no words are set", async () => {
+      renderModal(
+        makeTaskDetail({ wordCount: null }),
+        {},
+        {
+          project: translatorProject,
+        },
+      );
+
+      await screen.findByLabelText("Words");
+      expect(screen.queryByText(/\d words$/)).not.toBeInTheDocument();
+    });
+
+    it("hides words entirely on non-translation projects", async () => {
+      renderModal(
+        makeTaskDetail({
+          wordCount: 500,
+          subtasks: [{ ...item, wordCount: 200 }],
+        }),
+        {},
+        { project: consultingProject },
+      );
+
+      await screen.findByText("Translate doc");
+      expect(screen.queryByText("700 words")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("Words")).not.toBeInTheDocument();
+    });
+
+    it("saves the task's own words", async () => {
+      gqlMutate.mockResolvedValue({ updateTask: makeTaskDetail() });
+      renderModal(
+        makeTaskDetail({ id: 7, wordCount: null }),
+        { taskId: 7 },
+        {
+          project: translatorProject,
+        },
+      );
+
+      const words = await screen.findByLabelText("Words");
+      fireEvent.change(words, { target: { value: "650" } });
+      fireEvent.blur(words);
+
+      await waitFor(() =>
+        expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+          input: { id: 7, wordCount: 650 },
+        }),
+      );
+    });
+
+    it("clears the task's own words when emptied", async () => {
+      gqlMutate.mockResolvedValue({ updateTask: makeTaskDetail() });
+      renderModal(
+        makeTaskDetail({ id: 7, wordCount: 500 }),
+        { taskId: 7 },
+        {
+          project: translatorProject,
+        },
+      );
+
+      const words = await screen.findByLabelText("Words");
+      fireEvent.change(words, { target: { value: "" } });
+      fireEvent.blur(words);
+
+      await waitFor(() =>
+        expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+          input: { id: 7, wordCount: null },
+        }),
+      );
+    });
+
+    it("rejects an invalid word count without saving", async () => {
+      renderModal(
+        makeTaskDetail({ wordCount: null }),
+        {},
+        {
+          project: translatorProject,
+        },
+      );
+
+      const words = await screen.findByLabelText("Words");
+      fireEvent.change(words, { target: { value: "12.5" } });
+      fireEvent.blur(words);
+
+      expect(
+        await screen.findByText("Words must be a whole number of 0 or more."),
+      ).toBeInTheDocument();
+      expect(gqlMutate).not.toHaveBeenCalled();
+    });
+
+    it("counts a project with a Translator activity among others as a translation project", async () => {
+      renderModal(
+        makeTaskDetail({ wordCount: 500 }),
+        {},
+        {
+          project: {
+            id: 1,
+            title: "Mixed",
+            activities: [
+              { id: 2, name: "Consulting", activityType: "CUSTOM" },
+              { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+            ],
+          },
+        },
+      );
+      expect(await screen.findByText("500 words")).toBeInTheDocument();
+    });
+
+    it("shows no words while the project is unknown", async () => {
+      renderModal(makeTaskDetail({ wordCount: 500 }));
+      await screen.findByText("Translate doc");
+      expect(screen.queryByText("500 words")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("Words")).not.toBeInTheDocument();
+    });
+
+    it("treats a project without an activity list as non-translation", async () => {
+      renderModal(
+        makeTaskDetail({ wordCount: 500 }),
+        {},
+        {
+          project: { id: 1, title: "Bare" },
+        },
+      );
+      await screen.findByText("Translate doc");
+      expect(screen.queryByText("500 words")).not.toBeInTheDocument();
     });
   });
 });

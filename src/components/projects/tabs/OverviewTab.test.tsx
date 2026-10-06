@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { IntlProvider } from "react-intl";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryWrapper } from "@/test/queryClientWrapper";
 import { messages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/useLocale";
@@ -126,6 +126,10 @@ function setupGqlFetch(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (query as any)?.definitions?.[0]?.name?.value ?? String(query);
     switch (opName) {
+      case "FirstTimeEntryStart":
+        return Promise.resolve({
+          firstTimeEntryStart: new Date(2025, 2, 4, 9).toISOString(),
+        });
       case "RateSheets":
         return Promise.resolve({ rateSheets: overrides.rateSheets ?? [] });
       case "TimeEntries":
@@ -144,8 +148,14 @@ function setupGqlFetch(
 
 describe("OverviewTab", () => {
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 15));
     gqlFetch.mockReset();
     setupGqlFetch();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("always shows time logged, formatted", () => {
@@ -226,6 +236,25 @@ describe("OverviewTab", () => {
     expect(screen.queryByText(/^Fixed /)).not.toBeInTheDocument();
     expect(screen.getByText("50 USD/hr")).toBeInTheDocument();
     expect(screen.getByText("0.1 USD/word")).toBeInTheDocument();
+  });
+
+  it("shows only the fixed fee when it is the only custom rate set", () => {
+    render(
+      <OverviewTab
+        project={makeProject({
+          fixedFee: 300,
+          hourlyRate: null,
+          perWordRate: null,
+          useCustomRate: true,
+          currency: "USD",
+        })}
+        totalSeconds={0}
+      />,
+      { wrapper: createIntlQueryWrapper() },
+    );
+    expect(screen.getByText("Fixed 300 USD")).toBeInTheDocument();
+    expect(screen.queryByText(/\/hr$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\/word$/)).not.toBeInTheDocument();
   });
 
   it("shows the wordsProcessed sum over the wordCount target", () => {
@@ -401,7 +430,9 @@ describe("OverviewTab", () => {
       { wrapper: createIntlQueryWrapper() },
     );
     expect(screen.getByText("Revenue")).toBeInTheDocument();
-    expect(screen.getByText("500.00 USD")).toBeInTheDocument();
+    expect(
+      screen.getByText("Revenue").closest('[data-slot="card"]'),
+    ).toHaveTextContent(/500\.00\s*USD/);
   });
 
   it("shows Revenue from the client rate sheet price per word when useCustomRate is off", async () => {
@@ -440,7 +471,11 @@ describe("OverviewTab", () => {
       />,
       { wrapper: createIntlQueryWrapper() },
     );
-    expect(await screen.findByText("120.00 EUR")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByText("Revenue").closest('[data-slot="card"]'),
+      ).toHaveTextContent(/120\.00\s*EUR/),
+    );
     expect(screen.getByText("Revenue")).toBeInTheDocument();
   });
 
@@ -466,10 +501,7 @@ describe("OverviewTab", () => {
       wrapper: createIntlQueryWrapper(),
     });
 
-    const monthLabel = new Date().toLocaleDateString(undefined, {
-      month: "long",
-      year: "numeric",
-    });
+    const monthLabel = "October 2026";
     expect(
       (await screen.findAllByTestId("tooltip-preview"))[0],
     ).toHaveTextContent("2:02:05");
@@ -493,7 +525,7 @@ describe("OverviewTab", () => {
     await screen.findAllByTestId("tooltip-preview");
     expect(screen.getByText("Time per task")).toBeInTheDocument();
     expect(
-      screen.queryByText("No time logged yet this month."),
+      screen.queryByText("No time logged in October 2026."),
     ).not.toBeInTheDocument();
   });
 
@@ -534,7 +566,7 @@ describe("OverviewTab", () => {
     });
     expect(await screen.findByText("Time per task")).toBeInTheDocument();
     expect(screen.getByText("Time per activity")).toBeInTheDocument();
-    expect(screen.getAllByText("No time logged yet this month.")).toHaveLength(
+    expect(screen.getAllByText("No time logged in October 2026.")).toHaveLength(
       2,
     );
   });
@@ -545,7 +577,127 @@ describe("OverviewTab", () => {
     });
     expect(await screen.findByText("Temps par tâche")).toBeInTheDocument();
     expect(
-      screen.getAllByText("Aucun temps enregistré ce mois-ci."),
+      screen.getAllByText("Aucun temps enregistré en octobre 2026."),
     ).toHaveLength(2);
+  });
+
+  it("loads every time entry of this project for the selected month", async () => {
+    render(<OverviewTab project={makeProject({ id: 7 })} totalSeconds={0} />, {
+      wrapper: createIntlQueryWrapper(),
+    });
+
+    await screen.findByText("Time per task");
+    await waitFor(() =>
+      expect(gqlFetch).toHaveBeenCalledWith(expect.anything(), {
+        projectId: 7,
+        start: new Date(2026, 9, 1).toISOString(),
+        end: new Date(2026, 9, 31, 23, 59, 59, 999).toISOString(),
+        pagination: { limit: 1000 },
+      }),
+    );
+  });
+
+  it("switches the pies to the month picked in the filter", async () => {
+    render(<OverviewTab project={makeProject({ id: 7 })} totalSeconds={0} />, {
+      wrapper: createIntlQueryWrapper(),
+    });
+
+    const previous = await screen.findByRole("button", {
+      name: "Previous month",
+    });
+    await waitFor(() => expect(previous).toBeEnabled());
+    fireEvent.click(previous);
+
+    expect(
+      await screen.findAllByText("No time logged in September 2026."),
+    ).toHaveLength(2);
+    await waitFor(() =>
+      expect(gqlFetch).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          projectId: 7,
+          start: new Date(2026, 8, 1).toISOString(),
+        }),
+      ),
+    );
+  });
+
+  it("offers years from this project's first logged entry to now", async () => {
+    render(<OverviewTab project={makeProject({ id: 7 })} totalSeconds={0} />, {
+      wrapper: createIntlQueryWrapper(),
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Previous month" }),
+      ).toBeEnabled(),
+    );
+    expect(gqlFetch).toHaveBeenCalledWith(expect.anything(), { projectId: 7 });
+    fireEvent.click(screen.getByRole("combobox", { name: "Year" }));
+    expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual([
+      "2025",
+      "2026",
+    ]);
+  });
+
+  it("keeps the KPIs on all-time totals whatever the month", async () => {
+    render(<OverviewTab project={makeProject()} totalSeconds={7200} />, {
+      wrapper: createIntlQueryWrapper(),
+    });
+
+    const previous = await screen.findByRole("button", {
+      name: "Previous month",
+    });
+    await waitFor(() => expect(previous).toBeEnabled());
+    fireEvent.click(previous);
+
+    expect(screen.getByText(formatDuration(7200))).toBeInTheDocument();
+  });
+
+  it("shows the Task words KPI on translation projects", () => {
+    render(
+      <OverviewTab
+        project={makeProject({
+          activities: [
+            { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          ],
+          totalTaskWords: 1000,
+        })}
+        totalSeconds={0}
+      />,
+      { wrapper: createIntlQueryWrapper() },
+    );
+    expect(
+      screen.getByText("Task words").closest('[data-slot="card"]'),
+    ).toHaveTextContent("1,000");
+  });
+
+  it("shows 0 Task words on a translation project with no words set", () => {
+    render(
+      <OverviewTab
+        project={makeProject({
+          activities: [
+            { id: 1, name: "Translation", activityType: "TRANSLATOR" },
+          ],
+          totalTaskWords: null,
+        })}
+        totalSeconds={0}
+      />,
+      { wrapper: createIntlQueryWrapper() },
+    );
+    expect(
+      screen.getByText("Task words").closest('[data-slot="card"]'),
+    ).toHaveTextContent(/Task words\s*0$/);
+  });
+
+  it("hides the Task words KPI on non-translation projects", () => {
+    render(
+      <OverviewTab
+        project={makeProject({ activities: [], totalTaskWords: 1000 })}
+        totalSeconds={0}
+      />,
+      { wrapper: createIntlQueryWrapper() },
+    );
+    expect(screen.queryByText("Task words")).not.toBeInTheDocument();
   });
 });

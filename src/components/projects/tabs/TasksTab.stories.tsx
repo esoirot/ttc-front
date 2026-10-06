@@ -15,6 +15,7 @@ function makeTask(overrides: Partial<Task>): Task {
     description: null,
     status: "TODO",
     dueDate: null,
+    wordCount: null,
     startDate: null,
     recurring: null,
     reminderOffset: null,

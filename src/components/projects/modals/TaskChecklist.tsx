@@ -32,6 +32,8 @@ import {
   useRenameChecklist,
 } from "@/hooks/tasks/useTasks";
 import type { Subtask } from "@/types/tasks.types";
+import { Badge } from "@/components/ui/badge";
+import { parseWordCount } from "@/lib/words";
 
 const TIME_SLOTS: string[] = Array.from({ length: 48 }, (_, i) => {
   const h = Math.floor(i / 2);
@@ -69,10 +71,12 @@ type DialogState =
 function SubtaskItemDialog({
   state,
   taskId,
+  showWords,
   onClose,
 }: {
   state: DialogState;
   taskId: number;
+  showWords: boolean;
   onClose: () => void;
 }) {
   const intl = useIntl();
@@ -90,6 +94,11 @@ function SubtaskItemDialog({
     isEdit && initial!.dueDate ? isoToTimeSlot(initial!.dueDate) : "09:00",
   );
 
+  const [words, setWords] = useState(
+    initial?.wordCount != null ? String(initial.wordCount) : "",
+  );
+  const [wordsInvalid, setWordsInvalid] = useState(false);
+
   const { createSubtask, loading: creating } = useCreateSubtask(taskId);
   const { updateSubtask, loading: updating } = useUpdateSubtask(taskId);
   const { deleteSubtask } = useDeleteSubtask(taskId);
@@ -98,6 +107,11 @@ function SubtaskItemDialog({
   async function handleSave() {
     const t = title.trim();
     if (!t) return;
+    const wordCount = showWords ? parseWordCount(words) : undefined;
+    if (wordCount === "invalid") {
+      setWordsInvalid(true);
+      return;
+    }
     const dueDate =
       hasDueDate && dateStr ? toIso(dateStr, timeSlot) : undefined;
     if (isEdit) {
@@ -105,12 +119,14 @@ function SubtaskItemDialog({
         id: initial!.id,
         title: t,
         dueDate: hasDueDate ? dueDate : null,
+        ...(showWords ? { wordCount } : {}),
       });
     } else {
       await createSubtask({
         checklistTitle: state.checklistTitle,
         title: t,
         dueDate,
+        ...(showWords ? { wordCount } : {}),
       });
     }
     onClose();
@@ -158,6 +174,41 @@ function SubtaskItemDialog({
             }}
             className="h-8 text-sm"
           />
+
+          {showWords && (
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <Label
+                  htmlFor="subtask-words"
+                  className="text-xs text-muted-foreground"
+                >
+                  <FormattedMessage
+                    id="projects.words.label"
+                    defaultMessage="Words"
+                  />
+                </Label>
+                <Input
+                  id="subtask-words"
+                  inputMode="numeric"
+                  value={words}
+                  onChange={(e) => {
+                    setWords(e.target.value);
+                    setWordsInvalid(false);
+                  }}
+                  aria-invalid={wordsInvalid || undefined}
+                  className="h-8 w-28 text-sm"
+                />
+              </div>
+              {wordsInvalid && (
+                <p className="text-xs text-destructive">
+                  <FormattedMessage
+                    id="projects.words.invalid"
+                    defaultMessage="Words must be a whole number of 0 or more."
+                  />
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -240,10 +291,12 @@ function ChecklistGroup({
   checklistTitle,
   items,
   taskId,
+  showWords,
 }: {
   checklistTitle: string;
   items: Subtask[];
   taskId: number;
+  showWords: boolean;
 }) {
   const intl = useIntl();
   const [newTitle, setNewTitle] = useState("");
@@ -396,6 +449,21 @@ function ChecklistGroup({
               >
                 {s.title}
               </span>
+              {showWords && s.wordCount != null && (
+                <Badge
+                  variant="secondary"
+                  className="w-fit font-mono text-[11px]"
+                >
+                  {intl.formatMessage(
+                    {
+                      id: "projects.words.count",
+                      defaultMessage:
+                        "{count, plural, one {# word} other {# words}}",
+                    },
+                    { count: s.wordCount },
+                  )}
+                </Badge>
+              )}
               {s.dueDate && (
                 <span className="text-[11px] text-muted-foreground">
                   {intl.formatDate(s.dueDate, {
@@ -441,6 +509,7 @@ function ChecklistGroup({
         <SubtaskItemDialog
           state={dialogState}
           taskId={taskId}
+          showWords={showWords}
           onClose={() => {
             setDialogState(null);
             setNewTitle("");
@@ -457,12 +526,15 @@ export function TaskChecklist({
   checklistTitles,
   addingChecklist,
   onAddingChecklistChange,
+  showWords = false,
 }: {
   taskId: number;
   subtasks: Subtask[];
   checklistTitles: string[];
   addingChecklist: boolean;
   onAddingChecklistChange: (v: boolean) => void;
+  /** Show word counts (translation projects only). */
+  showWords?: boolean;
 }) {
   const intl = useIntl();
   const [newChecklistTitle, setNewChecklistTitle] = useState("");
@@ -498,6 +570,7 @@ export function TaskChecklist({
           })}
           items={ungrouped}
           taskId={taskId}
+          showWords={showWords}
         />
       )}
 
@@ -507,6 +580,7 @@ export function TaskChecklist({
           checklistTitle={title}
           items={groups[title]}
           taskId={taskId}
+          showWords={showWords}
         />
       ))}
 
@@ -565,6 +639,7 @@ export function TaskChecklist({
             checklistTitle={t}
             items={[]}
             taskId={taskId}
+            showWords={showWords}
           />
         ))}
     </div>

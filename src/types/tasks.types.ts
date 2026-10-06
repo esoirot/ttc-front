@@ -12,6 +12,7 @@ export interface Subtask {
   title: string;
   done: boolean;
   dueDate: string | null;
+  wordCount: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -56,6 +57,7 @@ export interface Task {
   description: string | null;
   status: TaskStatus;
   dueDate: string | null;
+  wordCount: number | null;
   startDate: string | null;
   recurring: string | null;
   reminderOffset: string | null;
@@ -94,6 +96,7 @@ export type CreateTaskInput = {
   assigneeId?: number;
   status?: TaskStatus;
   dueDate?: string;
+  wordCount?: number | null;
 };
 
 export type UpdateTaskInput = {
@@ -108,6 +111,7 @@ export type UpdateTaskInput = {
   reminderOffset?: string | null;
   assigneeId?: number;
   projectId?: number;
+  wordCount?: number | null;
 };
 
 export type CreateSubtaskInput = {
@@ -115,6 +119,7 @@ export type CreateSubtaskInput = {
   checklistTitle?: string;
   title: string;
   dueDate?: string;
+  wordCount?: number | null;
 };
 
 export type UpdateSubtaskInput = {
@@ -123,4 +128,11 @@ export type UpdateSubtaskInput = {
   title?: string;
   done?: boolean;
   dueDate?: string | null;
+  wordCount?: number | null;
 };
+
+export interface TaskWordsFieldProps {
+  id: string;
+  value: number | null;
+  onSave: (wordCount: number | null) => void;
+}

@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTask, useUpdateTask } from "@/hooks/tasks/useTasks";
+import { useProject } from "@/hooks/projects/useProjects";
+import { taskWordTotal } from "@/lib/words";
 import type { TaskStatus } from "@/types/tasks.types";
 import {
   STATUS_LABEL_MESSAGES,
@@ -36,6 +38,7 @@ import { TaskActivityFeed } from "./TaskActivityFeed";
 import { TaskAttachmentModal } from "./TaskAttachmentModal";
 import { TaskLabelBadges } from "./TaskLabelBadges";
 import { TaskTimeSection } from "./TaskTimeSection";
+import { TaskWordsField } from "./TaskWordsField";
 import { AttachmentList } from "./AttachmentList";
 
 const STATUSES: TaskStatus[] = TASK_STATUSES;
@@ -56,6 +59,9 @@ export function TaskDetailModal({
   const intl = useIntl();
   const { task, loading } = useTask(taskId);
   const { updateTask } = useUpdateTask(projectId);
+  const { project } = useProject(projectId);
+  const isTranslation =
+    project?.activities?.some((a) => a.activityType === "TRANSLATOR") ?? false;
 
   const [addingChecklist, setAddingChecklist] = useState(false);
   const [checklistSectionOpen, setChecklistSectionOpen] = useState(false);
@@ -117,7 +123,7 @@ export function TaskDetailModal({
                 className="text-base leading-snug flex-1 min-w-0"
                 asChild
               >
-                <div className="min-w-0">
+                <div className="min-w-0 flex items-center gap-2">
                   {editingTitle ? (
                     <input
                       autoFocus
@@ -138,6 +144,18 @@ export function TaskDetailModal({
                     >
                       {task.title}
                     </h2>
+                  )}
+                  {isTranslation && taskWordTotal(task) > 0 && (
+                    <Badge variant="secondary" className="shrink-0 font-mono">
+                      {intl.formatMessage(
+                        {
+                          id: "projects.words.count",
+                          defaultMessage:
+                            "{count, plural, one {# word} other {# words}}",
+                        },
+                        { count: taskWordTotal(task) },
+                      )}
+                    </Badge>
                   )}
                 </div>
               </DialogTitle>
@@ -180,6 +198,16 @@ export function TaskDetailModal({
             <div className="flex flex-col sm:flex-row max-h-[70vh] overflow-hidden">
               {/* Left panel */}
               <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
+                {isTranslation && (
+                  <TaskWordsField
+                    key={`words-${task.id}-${task.wordCount ?? ""}`}
+                    id={`task-words-${task.id}`}
+                    value={task.wordCount}
+                    onSave={(wordCount) =>
+                      void updateTask({ id: task.id, wordCount })
+                    }
+                  />
+                )}
                 {/* Description */}
                 <div className="flex flex-col gap-1">
                   <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
@@ -270,6 +298,7 @@ export function TaskDetailModal({
                 {showChecklistSection && (
                   <TaskChecklist
                     taskId={task.id}
+                    showWords={isTranslation}
                     subtasks={task.subtasks}
                     checklistTitles={task.checklistTitles}
                     addingChecklist={addingChecklist}

@@ -38,10 +38,10 @@ export const ACTIVE_TIMER_QUERY: TypedDocumentNode<
 
 export const FIRST_TIME_ENTRY_START_QUERY: TypedDocumentNode<
   { firstTimeEntryStart: string | null },
-  Record<string, never>
+  { projectId?: number }
 > = gql`
-  query FirstTimeEntryStart {
-    firstTimeEntryStart
+  query FirstTimeEntryStart($projectId: Int) {
+    firstTimeEntryStart(projectId: $projectId)
   }
 `;
 

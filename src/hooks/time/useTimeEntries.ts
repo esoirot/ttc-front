@@ -59,7 +59,11 @@ export function useTimeEntries(filters?: TimeEntryFilters) {
 // Charts and totals need every entry in the range, not the first list page.
 const ALL_LIMIT = 1000;
 
-export function useAllTimeEntries(range: { start: string; end: string }) {
+export function useAllTimeEntries(range: {
+  start: string;
+  end: string;
+  projectId?: number;
+}) {
   const { items, loading } = useGqlConnectionQuery({
     queryKey: ["timeEntries", { ...range, all: true }],
     query: TIME_ENTRIES_QUERY,
@@ -70,13 +74,17 @@ export function useAllTimeEntries(range: { start: string; end: string }) {
   return { entries: items, loading };
 }
 
-export function useFirstTimeEntryStart(options?: { enabled?: boolean }) {
+export function useFirstTimeEntryStart(options?: {
+  enabled?: boolean;
+  projectId?: number;
+}) {
   const { data, isLoading } = useQuery({
     // Own key: the ["timeEntries"] list patches expect paginated data.
-    queryKey: ["firstTimeEntryStart"],
+    queryKey: ["firstTimeEntryStart", options?.projectId ?? null],
     queryFn: () =>
       gqlFetch<{ firstTimeEntryStart: string | null }>(
         FIRST_TIME_ENTRY_START_QUERY,
+        options?.projectId != null ? { projectId: options.projectId } : {},
       ).then((d) => d.firstTimeEntryStart),
     enabled: options?.enabled ?? true,
   });

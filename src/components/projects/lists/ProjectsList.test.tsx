@@ -378,6 +378,7 @@ describe("ProjectsList", () => {
               }),
             ]),
           }),
+          expect.anything(),
         ),
       );
       expect(
@@ -398,6 +399,7 @@ describe("ProjectsList", () => {
             }),
           ]),
         }),
+        expect.anything(),
       );
     });
 

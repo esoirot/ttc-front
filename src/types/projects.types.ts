@@ -40,6 +40,7 @@ export interface Project {
   startDate: string | null;
   totalTimeSeconds?: number | null;
   totalWordsProcessed?: number | null;
+  totalTaskWords?: number | null;
   activities?: ActivityRef[];
   createdAt: string;
   updatedAt: string;

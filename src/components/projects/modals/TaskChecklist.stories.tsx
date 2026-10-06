@@ -13,6 +13,7 @@ function makeSubtask(overrides: Partial<Subtask> = {}): Subtask {
     title: "Review draft",
     done: false,
     dueDate: null,
+    wordCount: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,

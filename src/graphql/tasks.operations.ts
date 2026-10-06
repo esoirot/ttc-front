@@ -10,7 +10,7 @@ import type {
   TaskConnection,
 } from "@/types/tasks.types";
 
-const TASK_FIELDS = `id projectId assigneeId title description status dueDate startDate recurring reminderOffset sortOrder totalTimeSeconds createdAt updatedAt`;
+const TASK_FIELDS = `id projectId assigneeId title description status dueDate wordCount startDate recurring reminderOffset sortOrder totalTimeSeconds createdAt updatedAt`;
 
 export const TASKS_QUERY: TypedDocumentNode<
   { tasks: TaskConnection },
@@ -102,7 +102,7 @@ export const TASK_QUERY: TypedDocumentNode<
     task(id: $id) {
       ${TASK_FIELDS}
       checklistTitles
-      subtasks { id taskId checklistTitle title done dueDate createdAt updatedAt }
+      subtasks { id taskId checklistTitle title done dueDate wordCount createdAt updatedAt }
       comments { id taskId authorId body createdAt updatedAt }
       labels { id taskId name color createdAt }
       activities {
@@ -122,6 +122,7 @@ export const CREATE_SUBTASK_MUTATION: TypedDocumentNode<
       checklistTitle?: string;
       title: string;
       dueDate?: string;
+      wordCount?: number | null;
     };
   }
 > = gql`
@@ -133,6 +134,7 @@ export const CREATE_SUBTASK_MUTATION: TypedDocumentNode<
       title
       done
       dueDate
+      wordCount
       createdAt
       updatedAt
     }
@@ -148,6 +150,7 @@ export const UPDATE_SUBTASK_MUTATION: TypedDocumentNode<
       title?: string;
       done?: boolean;
       dueDate?: string | null;
+      wordCount?: number | null;
     };
   }
 > = gql`
@@ -159,6 +162,7 @@ export const UPDATE_SUBTASK_MUTATION: TypedDocumentNode<
       title
       done
       dueDate
+      wordCount
       createdAt
       updatedAt
     }

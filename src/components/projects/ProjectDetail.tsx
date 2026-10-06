@@ -42,7 +42,7 @@ export function ProjectDetail() {
 
   if (projectLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="w-full px-8 py-8">
         <Skeleton className="h-10 w-64 mb-4" />
         <Skeleton className="h-60 w-full" />
       </div>
@@ -51,7 +51,7 @@ export function ProjectDetail() {
 
   if (!project) {
     return (
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="w-full px-8 py-8">
         <p className="text-muted-foreground">
           <FormattedMessage
             id="projects.detail.notFound"
@@ -63,17 +63,13 @@ export function ProjectDetail() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
+    <div className="w-full px-8 py-8">
       <ProjectHeader
         project={project}
         clients={clients}
         onUpdate={updateProject}
         saving={updatingProject}
       />
-
-      <div className="mb-6">
-        <OverviewTab project={project} totalSeconds={timeTab.totalSeconds} />
-      </div>
 
       <Tabs defaultValue="tasks">
         <TabsList>
@@ -101,7 +97,17 @@ export function ProjectDetail() {
               defaultMessage="Activity"
             />
           </TabsTrigger>
+          <TabsTrigger value="dashboard">
+            <FormattedMessage
+              id="projects.list.tabDashboard"
+              defaultMessage="Dashboard"
+            />
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="dashboard" className="mt-4">
+          <OverviewTab project={project} totalSeconds={timeTab.totalSeconds} />
+        </TabsContent>
 
         <TabsContent value="tasks" className="mt-4">
           <ProjectTaskList

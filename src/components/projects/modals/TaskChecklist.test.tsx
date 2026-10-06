@@ -23,6 +23,7 @@ function makeSubtask(overrides: Partial<Subtask> = {}): Subtask {
     title: "Review draft",
     done: false,
     dueDate: null,
+    wordCount: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -445,5 +446,166 @@ describe("TaskChecklist", () => {
       screen.getByPlaceholderText("Ajouter un élément…"),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ajouter" })).toBeInTheDocument();
+  });
+
+  describe("words on translation projects", () => {
+    it("shows each item's word count", () => {
+      renderChecklist({
+        showWords: true,
+        subtasks: [
+          makeSubtask({
+            id: 1,
+            checklistTitle: "Setup",
+            title: "Section A",
+            wordCount: 1200,
+          }),
+        ],
+      });
+      expect(screen.getByText("1,200 words")).toBeInTheDocument();
+    });
+
+    it("hides word counts on non-translation projects", () => {
+      renderChecklist({
+        subtasks: [
+          makeSubtask({
+            id: 1,
+            checklistTitle: "Setup",
+            title: "Section A",
+            wordCount: 1200,
+          }),
+        ],
+      });
+      expect(screen.queryByText("1,200 words")).not.toBeInTheDocument();
+      fireEvent.click(screen.getByText("Section A"));
+      expect(screen.queryByLabelText("Words")).not.toBeInTheDocument();
+    });
+
+    it("creates an item with a word count", async () => {
+      gqlMutate.mockResolvedValueOnce({
+        createSubtask: makeSubtask({ id: 9 }),
+      });
+      renderChecklist({
+        showWords: true,
+        subtasks: [makeSubtask({ id: 1, checklistTitle: "Setup" })],
+      });
+
+      fireEvent.change(screen.getByPlaceholderText("Add an item…"), {
+        target: { value: "Section B" },
+      });
+      fireEvent.click(screen.getByText("Add"));
+      fireEvent.change(screen.getByLabelText("Words"), {
+        target: { value: "300" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+      await waitFor(() =>
+        expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+          input: { title: "Section B", wordCount: 300 },
+        }),
+      );
+    });
+
+    it.each([
+      ["1500", 1500],
+      ["", null],
+    ])("edits an item's word count to %j", async (typed, expected) => {
+      gqlMutate.mockResolvedValueOnce({
+        updateSubtask: makeSubtask({ id: 1 }),
+      });
+      renderChecklist({
+        showWords: true,
+        subtasks: [
+          makeSubtask({
+            id: 1,
+            checklistTitle: "Setup",
+            title: "Section A",
+            wordCount: 1200,
+          }),
+        ],
+      });
+
+      fireEvent.click(screen.getByText("Section A"));
+      expect(screen.getByLabelText("Words")).toHaveValue("1200");
+      fireEvent.change(screen.getByLabelText("Words"), {
+        target: { value: typed },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+      await waitFor(() =>
+        expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+          input: { id: 1, wordCount: expected },
+        }),
+      );
+    });
+
+    it("rejects an invalid word count without saving", async () => {
+      renderChecklist({
+        showWords: true,
+        subtasks: [
+          makeSubtask({ id: 1, checklistTitle: "Setup", title: "Section A" }),
+        ],
+      });
+
+      fireEvent.click(screen.getByText("Section A"));
+      fireEvent.change(screen.getByLabelText("Words"), {
+        target: { value: "-5" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(
+        await screen.findByText("Words must be a whole number of 0 or more."),
+      ).toBeInTheDocument();
+      expect(gqlMutate).not.toHaveBeenCalled();
+    });
+
+    it("shows no badge for an item without words", () => {
+      renderChecklist({
+        showWords: true,
+        subtasks: [
+          makeSubtask({
+            id: 1,
+            checklistTitle: "Setup",
+            title: "Glossary",
+            wordCount: null,
+          }),
+        ],
+      });
+      expect(screen.queryByText(/words?$/)).not.toBeInTheDocument();
+    });
+
+    it("starts a new item with an empty, valid Words field", () => {
+      renderChecklist({
+        showWords: true,
+        subtasks: [makeSubtask({ id: 1, checklistTitle: "Setup" })],
+      });
+      fireEvent.change(screen.getByPlaceholderText("Add an item…"), {
+        target: { value: "Section B" },
+      });
+      fireEvent.click(screen.getByText("Add"));
+
+      const words = screen.getByLabelText("Words");
+      expect(words).toHaveValue("");
+      expect(words).not.toHaveAttribute("aria-invalid");
+      expect(screen.queryByText(/whole number/)).not.toBeInTheDocument();
+    });
+
+    it("marks an invalid value and clears the error while retyping", async () => {
+      renderChecklist({
+        showWords: true,
+        subtasks: [
+          makeSubtask({ id: 1, checklistTitle: "Setup", title: "Section A" }),
+        ],
+      });
+      fireEvent.click(screen.getByText("Section A"));
+      const words = screen.getByLabelText("Words");
+      fireEvent.change(words, { target: { value: "-5" } });
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
+      await screen.findByText(/whole number/);
+      expect(words).toHaveAttribute("aria-invalid", "true");
+
+      fireEvent.change(words, { target: { value: "5" } });
+      expect(words).not.toHaveAttribute("aria-invalid");
+      expect(screen.queryByText(/whole number/)).not.toBeInTheDocument();
+    });
   });
 });

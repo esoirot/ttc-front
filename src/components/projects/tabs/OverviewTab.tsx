@@ -1,12 +1,17 @@
+import { useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KpiCard, KpiGrid } from "@/components/kpi/KpiCard";
 import { formatDuration } from "@/lib/time";
 import {
   calculateProjectRevenue,
   resolveProjectRateSheet,
 } from "@/lib/projectRate";
 import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
-import { useTimeEntries } from "@/hooks/time/useTimeEntries";
+import {
+  useAllTimeEntries,
+  useFirstTimeEntryStart,
+} from "@/hooks/time/useTimeEntries";
+import { MonthSelector } from "../filters/MonthSelector";
 import type { TimeEntry } from "@/types/time-entries.types";
 import type { OverviewTabProps } from "@/types/projects.types";
 import { DistributionPie } from "../charts/DistributionPie";
@@ -43,26 +48,32 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
     : 0;
 
   const now = new Date();
+  const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const [month, setMonth] = useState(currentMonth);
+  const { firstStart } = useFirstTimeEntryStart({ projectId: project.id });
+  const firstMonth = firstStart
+    ? new Date(firstStart.getFullYear(), firstStart.getMonth(), 1)
+    : currentMonth;
   const monthStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
+    month.getFullYear(),
+    month.getMonth(),
     1,
   ).toISOString();
   const monthEnd = new Date(
-    now.getFullYear(),
-    now.getMonth() + 1,
+    month.getFullYear(),
+    month.getMonth() + 1,
     0,
     23,
     59,
     59,
     999,
   ).toISOString();
-  const monthLabel = intl.formatDate(now, {
+  const monthLabel = intl.formatDate(month, {
     month: "long",
     year: "numeric",
   });
 
-  const { entries: monthlyEntries } = useTimeEntries({
+  const { entries: monthlyEntries } = useAllTimeEntries({
     projectId: project.id,
     start: monthStart,
     end: monthEnd,
@@ -87,147 +98,151 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-      <div className="grid grid-cols-2 gap-4 flex-1">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">
+      <KpiGrid className="flex-1">
+        <KpiCard
+          mono
+          label={
+            <FormattedMessage
+              id="clients.projectsTab.timeLogged"
+              defaultMessage="Time logged"
+            />
+          }
+          value={formatDuration(totalSeconds)}
+        />
+        {isTranslationActivity && (
+          <KpiCard
+            mono
+            label={
               <FormattedMessage
-                id="clients.projectsTab.timeLogged"
-                defaultMessage="Time logged"
+                id="projects.overviewTab.taskWords"
+                defaultMessage="Task words"
               />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-mono">{formatDuration(totalSeconds)}</p>
-          </CardContent>
-        </Card>
+            }
+            value={intl.formatNumber(project.totalTaskWords ?? 0)}
+          />
+        )}
         {project.wordCount && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">
-                <FormattedMessage
-                  id="projects.header.field.wordCount"
-                  defaultMessage="Word count"
-                />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl">
-                <FormattedMessage
-                  id="projects.overviewTab.wordsProgress"
-                  defaultMessage="{processed} / {total}"
-                  values={{
-                    processed: intl.formatNumber(
-                      project.totalWordsProcessed ?? 0,
-                    ),
-                    total: intl.formatNumber(project.wordCount),
-                  }}
-                />
-              </p>
-            </CardContent>
-          </Card>
+          <KpiCard
+            label={
+              <FormattedMessage
+                id="projects.header.field.wordCount"
+                defaultMessage="Word count"
+              />
+            }
+            value={
+              <FormattedMessage
+                id="projects.overviewTab.wordsProgress"
+                defaultMessage="{processed} / {total}"
+                values={{
+                  processed: intl.formatNumber(
+                    project.totalWordsProcessed ?? 0,
+                  ),
+                  total: intl.formatNumber(project.wordCount),
+                }}
+              />
+            }
+          />
         )}
         {(project.useCustomRate ? hasCustomPricing : true) && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">
-                <FormattedMessage
-                  id="projects.overviewTab.pricing"
-                  defaultMessage="Pricing"
-                />
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-1">
-              {project.useCustomRate ? (
-                <>
-                  {project.fixedFee != null && (
-                    <p className="text-lg">
-                      <FormattedMessage
-                        id="projects.header.pricing.fixed"
-                        defaultMessage="Fixed {fee} {currency}"
-                        values={{
-                          fee: project.fixedFee,
-                          currency: project.currency,
-                        }}
-                      />
-                    </p>
-                  )}
-                  {project.hourlyRate != null && (
-                    <p className="text-lg">
-                      <FormattedMessage
-                        id="projects.overviewTab.hourlyRate"
-                        defaultMessage="{rate} {currency}/hr"
-                        values={{
-                          rate: project.hourlyRate,
-                          currency: project.currency,
-                        }}
-                      />
-                    </p>
-                  )}
-                  {project.perWordRate != null && (
-                    <p className="text-lg">
-                      <FormattedMessage
-                        id="projects.overviewTab.perWordRate"
-                        defaultMessage="{rate} {currency}/word"
-                        values={{
-                          rate: project.perWordRate,
-                          currency: project.currency,
-                        }}
-                      />
-                    </p>
-                  )}
-                </>
-              ) : clientRateSheet ? (
-                <>
+          <KpiCard
+            label={
+              <FormattedMessage
+                id="projects.overviewTab.pricing"
+                defaultMessage="Pricing"
+              />
+            }
+          >
+            {project.useCustomRate ? (
+              <>
+                {project.fixedFee != null && (
                   <p className="text-lg">
                     <FormattedMessage
-                      id="projects.overviewTab.clientRatePerWord"
-                      defaultMessage="{price} {currency}/word"
+                      id="projects.header.pricing.fixed"
+                      defaultMessage="Fixed {fee} {currency}"
                       values={{
-                        price: clientRateSheet.pricePerWord,
-                        currency: clientRateSheet.currency,
+                        fee: project.fixedFee,
+                        currency: project.currency,
                       }}
                     />
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                )}
+                {project.hourlyRate != null && (
+                  <p className="text-lg">
                     <FormattedMessage
-                      id="projects.overviewTab.clientRateSheetName"
-                      defaultMessage="Client rate sheet — {name}"
-                      values={{ name: clientRateSheet.name }}
+                      id="projects.overviewTab.hourlyRate"
+                      defaultMessage="{rate} {currency}/hr"
+                      values={{
+                        rate: project.hourlyRate,
+                        currency: project.currency,
+                      }}
                     />
                   </p>
-                </>
-              ) : rateSheetsLoading ? null : (
-                <p className="text-sm text-muted-foreground">
+                )}
+                {project.perWordRate != null && (
+                  <p className="text-lg">
+                    <FormattedMessage
+                      id="projects.overviewTab.perWordRate"
+                      defaultMessage="{rate} {currency}/word"
+                      values={{
+                        rate: project.perWordRate,
+                        currency: project.currency,
+                      }}
+                    />
+                  </p>
+                )}
+              </>
+            ) : clientRateSheet ? (
+              <>
+                <p className="text-lg">
                   <FormattedMessage
-                    id="projects.header.pricing.noRateSheet"
-                    defaultMessage="No client rate sheet for this project"
+                    id="projects.overviewTab.clientRatePerWord"
+                    defaultMessage="{price} {currency}/word"
+                    values={{
+                      price: clientRateSheet.pricePerWord,
+                      currency: clientRateSheet.currency,
+                    }}
                   />
                 </p>
-              )}
-            </CardContent>
-          </Card>
+                <p className="text-xs text-muted-foreground">
+                  <FormattedMessage
+                    id="projects.overviewTab.clientRateSheetName"
+                    defaultMessage="Client rate sheet — {name}"
+                    values={{ name: clientRateSheet.name }}
+                  />
+                </p>
+              </>
+            ) : rateSheetsLoading ? null : (
+              <p className="text-sm text-muted-foreground">
+                <FormattedMessage
+                  id="projects.header.pricing.noRateSheet"
+                  defaultMessage="No client rate sheet for this project"
+                />
+              </p>
+            )}
+          </KpiCard>
         )}
         {showRevenue && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">
-                <FormattedMessage
-                  id="projects.overviewTab.revenue"
-                  defaultMessage="Revenue"
-                />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-mono">
-                {revenue.toFixed(2)} {project.currency}
-              </p>
-            </CardContent>
-          </Card>
+          <KpiCard
+            mono
+            label={
+              <FormattedMessage
+                id="projects.overviewTab.revenue"
+                defaultMessage="Revenue"
+              />
+            }
+            value={revenue.toFixed(2)}
+            unit={project.currency}
+          />
         )}
-      </div>
+      </KpiGrid>
 
       <div className="flex flex-col gap-4 sm:w-72 shrink-0">
+        <MonthSelector
+          month={month}
+          onChange={setMonth}
+          min={firstMonth}
+          max={currentMonth}
+        />
         <DistributionPie
           title={intl.formatMessage({
             id: "projects.overviewTab.timePerTask",
@@ -236,10 +251,13 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
           subtitle={monthLabel}
           data={taskPieData}
           formatValue={formatDuration}
-          emptyMessage={intl.formatMessage({
-            id: "projects.overviewTab.noTimeThisMonth",
-            defaultMessage: "No time logged yet this month.",
-          })}
+          emptyMessage={intl.formatMessage(
+            {
+              id: "projects.overviewTab.noTimeInMonth",
+              defaultMessage: "No time logged in {month}.",
+            },
+            { month: monthLabel },
+          )}
         />
         <DistributionPie
           title={intl.formatMessage({
@@ -249,10 +267,13 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
           subtitle={monthLabel}
           data={activityPieData}
           formatValue={formatDuration}
-          emptyMessage={intl.formatMessage({
-            id: "projects.overviewTab.noTimeThisMonth",
-            defaultMessage: "No time logged yet this month.",
-          })}
+          emptyMessage={intl.formatMessage(
+            {
+              id: "projects.overviewTab.noTimeInMonth",
+              defaultMessage: "No time logged in {month}.",
+            },
+            { month: monthLabel },
+          )}
         />
       </div>
     </div>

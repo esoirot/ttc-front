@@ -386,3 +386,132 @@ test("the Dashboard month and year pickers jump to any month since the first ent
 
   await expect(page.getByText("No time logged in June 2024.")).toBeVisible();
 });
+
+test("project detail shows tasks by default and its KPIs and charts in the Dashboard tab", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date(2026, 9, 15, 10, 0));
+  await mockProjectsApi(page, [
+    makeProject({ id: 7, title: "Translate manual" }),
+  ]);
+  const timeEntryVars: Record<string, unknown>[] = [];
+  page.on("request", (req) => {
+    if (!req.url().includes("/graphql") || req.method() !== "POST") return;
+    const body = req.postDataJSON() as {
+      operationName: string;
+      variables?: Record<string, unknown>;
+    };
+    if (body.operationName === "TimeEntries" && body.variables) {
+      timeEntryVars.push(body.variables);
+    }
+  });
+  await page.goto("/projects/7");
+
+  await expect(page.getByRole("tab", { name: "Tasks" })).toHaveAttribute(
+    "data-state",
+    "active",
+  );
+  await expect(page.getByText("Time per task")).toHaveCount(0);
+
+  await page.getByRole("tab", { name: "Dashboard" }).click();
+  await expect(page.getByText("Time logged", { exact: true })).toBeVisible();
+  await expect(page.getByText("Time per task")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Previous month" }),
+  ).toBeEnabled();
+
+  await page.getByRole("button", { name: "Previous month" }).click();
+
+  await expect(page.getByText("No time logged in September 2026.")).toHaveCount(
+    2,
+  );
+  const septemberStart = await page.evaluate(() =>
+    new Date(2026, 8, 1).toISOString(),
+  );
+  await expect
+    .poll(() => timeEntryVars)
+    .toContainEqual(
+      expect.objectContaining({
+        projectId: 7,
+        start: septemberStart,
+        pagination: { limit: 1000 },
+      }),
+    );
+});
+
+test("a translation task shows its own words plus its checklist words next to its name", async ({
+  page,
+}) => {
+  await mockProjectsApi(page, [
+    makeProject({
+      id: 7,
+      title: "Translate manual",
+      activities: [TRANSLATION_ACTIVITY],
+    }),
+  ]);
+  const task = {
+    id: 40,
+    projectId: 7,
+    assigneeId: null,
+    title: "Chapter 1",
+    description: null,
+    status: "TODO",
+    dueDate: null,
+    wordCount: 500,
+    startDate: null,
+    recurring: null,
+    reminderOffset: null,
+    sortOrder: 0,
+    totalTimeSeconds: 0,
+    createdAt: NOW,
+    updatedAt: NOW,
+  };
+  // Registered after mockProjectsApi, so these handlers win for task ops.
+  await page.route("**/graphql", async (route) => {
+    const { operationName } = route.request().postDataJSON() as {
+      operationName: string;
+    };
+    const respond = (data: unknown) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ data }),
+      });
+    if (operationName === "Tasks") {
+      return respond({ tasks: { items: [task], nextCursor: null, total: 1 } });
+    }
+    if (operationName === "Task") {
+      return respond({
+        task: {
+          ...task,
+          checklistTitles: ["Sections"],
+          subtasks: [
+            {
+              id: 1,
+              taskId: 40,
+              checklistTitle: "Sections",
+              title: "Section A",
+              done: false,
+              dueDate: null,
+              wordCount: 200,
+              createdAt: NOW,
+              updatedAt: NOW,
+            },
+          ],
+          comments: [],
+          labels: [],
+          activities: [],
+          attachments: [],
+        },
+      });
+    }
+    return route.fallback();
+  });
+  await page.goto("/projects/7");
+
+  await page.getByText("Chapter 1").first().click();
+
+  await expect(page.getByText("700 words")).toBeVisible();
+  await expect(page.getByText("200 words")).toBeVisible();
+  await expect(page.locator("#task-words-40")).toHaveValue("500");
+});

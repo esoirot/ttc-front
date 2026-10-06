@@ -900,7 +900,7 @@ export const fr: Record<keyof typeof en, string> = {
   "projects.overviewTab.revenue": "Revenu",
   "projects.overviewTab.timePerTask": "Temps par tâche",
   "projects.overviewTab.timePerActivity": "Temps par activité",
-  "projects.overviewTab.noTimeThisMonth": "Aucun temps enregistré ce mois-ci.",
+  "projects.overviewTab.noTimeInMonth": "Aucun temps enregistré en {month}.",
   "projects.overviewTab.wordsProgress": "{processed} / {total}",
   "projects.overviewTab.clientRatePerWord": "{price} {currency}/mot",
   "projects.overviewTab.clientRateSheetName":
@@ -1004,6 +1004,11 @@ export const fr: Record<keyof typeof en, string> = {
   "projects.monthSelector.next": "Mois suivant",
   "projects.list.tabProjects": "Projets",
   "projects.list.tabDashboard": "Tableau de bord",
+  "projects.overviewTab.taskWords": "Mots des tâches",
+  "projects.words.label": "Mots",
+  "projects.words.count": "{count, plural, one {# mot} other {# mots}}",
+  "projects.words.invalid":
+    "Le nombre de mots doit être un entier positif ou nul.",
   "projects.list.title": "Projets",
   "projects.list.newProject": "Nouveau projet",
   "projects.list.searchLabel": "Rechercher des projets",

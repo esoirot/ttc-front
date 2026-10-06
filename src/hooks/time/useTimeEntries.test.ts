@@ -395,4 +395,59 @@ describe("useFirstTimeEntryStart", () => {
     });
     expect(gqlFetch).not.toHaveBeenCalled();
   });
+
+  it("can be scoped to one project, cached separately per project", async () => {
+    gqlFetch.mockImplementation((_q: unknown, vars: { projectId?: number }) =>
+      Promise.resolve({
+        firstTimeEntryStart:
+          vars?.projectId === 12
+            ? "2025-06-01T00:00:00.000Z"
+            : "2024-03-04T09:00:00.000Z",
+      }),
+    );
+    const wrapper = createQueryWrapper(createQueryClient());
+
+    const all = renderHook(() => useFirstTimeEntryStart(), { wrapper });
+    const project = renderHook(
+      () => useFirstTimeEntryStart({ projectId: 12 }),
+      { wrapper },
+    );
+
+    await waitFor(() =>
+      expect(project.result.current.firstStart).toEqual(
+        new Date("2025-06-01T00:00:00.000Z"),
+      ),
+    );
+    await waitFor(() =>
+      expect(all.result.current.firstStart).toEqual(
+        new Date("2024-03-04T09:00:00.000Z"),
+      ),
+    );
+  });
+});
+
+describe("useAllTimeEntries for one project", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+  });
+
+  it("passes the project filter along with the range", async () => {
+    gqlFetch.mockResolvedValueOnce({ timeEntries: makeConnection([]) });
+    const range = {
+      start: "2026-09-01T00:00:00.000Z",
+      end: "2026-09-30T23:59:59.999Z",
+    };
+
+    renderHook(() => useAllTimeEntries({ ...range, projectId: 12 }), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await waitFor(() =>
+      expect(gqlFetch).toHaveBeenCalledWith(expect.anything(), {
+        ...range,
+        projectId: 12,
+        pagination: { limit: 1000 },
+      }),
+    );
+  });
 });
