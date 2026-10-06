@@ -155,6 +155,7 @@ export function useUpdateTask(projectId: number) {
         old ? { ...old, ...updated } : old,
       );
       void queryClient.invalidateQueries({ queryKey: ["task", updated.id] });
+      void queryClient.invalidateQueries({ queryKey: ["project", projectId] });
     },
   });
   return {
@@ -177,6 +178,7 @@ export function useDeleteTask(projectId: number) {
         (t: Task) => t.id,
       );
       queryClient.removeQueries({ queryKey: ["task", id] });
+      void queryClient.invalidateQueries({ queryKey: ["project", projectId] });
     },
   });
   return {
@@ -209,6 +211,8 @@ export function useCreateSubtask(taskId: number) {
     unwrap: (d) => d.createSubtask,
     onSuccess: () => {
       void queryClient.refetchQueries({ queryKey: ["task", taskId] });
+      // The project's word total includes checklist words.
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
     },
   });
   return {
@@ -228,6 +232,8 @@ export function useUpdateSubtask(taskId: number) {
     unwrap: (d) => d.updateSubtask,
     onSuccess: () => {
       void queryClient.refetchQueries({ queryKey: ["task", taskId] });
+      // The project's word total includes checklist words.
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
     },
   });
   return {
@@ -243,6 +249,8 @@ export function useDeleteSubtask(taskId: number) {
     unwrap: (d) => d.deleteSubtask,
     onSuccess: () => {
       void queryClient.refetchQueries({ queryKey: ["task", taskId] });
+      // The project's word total includes checklist words.
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
     },
   });
   return { deleteSubtask: (id: number) => mutateAsync({ id }) };

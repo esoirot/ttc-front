@@ -324,6 +324,24 @@ test("project word count shows as SUM / TOTAL from totalWordsProcessed and wordC
   await expect(page.getByText("1,200 / 2,500 words")).toBeVisible();
 });
 
+test("project total words add task and checklist words to time-entry words", async ({
+  page,
+}) => {
+  await mockProjectsApi(page, [
+    makeProject({
+      id: 8,
+      wordCount: 5000,
+      totalWordsProcessed: 400,
+      totalTaskWords: 700,
+    }),
+  ]);
+  await page.goto("/projects/8");
+
+  await expect(page.getByText("1,100 / 5,000 words")).toBeVisible();
+  await page.getByRole("tab", { name: "Dashboard" }).click();
+  await expect(page.getByText("1,100 / 5,000", { exact: true })).toBeVisible();
+});
+
 test.describe("project task toolbar on a phone", () => {
   test.use({ viewport: { width: 375, height: 800 } });
 

@@ -764,6 +764,20 @@ describe("TaskDetailModal", () => {
       expect(title.nextElementSibling).toBe(total);
     });
 
+    it("adds the words logged on the task's time entries to the total", async () => {
+      renderModal(
+        makeTaskDetail({
+          wordCount: 500,
+          subtasks: [{ ...item, wordCount: 200 }],
+          totalWordsProcessed: 300,
+        }),
+        {},
+        { project: translatorProject },
+      );
+
+      expect(await screen.findByText("1,000 words")).toBeInTheDocument();
+    });
+
     it("shows no total when no words are set", async () => {
       renderModal(
         makeTaskDetail({ wordCount: null }),

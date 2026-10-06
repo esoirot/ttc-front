@@ -3,6 +3,7 @@ import { FormattedMessage, useIntl } from "react-intl";
 import { KpiCard, KpiGrid } from "@/components/kpi/KpiCard";
 import { CompactNumber } from "@/components/kpi/CompactNumber";
 import { formatDuration } from "@/lib/time";
+import { projectWordTotal } from "@/lib/words";
 import {
   calculateProjectRevenue,
   resolveProjectRateSheet,
@@ -136,7 +137,7 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
                 defaultMessage="{processed} / {total}"
                 values={{
                   processed: (
-                    <CompactNumber value={project.totalWordsProcessed ?? 0} />
+                    <CompactNumber value={projectWordTotal(project)} />
                   ),
                   total: <CompactNumber value={project.wordCount} />,
                 }}

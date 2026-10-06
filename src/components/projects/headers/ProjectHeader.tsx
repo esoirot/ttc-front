@@ -22,6 +22,7 @@ import type { ClientRate } from "@/types/client-rates.types";
 import { useRates } from "@/hooks/rates/useRates";
 import { useClientRates } from "@/hooks/clients/useClientRates";
 import { useClient } from "@/hooks/clients/useClients";
+import { projectWordTotal } from "@/lib/words";
 import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
 import {
   defaultClientRateSheetId,
@@ -107,6 +108,7 @@ export function ProjectHeader({
   const clientIdNum = project.clientId;
   const { clientRates } = useClientRates(clientIdNum);
   const { client } = useClient(clientIdNum ?? 0);
+  const wordTotal = projectWordTotal(project);
   const { rateSheets, loading: rateSheetsLoading } = useRateSheets();
   const resolvedRateSheet = resolveProjectRateSheet(rateSheets, project);
 
@@ -719,22 +721,19 @@ export function ProjectHeader({
                   id="projects.header.wordsProgress"
                   defaultMessage="{processed} / {total} words"
                   values={{
-                    processed: intl.formatNumber(
-                      project.totalWordsProcessed ?? 0,
-                    ),
+                    processed: intl.formatNumber(wordTotal),
                     total: intl.formatNumber(project.wordCount),
                   }}
                 />
               </Badge>
             ) : (
-              project.totalWordsProcessed != null &&
-              project.totalWordsProcessed > 0 && (
+              wordTotal > 0 && (
                 <Badge variant="outline">
                   <FormattedMessage
                     id="projects.header.wordsLogged"
                     defaultMessage="{total} words logged"
                     values={{
-                      total: intl.formatNumber(project.totalWordsProcessed),
+                      total: intl.formatNumber(wordTotal),
                     }}
                   />
                 </Badge>

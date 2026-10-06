@@ -274,6 +274,21 @@ describe("OverviewTab", () => {
     expect(screen.getByText(paragraph("400 / 1,000"))).toBeInTheDocument();
   });
 
+  it("counts task and checklist words in the word count", () => {
+    render(
+      <OverviewTab
+        project={makeProject({
+          wordCount: 5000,
+          totalWordsProcessed: 400,
+          totalTaskWords: 700,
+        })}
+        totalSeconds={0}
+      />,
+      { wrapper: createIntlQueryWrapper() },
+    );
+    expect(screen.getByText(paragraph("1,100 / 5,000"))).toBeInTheDocument();
+  });
+
   it("shortens a word count target of a million or more", () => {
     render(
       <OverviewTab

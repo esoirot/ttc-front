@@ -17,6 +17,9 @@ import {
   useTaskOptions,
   useCreateComment,
   useCreateTask,
+  useCreateSubtask,
+  useUpdateSubtask,
+  useDeleteSubtask,
   useCreateTaskLabel,
   useDeleteComment,
   useDeleteTask,
@@ -486,5 +489,70 @@ describe("useTaskOptions", () => {
     await waitFor(() =>
       expect(options.result.current.tasks).toEqual([renamed]),
     );
+  });
+});
+
+describe("task and checklist word changes refresh the project total", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+    gqlMutate.mockReset();
+  });
+
+  function spyOn() {
+    const queryClient = createQueryClient();
+    return {
+      wrapper: createQueryWrapper(queryClient),
+      invalidateSpy: vi.spyOn(queryClient, "invalidateQueries"),
+    };
+  }
+
+  it("after editing a task", async () => {
+    gqlMutate.mockResolvedValueOnce({ updateTask: makeTask({ id: 3 }) });
+    const { wrapper, invalidateSpy } = spyOn();
+    const { result } = renderHook(() => useUpdateTask(1), { wrapper });
+
+    await result.current.updateTask({ id: 3, wordCount: 500 });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["project", 1] });
+  });
+
+  it("after deleting a task", async () => {
+    gqlMutate.mockResolvedValueOnce({ deleteTask: true });
+    const { wrapper, invalidateSpy } = spyOn();
+    const { result } = renderHook(() => useDeleteTask(1), { wrapper });
+
+    await result.current.deleteTask(3);
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["project", 1] });
+  });
+
+  it("after adding a checklist item", async () => {
+    gqlMutate.mockResolvedValueOnce({ createSubtask: { id: 1 } });
+    const { wrapper, invalidateSpy } = spyOn();
+    const { result } = renderHook(() => useCreateSubtask(3), { wrapper });
+
+    await result.current.createSubtask({ title: "Item" });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["project"] });
+  });
+
+  it("after editing a checklist item", async () => {
+    gqlMutate.mockResolvedValueOnce({ updateSubtask: { id: 1 } });
+    const { wrapper, invalidateSpy } = spyOn();
+    const { result } = renderHook(() => useUpdateSubtask(3), { wrapper });
+
+    await result.current.updateSubtask({ id: 1, wordCount: 200 });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["project"] });
+  });
+
+  it("after deleting a checklist item", async () => {
+    gqlMutate.mockResolvedValueOnce({ deleteSubtask: true });
+    const { wrapper, invalidateSpy } = spyOn();
+    const { result } = renderHook(() => useDeleteSubtask(3), { wrapper });
+
+    await result.current.deleteSubtask(1);
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["project"] });
   });
 });

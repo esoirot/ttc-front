@@ -128,6 +128,7 @@ export function useCreateTimeEntry() {
       void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
       void queryClient.invalidateQueries({ queryKey: ["tasks"] });
       void queryClient.invalidateQueries({ queryKey: ["project"] });
+      void queryClient.invalidateQueries({ queryKey: ["task"] });
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
@@ -194,6 +195,7 @@ export function useUpdateTimeEntry() {
       patchConnection(queryClient, ["timeEntries"], updated, (e) => e.id);
       void queryClient.invalidateQueries({ queryKey: ["tasks"] });
       void queryClient.invalidateQueries({ queryKey: ["project"] });
+      void queryClient.invalidateQueries({ queryKey: ["task"] });
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
@@ -238,6 +240,7 @@ export function useDeleteTimeEntry() {
       );
       void queryClient.invalidateQueries({ queryKey: ["tasks"] });
       void queryClient.invalidateQueries({ queryKey: ["project"] });
+      void queryClient.invalidateQueries({ queryKey: ["task"] });
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });

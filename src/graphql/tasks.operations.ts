@@ -105,6 +105,7 @@ export const TASK_QUERY: TypedDocumentNode<
   query Task($id: Int!) {
     task(id: $id) {
       ${TASK_FIELDS}
+      totalWordsProcessed
       checklistTitles
       subtasks { id taskId checklistTitle title done dueDate wordCount createdAt updatedAt }
       comments { id taskId authorId body createdAt updatedAt }

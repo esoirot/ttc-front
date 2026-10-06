@@ -451,3 +451,51 @@ describe("useAllTimeEntries for one project", () => {
     );
   });
 });
+
+describe("time entry changes refresh the task word totals", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+    gqlMutate.mockReset();
+  });
+
+  function spyOn() {
+    const queryClient = createQueryClient();
+    return {
+      wrapper: createQueryWrapper(queryClient),
+      invalidateSpy: vi.spyOn(queryClient, "invalidateQueries"),
+    };
+  }
+
+  it("after logging an entry", async () => {
+    gqlMutate.mockResolvedValueOnce({ createTimeEntry: makeEntry() });
+    const { wrapper, invalidateSpy } = spyOn();
+    const { result } = renderHook(() => useCreateTimeEntry(), { wrapper });
+
+    await result.current.createTimeEntry({
+      startTime: "2026-06-17T09:00:00.000Z",
+      endTime: "2026-06-17T10:00:00.000Z",
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["task"] });
+  });
+
+  it("after editing an entry's words", async () => {
+    gqlMutate.mockResolvedValueOnce({ updateTimeEntry: makeEntry() });
+    const { wrapper, invalidateSpy } = spyOn();
+    const { result } = renderHook(() => useUpdateTimeEntry(), { wrapper });
+
+    await result.current.updateTimeEntry({ id: 1, wordsProcessed: 300 });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["task"] });
+  });
+
+  it("after deleting an entry", async () => {
+    gqlMutate.mockResolvedValueOnce({ deleteTimeEntry: true });
+    const { wrapper, invalidateSpy } = spyOn();
+    const { result } = renderHook(() => useDeleteTimeEntry(), { wrapper });
+
+    await result.current.deleteTimeEntry(1);
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["task"] });
+  });
+});

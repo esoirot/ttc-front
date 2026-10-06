@@ -79,6 +79,8 @@ export interface TaskAttachment {
 }
 
 export interface TaskDetail extends Task {
+  /** Words logged on this task's time entries. */
+  totalWordsProcessed?: number | null;
   checklistTitles: string[];
   subtasks: Subtask[];
   comments: TaskComment[];
