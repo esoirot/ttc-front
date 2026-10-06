@@ -116,7 +116,7 @@ export function ProspectsBoard() {
   );
 
   return (
-    <div className="px-6 py-8">
+    <div className="w-full px-8 py-8">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Prospects</h1>
         <Button

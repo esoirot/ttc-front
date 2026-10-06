@@ -38,7 +38,7 @@ export function InvoicesList() {
   } = useInvoicesPage();
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="w-full px-8 py-8">
       <InvoicesPageHeader
         onToggleCreate={toggleCreate}
         onToggleGenerate={toggleGenerate}

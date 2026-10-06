@@ -41,7 +41,7 @@ export function ClientDetail() {
 
   if (clientLoading) {
     return (
-      <div className="max-w-3xl mx-auto px-6 py-8">
+      <div className="w-full px-8 py-8">
         <Skeleton className="h-10 w-64 mb-4" />
         <Skeleton className="h-40 w-full" />
       </div>
@@ -50,7 +50,7 @@ export function ClientDetail() {
 
   if (!client) {
     return (
-      <div className="max-w-3xl mx-auto px-6 py-8">
+      <div className="w-full px-8 py-8">
         <p className="text-muted-foreground">
           <FormattedMessage
             id="clients.detail.notFound"
@@ -62,7 +62,7 @@ export function ClientDetail() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="w-full px-8 py-8">
       <ClientHeader
         client={client}
         onUpdate={updateClient}

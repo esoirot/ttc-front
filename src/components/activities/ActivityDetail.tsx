@@ -94,7 +94,7 @@ export function ActivityDetail() {
 
   if (!loading && !activity) {
     return (
-      <div className="max-w-3xl mx-auto px-6 py-8">
+      <div className="w-full px-8 py-8">
         <p className="text-sm text-muted-foreground">
           <FormattedMessage
             id="activities.detail.activityNotFound"
@@ -122,7 +122,7 @@ export function ActivityDetail() {
     activity?.charges.filter((c) => c.type === "VARIABLE") ?? [];
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8 flex flex-col gap-6">
+    <div className="w-full px-8 py-8 flex flex-col gap-6">
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"

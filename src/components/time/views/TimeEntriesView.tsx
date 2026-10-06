@@ -36,7 +36,7 @@ export function TimeEntriesView() {
   } = useTimeEntriesPage();
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="w-full px-8 py-8">
       <TimePageHeader
         workspaceId={workspaceId}
         showManual={showManual}

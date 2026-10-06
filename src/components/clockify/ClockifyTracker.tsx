@@ -22,7 +22,7 @@ export function ClockifyTracker() {
 
   if (isLoading) {
     return (
-      <div className="max-w-3xl mx-auto px-6 py-8">
+      <div className="w-full px-8 py-8">
         <Skeleton className="h-8 w-36 mb-6" />
         <Skeleton className="h-4 w-64" />
       </div>
@@ -30,7 +30,7 @@ export function ClockifyTracker() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="w-full px-8 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">
           <FormattedMessage

@@ -27,7 +27,7 @@ export function InvoiceDetail() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-6 py-8">
+      <div className="w-full px-8 py-8">
         <Skeleton className="h-10 w-64 mb-6" />
         <Skeleton className="h-60 w-full" />
       </div>
@@ -36,7 +36,7 @@ export function InvoiceDetail() {
 
   if (!invoice) {
     return (
-      <div className="max-w-3xl mx-auto px-6 py-8">
+      <div className="w-full px-8 py-8">
         <p className="text-muted-foreground">
           <FormattedMessage
             id="invoices.detail.notFound"
@@ -48,7 +48,7 @@ export function InvoiceDetail() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="w-full px-8 py-8">
       <InvoiceDetailHeader
         number={invoice.number}
         status={invoice.status}

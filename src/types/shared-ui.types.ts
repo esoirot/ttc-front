@@ -48,3 +48,20 @@ export type GenerateInvoiceFormProps = {
   onClose: () => void;
   onGenerated: (id: number) => void;
 };
+
+export interface KpiGridProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface KpiCardProps {
+  label: React.ReactNode;
+  value?: React.ReactNode;
+  unit?: React.ReactNode;
+  /** Monospace digits, for durations and counts that should not jitter. */
+  mono?: boolean;
+  /** Makes the whole card a link to this route. */
+  to?: string;
+  /** Rich content shown instead of value/unit (e.g. several lines). */
+  children?: React.ReactNode;
+}
