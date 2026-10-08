@@ -123,7 +123,7 @@ src/
 │   ├── useDashboard.ts            — useDashboard() → { dashboard: DashboardData | null, loading }
 │   ├── useClients.ts              — useClients, useClient, useCreateClient, useUpdateClient, useDeleteClient, useCreateCompanyContact(clientId), useUpdateCompanyContact(clientId), useDeleteCompanyContact(clientId)
 │   ├── useProjects.ts             — useProjects(status?), useProject, useCreateProject, useUpdateProject, useDeleteProject
-│   ├── useTasks.ts                — useTasks(projectId), useMyTasks, useCreateTask, useUpdateTask, useDeleteTask, useUpdateMyTask
+│   ├── useTasks.ts                — useTasks(projectId), useCreateTask, useUpdateTask, useDeleteTask
 │   ├── useTimeEntries.ts          — useTimeEntries(filters?), useActiveTimer (SSE via useTimerSSE), useStartTimer, useStopTimer, useCreateTimeEntry, useUpdateTimeEntry, useDeleteTimeEntry
 │   ├── time/useTimerSSE.ts        — SSE hook; connects to GET /timer/events; writes to Apollo cache on event
 │   ├── useInvoices.ts             — useInvoices(status?), useInvoice, useCreateInvoice, useGenerateInvoice, useUpdateInvoice, useDeleteInvoice, useAddInvoiceItem, useRemoveInvoiceItem
@@ -161,7 +161,6 @@ src/
     │   ├── ProjectsPage.tsx       — Project list: filter section (search input + status tabs inside a `border-b border-border pb-4 mb-6` div inside `Tabs`) clearly above results; inline create form above `Tabs`
     │   └── ProjectDetailPage.tsx  — Project detail: `ProjectHeader` (read/edit toggle — title/description/status/languages/wordCount/fixedFee/hourlyRate/perWordRate/currency/dates); Tasks kanban (@dnd-kit) + Time tab + Overview tab
     ├── tasks/
-    │   └── TasksPage.tsx          — My tasks: all tasks assigned to current user across projects; per-card `✎` edit button toggles inline form (title/description/status/dueDate); uses `useUpdateMyTask`
     ├── time/
     │   └── TimeEntriesPage.tsx    — Active timer banner, start/stop, manual log entry, date range filter
     ├── invoices/
@@ -190,7 +189,6 @@ src/
 | `/clients/:id`     | `ClientDetailPage`    | protected (inside `AppLayout`)                                                                                 |
 | `/projects`        | `ProjectsPage`        | protected (inside `AppLayout`)                                                                                 |
 | `/projects/:id`    | `ProjectDetailPage`   | protected (inside `AppLayout`)                                                                                 |
-| `/tasks`           | `TasksPage`           | protected (inside `AppLayout`)                                                                                 |
 | `/time`            | `TimeEntriesPage`     | protected (inside `AppLayout`)                                                                                 |
 | `/invoices`        | `InvoicesPage`        | protected (inside `AppLayout`)                                                                                 |
 | `/invoices/:id`    | `InvoiceDetailPage`   | protected (inside `AppLayout`)                                                                                 |
@@ -314,14 +312,12 @@ All hooks use TanStack Query (`useQuery`/`useInfiniteQuery`/`useMutation`) over 
 
 ### `useTasks.ts`
 
-| Hook                       | Returns                                                                                                           |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `useTasks(projectId)`      | `{ tasks, loading, hasMore, loadMore, total }` — limit 50 (kanban)                                                |
-| `useMyTasks()`             | `{ tasks, loading, hasMore, loadMore, total }` — limit 50, cursor pagination                                      |
-| `useCreateTask(projectId)` | `{ createTask(input), loading }`                                                                                  |
-| `useUpdateTask(projectId)` | `{ updateTask(input), loading }` — invalidates tasks for project                                                  |
-| `useDeleteTask(projectId)` | `{ deleteTask(id) }`                                                                                              |
-| `useUpdateMyTask()`        | `{ updateTask(input), loading }` — refetches `MY_TASKS_QUERY`; use in `TasksPage` where projectId varies per task |
+| Hook                       | Returns                                                            |
+| -------------------------- | ------------------------------------------------------------------ |
+| `useTasks(projectId)`      | `{ tasks, loading, hasMore, loadMore, total }` — limit 50 (kanban) |
+| `useCreateTask(projectId)` | `{ createTask(input), loading }`                                   |
+| `useUpdateTask(projectId)` | `{ updateTask(input), loading }` — invalidates tasks for project   |
+| `useDeleteTask(projectId)` | `{ deleteTask(id) }`                                               |
 
 ### `useTimeEntries.ts`
 
@@ -361,7 +357,6 @@ All hooks use TanStack Query (`useQuery`/`useInfiniteQuery`/`useMutation`) over 
 - **HubSpot contact import**: "Import as client" button per contact row in `ContactsTab`. Per-row `ImportButton` component flips to "Imported" badge on success. Idempotent — re-importing same contact returns existing TTC client (#36 ✅).
 - **Invoice PDF**: downloaded via `apiGet<Blob>('/invoices/:id/pdf', { responseType: 'blob' })` — `apiGet` accepts an optional second arg `{ responseType?: 'blob' }`; when `'blob'`, `request()` calls `res.blob()` instead of `res.json()`. Always pass `{ responseType: 'blob' }` for binary endpoints. PDF is multi-page; includes logo from `user.logoUrl` if set and SSRF-safe.
 - **generateInvoice unit prices**: `InvoicesPage` generate form now has a "Hourly rate" input. Auto-fills from selected project's `unitPrice`. If left blank, backend falls back to `project.unitPrice` then `0`. `GENERATE_INVOICE_MUTATION` accepts `hourlyRate?: number` (#38 ✅).
-- **myTasks pagination**: `useMyTasks()` uses cursor-based `fetchMore` (limit 50). Returns `{ tasks, total, hasMore, loadMore }`. `TasksPage` shows total count and "Load more" button (#41 ✅).
 - **SSE timer events** (#44 ✅): `useTimerSSE` (`src/hooks/time/useTimerSSE.ts`) opens `EventSource(BASE_URL + '/timer/events', { withCredentials: true })`. On `onmessage`, parses `TimeEntry | null` and calls `client.writeQuery({ query: ACTIVE_TIMER_QUERY, ... })` to update Apollo cache. Browser auto-reconnects on drop. No WebSockets — `apollo.ts` has no WS link, no `split()`.
 - **Invoice item inline edit**: clicking description/qty/unit price on a row enters edit mode — three `Input` fields with live total preview. ✓/Enter saves; ✕/Escape cancels. `useUpdateInvoiceItem(invoiceId)` hook calls `UPDATE_INVOICE_ITEM_MUTATION` (#45 ✅).
 - **Invoice logo**: `User.logoUrl` (optional, HTTPS only) set from `EditProfilePage` Profile tab. Logo preview shown in `InvoiceDetailPage` header (right-aligned, max 110×50 px). Backend embeds logo in PDF top-right corner on PDF generation.
@@ -370,7 +365,7 @@ All hooks use TanStack Query (`useQuery`/`useInfiniteQuery`/`useMutation`) over 
 - **Invoice total in list** (#52 ✅): `InvoicesPage` already calculates `invTotal = inv.items.reduce(...)` and shows `{invTotal.toFixed(2)} {inv.currency}` — no change needed.
 - **Audit log pagination** (#53 ✅): `useAuditLog` converted from `useQuery` to `useInfiniteQuery<AuditPage>`. Flattens pages; "Load more" button in `AuditTable` when `hasNextPage`. Backend returns `{ items, nextCursor }`.
 - **Clockify disconnect** (#54 ✅): `useDisconnectClockify` hook calls `DELETE /clockify/credentials`. "Disconnect Clockify" button added to `TimeTrackerPage` footer (below "Update API key" details). Invalidates `["clockify"]` on success.
-- **Task assignee + due date** (#47 / #56 ✅): `SortableTask` shows `@assignee` + dueDate badge in view mode. `✎` button opens inline edit: `Select` (assignee, `w-[120px] h-6`) + date `Input` (`w-[120px] h-6`) + Save/Cancel. `onUpdate(id, assigneeId?, dueDate?)` prop calls `updateTask`. `members` prop passed from parent for Select options.
+- **Task assignees removed (2026-10-08)**: tasks have no assignee any more (backend dropped `Task.assigneeId`, `myTasks` and `members`). Only the project owner sees and edits a project's tasks. Old `ASSIGNED` history rows render through `TaskActivityFeed`'s generic fallback. Due date stays: `SortableTask` shows it in view mode.
 - **Kanban delete confirm** (#57 ✅): Delete `✕` button in `SortableTask` wrapped in `AlertDialog` — "Delete [title]? This cannot be undone." `e.stopPropagation()` on trigger.
 - **Clockify disconnect confirm** (#58 ✅): "Disconnect Clockify" button in `TimeTrackerPage` wrapped in `AlertDialog` with destructive warning.
 - **Client activity time entries** (#59 ✅): `ClientDetailPage` computes `clientProjectIds`; calls `useTimeEntries({ projectIds: clientProjectIds })` (guarded when empty). Sums `durationSeconds`; shows "Time logged" section with `formatDuration(h/m)` or "No time logged" / "No projects linked".
@@ -396,11 +391,10 @@ All hooks use TanStack Query (`useQuery`/`useInfiniteQuery`/`useMutation`) over 
 - **Clockify billable toggle plan detection (#82/#83 ✅)**: FREE-tier Clockify accounts get HTTP 400 on billability updates. `featureSubscriptionType` added to `ClockifyWorkspace` type. `TrackerView` calls `useClockifyWorkspaces()` (cached), computes `billabilityLocked` via allowlist: `PAID_CLOCKIFY_PLANS = new Set(["BASIC","STANDARD","PRO","ENTERPRISE"])` — anything not in the set locks the button. Prop threaded to `ActiveTimer` and all `EntryRow` instances. `BillableToggle` gains `disabled` prop. Running entries filtered from day list (no PUT on active timer).
 - **Clockify plan badge in title (#84 ✅)**: `TimeTrackerPage` calls `useClockifyWorkspaces(status?.connected)` (cache hit — same query key as `TrackerView`). Extracts `featureSubscriptionType` for active workspace. Title row is `flex justify-between` — non-clickable `<Badge variant="secondary" className="font-mono">` on the right shows plan tier ("FREE", "BASIC", etc.). Hidden when plan unknown.
 - **TOTP backup codes (#103 ✅)**: `useEnableTwoFactor` now returns `backupCodes: string[] | null` from mutation data (8 one-time codes). `TwoFactorSetupPage` shows post-enable `Alert` with 2-column grid of monospace codes + "Copy all codes" button + "won't be shown again" warning. `TwoFactorVerifyPage` gained a "Lost access to authenticator? Use backup code" ghost button that toggles to a backup code text input backed by `useVerifyTwoFactorBackup`. `ENABLE_TWO_FACTOR_MUTATION` now selects `{ backupCodes }` instead of scalar Boolean. `VERIFY_TWO_FACTOR_BACKUP_MUTATION` added.
-- **SortableTask constants extracted**: `TASK_STATUSES` and `STATUS_LABELS` moved from `SortableTask.tsx` to `src/components/projects/taskConstants.ts` to satisfy `react-refresh/only-export-components` lint rule. Both `TasksTab` and `TasksPage` import from `taskConstants`. `SortableTask.tsx` now exports component only.
+- **SortableTask constants extracted**: `TASK_STATUSES` and `STATUS_LABELS` moved from `SortableTask.tsx` to `src/components/projects/taskConstants.ts` to satisfy `react-refresh/only-export-components` lint rule. `TasksTab` imports from `taskConstants`. `SortableTask.tsx` now exports component only.
 - **TabsList/TabsTrigger styling**: `TabsList` base class has `gap-2` between triggers; background removed from the list container. `TabsTrigger` gets `cursor-pointer` and `group-data-[variant=default]/tabs-list:bg-muted` so `bg-muted` applies per-trigger (not the whole strip) for the default variant; `line` variant triggers stay transparent.
 - **Client inline edit**: `ClientHeader` component (`src/components/clients/ClientHeader.tsx`) has a read/edit toggle — "Edit" button reveals a 2-column form for all company fields. `useClientDetail` now exposes `updateClient`/`updatingClient` from `useUpdateClient`. `ClientDetailPage` passes `onUpdate`/`saving` to `ClientHeader`.
 - **Project inline edit**: `ProjectHeader` component (`src/components/projects/ProjectHeader.tsx`) has a read/edit toggle — "Edit" button reveals a 2-column form (title, description, status Select, languages, wordCount, fixedFee/hourlyRate/perWordRate, currency, startDate, deadline). `ProjectDetailPage` imports `useUpdateProject` and passes `onUpdate`/`saving` to `ProjectHeader`.
-- **TasksPage inline edit**: each task card has a `✎` button (stops card navigation). Clicking opens an inline form (title, description, status Select, dueDate). `useUpdateMyTask` hook added to `useTasks.ts` — calls `UPDATE_TASK_MUTATION` with `refetchQueries: [MY_TASKS_QUERY]` (refetches the my-tasks list, not a project-scoped list).
 - **`Project.unitPrice` deprecated (2026-08-10)**: no frontend write path exists for it anywhere — `ProjectHeader`'s edit form uses `fixedFee`/`hourlyRate`/`perWordRate` only; `AdminProjectsTable.tsx` keeps `unitPrice` in local form state but never renders an `<Input>` for it or sends it in `createProject`/`updateProject` (dead field). `OverviewTab.tsx`'s old "Unit price"/"Est. revenue" cards (which read `project.unitPrice`) were replaced by a single "Pricing" card showing `fixedFee`/`hourlyRate`/`perWordRate`, each line conditional on `!= null`, card hidden when all three are unset. Don't build new UI against `project.unitPrice` — treat it as legacy/stale data for translation activity going forward.
 
 ## Docs

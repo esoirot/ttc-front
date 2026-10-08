@@ -10,7 +10,6 @@ function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     id: 1,
     projectId: 1,
-    assigneeId: null,
     title: "Translate homepage copy",
     description: null,
     status: "TODO",
@@ -47,7 +46,6 @@ const meta: Meta<typeof SortableTask> = {
     task: makeTask(),
     onDelete: () => {},
     onOpenModal: () => {},
-    memberMap: { 3: "Alice" },
   },
 };
 export default meta;
@@ -55,13 +53,9 @@ type Story = StoryObj<typeof SortableTask>;
 
 export const Default: Story = {};
 
-export const WithAssignee: Story = {
-  args: { task: makeTask({ assigneeId: 3 }) },
-};
-
 export const Overdue: Story = {
   args: {
-    task: makeTask({ assigneeId: 3, dueDate: "2026-06-01T00:00:00.000Z" }),
+    task: makeTask({ dueDate: "2026-06-01T00:00:00.000Z" }),
   },
 };
 

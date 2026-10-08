@@ -10,7 +10,7 @@ import type {
   TaskConnection,
 } from "@/types/tasks.types";
 
-const TASK_FIELDS = `id projectId assigneeId title description status dueDate wordCount startDate recurring reminderOffset sortOrder totalTimeSeconds createdAt updatedAt`;
+const TASK_FIELDS = `id projectId title description status dueDate wordCount startDate recurring reminderOffset sortOrder totalTimeSeconds createdAt updatedAt`;
 
 export const TASKS_QUERY: TypedDocumentNode<
   { tasks: TaskConnection },
@@ -35,19 +35,6 @@ export const TASKS_QUERY: TypedDocumentNode<
   }
 `;
 
-export const MY_TASKS_QUERY: TypedDocumentNode<
-  { myTasks: TaskConnection },
-  { pagination?: { limit?: number; cursor?: number } }
-> = gql`
-  query MyTasks($pagination: PaginationInput) {
-    myTasks(pagination: $pagination) {
-      items { ${TASK_FIELDS} }
-      nextCursor
-      total
-    }
-  }
-`;
-
 export const CREATE_TASK_MUTATION: TypedDocumentNode<
   { createTask: Task },
   {
@@ -55,7 +42,6 @@ export const CREATE_TASK_MUTATION: TypedDocumentNode<
       projectId: number;
       title: string;
       description?: string;
-      assigneeId?: number;
       status?: TaskStatus;
       dueDate?: string;
     };
@@ -79,7 +65,6 @@ export const UPDATE_TASK_MUTATION: TypedDocumentNode<
       startDate?: string | null;
       recurring?: string | null;
       reminderOffset?: string | null;
-      assigneeId?: number;
       projectId?: number;
     };
   }

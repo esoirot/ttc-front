@@ -56,7 +56,6 @@ function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     id: 1,
     projectId: 1,
-    assigneeId: null,
     title: "Translate doc",
     description: null,
     status: "TODO",
@@ -98,10 +97,9 @@ function dragState(overrides: Record<string, unknown> = {}) {
 }
 
 function renderList(onOpenModal = vi.fn()) {
-  return render(
-    <ProjectTaskList projectId={1} members={[]} onOpenModal={onOpenModal} />,
-    { wrapper: IntlWrapper },
-  );
+  return render(<ProjectTaskList projectId={1} onOpenModal={onOpenModal} />, {
+    wrapper: IntlWrapper,
+  });
 }
 
 describe("ProjectTaskList", () => {
@@ -369,10 +367,9 @@ describe("ProjectTaskList", () => {
 
   it("titles the list 'Liste des tâches' in French", () => {
     // given the French locale
-    render(
-      <ProjectTaskList projectId={1} members={[]} onOpenModal={vi.fn()} />,
-      { wrapper: createIntlWrapper("fr") },
-    );
+    render(<ProjectTaskList projectId={1} onOpenModal={vi.fn()} />, {
+      wrapper: createIntlWrapper("fr"),
+    });
 
     // then the heading is translated
     expect(
@@ -436,9 +433,7 @@ describe("ProjectTaskList", () => {
     expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
 
     useProjectTaskListMock.mockReturnValue(hookState({ createLoading: true }));
-    rerender(
-      <ProjectTaskList projectId={1} members={[]} onOpenModal={vi.fn()} />,
-    );
+    rerender(<ProjectTaskList projectId={1} onOpenModal={vi.fn()} />);
     fireEvent.change(screen.getByLabelText("Title"), {
       target: { value: "X" },
     });

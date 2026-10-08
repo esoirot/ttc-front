@@ -14,14 +14,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { SortableTaskProps } from "@/types/projects.types";
-import { renderAssigneeDisplay } from "@/hooks/tasks/useTaskDisplay";
 import { useSortableItem } from "@/hooks/projects/useSortableItem";
 
 export function SortableTask({
   task,
   onDelete,
   onOpenModal,
-  memberMap,
 }: SortableTaskProps) {
   const intl = useIntl();
   const { setNodeRef, style, attributes, listeners } = useSortableItem(
@@ -111,7 +109,6 @@ export function SortableTask({
             <div className="flex-1 min-w-0">
               <p className="text-sm truncate">{task.title}</p>
               <div className="flex items-center gap-2 mt-0.5">
-                {renderAssigneeDisplay(task.assigneeId, memberMap)}
                 {task.dueDate && (
                   <span
                     className={`text-xs ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}

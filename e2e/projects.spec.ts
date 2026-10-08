@@ -208,10 +208,6 @@ async function mockProjectsApi(
       return respond({ tags: [] });
     }
 
-    if (operationName === "Members") {
-      return respond({ members: [] });
-    }
-
     return respond(null);
   });
 }
@@ -540,7 +536,6 @@ test("a translation task shows its own words plus its checklist words next to it
   const task = {
     id: 40,
     projectId: 7,
-    assigneeId: null,
     title: "Chapter 1",
     description: null,
     status: "TODO",

@@ -12,7 +12,6 @@ function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     id: 1,
     projectId: 1,
-    assigneeId: null,
     title: "Translate doc",
     description: null,
     status: "TODO",
@@ -40,7 +39,6 @@ function renderTask(
             task={task}
             onDelete={vi.fn()}
             onOpenModal={vi.fn()}
-            memberMap={{}}
             {...props}
           />
         </SortableContext>
@@ -62,14 +60,6 @@ describe("SortableTask", () => {
   it("shows the title", () => {
     renderTask();
     expect(screen.getByText("Translate doc")).toBeInTheDocument();
-  });
-
-  it("shows the assignee when mapped", () => {
-    renderTask({
-      task: makeTask({ assigneeId: 3 }),
-      memberMap: { 3: "Alice" },
-    });
-    expect(screen.getByText("@Alice")).toBeInTheDocument();
   });
 
   it("marks a past due date as overdue", () => {

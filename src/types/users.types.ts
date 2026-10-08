@@ -18,12 +18,6 @@ export interface User {
   createdAt: string;
 }
 
-export interface Member {
-  id: number;
-  name: string | null;
-  email: string;
-}
-
 export interface UserEditForm {
   id: number;
   role: UserRole;

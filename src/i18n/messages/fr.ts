@@ -945,8 +945,6 @@ export const fr: Record<keyof typeof en, string> = {
     "a changé le statut de {from} à {to}",
   "projects.taskActivityFeed.dueDateSet": "a défini l'échéance au {date}",
   "projects.taskActivityFeed.dueDateCleared": "a effacé l'échéance",
-  "projects.taskActivityFeed.assigneeChanged": "a changé l'assigné",
-  "projects.taskActivityFeed.unassigned": "a désassigné la tâche",
   "projects.taskActivityFeed.checklistCreated": 'a créé la checklist "{title}"',
   "projects.taskActivityFeed.checklistItemAdded":
     'a ajouté l\'élément "{title}" à la checklist',

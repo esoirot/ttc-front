@@ -10,7 +10,6 @@ function makeTask(overrides: Partial<Task>): Task {
   return {
     id: 1,
     projectId: 1,
-    assigneeId: null,
     title: "Task",
     description: null,
     status: "TODO",
@@ -33,7 +32,6 @@ const tasks: Task[] = [
     id: 2,
     title: "Review glossary",
     status: "IN_PROGRESS",
-    assigneeId: 1,
     dueDate: "2026-07-15T00:00:00.000Z",
   }),
   makeTask({
@@ -43,8 +41,6 @@ const tasks: Task[] = [
     totalTimeSeconds: 1800,
   }),
 ];
-
-const memberMap: Record<number, string> = { 1: "Alex Doe" };
 
 const meta: Meta<typeof TasksTab> = {
   component: TasksTab,
@@ -66,7 +62,6 @@ const meta: Meta<typeof TasksTab> = {
     tasksLoading: false,
     taskHasMore: false,
     taskLoadMore: () => {},
-    memberMap,
     onOpenModal: () => {},
   },
 };

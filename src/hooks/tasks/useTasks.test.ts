@@ -23,10 +23,8 @@ import {
   useCreateTaskLabel,
   useDeleteComment,
   useDeleteTask,
-  useMyTasks,
   useTask,
   useTasks,
-  useUpdateMyTask,
   useUpdateTask,
 } from "./useTasks";
 
@@ -34,7 +32,6 @@ function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     id: 1,
     projectId: 1,
-    assigneeId: null,
     title: "Translate doc",
     description: null,
     status: "TODO",
@@ -86,25 +83,6 @@ describe("useTasks", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.tasks).toEqual([task]);
     expect(gqlFetch.mock.calls[0][1].projectId).toBe(1);
-  });
-});
-
-describe("useMyTasks", () => {
-  beforeEach(() => {
-    gqlFetch.mockReset();
-    gqlMutate.mockReset();
-  });
-
-  it("flattens tasks assigned to the current user", async () => {
-    const task = makeTask({ id: 2 });
-    gqlFetch.mockResolvedValueOnce({ myTasks: makeConnection([task]) });
-
-    const { result } = renderHook(() => useMyTasks(), {
-      wrapper: createQueryWrapper(),
-    });
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.tasks).toEqual([task]);
   });
 });
 
@@ -295,34 +273,6 @@ describe("useDeleteTask", () => {
     ]);
     expect(list?.pages[0].items.map((t) => t.id)).toEqual([1]);
     expect(queryClient.getQueryData(["task", 2])).toBeUndefined();
-  });
-});
-
-describe("useUpdateMyTask", () => {
-  beforeEach(() => {
-    gqlFetch.mockReset();
-    gqlMutate.mockReset();
-  });
-
-  it("patches the myTasks cache regardless of project", async () => {
-    const updated = makeTask({ id: 7, status: "DONE" });
-    gqlMutate.mockResolvedValueOnce({ updateTask: updated });
-    const queryClient = createQueryClient();
-    queryClient.setQueryData(["myTasks"], {
-      pages: [makeConnection([makeTask({ id: 7, status: "TODO" })])],
-      pageParams: [undefined],
-    });
-
-    const { result } = renderHook(() => useUpdateMyTask(), {
-      wrapper: createQueryWrapper(queryClient),
-    });
-
-    await result.current.updateTask({ id: 7, status: "DONE" });
-
-    const list = queryClient.getQueryData<{ pages: TaskConnection[] }>([
-      "myTasks",
-    ]);
-    expect(list?.pages[0].items[0].status).toBe("DONE");
   });
 });
 

@@ -21,7 +21,6 @@ function makeTaskDetail(overrides: Partial<TaskDetail> = {}): TaskDetail {
   return {
     id: 4,
     projectId: 1,
-    assigneeId: null,
     title: "Translate doc",
     description: "",
     status: "TODO",
