@@ -161,6 +161,7 @@ test("shows all board columns", async ({ page }) => {
   await page.goto("/prospects");
 
   for (const label of [
+    "Former client (0)",
     "Prospect (0)",
     "1st Contact (0)",
     "Follow up 1 (0)",
@@ -313,4 +314,22 @@ test("Clients page only shows clients with status CLIENT", async ({ page }) => {
 
   await expect(page.getByText("Real Client")).toBeVisible();
   await expect(page.getByText("Still A Prospect")).not.toBeVisible();
+});
+
+test("a former client is off the Clients page and in the Former client column", async ({
+  page,
+}) => {
+  await mockProspectsApi(page, [
+    makeProspect({ id: 1, name: "Current Client", status: "CLIENT" }),
+    makeProspect({ id: 2, name: "Old Customer", status: "FORMER_CLIENT" }),
+  ]);
+
+  await page.goto("/clients");
+  await expect(page.getByText("Current Client")).toBeVisible();
+  await expect(page.getByText("Old Customer")).not.toBeVisible();
+
+  await page.goto("/prospects");
+  await expect(
+    page.getByTestId("prospect-column-FORMER_CLIENT").getByText("Old Customer"),
+  ).toBeVisible();
 });

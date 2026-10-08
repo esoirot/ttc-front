@@ -201,6 +201,24 @@ describe("ClientHeader", () => {
     ).toBeInTheDocument();
   });
 
+  it("can mark a client as a former client", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(makeClient({ id: 5, status: "CLIENT" }), onUpdate);
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.click(document.getElementById("cl-status")!);
+    fireEvent.click(
+      await screen.findByRole("option", { name: "Former client" }),
+    );
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 5, status: "FORMER_CLIENT" }),
+      ),
+    );
+  });
+
   it("saves a contactedAt change while preserving the current status", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     renderHeader(makeClient({ id: 5, status: "FOLLOW_UP_2" }), onUpdate);

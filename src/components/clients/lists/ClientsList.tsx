@@ -6,7 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClients, useDeleteClient } from "@/hooks/clients/useClients";
-import type { ClientType } from "@/types/clients.types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { INDUSTRY_LABEL_MESSAGES } from "@/constants/clients";
+import type { ClientIndustry, ClientType } from "@/types/clients.types";
 import { NewClientForm } from "../forms/NewClientForm";
 import { ClientCard } from "../cards/ClientCard";
 
@@ -15,6 +23,7 @@ export function ClientsList() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<ClientType | "ALL">("ALL");
+  const [industry, setIndustry] = useState<ClientIndustry | "ALL">("ALL");
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
@@ -22,12 +31,12 @@ export function ClientsList() {
     return () => clearTimeout(id);
   }, [search]);
 
-  const { clients, loading, hasMore, loadMore, total } = useClients(
-    debouncedSearch || undefined,
-    typeFilter === "ALL" ? undefined : typeFilter,
-    undefined,
-    "CLIENT",
-  );
+  const { clients, loading, hasMore, loadMore, total } = useClients({
+    search: debouncedSearch || undefined,
+    clientType: typeFilter === "ALL" ? undefined : typeFilter,
+    industry: industry === "ALL" ? undefined : industry,
+    status: "CLIENT",
+  });
   const { deleteClient } = useDeleteClient();
 
   return (
@@ -93,6 +102,35 @@ export function ClientsList() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+        <Select
+          value={industry}
+          onValueChange={(v) => setIndustry(v as ClientIndustry | "ALL")}
+        >
+          <SelectTrigger
+            className="w-56"
+            aria-label={intl.formatMessage({
+              id: "clients.list.industryFilter",
+              defaultMessage: "Industry",
+            })}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">
+              <FormattedMessage
+                id="clients.list.allIndustries"
+                defaultMessage="All industries"
+              />
+            </SelectItem>
+            {(Object.keys(INDUSTRY_LABEL_MESSAGES) as ClientIndustry[]).map(
+              (val) => (
+                <SelectItem key={val} value={val}>
+                  {intl.formatMessage(INDUSTRY_LABEL_MESSAGES[val])}
+                </SelectItem>
+              ),
+            )}
+          </SelectContent>
+        </Select>
       </div>
 
       {showForm && <NewClientForm onClose={() => setShowForm(false)} />}

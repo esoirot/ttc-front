@@ -129,7 +129,7 @@ describe("useClients", () => {
   it("passes search and clientType through to the query variables", async () => {
     gqlFetch.mockResolvedValueOnce({ clients: makeConnection([]) });
 
-    renderHook(() => useClients("acme", "COMPANY"), {
+    renderHook(() => useClients({ search: "acme", clientType: "COMPANY" }), {
       wrapper: createQueryWrapper(),
     });
 
@@ -142,9 +142,12 @@ describe("useClients", () => {
   it("passes excludeStatus and status through to the query variables", async () => {
     gqlFetch.mockResolvedValueOnce({ clients: makeConnection([]) });
 
-    renderHook(() => useClients(undefined, undefined, "CLIENT", "TO_CONTACT"), {
-      wrapper: createQueryWrapper(),
-    });
+    renderHook(
+      () => useClients({ excludeStatus: "CLIENT", status: "TO_CONTACT" }),
+      {
+        wrapper: createQueryWrapper(),
+      },
+    );
 
     await waitFor(() => expect(gqlFetch).toHaveBeenCalled());
     const vars = gqlFetch.mock.calls[0][1];
@@ -152,13 +155,49 @@ describe("useClients", () => {
     expect(vars.status).toBe("TO_CONTACT");
   });
 
+  it("passes the industry filter through to the query variables", async () => {
+    gqlFetch.mockResolvedValueOnce({ clients: makeConnection([]) });
+
+    renderHook(() => useClients({ industry: "LEGAL" }), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await waitFor(() => expect(gqlFetch).toHaveBeenCalled());
+    expect(gqlFetch.mock.calls[0][1].industry).toBe("LEGAL");
+  });
+
+  it("keeps each industry filter's results in its own cache", async () => {
+    gqlFetch
+      .mockResolvedValueOnce({
+        clients: makeConnection([makeClient({ id: 1, name: "Law firm" })]),
+      })
+      .mockResolvedValueOnce({
+        clients: makeConnection([makeClient({ id: 2, name: "Bank" })]),
+      });
+    const queryClient = createQueryClient();
+    const wrapper = createQueryWrapper(queryClient);
+
+    const { result: legal } = renderHook(
+      () => useClients({ industry: "LEGAL" }),
+      { wrapper },
+    );
+    await waitFor(() => expect(legal.current.loading).toBe(false));
+    const { result: finance } = renderHook(
+      () => useClients({ industry: "FINANCE" }),
+      { wrapper },
+    );
+    await waitFor(() => expect(finance.current.loading).toBe(false));
+
+    expect(legal.current.clients.map((c) => c.name)).toEqual(["Law firm"]);
+    expect(finance.current.clients.map((c) => c.name)).toEqual(["Bank"]);
+  });
+
   it("uses a custom limit when provided", async () => {
     gqlFetch.mockResolvedValueOnce({ clients: makeConnection([]) });
 
-    renderHook(
-      () => useClients(undefined, undefined, undefined, undefined, 200),
-      { wrapper: createQueryWrapper() },
-    );
+    renderHook(() => useClients({ limit: 200 }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => expect(gqlFetch).toHaveBeenCalled());
     const vars = gqlFetch.mock.calls[0][1];
@@ -179,7 +218,7 @@ describe("useClients", () => {
       wrapper: createQueryWrapper(queryClient),
     });
     const { result: prospects } = renderHook(
-      () => useClients(undefined, undefined, "CLIENT"),
+      () => useClients({ excludeStatus: "CLIENT" }),
       { wrapper: createQueryWrapper(queryClient) },
     );
 
@@ -264,6 +303,7 @@ describe("useUpdateClient", () => {
       clientType: string | null;
       excludeStatus: ClientStatus | null;
       status: ClientStatus | null;
+      industry?: string | null;
     },
     items: Client[],
   ) {
@@ -272,6 +312,61 @@ describe("useUpdateClient", () => {
       pageParams: [undefined],
     });
   }
+
+  it("keeps an edited client in an industry-filtered list while its industry still matches", async () => {
+    const key = {
+      search: null,
+      clientType: null,
+      excludeStatus: null,
+      status: null,
+      industry: "LEGAL",
+    };
+    gqlMutate.mockResolvedValueOnce({
+      updateClient: makeClient({ id: 10, name: "Renamed", industry: "LEGAL" }),
+    });
+    const queryClient = createQueryClient();
+    seedListCache(queryClient, key, [
+      makeClient({ id: 10, industry: "LEGAL" }),
+    ]);
+
+    const { result } = renderHook(() => useUpdateClient(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+    await result.current.updateClient({ id: 10, name: "Renamed" });
+
+    expect(
+      queryClient
+        .getQueryData<InfiniteData<ClientConnection>>(["clients", key])
+        ?.pages[0].items.map((c) => c.name),
+    ).toEqual(["Renamed"]);
+  });
+
+  it("removes the item from an industry-filtered list cache when its industry changes", async () => {
+    const key = {
+      search: null,
+      clientType: null,
+      excludeStatus: null,
+      status: null,
+      industry: "LEGAL",
+    };
+    gqlMutate.mockResolvedValueOnce({
+      updateClient: makeClient({ id: 10, industry: "FINANCE" }),
+    });
+    const queryClient = createQueryClient();
+    seedListCache(queryClient, key, [
+      makeClient({ id: 10, industry: "LEGAL" }),
+    ]);
+
+    const { result } = renderHook(() => useUpdateClient(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+    await result.current.updateClient({ id: 10, industry: "FINANCE" });
+
+    expect(
+      queryClient.getQueryData<InfiniteData<ClientConnection>>(["clients", key])
+        ?.pages[0].items,
+    ).toEqual([]);
+  });
 
   it("removes the item from a status-filtered list cache when its new status no longer matches", async () => {
     const client = makeClient({ id: 10, status: "TO_CONTACT" });

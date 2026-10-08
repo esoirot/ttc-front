@@ -117,12 +117,30 @@ describe("ProspectsBoard", () => {
     renderBoard();
 
     expect(await screen.findByText(/^Prospect \(/)).toBeInTheDocument();
+    expect(screen.getByText(/^Former client \(/)).toBeInTheDocument();
     expect(screen.getByText(/1st Contact/)).toBeInTheDocument();
     expect(screen.getByText(/Follow up 1/)).toBeInTheDocument();
     expect(screen.getByText(/Follow up 2/)).toBeInTheDocument();
     expect(screen.getByText(/Follow up 3/)).toBeInTheDocument();
     expect(screen.getByText(/Recontact Later/)).toBeInTheDocument();
     expect(screen.getByText(/Talking/)).toBeInTheDocument();
+  });
+
+  it("shows former clients in their own column, first on the board", async () => {
+    gqlFetch.mockResolvedValueOnce({
+      clients: makeConnection([
+        makeClient({ id: 1, name: "Old customer", status: "FORMER_CLIENT" }),
+      ]),
+    });
+
+    const { container } = renderBoard();
+
+    expect(await screen.findByText("Former client (1)")).toBeInTheDocument();
+    expect(screen.getByText("Old customer")).toBeInTheDocument();
+    const text = container.textContent ?? "";
+    expect(text.indexOf("Former client (")).toBeLessThan(
+      text.indexOf("Prospect ("),
+    );
   });
 
   it("buckets clients into the correct column by status", async () => {
@@ -198,7 +216,7 @@ describe("ProspectsBoard", () => {
     gqlFetch.mockResolvedValueOnce({ clients: makeConnection([]) });
     renderBoard();
     const empties = await screen.findAllByText("Empty");
-    expect(empties).toHaveLength(7);
+    expect(empties).toHaveLength(8);
   });
 
   it("shows Load more button which triggers another fetch when clicked", async () => {

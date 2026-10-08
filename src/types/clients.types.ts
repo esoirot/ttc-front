@@ -32,7 +32,8 @@ export type ClientStatus =
   | "FOLLOW_UP_3"
   | "RECONTACT_LATER"
   | "TALKING"
-  | "CLIENT";
+  | "CLIENT"
+  | "FORMER_CLIENT";
 
 export interface CompanyContact {
   id: number;

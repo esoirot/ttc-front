@@ -134,6 +134,31 @@ describe("ClientsList", () => {
     vi.useRealTimers();
   });
 
+  it("filters by industry, and All industries removes the filter", async () => {
+    gqlFetch.mockResolvedValue({ clients: makeConnection([]) });
+    renderList();
+    const lastVars = () =>
+      gqlFetch.mock.calls[gqlFetch.mock.calls.length - 1][1] as Record<
+        string,
+        unknown
+      >;
+
+    expect(
+      screen.getByRole("combobox", { name: "Industry" }),
+    ).toHaveTextContent("All industries");
+    fireEvent.click(screen.getByRole("combobox", { name: "Industry" }));
+    fireEvent.click(await screen.findByRole("option", { name: "Legal" }));
+    await waitFor(() =>
+      expect(lastVars()).toMatchObject({ industry: "LEGAL", status: "CLIENT" }),
+    );
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Industry" }));
+    fireEvent.click(
+      await screen.findByRole("option", { name: "All industries" }),
+    );
+    await waitFor(() => expect(lastVars().industry).toBeUndefined());
+  });
+
   it("shows a Load more button when more pages are available", async () => {
     gqlFetch.mockResolvedValueOnce({
       clients: { items: [makeClient()], nextCursor: 5, total: 2 },

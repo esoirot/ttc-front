@@ -109,10 +109,12 @@ async function mockClientsApi(page: Page, initial: MockClient[]) {
       const status = variables?.["status"] as string | undefined;
       const clientType = variables?.["clientType"] as string | undefined;
       const search = variables?.["search"] as string | undefined;
+      const industry = variables?.["industry"] as string | undefined;
       const items = clients.filter(
         (c) =>
           (!status || c.status === status) &&
           (!clientType || c.clientType === clientType) &&
+          (!industry || c.industry === industry) &&
           (!search || c.name.toLowerCase().includes(search.toLowerCase())),
       );
       return respond({
@@ -339,4 +341,19 @@ test("deletes a client from the list via the confirm dialog", async ({
   await page.getByRole("button", { name: "Delete", exact: true }).click();
 
   await expect(page.getByText("To Delete")).not.toBeVisible();
+});
+
+test("the industry filter narrows the Clients list", async ({ page }) => {
+  await mockClientsApi(page, [
+    makeClient({ id: 1, name: "Law Firm", industry: "LEGAL" }),
+    makeClient({ id: 2, name: "Game Studio", industry: "VIDEO_GAMES" }),
+  ]);
+  await page.goto("/clients");
+  await expect(page.getByText("Game Studio")).toBeVisible();
+
+  await page.getByRole("combobox", { name: "Industry" }).click();
+  await page.getByRole("option", { name: "Legal" }).click();
+
+  await expect(page.getByText("Law Firm")).toBeVisible();
+  await expect(page.getByText("Game Studio")).not.toBeVisible();
 });
