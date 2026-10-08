@@ -1,10 +1,17 @@
 import type { ClientStatus } from "@/types/clients.types";
 
+export type DeadlineKind = "PROJECT" | "TASK" | "CHECKLIST_ITEM";
+
+/** Something with a due date: a project, a task or a checklist item. */
 export interface DashboardDeadline {
+  kind: DeadlineKind;
   id: number;
   title: string;
   deadline: string;
-  status: string;
+  projectId: number;
+  projectTitle: string;
+  taskId: number | null;
+  taskTitle: string | null;
 }
 
 export interface DashboardTimeEntry {

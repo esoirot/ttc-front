@@ -766,7 +766,6 @@ export const en = {
   "dashboard.accountDashboard.welcomeBack": "Welcome back, {name}.",
 
   "dashboard.upcomingDeadlines.title": "Upcoming Deadlines",
-  "dashboard.upcomingDeadlines.empty": "No deadlines in the next 7 days.",
   "dashboard.upcomingDeadlines.due": "Due {date}",
 
   "dashboard.recentTimeEntries.title": "Recent Time Entries",
@@ -1151,4 +1150,12 @@ export const en = {
   "clients.newClientForm.linkedin": "LinkedIn",
   "clients.header.field.linkedin": "LinkedIn",
   "clients.header.linkedinLink": "LinkedIn",
+  "dashboard.upcomingDeadlines.emptyAll":
+    "Nothing overdue or due in the next 30 days.",
+  "dashboard.upcomingDeadlines.kind.project": "Project",
+  "dashboard.upcomingDeadlines.kind.task": "Task",
+  "dashboard.upcomingDeadlines.kind.checklistItem": "Checklist item",
+  "dashboard.upcomingDeadlines.late": "Late",
+  "dashboard.upcomingDeadlines.thisWeek": "Due within a week",
+  "dashboard.upcomingDeadlines.later": "Upcoming",
 };

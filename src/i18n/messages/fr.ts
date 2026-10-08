@@ -781,8 +781,6 @@ export const fr: Record<keyof typeof en, string> = {
   "dashboard.accountDashboard.welcomeBack": "Bon retour, {name}.",
 
   "dashboard.upcomingDeadlines.title": "Échéances à venir",
-  "dashboard.upcomingDeadlines.empty":
-    "Aucune échéance dans les 7 prochains jours.",
   "dashboard.upcomingDeadlines.due": "Échéance {date}",
 
   "dashboard.recentTimeEntries.title": "Entrées de temps récentes",
@@ -1181,4 +1179,12 @@ export const fr: Record<keyof typeof en, string> = {
   "clients.newClientForm.linkedin": "LinkedIn",
   "clients.header.field.linkedin": "LinkedIn",
   "clients.header.linkedinLink": "LinkedIn",
+  "dashboard.upcomingDeadlines.emptyAll":
+    "Rien en retard ni à rendre dans les 30 prochains jours.",
+  "dashboard.upcomingDeadlines.kind.project": "Projet",
+  "dashboard.upcomingDeadlines.kind.task": "Tâche",
+  "dashboard.upcomingDeadlines.kind.checklistItem": "Élément de checklist",
+  "dashboard.upcomingDeadlines.late": "En retard",
+  "dashboard.upcomingDeadlines.thisWeek": "À rendre cette semaine",
+  "dashboard.upcomingDeadlines.later": "À venir",
 };

@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/test/queryClientWrapper";
@@ -60,6 +60,11 @@ function blanketResponse(project: Project | null) {
   });
 }
 
+function LocationProbe() {
+  const { search } = useLocation();
+  return <output data-testid="search">{search}</output>;
+}
+
 function renderAt(
   id: string,
   project: Project | null,
@@ -72,7 +77,15 @@ function renderAt(
       <IntlProvider locale={locale} messages={messages[locale]}>
         <MemoryRouter initialEntries={[`/projects/${id}`]}>
           <Routes>
-            <Route path="/projects/:id" element={<ProjectDetail />} />
+            <Route
+              path="/projects/:id"
+              element={
+                <>
+                  <ProjectDetail />
+                  <LocationProbe />
+                </>
+              }
+            />
           </Routes>
         </MemoryRouter>
       </IntlProvider>
@@ -84,6 +97,28 @@ describe("ProjectDetail", () => {
   beforeEach(() => {
     gqlFetch.mockReset();
     gqlMutate.mockReset();
+  });
+
+  it("opens the task named in ?task= (links from the dashboard deadlines)", async () => {
+    renderAt("1?task=3", makeProject());
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(gqlFetch).toHaveBeenCalledWith(expect.anything(), { id: 3 });
+  });
+
+  it("forgets ?task= once the task is closed, so a reload doesn't reopen it", async () => {
+    renderAt("1?task=3", makeProject());
+    const dialog = await screen.findByRole("dialog");
+
+    fireEvent.keyDown(dialog, { key: "Escape" });
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(screen.getByTestId("search")).toHaveTextContent(/^$/);
+  });
+
+  it("opens no task without ?task=", async () => {
+    renderAt("1", makeProject());
+    await screen.findByText("Translate manual");
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("shows 'Project not found.' when the project does not exist", async () => {
