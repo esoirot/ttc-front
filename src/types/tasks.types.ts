@@ -63,6 +63,8 @@ export interface Task {
   recurring: string | null;
   reminderOffset: string | null;
   sortOrder: number;
+  /** Hex colour shown on the task's row in the project's Tasks list. */
+  color?: string | null;
   totalTimeSeconds?: number | null;
   createdAt: string;
   updatedAt: string;
@@ -103,6 +105,8 @@ export type CreateTaskInput = {
 export type UpdateTaskInput = {
   id: number;
   title?: string;
+  /** Empty clears it. */
+  color?: string;
   description?: string;
   status?: TaskStatus;
   sortOrder?: number;

@@ -66,3 +66,7 @@ export const WithDueDate: Story = {
 export const Done: Story = {
   args: { task: makeTask({ status: "DONE" }) },
 };
+
+export const WithColor: Story = {
+  args: { task: makeTask({ color: "#3B82F6" }) },
+};

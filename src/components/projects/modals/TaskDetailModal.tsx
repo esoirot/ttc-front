@@ -39,6 +39,7 @@ import { TaskAttachmentModal } from "./TaskAttachmentModal";
 import { TaskLabelBadges } from "./TaskLabelBadges";
 import { TaskTimeSection } from "./TaskTimeSection";
 import { TaskWordsField } from "./TaskWordsField";
+import { TaskColorField } from "./TaskColorField";
 import { AttachmentList } from "./AttachmentList";
 
 const STATUSES: TaskStatus[] = TASK_STATUSES;
@@ -209,6 +210,12 @@ export function TaskDetailModal({
                     }
                   />
                 )}
+                <TaskColorField
+                  key={`color-${task.id}-${task.color ?? ""}`}
+                  id={`task-color-${task.id}`}
+                  value={task.color ?? ""}
+                  onSave={(color) => void updateTask({ id: task.id, color })}
+                />
                 {/* Description */}
                 <div className="flex flex-col gap-1">
                   <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">

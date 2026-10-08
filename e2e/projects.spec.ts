@@ -646,3 +646,55 @@ test("the Activity tab pages the project's history; the task board no longer loa
   });
   expect(queries.Tasks?.query).not.toContain("activities");
 });
+
+test("a task's colour shows as a square on its row in the project's Tasks list", async ({
+  page,
+}) => {
+  await mockProjectsApi(page, [makeProject({ id: 7 })]);
+  const task = (id: number, title: string, color: string | null) => ({
+    id,
+    projectId: 7,
+    title,
+    description: null,
+    status: "TODO",
+    dueDate: null,
+    wordCount: null,
+    startDate: null,
+    recurring: null,
+    reminderOffset: null,
+    sortOrder: id,
+    color,
+    totalTimeSeconds: 0,
+    createdAt: NOW,
+    updatedAt: NOW,
+  });
+  // Registered after mockProjectsApi, so this handler wins for Tasks.
+  await page.route("**/graphql", async (route) => {
+    const { operationName } = route.request().postDataJSON() as {
+      operationName: string;
+    };
+    if (operationName !== "Tasks") return route.fallback();
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: {
+          tasks: {
+            items: [
+              task(1, "Blue task", "#3B82F6"),
+              task(2, "Plain task", null),
+            ],
+            nextCursor: null,
+            total: 2,
+          },
+        },
+      }),
+    });
+  });
+  await page.goto("/projects/7");
+
+  await expect(page.getByText("Blue task")).toBeVisible();
+  const swatches = page.getByTestId("task-color-swatch");
+  await expect(swatches).toHaveCount(1);
+  await expect(swatches).toHaveCSS("background-color", "rgb(59, 130, 246)");
+});

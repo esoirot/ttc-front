@@ -78,4 +78,16 @@ describe("SortableRow", () => {
     fireEvent.click(screen.getByText("Delete"));
     expect(onDelete).toHaveBeenCalledWith(3);
   });
+
+  it("shows the task's colour as a square before its title", () => {
+    renderRow({ task: makeTask({ color: "#3B82F6" }) });
+    expect(screen.getByTestId("task-color-swatch")).toHaveStyle({
+      backgroundColor: "#3B82F6",
+    });
+  });
+
+  it("shows no square for a task without a colour", () => {
+    renderRow({ task: makeTask({ color: null }) });
+    expect(screen.queryByTestId("task-color-swatch")).not.toBeInTheDocument();
+  });
 });

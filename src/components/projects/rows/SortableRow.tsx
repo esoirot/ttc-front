@@ -58,6 +58,13 @@ export function SortableRow({
         aria-label={`Select ${task.title}`}
         onClick={(e) => e.stopPropagation()}
       />
+      {task.color && (
+        <span
+          data-testid="task-color-swatch"
+          className="h-4 w-4 shrink-0 rounded-sm border border-border"
+          style={{ backgroundColor: task.color }}
+        />
+      )}
       <div className="flex-1 min-w-0">
         <p className="font-medium truncate">{task.title}</p>
         {task.dueDate && (

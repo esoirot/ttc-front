@@ -12,7 +12,7 @@ import type {
 } from "@/types/tasks.types";
 import type { Connection } from "@/types/common.types";
 
-const TASK_FIELDS = `id projectId title description status dueDate wordCount startDate recurring reminderOffset sortOrder totalTimeSeconds createdAt updatedAt`;
+const TASK_FIELDS = `id projectId title description status dueDate wordCount startDate recurring reminderOffset sortOrder color totalTimeSeconds createdAt updatedAt`;
 
 export const TASKS_QUERY: TypedDocumentNode<
   { tasks: TaskConnection },
@@ -59,6 +59,7 @@ export const UPDATE_TASK_MUTATION: TypedDocumentNode<
       description?: string;
       status?: TaskStatus;
       sortOrder?: number;
+      color?: string;
       dueDate?: string | null;
       startDate?: string | null;
       recurring?: string | null;
