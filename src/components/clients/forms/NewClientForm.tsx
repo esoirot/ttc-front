@@ -186,6 +186,20 @@ export function NewClientForm({ onClose, defaultStatus, title }: Props) {
                 placeholder="https://acme.com"
               />
             </div>
+            <div className="col-span-2 flex flex-col gap-1">
+              <Label htmlFor="ncf-linkedin">
+                <FormattedMessage
+                  id="clients.newClientForm.linkedin"
+                  defaultMessage="LinkedIn"
+                />
+              </Label>
+              <Input
+                id="ncf-linkedin"
+                value={form.linkedinUrl}
+                onChange={(e) => setField("linkedinUrl", e.target.value)}
+                placeholder="https://www.linkedin.com/company/…"
+              />
+            </div>
             <div className="flex flex-col gap-1">
               <Label htmlFor="ncf-industry">
                 <FormattedMessage

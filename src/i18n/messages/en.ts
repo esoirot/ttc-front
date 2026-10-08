@@ -1145,4 +1145,10 @@ export const en = {
   "routeError.reload": "Reload",
   "routeError.home": "Back to dashboard",
   "projects.activityTab.loadMore": "Load more",
+  "clients.status.formerClient": "Former client",
+  "clients.list.industryFilter": "Industry",
+  "clients.list.allIndustries": "All industries",
+  "clients.newClientForm.linkedin": "LinkedIn",
+  "clients.header.field.linkedin": "LinkedIn",
+  "clients.header.linkedinLink": "LinkedIn",
 };

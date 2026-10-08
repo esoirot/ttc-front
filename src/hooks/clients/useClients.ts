@@ -18,6 +18,7 @@ import type {
   ClientConnection,
   ClientType,
   ClientStatus,
+  ClientIndustry,
   ContactInput,
   ClientInput,
 } from "@/types/clients.types";
@@ -28,18 +29,27 @@ import { removeFromConnection, patchNestedField } from "@/lib/cachePatch";
 
 const LIMIT = 20;
 
-export function useClients(
-  search?: string,
-  clientType?: ClientType,
-  excludeStatus?: ClientStatus,
-  status?: ClientStatus,
-  limit: number = LIMIT,
-) {
+export function useClients({
+  search,
+  clientType,
+  excludeStatus,
+  status,
+  industry,
+  limit = LIMIT,
+}: {
+  search?: string;
+  clientType?: ClientType;
+  excludeStatus?: ClientStatus;
+  status?: ClientStatus;
+  industry?: ClientIndustry;
+  limit?: number;
+} = {}) {
   const baseVars = {
     ...(search ? { search } : {}),
     ...(clientType ? { clientType } : {}),
     ...(excludeStatus ? { excludeStatus } : {}),
     ...(status ? { status } : {}),
+    ...(industry ? { industry } : {}),
   };
 
   const { items, total, hasMore, loadMore, loading, error } =
@@ -51,6 +61,7 @@ export function useClients(
           clientType: clientType ?? null,
           excludeStatus: excludeStatus ?? null,
           status: status ?? null,
+          industry: industry ?? null,
         },
       ],
       query: CLIENTS_QUERY,
@@ -133,11 +144,13 @@ export function useUpdateClient() {
             | {
                 excludeStatus?: ClientStatus | null;
                 status?: ClientStatus | null;
+                industry?: ClientIndustry | null;
               }
             | undefined;
           const stillMatches =
             (!key?.excludeStatus || updated.status !== key.excludeStatus) &&
-            (!key?.status || updated.status === key.status);
+            (!key?.status || updated.status === key.status) &&
+            (!key?.industry || updated.industry === key.industry);
           queryClient.setQueryData<InfiniteData<ClientConnection>>(
             query.queryKey,
             (old) =>

@@ -65,13 +65,11 @@ export function ProspectsBoard() {
     return () => clearTimeout(id);
   }, [search]);
 
-  const { clients, loading, hasMore, loadMore, total } = useClients(
-    debouncedSearch || undefined,
-    undefined,
-    "CLIENT",
-    undefined,
-    BOARD_LIMIT,
-  );
+  const { clients, loading, hasMore, loadMore, total } = useClients({
+    search: debouncedSearch || undefined,
+    excludeStatus: "CLIENT",
+    limit: BOARD_LIMIT,
+  });
   const { updateClient } = useUpdateClient();
   const { deleteClient } = useDeleteClient();
 

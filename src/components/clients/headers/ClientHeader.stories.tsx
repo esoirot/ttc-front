@@ -32,6 +32,7 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     taxRate: 20,
     billingEndOfMonth: true,
     website: "https://acme.com",
+    linkedinUrl: "https://www.linkedin.com/company/acme",
     industry: "TECHNOLOGY",
     status: "CLIENT",
     contactedAt: "2026-05-01T00:00:00.000Z",

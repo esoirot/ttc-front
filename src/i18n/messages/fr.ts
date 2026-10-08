@@ -1175,4 +1175,10 @@ export const fr: Record<keyof typeof en, string> = {
   "routeError.reload": "Recharger",
   "routeError.home": "Retour au tableau de bord",
   "projects.activityTab.loadMore": "Charger plus",
+  "clients.status.formerClient": "Ancien client",
+  "clients.list.industryFilter": "Secteur",
+  "clients.list.allIndustries": "Tous les secteurs",
+  "clients.newClientForm.linkedin": "LinkedIn",
+  "clients.header.field.linkedin": "LinkedIn",
+  "clients.header.linkedinLink": "LinkedIn",
 };

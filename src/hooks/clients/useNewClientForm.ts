@@ -61,6 +61,10 @@ export function useNewClientForm(
       setError("Enter a valid website URL");
       return;
     }
+    if (!isValidHttpUrl(form.linkedinUrl)) {
+      setError("Enter a valid LinkedIn URL");
+      return;
+    }
     if (!isValidOptionalEmail(form.email)) {
       setError("Enter a valid email address");
       return;
@@ -100,6 +104,7 @@ export function useNewClientForm(
       taxRate: form.taxRate ? Number(form.taxRate) : undefined,
       billingEndOfMonth: form.billingEndOfMonth || undefined,
       website: form.website || undefined,
+      linkedinUrl: form.linkedinUrl || undefined,
       industry: form.industry || undefined,
       status: defaultStatus,
       tagIds,

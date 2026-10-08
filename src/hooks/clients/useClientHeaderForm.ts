@@ -8,7 +8,7 @@ import type {
   ClientHeaderFormState,
 } from "@/types/clients.types";
 
-type TouchedField = "website" | "email";
+type TouchedField = "website" | "linkedinUrl" | "email";
 
 function formFromClient(client: Client): ClientHeaderFormState {
   return {
@@ -33,6 +33,7 @@ function formFromClient(client: Client): ClientHeaderFormState {
     taxRate: client.taxRate?.toString() ?? "",
     billingEndOfMonth: client.billingEndOfMonth,
     website: client.website ?? "",
+    linkedinUrl: client.linkedinUrl ?? "",
     industry: client.industry ?? null,
     status: client.status,
     contactedAt: client.contactedAt ? client.contactedAt.slice(0, 10) : "",
@@ -74,6 +75,10 @@ export function useClientHeaderForm(
       touched.website && !isValidHttpUrl(form.website)
         ? "Enter a valid URL."
         : "",
+    linkedinUrl:
+      touched.linkedinUrl && !isValidHttpUrl(form.linkedinUrl)
+        ? "Enter a valid URL."
+        : "",
     email:
       touched.email && !isValidOptionalEmail(form.email)
         ? "Enter a valid email address."
@@ -97,8 +102,12 @@ export function useClientHeaderForm(
 
   async function handleSave(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!isValidHttpUrl(form.website) || !isValidOptionalEmail(form.email)) {
-      setTouched({ website: true, email: true });
+    if (
+      !isValidHttpUrl(form.website) ||
+      !isValidHttpUrl(form.linkedinUrl) ||
+      !isValidOptionalEmail(form.email)
+    ) {
+      setTouched({ website: true, linkedinUrl: true, email: true });
       return;
     }
     const isCompany = form.clientType === "COMPANY";
@@ -137,6 +146,7 @@ export function useClientHeaderForm(
       taxRate: form.taxRate ? Number(form.taxRate) : null,
       billingEndOfMonth: form.billingEndOfMonth,
       website: form.website || null,
+      linkedinUrl: form.linkedinUrl || null,
       industry: form.industry || null,
       status: form.status,
       contactedAt: form.contactedAt || null,

@@ -27,6 +27,7 @@ export const EMPTY_CLIENT_FORM = {
   taxRate: "",
   billingEndOfMonth: false,
   website: "",
+  linkedinUrl: "",
   industry: null as ClientIndustry | null,
 };
 
@@ -79,9 +80,15 @@ export const STATUS_LABEL_MESSAGES: Record<ClientStatus, MessageDescriptor> = {
   },
   TALKING: { id: "clients.status.talking", defaultMessage: "Talking" },
   CLIENT: { id: "clients.status.client", defaultMessage: "Client" },
+  FORMER_CLIENT: {
+    id: "clients.status.formerClient",
+    defaultMessage: "Former client",
+  },
 };
 
 export const STATUS_ORDER: ClientStatus[] = [
+  // A past client to contact again: where a re-contact starts on the board.
+  "FORMER_CLIENT",
   "TO_CONTACT",
   "CONTACTED",
   "FOLLOW_UP_1",
