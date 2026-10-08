@@ -155,6 +155,43 @@ describe("TaskDetailModal", () => {
     );
   });
 
+  it("saves a colour picked from the presets", async () => {
+    renderModal(makeTaskDetail({ id: 7 }), { taskId: 7 });
+    await screen.findByText("Translate doc");
+    gqlMutate.mockResolvedValue({ updateTask: makeTaskDetail({ id: 7 }) });
+
+    fireEvent.click(screen.getByRole("button", { name: "Pick color" }));
+    fireEvent.click(await screen.findByRole("button", { name: "#EF4444" }));
+
+    await waitFor(() =>
+      expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+        input: { id: 7, color: "#EF4444" },
+      }),
+    );
+  });
+
+  it("saves a typed colour only once it is a full hex, and clears it when emptied", async () => {
+    renderModal(makeTaskDetail({ id: 7, color: "#22C55E" }), { taskId: 7 });
+    await screen.findByText("Translate doc");
+    gqlMutate.mockResolvedValue({ updateTask: makeTaskDetail({ id: 7 }) });
+    const input = screen.getByDisplayValue("#22C55E");
+
+    fireEvent.change(input, { target: { value: "#12" } });
+    expect(input).toHaveValue("#12");
+    for (const notAColour of ["#1234567", "a#123456"])
+      fireEvent.change(input, { target: { value: notAColour } });
+    expect(gqlMutate).not.toHaveBeenCalled();
+    fireEvent.change(input, { target: { value: "#123456" } });
+    fireEvent.change(input, { target: { value: "" } });
+
+    await waitFor(() =>
+      expect(gqlMutate.mock.calls.map((c) => c[1])).toEqual([
+        { input: { id: 7, color: "#123456" } },
+        { input: { id: 7, color: "" } },
+      ]),
+    );
+  });
+
   it("updates the description on blur when it changed", async () => {
     renderModal(makeTaskDetail({ id: 5 }), { taskId: 5 });
     await screen.findByText("Translate doc");
