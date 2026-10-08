@@ -1192,4 +1192,11 @@ export const fr: Record<keyof typeof en, string> = {
   "clients.list.lastNamePlaceholder": "Nom…",
   "clients.list.firstName": "Prénom",
   "clients.list.firstNamePlaceholder": "Prénom…",
+  "sort.field": "Trier",
+  "sort.direction": "Ordre",
+  "sort.ascending": "Croissant",
+  "sort.descending": "Décroissant",
+  "clients.sort.name": "Nom de l'entreprise",
+  "clients.sort.lastName": "Nom",
+  "clients.sort.firstName": "Prénom",
 };

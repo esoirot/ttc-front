@@ -12,8 +12,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { INDUSTRY_LABEL_MESSAGES } from "@/constants/clients";
-import type { ClientIndustry, ClientType } from "@/types/clients.types";
+import {
+  CLIENT_SORT_FIELD_LABELS,
+  COMPANY_SORT_FIELDS,
+  INDUSTRY_LABEL_MESSAGES,
+  PERSON_SORT_FIELDS,
+} from "@/constants/clients";
+import {
+  SortControls,
+  type SortDirection,
+} from "@/components/sort/SortControls";
+import type {
+  ClientIndustry,
+  ClientSortField,
+  ClientType,
+} from "@/types/clients.types";
 import { NewClientForm } from "../forms/NewClientForm";
 import { ClientCard } from "../cards/ClientCard";
 
@@ -29,6 +42,9 @@ export function ClientsList() {
   const [industry, setIndustry] = useState<ClientIndustry | "ALL">("ALL");
   const [showForm, setShowForm] = useState(false);
   const isPeople = typeFilter === "INDIVIDUAL";
+  const sortFields = isPeople ? PERSON_SORT_FIELDS : COMPANY_SORT_FIELDS;
+  const [sortField, setSortField] = useState<ClientSortField>("NAME");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   useEffect(() => {
     const id = setTimeout(
@@ -55,6 +71,10 @@ export function ClientsList() {
     firstName: debouncedNames.firstName || undefined,
     clientType: typeFilter === "ALL" ? undefined : typeFilter,
     industry: industry === "ALL" ? undefined : industry,
+    sort: {
+      field: sortField,
+      direction: sortDirection === "asc" ? "ASC" : "DESC",
+    },
     status: "CLIENT",
   });
   const { deleteClient } = useDeleteClient();
@@ -128,9 +148,16 @@ export function ClientsList() {
         <Tabs
           value={typeFilter}
           onValueChange={(v) => {
-            setTypeFilter(v as ClientType | "ALL");
+            const type = v as ClientType | "ALL";
+            setTypeFilter(type);
             setNames(NO_NAMES);
             setDebouncedNames(NO_NAMES);
+            setSortField(
+              (type === "INDIVIDUAL"
+                ? PERSON_SORT_FIELDS
+                : COMPANY_SORT_FIELDS)[0],
+            );
+            setSortDirection("asc");
           }}
         >
           <TabsList>
@@ -151,35 +178,46 @@ export function ClientsList() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        <Select
-          value={industry}
-          onValueChange={(v) => setIndustry(v as ClientIndustry | "ALL")}
-        >
-          <SelectTrigger
-            className="w-56"
-            aria-label={intl.formatMessage({
-              id: "clients.list.industryFilter",
-              defaultMessage: "Industry",
-            })}
+        <div className="flex flex-wrap items-end gap-3">
+          <Select
+            value={industry}
+            onValueChange={(v) => setIndustry(v as ClientIndustry | "ALL")}
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">
-              <FormattedMessage
-                id="clients.list.allIndustries"
-                defaultMessage="All industries"
-              />
-            </SelectItem>
-            {(Object.keys(INDUSTRY_LABEL_MESSAGES) as ClientIndustry[]).map(
-              (val) => (
-                <SelectItem key={val} value={val}>
-                  {intl.formatMessage(INDUSTRY_LABEL_MESSAGES[val])}
-                </SelectItem>
-              ),
-            )}
-          </SelectContent>
-        </Select>
+            <SelectTrigger
+              className="w-56"
+              aria-label={intl.formatMessage({
+                id: "clients.list.industryFilter",
+                defaultMessage: "Industry",
+              })}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">
+                <FormattedMessage
+                  id="clients.list.allIndustries"
+                  defaultMessage="All industries"
+                />
+              </SelectItem>
+              {(Object.keys(INDUSTRY_LABEL_MESSAGES) as ClientIndustry[]).map(
+                (val) => (
+                  <SelectItem key={val} value={val}>
+                    {intl.formatMessage(INDUSTRY_LABEL_MESSAGES[val])}
+                  </SelectItem>
+                ),
+              )}
+            </SelectContent>
+          </Select>
+          <SortControls
+            idPrefix="clients"
+            fields={sortFields}
+            fieldLabels={CLIENT_SORT_FIELD_LABELS}
+            field={sortField}
+            direction={sortDirection}
+            onFieldChange={setSortField}
+            onDirectionChange={setSortDirection}
+          />
+        </div>
       </div>
 
       {showForm && <NewClientForm onClose={() => setShowForm(false)} />}

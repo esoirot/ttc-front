@@ -123,6 +123,21 @@ async function mockClientsApi(page: Page, initial: MockClient[]) {
           (!industry || c.industry === industry) &&
           (!search || c.name.toLowerCase().includes(search.toLowerCase())),
       );
+      const sort = variables?.["sort"] as
+        | { field: "NAME" | "LAST_NAME" | "FIRST_NAME"; direction: string }
+        | undefined;
+      if (sort) {
+        const key = {
+          NAME: "name",
+          LAST_NAME: "lastName",
+          FIRST_NAME: "firstName",
+        }[sort.field] as "name" | "lastName" | "firstName";
+        items.sort(
+          (a, b) =>
+            (sort.direction === "DESC" ? -1 : 1) *
+            (a[key] ?? "").localeCompare(b[key] ?? ""),
+        );
+      }
       return respond({
         clients: { items, nextCursor: null, total: items.length },
       });
@@ -407,4 +422,21 @@ test("the Individuals tab filters people by last and first name", async ({
   await expect(page.getByText("Marie Curie")).toBeVisible();
   await expect(page.getByText("Pierre Curie")).not.toBeVisible();
   await expect(page.getByText("Marie Dupont")).not.toBeVisible();
+});
+
+test("the Clients list sorts by company name, A to Z then Z to A", async ({
+  page,
+}) => {
+  await mockClientsApi(page, [
+    makeClient({ id: 1, name: "Beta" }),
+    makeClient({ id: 2, name: "Alpha" }),
+    makeClient({ id: 3, name: "Gamma" }),
+  ]);
+  await page.goto("/clients");
+  const names = page.getByText(/^(Alpha|Beta|Gamma)$/);
+
+  await expect(names).toHaveText(["Alpha", "Beta", "Gamma"]);
+  await page.getByLabel("Order").click();
+  await page.getByRole("option", { name: "Descending" }).click();
+  await expect(names).toHaveText(["Gamma", "Beta", "Alpha"]);
 });

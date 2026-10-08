@@ -1163,4 +1163,11 @@ export const en = {
   "clients.list.lastNamePlaceholder": "Last name…",
   "clients.list.firstName": "First name",
   "clients.list.firstNamePlaceholder": "First name…",
+  "sort.field": "Sort",
+  "sort.direction": "Order",
+  "sort.ascending": "Ascending",
+  "sort.descending": "Descending",
+  "clients.sort.name": "Company name",
+  "clients.sort.lastName": "Last name",
+  "clients.sort.firstName": "First name",
 };

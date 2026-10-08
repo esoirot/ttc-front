@@ -176,6 +176,51 @@ describe("ClientsList", () => {
     vi.useRealTimers();
   });
 
+  it("sorts companies by name A to Z by default, and Z to A on request", async () => {
+    gqlFetch.mockResolvedValue({ clients: makeConnection([]) });
+    renderList();
+    await waitFor(() =>
+      expect(lastVars().sort).toEqual({ field: "NAME", direction: "ASC" }),
+    );
+    expect(screen.getByLabelText("Sort")).toHaveTextContent("Company name");
+
+    fireEvent.click(screen.getByLabelText("Order"));
+    fireEvent.click(await screen.findByRole("option", { name: "Descending" }));
+    await waitFor(() =>
+      expect(lastVars().sort).toEqual({ field: "NAME", direction: "DESC" }),
+    );
+  });
+
+  it("sorts people by last name by default, by first name on request, and resets on tab change", async () => {
+    gqlFetch.mockResolvedValue({ clients: makeConnection([]) });
+    renderList();
+    fireEvent.click(screen.getByLabelText("Order"));
+    fireEvent.click(await screen.findByRole("option", { name: "Descending" }));
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Individuals" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Individuals" }));
+    await waitFor(() =>
+      expect(lastVars().sort).toEqual({ field: "LAST_NAME", direction: "ASC" }),
+    );
+
+    expect(screen.getByLabelText("Last name")).toHaveValue("");
+    expect(screen.getByLabelText("First name")).toHaveValue("");
+    fireEvent.click(screen.getByLabelText("Sort"));
+    fireEvent.click(await screen.findByRole("option", { name: "First name" }));
+    await waitFor(() =>
+      expect(lastVars().sort).toEqual({
+        field: "FIRST_NAME",
+        direction: "ASC",
+      }),
+    );
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Companies" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Companies" }));
+    await waitFor(() =>
+      expect(lastVars().sort).toEqual({ field: "NAME", direction: "ASC" }),
+    );
+  });
+
   it("offers Translation agency in the industry filter", async () => {
     gqlFetch.mockResolvedValue({ clients: makeConnection([]) });
     renderList();

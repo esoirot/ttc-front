@@ -6,6 +6,7 @@ import type {
   ClientType,
   ClientStatus,
   ClientIndustry,
+  ClientSort,
   ClientInput,
   CompanyContact,
 } from "@/types/clients.types";
@@ -44,11 +45,12 @@ export const CLIENTS_QUERY: TypedDocumentNode<
     companyName?: string;
     firstName?: string;
     lastName?: string;
+    sort?: ClientSort;
     pagination?: { limit?: number; cursor?: number };
   }
 > = gql`
-  query Clients($search: String, $clientType: ClientType, $excludeStatus: ClientStatus, $status: ClientStatus, $industry: ClientIndustry, $companyName: String, $firstName: String, $lastName: String, $pagination: PaginationInput) {
-    clients(search: $search, clientType: $clientType, excludeStatus: $excludeStatus, status: $status, industry: $industry, companyName: $companyName, firstName: $firstName, lastName: $lastName, pagination: $pagination) {
+  query Clients($search: String, $clientType: ClientType, $excludeStatus: ClientStatus, $status: ClientStatus, $industry: ClientIndustry, $companyName: String, $firstName: String, $lastName: String, $sort: ClientSortInput, $pagination: PaginationInput) {
+    clients(search: $search, clientType: $clientType, excludeStatus: $excludeStatus, status: $status, industry: $industry, companyName: $companyName, firstName: $firstName, lastName: $lastName, sort: $sort, pagination: $pagination) {
       items { ${CLIENT_FIELDS} }
       nextCursor
       total

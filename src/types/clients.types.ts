@@ -25,6 +25,12 @@ export type ClientIndustry =
   | "TRANSLATION_AGENCY"
   | "OTHER";
 
+export type ClientSortField = "NAME" | "LAST_NAME" | "FIRST_NAME";
+export type ClientSort = {
+  field: ClientSortField;
+  direction: "ASC" | "DESC";
+};
+
 export type ClientStatus =
   | "TO_CONTACT"
   | "CONTACTED"

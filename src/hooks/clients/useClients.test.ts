@@ -192,6 +192,27 @@ describe("useClients", () => {
     expect(finance.current.clients.map((c) => c.name)).toEqual(["Bank"]);
   });
 
+  it("passes the sort through, with its own cache", async () => {
+    gqlFetch.mockResolvedValue({ clients: makeConnection([]) });
+    const queryClient = createQueryClient();
+    const wrapper = createQueryWrapper(queryClient);
+
+    renderHook(
+      () => useClients({ sort: { field: "NAME", direction: "DESC" } }),
+      { wrapper },
+    );
+    await waitFor(() => expect(gqlFetch).toHaveBeenCalledTimes(1));
+    expect(gqlFetch.mock.calls[0][1].sort).toEqual({
+      field: "NAME",
+      direction: "DESC",
+    });
+    renderHook(
+      () => useClients({ sort: { field: "NAME", direction: "ASC" } }),
+      { wrapper },
+    );
+    await waitFor(() => expect(gqlFetch).toHaveBeenCalledTimes(2));
+  });
+
   it("uses a custom limit when provided", async () => {
     gqlFetch.mockResolvedValueOnce({ clients: makeConnection([]) });
 
