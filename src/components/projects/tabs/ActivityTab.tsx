@@ -1,28 +1,31 @@
 import { FormattedMessage } from "react-intl";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useProjectActivities } from "@/hooks/projects/useProjectActivities";
+import type { TaskActivity } from "@/types/tasks.types";
 import type { ProjectActivityTabProps } from "@/types/projects.types";
 import { TaskActivityFeed } from "../modals/TaskActivityFeed";
 import { TaskActivityGroup } from "../groups/TaskActivityGroup";
 
-export function ActivityTab({ tasks, tasksLoading }: ProjectActivityTabProps) {
-  if (tasksLoading) {
+export function ActivityTab({ projectId }: ProjectActivityTabProps) {
+  // Newest first, as the server pages them.
+  const { items, loading, hasMore, loadMore } = useProjectActivities(projectId);
+
+  if (loading) {
     return <Skeleton className="h-40 w-full" />;
   }
 
-  const allActivities = tasks
-    .flatMap((t) => t.activities ?? [])
-    .sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-    );
-
-  const tasksWithActivity = tasks
-    .filter((t) => (t.activities?.length ?? 0) > 0)
-    .sort((a, b) => {
-      const aLatest = a.activities![a.activities!.length - 1].createdAt;
-      const bLatest = b.activities![b.activities!.length - 1].createdAt;
-      return new Date(bLatest).getTime() - new Date(aLatest).getTime();
-    });
+  // The feeds list oldest first and show the newest on top.
+  const oldestFirst = [...items].reverse();
+  const byTask = new Map<number, { title: string; events: TaskActivity[] }>();
+  for (const a of oldestFirst) {
+    if (!a.task) continue;
+    const group = byTask.get(a.task.id) ?? { title: a.task.title, events: [] };
+    group.events.push(a);
+    byTask.set(a.task.id, group);
+  }
+  // Most recently active task first.
+  const groups = [...byTask.entries()].reverse();
 
   return (
     <div className="flex flex-col gap-6">
@@ -33,7 +36,20 @@ export function ActivityTab({ tasks, tasksLoading }: ProjectActivityTabProps) {
             defaultMessage="All activity"
           />
         </h3>
-        <TaskActivityFeed activities={allActivities} />
+        <TaskActivityFeed activities={oldestFirst} />
+        {hasMore && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={() => loadMore()}
+          >
+            <FormattedMessage
+              id="projects.activityTab.loadMore"
+              defaultMessage="Load more"
+            />
+          </Button>
+        )}
       </div>
 
       <div>
@@ -43,7 +59,7 @@ export function ActivityTab({ tasks, tasksLoading }: ProjectActivityTabProps) {
             defaultMessage="By task"
           />
         </h3>
-        {tasksWithActivity.length === 0 ? (
+        {groups.length === 0 ? (
           <p className="text-xs text-muted-foreground">
             <FormattedMessage
               id="projects.activityTab.noTaskActivity"
@@ -52,11 +68,11 @@ export function ActivityTab({ tasks, tasksLoading }: ProjectActivityTabProps) {
           </p>
         ) : (
           <div className="border border-border rounded-lg divide-y divide-border overflow-hidden">
-            {tasksWithActivity.map((t) => (
+            {groups.map(([taskId, g]) => (
               <TaskActivityGroup
-                key={t.id}
-                taskTitle={t.title}
-                activities={t.activities ?? []}
+                key={taskId}
+                taskTitle={g.title}
+                activities={g.events}
               />
             ))}
           </div>

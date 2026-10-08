@@ -27,7 +27,7 @@ import type {
 import type { TasksTabProps } from "@/types/projects.types";
 import { TASK_STATUSES, STATUS_LABEL_MESSAGES } from "@/constants/tasks";
 import { compareTasks } from "@/lib/taskSort";
-import { useDeleteTask, useUpdateTask } from "@/hooks/tasks/useTasks";
+import { useDeleteTask, useMoveTask } from "@/hooks/tasks/useTasks";
 import { SortableTask } from "../sortables/SortableTask";
 import { TaskToolbar } from "../filters/TaskToolbar";
 
@@ -56,7 +56,7 @@ export function TasksTab({
 }: TasksTabProps) {
   const navigate = useNavigate();
   const intl = useIntl();
-  const { updateTask } = useUpdateTask(projectId);
+  const { moveTask } = useMoveTask(projectId);
   const { deleteTask } = useDeleteTask(projectId);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -99,24 +99,33 @@ export function TasksTab({
     if (!task) return;
 
     // over.id is either a task id (number coerced to string) or a column status string
-    const targetStatus: TaskStatus | undefined = (
-      TASK_STATUSES as readonly string[]
-    ).includes(String(over.id))
+    const overColumn = (TASK_STATUSES as readonly string[]).includes(
+      String(over.id),
+    );
+    const targetStatus: TaskStatus | undefined = overColumn
       ? (over.id as TaskStatus)
       : tasks.find((t) => t.id === Number(over.id))?.status;
+    if (!targetStatus) return;
 
-    if (targetStatus && task.status !== targetStatus) {
-      void updateTask({ id: task.id, status: targetStatus });
-    } else if (targetStatus && task.status === targetStatus) {
-      const ids = tasksByStatus[targetStatus].map((t) => t.id);
-      const oldIndex = ids.indexOf(task.id);
-      const newIndex = ids.indexOf(Number(over.id));
-      if (oldIndex === -1 || newIndex === -1) return;
-
-      const reordered = arrayMove(ids, oldIndex, newIndex);
-      setLocalOrders((prev) => ({ ...prev, [targetStatus]: reordered }));
-      void updateTask({ id: task.id, sortOrder: newIndex });
+    // The target column as shown, then the dragged card placed where it landed:
+    // on a card it takes that card's place, on empty column space it goes last.
+    const shown = orderedTasksForStatus(targetStatus).map((t) => t.id);
+    let order: number[];
+    if (task.status === targetStatus) {
+      const from = shown.indexOf(task.id);
+      const to = overColumn ? shown.length - 1 : shown.indexOf(Number(over.id));
+      if (from === -1 || to === -1) return;
+      order = arrayMove(shown, from, to);
+    } else {
+      const at = overColumn ? shown.length : shown.indexOf(Number(over.id));
+      order = [...shown.slice(0, at), task.id, ...shown.slice(at)];
     }
+    setLocalOrders((prev) => ({ ...prev, [targetStatus]: order }));
+    void moveTask({
+      id: task.id,
+      status: targetStatus,
+      position: order.indexOf(task.id),
+    });
   }
 
   const tasksByStatus = TASK_STATUSES.reduce<Record<TaskStatus, Task[]>>(

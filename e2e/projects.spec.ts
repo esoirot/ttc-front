@@ -208,6 +208,27 @@ async function mockProjectsApi(
       return respond({ tags: [] });
     }
 
+    if (operationName === "ProjectActivities") {
+      return respond({
+        projectActivities: {
+          items: [
+            {
+              id: 1,
+              taskId: 40,
+              userId: 1,
+              type: "CREATED",
+              payload: null,
+              createdAt: NOW,
+              user: { id: 1, name: "Alice" },
+              task: { id: 40, title: "Chapter 1" },
+            },
+          ],
+          nextCursor: null,
+          total: 1,
+        },
+      });
+    }
+
     return respond(null);
   });
 }
@@ -597,4 +618,31 @@ test("a translation task shows its own words plus its checklist words next to it
   await expect(page.getByText("700 words")).toBeVisible();
   await expect(page.getByText("200 words")).toBeVisible();
   await expect(page.locator("#task-words-40")).toHaveValue("500");
+});
+
+test("the Activity tab pages the project's history; the task board no longer loads it", async ({
+  page,
+}) => {
+  await mockProjectsApi(page, [makeProject({ id: 7 })]);
+  const queries: Record<string, { query?: string; variables?: unknown }> = {};
+  page.on("request", (req) => {
+    if (!req.url().includes("/graphql") || req.method() !== "POST") return;
+    const body = req.postDataJSON() as {
+      operationName: string;
+      query?: string;
+      variables?: unknown;
+    };
+    queries[body.operationName] = body;
+  });
+  await page.goto("/projects/7");
+
+  await page.getByRole("tab", { name: "Activity" }).click();
+
+  await expect(page.getByText("created this task").first()).toBeVisible();
+  await expect(page.getByText("Chapter 1").first()).toBeVisible();
+  expect(queries.ProjectActivities?.variables).toEqual({
+    projectId: 7,
+    pagination: { limit: 20 },
+  });
+  expect(queries.Tasks?.query).not.toContain("activities");
 });

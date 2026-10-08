@@ -150,8 +150,7 @@ export interface SortableTaskProps {
 }
 
 export interface ProjectActivityTabProps {
-  tasks: Task[];
-  tasksLoading: boolean;
+  projectId: number;
 }
 
 export interface TasksTabProps {

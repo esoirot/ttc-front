@@ -8,7 +8,9 @@ import type {
   Task,
   TaskDetail,
   TaskConnection,
+  TaskActivity,
 } from "@/types/tasks.types";
+import type { Connection } from "@/types/common.types";
 
 const TASK_FIELDS = `id projectId title description status dueDate wordCount startDate recurring reminderOffset sortOrder totalTimeSeconds createdAt updatedAt`;
 
@@ -24,10 +26,6 @@ export const TASKS_QUERY: TypedDocumentNode<
     tasks(projectId: $projectId, search: $search, pagination: $pagination) {
       items {
         ${TASK_FIELDS}
-        activities {
-          id taskId userId type payload createdAt
-          user { id name }
-        }
       }
       nextCursor
       total
@@ -71,6 +69,43 @@ export const UPDATE_TASK_MUTATION: TypedDocumentNode<
 > = gql`
   mutation UpdateTask($input: UpdateTaskInput!) {
     updateTask(input: $input) { ${TASK_FIELDS} }
+  }
+`;
+
+export const PROJECT_ACTIVITIES_QUERY: TypedDocumentNode<
+  { projectActivities: Connection<TaskActivity> },
+  { projectId: number; pagination?: { limit: number; cursor?: number } }
+> = gql`
+  query ProjectActivities($projectId: Int!, $pagination: PaginationInput) {
+    projectActivities(projectId: $projectId, pagination: $pagination) {
+      items {
+        id
+        taskId
+        userId
+        type
+        payload
+        createdAt
+        user {
+          id
+          name
+        }
+        task {
+          id
+          title
+        }
+      }
+      nextCursor
+      total
+    }
+  }
+`;
+
+export const MOVE_TASK_MUTATION: TypedDocumentNode<
+  { moveTask: Task },
+  { input: { id: number; status: TaskStatus; position: number } }
+> = gql`
+  mutation MoveTask($input: MoveTaskInput!) {
+    moveTask(input: $input) { ${TASK_FIELDS} }
   }
 `;
 

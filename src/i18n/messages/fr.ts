@@ -1169,4 +1169,10 @@ export const fr: Record<keyof typeof en, string> = {
     "Demander un nouveau lien de réinitialisation",
   "auth.resetPassword.updating": "Mise à jour…",
   "auth.resetPassword.submit": "Définir le nouveau mot de passe",
+  "routeError.title": "Une erreur est survenue",
+  "routeError.body":
+    "Cette page n'a pas pu se charger. Rechargez-la ou revenez au tableau de bord.",
+  "routeError.reload": "Recharger",
+  "routeError.home": "Retour au tableau de bord",
+  "projects.activityTab.loadMore": "Charger plus",
 };

@@ -95,7 +95,7 @@ describe("TasksTab", () => {
   beforeEach(() => {
     gqlFetch.mockReset();
     gqlMutate.mockReset();
-    gqlMutate.mockResolvedValue({ updateTask: {} });
+    gqlMutate.mockResolvedValue({ moveTask: {} });
     navigateMock.mockReset();
   });
 
@@ -391,9 +391,12 @@ describe("TasksTab", () => {
     expect(gqlMutate).not.toHaveBeenCalled();
   });
 
-  it("updates the task status when dropped on a different status column", async () => {
+  it("moves the task to the end of a column dropped on its empty space", async () => {
     renderTab({
-      tasks: [makeTask({ id: 4, title: "Task A", status: "TODO" })],
+      tasks: [
+        makeTask({ id: 4, title: "Task A", status: "TODO" }),
+        makeTask({ id: 5, title: "Task B", status: "DONE" }),
+      ],
     });
 
     act(() => {
@@ -405,34 +408,90 @@ describe("TasksTab", () => {
 
     await waitFor(() =>
       expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
-        input: expect.objectContaining({ id: 4, status: "DONE" }),
+        input: { id: 4, status: "DONE", position: 1 },
       }),
     );
   });
 
-  it("updates the task status when dropped onto a task in a different column", async () => {
+  it("moves the task into another column at the card it was dropped on", async () => {
     renderTab({
       tasks: [
         makeTask({ id: 4, title: "Task A", status: "TODO" }),
         makeTask({ id: 5, title: "Task B", status: "DONE" }),
+        makeTask({ id: 6, title: "Task C", status: "DONE" }),
       ],
     });
 
     act(() => {
       dndHandlers.onDragEnd?.({
         active: { id: 4 },
-        over: { id: 5 },
+        over: { id: 6 },
       } as unknown as DragEndEvent);
     });
 
     await waitFor(() =>
       expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
-        input: expect.objectContaining({ id: 4, status: "DONE" }),
+        input: { id: 4, status: "DONE", position: 1 },
       }),
     );
   });
 
-  it("calls updateTask with the new sortOrder when reordering within the same status column", async () => {
+  it("moves the task to the end of its own column when dropped on its empty space", async () => {
+    renderTab({
+      tasks: [
+        makeTask({ id: 4, title: "Task A", status: "TODO" }),
+        makeTask({ id: 5, title: "Task B", status: "TODO" }),
+      ],
+    });
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: "TODO" },
+      } as unknown as DragEndEvent);
+    });
+
+    await waitFor(() =>
+      expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
+        input: { id: 4, status: "TODO", position: 1 },
+      }),
+    );
+  });
+
+  it("does nothing when dropped on a card that is no longer on the board", () => {
+    renderTab({ tasks: [makeTask({ id: 4, status: "TODO" })] });
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: 99 },
+      } as unknown as DragEndEvent);
+    });
+
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
+  it("shows each card once after a drop into another column", () => {
+    renderTab({
+      tasks: [
+        makeTask({ id: 4, title: "Task A", status: "TODO" }),
+        makeTask({ id: 5, title: "Task B", status: "DONE" }),
+        makeTask({ id: 6, title: "Task C", status: "DONE" }),
+      ],
+    });
+
+    act(() => {
+      dndHandlers.onDragEnd?.({
+        active: { id: 4 },
+        over: { id: 6 },
+      } as unknown as DragEndEvent);
+    });
+
+    expect(screen.getAllByText("Task B")).toHaveLength(1);
+    expect(screen.getAllByText("Task C")).toHaveLength(1);
+  });
+
+  it("moves the task to its new position when reordering within a column", async () => {
     renderTab({
       tasks: [
         makeTask({ id: 4, title: "Task A", status: "TODO" }),
@@ -449,7 +508,7 @@ describe("TasksTab", () => {
 
     await waitFor(() =>
       expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
-        input: expect.objectContaining({ id: 4, sortOrder: 1 }),
+        input: { id: 4, status: "TODO", position: 1 },
       }),
     );
   });

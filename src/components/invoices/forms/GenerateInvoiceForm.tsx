@@ -2,6 +2,7 @@ import { ProjectPicker } from "@/components/projects/pickers/ProjectPicker";
 import { ClientPicker } from "@/components/clients/pickers/ClientPicker";
 import { useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,15 +16,24 @@ export function GenerateInvoiceForm({ onClose, onGenerated }: Props) {
   const [clientId, setClientId] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [projectId, setProjectId] = useState("");
+  // The server's reason when it refuses, e.g. "Nothing to invoice: ...".
+  const [refusal, setRefusal] = useState<string | null>(null);
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!projectId) return;
-    const result = await generateInvoice({
-      projectId: Number(projectId),
-      clientId: clientId ? Number(clientId) : undefined,
-      dueDate: dueDate || undefined,
-    });
+    setRefusal(null);
+    let result: Awaited<ReturnType<typeof generateInvoice>>;
+    try {
+      result = await generateInvoice({
+        projectId: Number(projectId),
+        clientId: clientId ? Number(clientId) : undefined,
+        dueDate: dueDate || undefined,
+      });
+    } catch (err) {
+      setRefusal(err instanceof Error ? err.message : String(err));
+      return;
+    }
     onClose();
     if (result.id) onGenerated(result.id);
   }
@@ -92,6 +102,11 @@ export function GenerateInvoiceForm({ onClose, onGenerated }: Props) {
               defaultMessage="Invoice line items generated from project pricing (fixed fee, hourly rate, per-word rate) and billable time entries."
             />
           </p>
+          {refusal && (
+            <Alert variant="destructive">
+              <AlertDescription>{refusal}</AlertDescription>
+            </Alert>
+          )}
           <Button
             type="submit"
             disabled={loading || !projectId}
