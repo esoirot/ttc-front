@@ -160,5 +160,9 @@ export const INDUSTRY_LABEL_MESSAGES: Record<
   },
   TOURISM: { id: "clients.industry.tourism", defaultMessage: "Tourism" },
   LUXE: { id: "clients.industry.luxe", defaultMessage: "Luxury Goods" },
+  TRANSLATION_AGENCY: {
+    id: "clients.industry.translationAgency",
+    defaultMessage: "Translation agency",
+  },
   OTHER: { id: "clients.industry.other", defaultMessage: "Other" },
 };

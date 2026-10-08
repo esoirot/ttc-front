@@ -860,8 +860,6 @@ export const en = {
 
   "clients.list.title": "Clients",
   "clients.list.newClient": "New client",
-  "clients.list.searchLabel": "Search clients",
-  "clients.list.searchPlaceholder": "Search clients…",
   "clients.list.all": "All",
   "clients.list.companies": "Companies",
   "clients.list.individuals": "Individuals",
@@ -1158,4 +1156,11 @@ export const en = {
   "dashboard.upcomingDeadlines.late": "Late",
   "dashboard.upcomingDeadlines.thisWeek": "Due within a week",
   "dashboard.upcomingDeadlines.later": "Upcoming",
+  "clients.industry.translationAgency": "Translation agency",
+  "clients.list.companyName": "Company name",
+  "clients.list.companyNamePlaceholder": "Company name…",
+  "clients.list.lastName": "Last name",
+  "clients.list.lastNamePlaceholder": "Last name…",
+  "clients.list.firstName": "First name",
+  "clients.list.firstNamePlaceholder": "First name…",
 };

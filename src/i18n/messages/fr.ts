@@ -877,8 +877,6 @@ export const fr: Record<keyof typeof en, string> = {
 
   "clients.list.title": "Clients",
   "clients.list.newClient": "Nouveau client",
-  "clients.list.searchLabel": "Rechercher des clients",
-  "clients.list.searchPlaceholder": "Rechercher des clients…",
   "clients.list.all": "Tous",
   "clients.list.companies": "Entreprises",
   "clients.list.individuals": "Particuliers",
@@ -1187,4 +1185,11 @@ export const fr: Record<keyof typeof en, string> = {
   "dashboard.upcomingDeadlines.late": "En retard",
   "dashboard.upcomingDeadlines.thisWeek": "À rendre cette semaine",
   "dashboard.upcomingDeadlines.later": "À venir",
+  "clients.industry.translationAgency": "Agence de traduction",
+  "clients.list.companyName": "Nom de l'entreprise",
+  "clients.list.companyNamePlaceholder": "Nom de l'entreprise…",
+  "clients.list.lastName": "Nom",
+  "clients.list.lastNamePlaceholder": "Nom…",
+  "clients.list.firstName": "Prénom",
+  "clients.list.firstNamePlaceholder": "Prénom…",
 };

@@ -110,8 +110,14 @@ async function mockClientsApi(page: Page, initial: MockClient[]) {
       const clientType = variables?.["clientType"] as string | undefined;
       const search = variables?.["search"] as string | undefined;
       const industry = variables?.["industry"] as string | undefined;
+      const has = (value: string | null, part: unknown) =>
+        !part ||
+        (value ?? "").toLowerCase().includes(String(part).toLowerCase());
       const items = clients.filter(
         (c) =>
+          has(c.name, variables?.["companyName"]) &&
+          has(c.firstName, variables?.["firstName"]) &&
+          has(c.lastName, variables?.["lastName"]) &&
           (!status || c.status === status) &&
           (!clientType || c.clientType === clientType) &&
           (!industry || c.industry === industry) &&
@@ -213,7 +219,7 @@ async function mockClientsApi(page: Page, initial: MockClient[]) {
   });
 }
 
-test("search filters the Clients list by name", async ({ page }) => {
+test("Company name filters the Clients list", async ({ page }) => {
   await mockClientsApi(page, [
     makeClient({ id: 1, name: "Acme Corp" }),
     makeClient({ id: 2, name: "Globex Inc" }),
@@ -223,7 +229,7 @@ test("search filters the Clients list by name", async ({ page }) => {
   await expect(page.getByText("Acme Corp")).toBeVisible();
   await expect(page.getByText("Globex Inc")).toBeVisible();
 
-  await page.getByLabel("Search clients").fill("acme");
+  await page.getByLabel("Company name").fill("acme");
 
   await expect(page.getByText("Globex Inc")).not.toBeVisible();
   await expect(page.getByText("Acme Corp")).toBeVisible();
@@ -374,4 +380,31 @@ test("adding a LinkedIn URL in the client edit form shows a LinkedIn link", asyn
     "href",
     "https://www.linkedin.com/company/acme",
   );
+});
+
+test("the Individuals tab filters people by last and first name", async ({
+  page,
+}) => {
+  const person = (id: number, firstName: string, lastName: string) =>
+    makeClient({
+      id,
+      name: `${firstName} ${lastName}`,
+      clientType: "INDIVIDUAL",
+      firstName,
+      lastName,
+    });
+  await mockClientsApi(page, [
+    person(1, "Marie", "Curie"),
+    person(2, "Pierre", "Curie"),
+    person(3, "Marie", "Dupont"),
+  ]);
+  await page.goto("/clients");
+
+  await page.getByRole("tab", { name: "Individuals" }).click();
+  await page.getByLabel("Last name").fill("curie");
+  await page.getByLabel("First name").fill("marie");
+
+  await expect(page.getByText("Marie Curie")).toBeVisible();
+  await expect(page.getByText("Pierre Curie")).not.toBeVisible();
+  await expect(page.getByText("Marie Dupont")).not.toBeVisible();
 });

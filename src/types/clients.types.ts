@@ -22,6 +22,7 @@ export type ClientIndustry =
   | "REAL_ESTATE"
   | "TOURISM"
   | "LUXE"
+  | "TRANSLATION_AGENCY"
   | "OTHER";
 
 export type ClientStatus =

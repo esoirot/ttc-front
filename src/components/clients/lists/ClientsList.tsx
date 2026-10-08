@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClients, useDeleteClient } from "@/hooks/clients/useClients";
@@ -18,21 +17,42 @@ import type { ClientIndustry, ClientType } from "@/types/clients.types";
 import { NewClientForm } from "../forms/NewClientForm";
 import { ClientCard } from "../cards/ClientCard";
 
+const NO_NAMES = { companyName: "", lastName: "", firstName: "" };
+
 export function ClientsList() {
   const intl = useIntl();
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  // All / Companies tabs filter by company name, Individuals by last and
+  // first name; switching tab starts from empty fields.
+  const [names, setNames] = useState(NO_NAMES);
+  const [debouncedNames, setDebouncedNames] = useState(NO_NAMES);
   const [typeFilter, setTypeFilter] = useState<ClientType | "ALL">("ALL");
   const [industry, setIndustry] = useState<ClientIndustry | "ALL">("ALL");
   const [showForm, setShowForm] = useState(false);
+  const isPeople = typeFilter === "INDIVIDUAL";
 
   useEffect(() => {
-    const id = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    const id = setTimeout(
+      () =>
+        setDebouncedNames({
+          companyName: names.companyName.trim(),
+          lastName: names.lastName.trim(),
+          firstName: names.firstName.trim(),
+        }),
+      300,
+    );
     return () => clearTimeout(id);
-  }, [search]);
+  }, [names]);
+
+  const nameField = (field: keyof typeof NO_NAMES) => ({
+    value: names[field],
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+      setNames((prev) => ({ ...prev, [field]: e.target.value })),
+  });
 
   const { clients, loading, hasMore, loadMore, total } = useClients({
-    search: debouncedSearch || undefined,
+    companyName: debouncedNames.companyName || undefined,
+    lastName: debouncedNames.lastName || undefined,
+    firstName: debouncedNames.firstName || undefined,
     clientType: typeFilter === "ALL" ? undefined : typeFilter,
     industry: industry === "ALL" ? undefined : industry,
     status: "CLIENT",
@@ -64,25 +84,54 @@ export function ClientsList() {
       </div>
 
       <div className="flex flex-col gap-3 pb-4 border-b border-border mb-6">
-        <Label htmlFor="clients-search" className="sr-only">
-          <FormattedMessage
-            id="clients.list.searchLabel"
-            defaultMessage="Search clients"
+        {isPeople ? (
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              type="search"
+              aria-label={intl.formatMessage({
+                id: "clients.list.lastName",
+                defaultMessage: "Last name",
+              })}
+              placeholder={intl.formatMessage({
+                id: "clients.list.lastNamePlaceholder",
+                defaultMessage: "Last name…",
+              })}
+              {...nameField("lastName")}
+            />
+            <Input
+              type="search"
+              aria-label={intl.formatMessage({
+                id: "clients.list.firstName",
+                defaultMessage: "First name",
+              })}
+              placeholder={intl.formatMessage({
+                id: "clients.list.firstNamePlaceholder",
+                defaultMessage: "First name…",
+              })}
+              {...nameField("firstName")}
+            />
+          </div>
+        ) : (
+          <Input
+            type="search"
+            aria-label={intl.formatMessage({
+              id: "clients.list.companyName",
+              defaultMessage: "Company name",
+            })}
+            placeholder={intl.formatMessage({
+              id: "clients.list.companyNamePlaceholder",
+              defaultMessage: "Company name…",
+            })}
+            {...nameField("companyName")}
           />
-        </Label>
-        <Input
-          id="clients-search"
-          type="search"
-          placeholder={intl.formatMessage({
-            id: "clients.list.searchPlaceholder",
-            defaultMessage: "Search clients…",
-          })}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        )}
         <Tabs
           value={typeFilter}
-          onValueChange={(v) => setTypeFilter(v as ClientType | "ALL")}
+          onValueChange={(v) => {
+            setTypeFilter(v as ClientType | "ALL");
+            setNames(NO_NAMES);
+            setDebouncedNames(NO_NAMES);
+          }}
         >
           <TabsList>
             <TabsTrigger value="ALL">

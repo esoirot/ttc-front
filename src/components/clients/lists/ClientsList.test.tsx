@@ -106,42 +106,88 @@ describe("ClientsList", () => {
     expect(screen.queryByText("Create client")).not.toBeInTheDocument();
   });
 
-  it("debounces the search input before refetching", async () => {
+  const lastVars = () =>
+    gqlFetch.mock.calls[gqlFetch.mock.calls.length - 1][1] as Record<
+      string,
+      unknown
+    >;
+
+  it("filters by company name on the All and Companies tabs, after a pause", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     gqlFetch.mockResolvedValue({ clients: makeConnection([]) });
-
     renderList();
 
-    fireEvent.change(screen.getByLabelText("Search clients"), {
-      target: { value: "acme" },
+    expect(screen.queryByLabelText("Last name")).toBeNull();
+    fireEvent.change(screen.getByLabelText("Company name"), {
+      target: { value: "  acme  " },
     });
-
     expect(
       gqlFetch.mock.calls.some(
-        (c) => (c[1] as Record<string, unknown>)?.search === "acme",
+        (c) => (c[1] as Record<string, unknown>)?.companyName === "acme",
       ),
     ).toBe(false);
 
     await vi.advanceTimersByTimeAsync(300);
-
     await waitFor(() =>
-      expect(
-        gqlFetch.mock.calls.some(
-          (c) => (c[1] as Record<string, unknown>)?.search === "acme",
-        ),
-      ).toBe(true),
+      expect(lastVars()).toMatchObject({
+        companyName: "acme",
+        status: "CLIENT",
+      }),
     );
+    expect(lastVars().search).toBeUndefined();
     vi.useRealTimers();
+  });
+
+  it("filters people by last and first name on the Individuals tab", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    gqlFetch.mockResolvedValue({ clients: makeConnection([]) });
+    renderList();
+
+    fireEvent.change(screen.getByLabelText("Company name"), {
+      target: { value: "acme" },
+    });
+    await vi.advanceTimersByTimeAsync(300);
+    await waitFor(() => expect(lastVars().companyName).toBe("acme"));
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Individuals" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Individuals" }));
+    expect(screen.queryByLabelText("Company name")).toBeNull();
+    // The new tab's first request already drops the company name.
+    await waitFor(() =>
+      expect(lastVars()).toMatchObject({ clientType: "INDIVIDUAL" }),
+    );
+    expect(lastVars().companyName).toBeUndefined();
+    fireEvent.change(screen.getByLabelText("Last name"), {
+      target: { value: "curie" },
+    });
+    fireEvent.change(screen.getByLabelText("First name"), {
+      target: { value: "marie" },
+    });
+
+    await vi.advanceTimersByTimeAsync(300);
+    await waitFor(() =>
+      expect(lastVars()).toMatchObject({
+        clientType: "INDIVIDUAL",
+        lastName: "curie",
+        firstName: "marie",
+      }),
+    );
+    // Switching tab cleared the company name.
+    expect(lastVars().companyName).toBeUndefined();
+    vi.useRealTimers();
+  });
+
+  it("offers Translation agency in the industry filter", async () => {
+    gqlFetch.mockResolvedValue({ clients: makeConnection([]) });
+    renderList();
+    fireEvent.click(screen.getByRole("combobox", { name: "Industry" }));
+    expect(
+      await screen.findByRole("option", { name: "Translation agency" }),
+    ).toBeInTheDocument();
   });
 
   it("filters by industry, and All industries removes the filter", async () => {
     gqlFetch.mockResolvedValue({ clients: makeConnection([]) });
     renderList();
-    const lastVars = () =>
-      gqlFetch.mock.calls[gqlFetch.mock.calls.length - 1][1] as Record<
-        string,
-        unknown
-      >;
 
     expect(
       screen.getByRole("combobox", { name: "Industry" }),

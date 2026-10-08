@@ -31,6 +31,9 @@ const LIMIT = 20;
 
 export function useClients({
   search,
+  companyName,
+  firstName,
+  lastName,
   clientType,
   excludeStatus,
   status,
@@ -38,6 +41,9 @@ export function useClients({
   limit = LIMIT,
 }: {
   search?: string;
+  companyName?: string;
+  firstName?: string;
+  lastName?: string;
   clientType?: ClientType;
   excludeStatus?: ClientStatus;
   status?: ClientStatus;
@@ -46,6 +52,9 @@ export function useClients({
 } = {}) {
   const baseVars = {
     ...(search ? { search } : {}),
+    ...(companyName ? { companyName } : {}),
+    ...(firstName ? { firstName } : {}),
+    ...(lastName ? { lastName } : {}),
     ...(clientType ? { clientType } : {}),
     ...(excludeStatus ? { excludeStatus } : {}),
     ...(status ? { status } : {}),
@@ -58,6 +67,9 @@ export function useClients({
         "clients",
         {
           search: search ?? null,
+          companyName: companyName ?? null,
+          firstName: firstName ?? null,
+          lastName: lastName ?? null,
           clientType: clientType ?? null,
           excludeStatus: excludeStatus ?? null,
           status: status ?? null,
