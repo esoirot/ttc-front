@@ -9,6 +9,7 @@ import {
   TASK_QUERY,
   CREATE_TASK_MUTATION,
   UPDATE_TASK_MUTATION,
+  MOVE_TASK_MUTATION,
   DELETE_TASK_MUTATION,
   CREATE_SUBTASK_MUTATION,
   UPDATE_SUBTASK_MUTATION,
@@ -24,6 +25,7 @@ import {
 } from "../../graphql/tasks.operations";
 import type {
   Task,
+  TaskStatus,
   TaskConnection,
   TaskDetail,
   TaskComment,
@@ -102,6 +104,59 @@ export function useCreateTask(projectId: number) {
   };
 }
 
+/** Optimistically shows a task in its new column; returns the cache to roll back to. */
+async function showInColumn(
+  queryClient: ReturnType<typeof useQueryClient>,
+  tasksKey: unknown[],
+  id: number,
+  status: TaskStatus,
+) {
+  await queryClient.cancelQueries({ queryKey: tasksKey });
+  const previous =
+    queryClient.getQueryData<InfiniteData<TaskConnection>>(tasksKey);
+  queryClient.setQueryData<InfiniteData<TaskConnection>>(tasksKey, (old) =>
+    old
+      ? {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            items: page.items.map((t) => (t.id === id ? { ...t, status } : t)),
+          })),
+        }
+      : old,
+  );
+  return { previous };
+}
+
+/** Drops a task at `position` in the `status` column (kanban drag and drop). */
+export function useMoveTask(projectId: number) {
+  const queryClient = useQueryClient();
+  const tasksKey = ["tasks", projectId];
+  const { mutateAsync } = useMutation({
+    mutationFn: (input: { id: number; status: TaskStatus; position: number }) =>
+      gqlMutate<{ moveTask: Task }>(MOVE_TASK_MUTATION, { input }).then(
+        (d) => d.moveTask,
+      ),
+    onMutate: (input) =>
+      showInColumn(queryClient, tasksKey, input.id, input.status),
+    onError: (_err, _input, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(tasksKey, context.previous);
+      }
+    },
+    // The server renumbered both columns: reload them.
+    onSettled: (moved) => {
+      void queryClient.invalidateQueries({ queryKey: tasksKey });
+      if (moved)
+        void queryClient.invalidateQueries({ queryKey: ["task", moved.id] });
+    },
+  });
+  return {
+    moveTask: (input: { id: number; status: TaskStatus; position: number }) =>
+      mutateAsync(input),
+  };
+}
+
 export function useUpdateTask(projectId: number) {
   const queryClient = useQueryClient();
   const tasksKey = ["tasks", projectId];
@@ -110,26 +165,10 @@ export function useUpdateTask(projectId: number) {
       gqlMutate<{ updateTask: Task }>(UPDATE_TASK_MUTATION, { input }).then(
         (d) => d.updateTask,
       ),
-    onMutate: async (input) => {
-      if (input.status === undefined) return undefined;
-      await queryClient.cancelQueries({ queryKey: tasksKey });
-      const previous =
-        queryClient.getQueryData<InfiniteData<TaskConnection>>(tasksKey);
-      queryClient.setQueryData<InfiniteData<TaskConnection>>(tasksKey, (old) =>
-        old
-          ? {
-              ...old,
-              pages: old.pages.map((page) => ({
-                ...page,
-                items: page.items.map((t) =>
-                  t.id === input.id ? { ...t, status: input.status! } : t,
-                ),
-              })),
-            }
-          : old,
-      );
-      return { previous };
-    },
+    onMutate: (input) =>
+      input.status === undefined
+        ? undefined
+        : showInColumn(queryClient, tasksKey, input.id, input.status),
     onError: (_err, _input, context) => {
       if (context?.previous) {
         queryClient.setQueryData(tasksKey, context.previous);

@@ -1139,4 +1139,10 @@ export const en = {
   "auth.resetPassword.requestNewResetLink": "Request a new reset link",
   "auth.resetPassword.updating": "Updating…",
   "auth.resetPassword.submit": "Set new password",
+  "routeError.title": "Something went wrong",
+  "routeError.body":
+    "This page failed to load. Reload it, or go back to the dashboard.",
+  "routeError.reload": "Reload",
+  "routeError.home": "Back to dashboard",
+  "projects.activityTab.loadMore": "Load more",
 };

@@ -47,6 +47,8 @@ export interface TaskActivity {
   payload: string | null;
   createdAt: string;
   user: TaskActivityUser | null;
+  /** Only filled by projectActivities, to group a project's history by task. */
+  task?: { id: number; title: string } | null;
 }
 
 export interface Task {
@@ -62,7 +64,6 @@ export interface Task {
   reminderOffset: string | null;
   sortOrder: number;
   totalTimeSeconds?: number | null;
-  activities?: TaskActivity[];
   createdAt: string;
   updatedAt: string;
 }

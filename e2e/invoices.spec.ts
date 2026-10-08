@@ -81,6 +81,39 @@ async function mockInvoicesApi(page: Page, initial: MockInvoice[]) {
       return respond({ clients: { items: [], nextCursor: null, total: 0 } });
     }
 
+    if (operationName === "Invoices") {
+      return respond({
+        invoices: { items: invoices, nextCursor: null, total: invoices.length },
+      });
+    }
+
+    if (operationName === "Projects") {
+      return respond({
+        projects: {
+          items: [{ id: 3, title: "Translate manual" }],
+          nextCursor: null,
+          total: 1,
+        },
+      });
+    }
+
+    if (operationName === "GenerateInvoice") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          data: null,
+          errors: [
+            {
+              message:
+                "Nothing to invoice: no fixed fee, no unbilled billable time and no word count.",
+              extensions: { code: "BAD_REQUEST" },
+            },
+          ],
+        }),
+      });
+    }
+
     return respond(null);
   });
 }
@@ -99,4 +132,19 @@ test("InvoiceMetaCard Edit -> change notes -> Save persists the new value", asyn
   await page.getByRole("button", { name: "Save" }).click();
 
   await expect(page.getByText("Client requested rush delivery")).toBeVisible();
+});
+
+test("generating an invoice for a project with nothing to bill explains why, and creates nothing", async ({
+  page,
+}) => {
+  await mockInvoicesApi(page, []);
+  await page.goto("/invoices");
+
+  await page.getByRole("button", { name: "Generate from project" }).click();
+  await page.getByRole("combobox").first().click();
+  await page.getByRole("option", { name: "Translate manual" }).click();
+  await page.getByRole("button", { name: "Generate invoice" }).click();
+
+  await expect(page.getByRole("alert")).toContainText("Nothing to invoice");
+  await expect(page).toHaveURL(/\/invoices$/);
 });

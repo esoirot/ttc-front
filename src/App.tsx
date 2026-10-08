@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { RouteErrorPage } from "./components/layout/RouteErrorPage";
 import { AppLayout } from "./components/layout/AppLayout";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { RegisterPage } from "./pages/auth/RegisterPage";
@@ -64,6 +65,7 @@ function RootLayout() {
 const router = createBrowserRouter([
   {
     element: <RootLayout />,
+    errorElement: <RouteErrorPage />,
     children: [
       { path: "/login", element: <LoginPage /> },
       { path: "/register", element: <RegisterPage /> },
@@ -91,23 +93,32 @@ const router = createBrowserRouter([
           {
             element: <AppLayout />,
             children: [
-              { path: "/", element: <DashboardPage /> },
-              { path: "/profile/edit", element: <EditProfilePage /> },
-              { path: "/settings/2fa", element: <TwoFactorSetupPage /> },
-              { path: "/time-tracker", element: <ClockifyPage /> },
-              { path: "/hubspot", element: <HubspotPage /> },
-              { path: "/google-calendar", element: <GoogleCalendarPage /> },
-              { path: "/clients", element: <ClientsPage /> },
-              { path: "/clients/:id", element: <ClientDetailPage /> },
-              { path: "/prospects", element: <ProspectsPage /> },
-              { path: "/projects", element: <ProjectsPage /> },
-              { path: "/projects/:id", element: <ProjectDetailPage /> },
-              { path: "/time", element: <TimeEntriesPage /> },
-              { path: "/invoices", element: <InvoicesPage /> },
-              { path: "/invoices/:id", element: <InvoiceDetailPage /> },
-              { path: "/rates", element: <RatesPage /> },
-              { path: "/occupations", element: <OccupationsPage /> },
-              { path: "/occupations/:id", element: <OccupationDetailPage /> },
+              {
+                // A crashing page shows the error page inside the layout.
+                errorElement: <RouteErrorPage />,
+                children: [
+                  { path: "/", element: <DashboardPage /> },
+                  { path: "/profile/edit", element: <EditProfilePage /> },
+                  { path: "/settings/2fa", element: <TwoFactorSetupPage /> },
+                  { path: "/time-tracker", element: <ClockifyPage /> },
+                  { path: "/hubspot", element: <HubspotPage /> },
+                  { path: "/google-calendar", element: <GoogleCalendarPage /> },
+                  { path: "/clients", element: <ClientsPage /> },
+                  { path: "/clients/:id", element: <ClientDetailPage /> },
+                  { path: "/prospects", element: <ProspectsPage /> },
+                  { path: "/projects", element: <ProjectsPage /> },
+                  { path: "/projects/:id", element: <ProjectDetailPage /> },
+                  { path: "/time", element: <TimeEntriesPage /> },
+                  { path: "/invoices", element: <InvoicesPage /> },
+                  { path: "/invoices/:id", element: <InvoiceDetailPage /> },
+                  { path: "/rates", element: <RatesPage /> },
+                  { path: "/occupations", element: <OccupationsPage /> },
+                  {
+                    path: "/occupations/:id",
+                    element: <OccupationDetailPage />,
+                  },
+                ],
+              },
             ],
           },
         ],

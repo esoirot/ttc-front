@@ -26,6 +26,7 @@ import {
   useTask,
   useTasks,
   useUpdateTask,
+  useMoveTask,
 } from "./useTasks";
 
 function makeTask(overrides: Partial<Task> = {}): Task {
@@ -124,6 +125,85 @@ describe("useCreateTask", () => {
     await result.current.createTask({ projectId: 1, title: "New" });
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["tasks", 1] });
+  });
+});
+
+describe("useMoveTask", () => {
+  beforeEach(() => {
+    gqlFetch.mockReset();
+    gqlMutate.mockReset();
+  });
+
+  const cached = (queryClient: ReturnType<typeof createQueryClient>) =>
+    queryClient.getQueryData<{ pages: TaskConnection[] }>(["tasks", 1])
+      ?.pages[0].items[0];
+
+  it("sends the move and reloads the project's tasks (the server renumbered them)", async () => {
+    gqlMutate.mockResolvedValueOnce({
+      moveTask: makeTask({ id: 3, status: "DONE" }),
+    });
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(["tasks", 1], {
+      pages: [makeConnection([makeTask({ id: 3, status: "TODO" })])],
+      pageParams: [undefined],
+    });
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    const { result } = renderHook(() => useMoveTask(1), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    await result.current.moveTask({ id: 3, status: "DONE", position: 2 });
+
+    expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), {
+      input: { id: 3, status: "DONE", position: 2 },
+    });
+    expect(cached(queryClient)?.status).toBe("DONE");
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["tasks", 1] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["task", 3] });
+  });
+
+  it("shows only the moved task in its new column while the move is pending", async () => {
+    gqlMutate.mockReturnValueOnce(new Promise(() => {}));
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(["tasks", 1], {
+      pages: [
+        makeConnection([
+          makeTask({ id: 3, status: "TODO" }),
+          makeTask({ id: 4, status: "TODO" }),
+        ]),
+      ],
+      pageParams: [undefined],
+    });
+    const { result } = renderHook(() => useMoveTask(1), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    void result.current.moveTask({ id: 3, status: "DONE", position: 0 });
+
+    await waitFor(() => {
+      const items = queryClient.getQueryData<{ pages: TaskConnection[] }>([
+        "tasks",
+        1,
+      ])?.pages[0].items;
+      expect(items?.map((t) => t.status)).toEqual(["DONE", "TODO"]);
+    });
+  });
+
+  it("puts the task back in its column when the move fails", async () => {
+    gqlMutate.mockRejectedValueOnce(new Error("nope"));
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(["tasks", 1], {
+      pages: [makeConnection([makeTask({ id: 3, status: "TODO" })])],
+      pageParams: [undefined],
+    });
+    const { result } = renderHook(() => useMoveTask(1), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    await expect(
+      result.current.moveTask({ id: 3, status: "DONE", position: 0 }),
+    ).rejects.toThrow("nope");
+    await waitFor(() => expect(cached(queryClient)?.status).toBe("TODO"));
   });
 });
 

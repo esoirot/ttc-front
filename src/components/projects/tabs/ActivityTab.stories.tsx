@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { IntlProvider } from "react-intl";
 import { messages } from "@/i18n/messages";
-import type { Task, TaskActivity } from "@/types/tasks.types";
+import type { TaskActivity } from "@/types/tasks.types";
 import { ActivityTab } from "./ActivityTab";
 
 function makeActivity(overrides: Partial<TaskActivity> = {}): TaskActivity {
@@ -13,91 +14,69 @@ function makeActivity(overrides: Partial<TaskActivity> = {}): TaskActivity {
     payload: JSON.stringify({ from: "TODO", to: "IN_PROGRESS" }),
     createdAt: "2026-06-01T10:00:00.000Z",
     user: { id: 1, name: "Alice" },
+    task: { id: 1, title: "Translate homepage" },
     ...overrides,
   };
 }
 
-function makeTask(overrides: Partial<Task> = {}): Task {
-  return {
-    id: 1,
-    projectId: 1,
-    title: "Translate homepage",
-    description: null,
-    status: "TODO",
-    dueDate: null,
-    wordCount: null,
-    startDate: null,
-    recurring: null,
-    reminderOffset: null,
-    sortOrder: 0,
-    createdAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: "2026-01-01T00:00:00.000Z",
-    ...overrides,
-  };
-}
-
-const tasks: Task[] = [
-  makeTask({
-    id: 1,
-    title: "Translate homepage",
-    activities: [
-      makeActivity({
-        id: 1,
-        taskId: 1,
-        type: "CREATED",
-        payload: null,
-        createdAt: "2026-06-01T09:00:00.000Z",
-      }),
-      makeActivity({
-        id: 2,
-        taskId: 1,
-        type: "STATUS_CHANGED",
-        payload: JSON.stringify({ from: "TODO", to: "IN_PROGRESS" }),
-        createdAt: "2026-06-01T10:00:00.000Z",
-      }),
-    ],
+// Newest first, as projectActivities returns them.
+const activities: TaskActivity[] = [
+  makeActivity({
+    id: 3,
+    taskId: 2,
+    type: "COMMENT_ADDED",
+    payload: null,
+    createdAt: "2026-06-02T09:00:00.000Z",
+    task: { id: 2, title: "Proofread footer" },
   }),
-  makeTask({
-    id: 2,
-    title: "Proofread footer",
-    activities: [
-      makeActivity({
-        id: 3,
-        taskId: 2,
-        type: "COMMENT_ADDED",
-        payload: null,
-        createdAt: "2026-06-01T11:00:00.000Z",
-        user: { id: 2, name: "Bob" },
-      }),
-    ],
+  makeActivity({ id: 2, createdAt: "2026-06-01T10:00:00.000Z" }),
+  makeActivity({
+    id: 1,
+    type: "CREATED",
+    payload: null,
+    createdAt: "2026-06-01T09:00:00.000Z",
   }),
-  makeTask({ id: 3, title: "Untouched task", activities: [] }),
 ];
+
+/** A query client already holding the project's first page of activity. */
+function seeded(items: TaskActivity[], nextCursor: number | null = null) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { staleTime: Infinity, retry: false } },
+  });
+  client.setQueryData(["projectActivities", 1], {
+    pages: [{ items, nextCursor, total: items.length }],
+    pageParams: [undefined],
+  });
+  return client;
+}
 
 const meta: Meta<typeof ActivityTab> = {
   component: ActivityTab,
   title: "Organisms/ProjectActivityTab",
-  decorators: [
-    (Story) => (
+  args: { projectId: 1 },
+};
+export default meta;
+type Story = StoryObj<typeof ActivityTab>;
+
+const withActivity =
+  (client: QueryClient) => (Story: () => React.JSX.Element) => (
+    <QueryClientProvider client={client}>
       <IntlProvider locale="en" messages={messages.en}>
         <div className="max-w-2xl">
           <Story />
         </div>
       </IntlProvider>
-    ),
-  ],
-  args: {
-    tasks,
-    tasksLoading: false,
-  },
+    </QueryClientProvider>
+  );
+
+export const Default: Story = {
+  decorators: [withActivity(seeded(activities))],
 };
-export default meta;
-type Story = StoryObj<typeof ActivityTab>;
 
-export const Default: Story = {};
-
-export const Loading: Story = { args: { tasks: [], tasksLoading: true } };
+export const WithOlderActivity: Story = {
+  decorators: [withActivity(seeded(activities, 1))],
+};
 
 export const Empty: Story = {
-  args: { tasks: [makeTask({ activities: [] })] },
+  decorators: [withActivity(seeded([]))],
 };

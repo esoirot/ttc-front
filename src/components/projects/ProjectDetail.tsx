@@ -140,7 +140,7 @@ export function ProjectDetail() {
         </TabsContent>
 
         <TabsContent value="activity" className="mt-4">
-          <ActivityTab tasks={tasks} tasksLoading={tasksLoading} />
+          <ActivityTab projectId={projectId} />
         </TabsContent>
       </Tabs>
 

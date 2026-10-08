@@ -100,6 +100,24 @@ describe("GenerateInvoiceForm", () => {
     expect(onGenerated).toHaveBeenCalledWith(9);
   });
 
+  it("shows why the server refused and keeps the form open", async () => {
+    const generateInvoice = vi
+      .fn()
+      .mockRejectedValue(new Error("Nothing to invoice: no fixed fee."));
+    const onClose = vi.fn();
+    useGenerateInvoiceMock.mockReturnValue({ generateInvoice, loading: false });
+    renderForm({ onClose });
+
+    fireEvent.click(screen.getAllByRole("combobox")[0]);
+    fireEvent.click(screen.getByRole("option", { name: "Translate manual" }));
+    fireEvent.click(screen.getByRole("button", { name: "Generate invoice" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Nothing to invoice: no fixed fee.",
+    );
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it("shows Generating… and disables the button while loading", () => {
     useGenerateInvoiceMock.mockReturnValue({
       generateInvoice: vi.fn(),
