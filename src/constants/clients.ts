@@ -27,6 +27,7 @@ export const EMPTY_CLIENT_FORM = {
   taxRate: "",
   billingEndOfMonth: false,
   website: "",
+  linkedinUrl: "",
   industry: null as ClientIndustry | null,
 };
 

@@ -60,6 +60,7 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
     isCompany,
   } = useClientHeaderForm(client, onUpdate);
   const websiteHref = toSafeHref(client.website);
+  const linkedinHref = toSafeHref(client.linkedinUrl);
 
   if (editing) {
     return (
@@ -193,6 +194,26 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                 {errors.website && (
                   <span className="text-xs text-destructive">
                     {errors.website}
+                  </span>
+                )}
+              </div>
+              <div className="col-span-2 flex flex-col gap-1">
+                <Label htmlFor="cl-linkedin">
+                  <FormattedMessage
+                    id="clients.header.field.linkedin"
+                    defaultMessage="LinkedIn"
+                  />
+                </Label>
+                <Input
+                  id="cl-linkedin"
+                  value={form.linkedinUrl}
+                  onChange={set("linkedinUrl")}
+                  onBlur={touch("linkedinUrl")}
+                  placeholder="https://www.linkedin.com/company/…"
+                />
+                {errors.linkedinUrl && (
+                  <span className="text-xs text-destructive">
+                    {errors.linkedinUrl}
                   </span>
                 )}
               </div>
@@ -564,6 +585,19 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                 {client.website}
               </span>
             ))}
+          {linkedinHref && (
+            <a
+              href={linkedinHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:underline w-fit"
+            >
+              <FormattedMessage
+                id="clients.header.linkedinLink"
+                defaultMessage="LinkedIn"
+              />
+            </a>
+          )}
           {client.industry && (
             <Badge variant="outline" className="w-fit text-xs">
               {intl.formatMessage(INDUSTRY_LABEL_MESSAGES[client.industry])}

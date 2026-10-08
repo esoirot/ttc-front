@@ -17,7 +17,7 @@ const CLIENT_FIELDS = `
   city country state postalCode vatNumber legalForm color
   notes hubspotId
   clientType firstName lastName paymentDelayDays taxRate billingEndOfMonth
-  website industry status contactedAt tags { id name }
+  website linkedinUrl industry status contactedAt tags { id name }
   occupations { id name occupationType }
   createdAt updatedAt
   contacts { ${CONTACT_FIELDS} }

@@ -346,6 +346,38 @@ describe("NewClientForm", () => {
     });
   });
 
+  it("creates the client with its LinkedIn URL", async () => {
+    gqlMutate.mockResolvedValueOnce({ createClient: { id: 9, name: "Acme" } });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText("Company name *"), {
+      target: { value: "Acme" },
+    });
+    fireEvent.change(screen.getByLabelText("LinkedIn"), {
+      target: { value: "https://www.linkedin.com/company/acme" },
+    });
+    fireEvent.click(screen.getByText("Create client"));
+
+    await waitFor(() => expect(gqlMutate).toHaveBeenCalled());
+    expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+      input: { linkedinUrl: "https://www.linkedin.com/company/acme" },
+    });
+  });
+
+  it("refuses a LinkedIn URL that is not a web address", () => {
+    renderForm();
+    fireEvent.change(screen.getByLabelText("Company name *"), {
+      target: { value: "Acme" },
+    });
+    fireEvent.change(screen.getByLabelText("LinkedIn"), {
+      target: { value: "linkedin acme" },
+    });
+    fireEvent.click(screen.getByText("Create client"));
+
+    expect(screen.getByText("Enter a valid LinkedIn URL")).toBeInTheDocument();
+    expect(gqlMutate).not.toHaveBeenCalled();
+  });
+
   it("wires tag chip onChange to the tagIds state", () => {
     renderForm();
     expect(tagChipsProps.tagIds).toEqual([]);

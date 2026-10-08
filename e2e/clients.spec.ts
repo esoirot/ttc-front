@@ -357,3 +357,21 @@ test("the industry filter narrows the Clients list", async ({ page }) => {
   await expect(page.getByText("Law Firm")).toBeVisible();
   await expect(page.getByText("Game Studio")).not.toBeVisible();
 });
+
+test("adding a LinkedIn URL in the client edit form shows a LinkedIn link", async ({
+  page,
+}) => {
+  await mockClientsApi(page, [makeClient({ id: 5, name: "Acme Corp" })]);
+  await page.goto("/clients/5");
+
+  await page.getByText("Edit").click();
+  await page
+    .getByLabel("LinkedIn")
+    .fill("https://www.linkedin.com/company/acme");
+  await page.getByText("Save").click();
+
+  await expect(page.getByRole("link", { name: "LinkedIn" })).toHaveAttribute(
+    "href",
+    "https://www.linkedin.com/company/acme",
+  );
+});

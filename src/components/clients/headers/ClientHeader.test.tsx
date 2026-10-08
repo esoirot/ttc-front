@@ -344,6 +344,50 @@ describe("ClientHeader", () => {
     expect(link).toHaveAttribute("href", "https://acme.com");
   });
 
+  it("shows the LinkedIn URL as a LinkedIn link opening a new tab", () => {
+    renderHeader(
+      makeClient({ linkedinUrl: "https://www.linkedin.com/company/acme" }),
+    );
+    const link = screen.getByRole("link", { name: "LinkedIn" });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://www.linkedin.com/company/acme",
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("shows no LinkedIn link when there is none or it is not a web address", () => {
+    renderHeader(makeClient({ linkedinUrl: "javascript:alert(1)" }));
+    expect(screen.queryByRole("link", { name: "LinkedIn" })).toBeNull();
+  });
+
+  it("edits the LinkedIn URL under Website, checking it is a web address", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(makeClient({ id: 5 }), onUpdate);
+    fireEvent.click(screen.getByText("Edit"));
+    const input = screen.getByLabelText("LinkedIn");
+
+    fireEvent.change(input, { target: { value: "linkedin acme" } });
+    // No complaint while typing; Save shows why it refuses.
+    expect(screen.queryByText("Enter a valid URL.")).toBeNull();
+    fireEvent.click(screen.getByText("Save"));
+    expect(screen.getByText("Enter a valid URL.")).toBeInTheDocument();
+    expect(onUpdate).not.toHaveBeenCalled();
+
+    fireEvent.change(input, {
+      target: { value: "https://www.linkedin.com/company/acme" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 5,
+          linkedinUrl: "https://www.linkedin.com/company/acme",
+        }),
+      ),
+    );
+  });
+
   it("shows VAT number for a company client", () => {
     renderHeader(makeClient({ vatNumber: "FR00123456789" }));
     expect(screen.getByText("VAT FR00123456789")).toBeInTheDocument();

@@ -1178,4 +1178,7 @@ export const fr: Record<keyof typeof en, string> = {
   "clients.status.formerClient": "Ancien client",
   "clients.list.industryFilter": "Secteur",
   "clients.list.allIndustries": "Tous les secteurs",
+  "clients.newClientForm.linkedin": "LinkedIn",
+  "clients.header.field.linkedin": "LinkedIn",
+  "clients.header.linkedinLink": "LinkedIn",
 };

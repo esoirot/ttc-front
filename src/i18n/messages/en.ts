@@ -1148,4 +1148,7 @@ export const en = {
   "clients.status.formerClient": "Former client",
   "clients.list.industryFilter": "Industry",
   "clients.list.allIndustries": "All industries",
+  "clients.newClientForm.linkedin": "LinkedIn",
+  "clients.header.field.linkedin": "LinkedIn",
+  "clients.header.linkedinLink": "LinkedIn",
 };

@@ -89,6 +89,7 @@ export interface Client {
   taxRate: number | null;
   billingEndOfMonth: boolean;
   website: string | null;
+  linkedinUrl?: string | null;
   industry: ClientIndustry | null;
   status: ClientStatus;
   contactedAt: string | null;
@@ -129,6 +130,7 @@ export interface ClientHeaderProps {
     taxRate?: number | null;
     billingEndOfMonth?: boolean;
     website?: string | null;
+    linkedinUrl?: string | null;
     industry?: ClientIndustry | null;
     status?: ClientStatus;
     contactedAt?: string | null;
@@ -203,6 +205,7 @@ export type ClientHeaderFormState = {
   taxRate: string;
   billingEndOfMonth: boolean;
   website: string;
+  linkedinUrl: string;
   industry: ClientIndustry | null;
   status: ClientStatus;
   contactedAt: string;
@@ -264,6 +267,7 @@ export type ClientInput = {
   taxRate?: number | null;
   billingEndOfMonth?: boolean;
   website?: string | null;
+  linkedinUrl?: string | null;
   industry?: ClientIndustry | null;
   status?: ClientStatus;
   contactedAt?: string | null;
