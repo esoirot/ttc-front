@@ -1,7 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import {
   USERS_QUERY,
-  MEMBERS_QUERY,
   UPDATE_USER_MUTATION,
   DELETE_USER_MUTATION,
 } from "../../graphql/users.operations";
@@ -17,15 +16,6 @@ export function useUsers() {
     select: (d) => d.users,
   });
   return { users: data ?? [], loading: isLoading, error };
-}
-
-export function useMembers() {
-  const { data, isLoading } = useGqlQuery({
-    queryKey: ["members"],
-    query: MEMBERS_QUERY,
-    select: (d) => d.members,
-  });
-  return { members: data ?? [], loading: isLoading };
 }
 
 interface UpdateUserInput {

@@ -925,8 +925,6 @@ export const en = {
     "changed status from {from} to {to}",
   "projects.taskActivityFeed.dueDateSet": "set due date to {date}",
   "projects.taskActivityFeed.dueDateCleared": "cleared due date",
-  "projects.taskActivityFeed.assigneeChanged": "changed assignee",
-  "projects.taskActivityFeed.unassigned": "unassigned task",
   "projects.taskActivityFeed.checklistCreated": 'created checklist "{title}"',
   "projects.taskActivityFeed.checklistItemAdded":
     'added checklist item "{title}"',

@@ -6,9 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useProject, useUpdateProject } from "@/hooks/projects/useProjects";
 import { useTasks } from "@/hooks/tasks/useTasks";
 import { useProjectTimeTab } from "@/hooks/projects/useProjectTimeTab";
-import { useMembers } from "@/hooks/account/useUsers";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
-import type { Member } from "@/types/users.types";
 import { ProjectHeader } from "./headers/ProjectHeader";
 import { OverviewTab } from "./tabs/OverviewTab";
 import { ProjectTaskList } from "./lists/ProjectTaskList";
@@ -29,14 +27,9 @@ export function ProjectDetail() {
     loadMore: taskLoadMore,
   } = useTasks(projectId);
   const timeTab = useProjectTimeTab(projectId);
-  const { members } = useMembers();
   const { user: currentUser } = useCurrentUser();
 
   const [openTaskId, setOpenTaskId] = useState<number | null>(null);
-
-  const memberMap = Object.fromEntries(
-    members.map((m: Member) => [m.id, m.name ?? m.email]),
-  );
 
   if (projectLoading) {
     return (
@@ -107,11 +100,7 @@ export function ProjectDetail() {
         </TabsContent>
 
         <TabsContent value="tasks" className="mt-4">
-          <ProjectTaskList
-            projectId={projectId}
-            members={members}
-            onOpenModal={setOpenTaskId}
-          />
+          <ProjectTaskList projectId={projectId} onOpenModal={setOpenTaskId} />
         </TabsContent>
 
         <TabsContent value="kanban" className="mt-4">
@@ -121,7 +110,6 @@ export function ProjectDetail() {
             tasksLoading={tasksLoading}
             taskHasMore={taskHasMore}
             taskLoadMore={taskLoadMore}
-            memberMap={memberMap}
             onOpenModal={setOpenTaskId}
           />
         </TabsContent>

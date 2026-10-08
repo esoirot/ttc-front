@@ -52,7 +52,6 @@ export function TasksTab({
   tasksLoading,
   taskHasMore,
   taskLoadMore,
-  memberMap,
   onOpenModal,
 }: TasksTabProps) {
   const navigate = useNavigate();
@@ -190,7 +189,6 @@ export function TasksTab({
                             task={task}
                             onDelete={(tid) => void deleteTask(tid)}
                             onOpenModal={onOpenModal}
-                            memberMap={memberMap}
                           />
                         ))}
                       </SortableContext>

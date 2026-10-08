@@ -101,7 +101,7 @@ Project management with status filter tabs (All, Draft, Active, Completed). Inli
 
 Detail page shows project overview (languages, word count, unit price, deadline) above three tabs:
 
-- **Tasks** — flat task list with status filter, bulk select/delete/status-change, inline create, and drag-to-reorder. Clicking a row or the ✎ button opens an inline edit form (title, description, status, due date, assignee).
+- **Tasks** — flat task list with status filter, bulk select/delete/status-change, inline create, and drag-to-reorder. Clicking a row or the ✎ button opens an inline edit form (title, description, status, due date).
 - **Kanban** — Todo / In Progress / Done columns with drag-and-drop across columns via `@dnd-kit`. Dropping a card on a different column updates its status immediately (optimistic cache update). ✎ opens an inline edit form per card.
 - **Time** — time entries scoped to this project.
 

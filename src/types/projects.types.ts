@@ -1,11 +1,5 @@
 import type { ReactNode } from "react";
-import type {
-  Task,
-  TaskStatus,
-  TaskSortField,
-  TaskSortDirection,
-} from "./tasks.types";
-import type { Member } from "./users.types";
+import type { Task, TaskSortField, TaskSortDirection } from "./tasks.types";
 import type { Connection } from "./common.types";
 import type { OccupationRef } from "./occupations.types";
 
@@ -137,14 +131,6 @@ export interface ProjectHeaderProps {
   saving: boolean;
 }
 
-export interface TaskEditForm {
-  title: string;
-  description: string;
-  status: TaskStatus;
-  dueDate: string;
-  assigneeId: string;
-}
-
 export interface SortableRowProps {
   task: Task;
   selected: boolean;
@@ -155,14 +141,12 @@ export interface SortableRowProps {
 
 export interface ProjectTaskListProps {
   projectId: number;
-  members: Member[];
 }
 
 export interface SortableTaskProps {
   task: Task;
   onDelete: (id: number) => void;
   onOpenModal: (taskId: number) => void;
-  memberMap: Record<number, string>;
 }
 
 export interface ProjectActivityTabProps {
@@ -176,7 +160,6 @@ export interface TasksTabProps {
   tasksLoading: boolean;
   taskHasMore: boolean;
   taskLoadMore: () => void;
-  memberMap: Record<number, string>;
   onOpenModal: (taskId: number) => void;
 }
 

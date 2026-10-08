@@ -63,8 +63,8 @@ describe("TaskActivityFeed", () => {
       JSON.stringify({ from: "TODO", to: "DONE" }),
       "changed status from TODO to DONE",
     ],
-    ["ASSIGNED", JSON.stringify({ to: 5 }), "changed assignee"],
-    ["ASSIGNED", JSON.stringify({ to: null }), "unassigned task"],
+    // Assignees were removed: old history rows get the generic line.
+    ["ASSIGNED", JSON.stringify({ to: 5 }), "assigned"],
     [
       "CHECKLIST_CREATED",
       JSON.stringify({ title: "Review" }),

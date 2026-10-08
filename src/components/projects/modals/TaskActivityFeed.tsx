@@ -53,16 +53,6 @@ function describe(intl: IntlShape, activity: TaskActivity): string {
               id: "projects.taskActivityFeed.dueDateCleared",
               defaultMessage: "cleared due date",
             });
-      case "ASSIGNED":
-        return p?.to
-          ? intl.formatMessage({
-              id: "projects.taskActivityFeed.assigneeChanged",
-              defaultMessage: "changed assignee",
-            })
-          : intl.formatMessage({
-              id: "projects.taskActivityFeed.unassigned",
-              defaultMessage: "unassigned task",
-            });
       case "CHECKLIST_CREATED":
         return intl.formatMessage(
           {

@@ -52,7 +52,6 @@ export interface TaskActivity {
 export interface Task {
   id: number;
   projectId: number;
-  assigneeId: number | null;
   title: string;
   description: string | null;
   status: TaskStatus;
@@ -95,7 +94,6 @@ export type CreateTaskInput = {
   projectId: number;
   title: string;
   description?: string;
-  assigneeId?: number;
   status?: TaskStatus;
   dueDate?: string;
   wordCount?: number | null;
@@ -111,7 +109,6 @@ export type UpdateTaskInput = {
   startDate?: string | null;
   recurring?: string | null;
   reminderOffset?: string | null;
-  assigneeId?: number;
   projectId?: number;
   wordCount?: number | null;
 };

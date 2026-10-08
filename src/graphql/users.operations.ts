@@ -1,13 +1,8 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
-import type {
-  UserRole,
-  User,
-  Member,
-  AdminPermission,
-} from "@/types/users.types";
+import type { UserRole, User, AdminPermission } from "@/types/users.types";
 
-export type { UserRole, User, Member, AdminPermission };
+export type { UserRole, User, AdminPermission };
 
 const USER_FIELDS = gql`
   fragment UserFields on User {
@@ -29,19 +24,6 @@ export const USERS_QUERY: TypedDocumentNode<
   query Users {
     users {
       ...UserFields
-    }
-  }
-`;
-
-export const MEMBERS_QUERY: TypedDocumentNode<
-  { members: Member[] },
-  Record<string, never>
-> = gql`
-  query Members {
-    members {
-      id
-      name
-      email
     }
   }
 `;

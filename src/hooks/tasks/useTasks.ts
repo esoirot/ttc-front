@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import {
   TASKS_QUERY,
-  MY_TASKS_QUERY,
   TASK_QUERY,
   CREATE_TASK_MUTATION,
   UPDATE_TASK_MUTATION,
@@ -74,19 +73,6 @@ export function useTaskOptions(
     enabled: enabled && projectId > 0,
   });
   return { tasks: items, loading };
-}
-
-export function useMyTasks() {
-  const { items, total, hasMore, loadMore, loading, error } =
-    useGqlConnectionQuery({
-      queryKey: ["myTasks"],
-      query: MY_TASKS_QUERY,
-      variables: {},
-      select: (d) => d.myTasks,
-      limit: LIMIT,
-    });
-
-  return { tasks: items, total, hasMore, loadMore, loading, error };
 }
 
 export function useTask(id: number, options?: { enabled?: boolean }) {
@@ -183,22 +169,6 @@ export function useDeleteTask(projectId: number) {
   });
   return {
     deleteTask: (id: number) => mutateAsync({ id }),
-    loading: isPending,
-    error,
-  };
-}
-
-export function useUpdateMyTask() {
-  const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useGqlMutation({
-    mutation: UPDATE_TASK_MUTATION,
-    unwrap: (d) => d.updateTask,
-    onSuccess: (updated) => {
-      patchConnection(queryClient, ["myTasks"], updated, (t) => t.id);
-    },
-  });
-  return {
-    updateTask: (input: UpdateTaskInput) => mutateAsync({ input }),
     loading: isPending,
     error,
   };

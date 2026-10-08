@@ -25,7 +25,7 @@ const meta: Meta<typeof ProjectDetail> = {
     docs: {
       description: {
         component:
-          "No backend/MSW mocking is configured yet — useProject and its sibling hooks (useUpdateProject, useTasks, useProjectTimeTab, useMembers, useClients, useCurrentUser) fire for real and fail fast in Storybook's sandbox, so this settles into the 'Project not found.' state. That's an accepted current limitation, not a per-story bug.",
+          "No backend/MSW mocking is configured yet — useProject and its sibling hooks (useUpdateProject, useTasks, useProjectTimeTab, useClients, useCurrentUser) fire for real and fail fast in Storybook's sandbox, so this settles into the 'Project not found.' state. That's an accepted current limitation, not a per-story bug.",
       },
     },
   },
