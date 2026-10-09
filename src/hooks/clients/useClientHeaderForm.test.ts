@@ -239,6 +239,44 @@ describe("useClientHeaderForm", () => {
     );
   });
 
+  it.each([
+    ["2026-12-01", "2026-12-01"],
+    ["", null],
+  ])("seeds the recontact date and saves %j as %j", async (typed, sent) => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    const client = makeClient({
+      id: 10,
+      toRecontactAt: "2026-11-02T00:00:00.000Z",
+    });
+    const { result } = renderHook(() => useClientHeaderForm(client, onUpdate), {
+      wrapper: createQueryWrapper(),
+    });
+    expect(result.current.form.toRecontactAt).toBe("2026-11-02");
+
+    act(() => {
+      result.current.set("toRecontactAt")({
+        target: { value: typed },
+      } as React.ChangeEvent<HTMLInputElement>);
+    });
+    await act(async () => {
+      await result.current.handleSave({
+        preventDefault: () => {},
+      } as React.SubmitEvent<HTMLFormElement>);
+    });
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ toRecontactAt: sent }),
+    );
+  });
+
+  it("starts with an empty recontact date when the client has none", () => {
+    const { result } = renderHook(
+      () => useClientHeaderForm(makeClient(), vi.fn()),
+      { wrapper: createQueryWrapper() },
+    );
+    expect(result.current.form.toRecontactAt).toBe("");
+  });
+
   it("sends null for optional empty-string fields so they are erased", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     const client = makeClient({ id: 9, email: null, phone: null });

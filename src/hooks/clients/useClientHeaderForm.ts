@@ -37,6 +37,9 @@ function formFromClient(client: Client): ClientHeaderFormState {
     industry: client.industry ?? null,
     status: client.status,
     contactedAt: client.contactedAt ? client.contactedAt.slice(0, 10) : "",
+    toRecontactAt: client.toRecontactAt
+      ? client.toRecontactAt.slice(0, 10)
+      : "",
     tagIds: client.tags.map((t) => t.id),
     occupationIds: (client.occupations ?? []).map((a) => a.id),
   };
@@ -150,6 +153,7 @@ export function useClientHeaderForm(
       industry: form.industry || null,
       status: form.status,
       contactedAt: form.contactedAt || null,
+      toRecontactAt: form.toRecontactAt || null,
       tagIds: form.tagIds,
       occupationIds: form.occupationIds,
     });

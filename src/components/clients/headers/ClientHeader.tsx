@@ -399,6 +399,20 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                   onChange={set("contactedAt")}
                 />
               </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="cl-toRecontactAt">
+                  <FormattedMessage
+                    id="clients.header.field.toRecontactAt"
+                    defaultMessage="To recontact at"
+                  />
+                </Label>
+                <Input
+                  id="cl-toRecontactAt"
+                  type="date"
+                  value={form.toRecontactAt}
+                  onChange={set("toRecontactAt")}
+                />
+              </div>
             </div>
           </div>
 
@@ -516,6 +530,17 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
                 defaultMessage="Last contacted: {date}"
                 values={{
                   date: intl.formatDate(client.contactedAt),
+                }}
+              />
+            </p>
+          )}
+          {client.toRecontactAt && (
+            <p className="text-muted-foreground text-xs mt-1">
+              <FormattedMessage
+                id="clients.header.toRecontactOn"
+                defaultMessage="To recontact on: {date}"
+                values={{
+                  date: intl.formatDate(client.toRecontactAt),
                 }}
               />
             </p>

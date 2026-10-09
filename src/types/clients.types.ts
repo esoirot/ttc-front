@@ -36,7 +36,6 @@ export type ClientStatus =
   | "CONTACTED"
   | "FOLLOW_UP_1"
   | "FOLLOW_UP_2"
-  | "FOLLOW_UP_3"
   | "RECONTACT_LATER"
   | "TALKING"
   | "CLIENT"
@@ -101,6 +100,7 @@ export interface Client {
   industry: ClientIndustry | null;
   status: ClientStatus;
   contactedAt: string | null;
+  toRecontactAt?: string | null;
   tags: { id: number; name: string }[];
   occupations?: OccupationRef[];
   contacts: CompanyContact[];
@@ -142,6 +142,7 @@ export interface ClientHeaderProps {
     industry?: ClientIndustry | null;
     status?: ClientStatus;
     contactedAt?: string | null;
+    toRecontactAt?: string | null;
     tagIds?: number[];
     occupationIds?: number[];
   }) => Promise<unknown>;
@@ -219,6 +220,7 @@ export type ClientHeaderFormState = {
   industry: ClientIndustry | null;
   status: ClientStatus;
   contactedAt: string;
+  toRecontactAt: string;
   tagIds: number[];
   occupationIds: number[];
 };
@@ -281,6 +283,7 @@ export type ClientInput = {
   industry?: ClientIndustry | null;
   status?: ClientStatus;
   contactedAt?: string | null;
+  toRecontactAt?: string | null;
   tagIds?: number[];
   occupationIds?: number[];
 };

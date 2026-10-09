@@ -1,12 +1,17 @@
 import type { IntlShape } from "react-intl";
 import { FormattedMessage, useIntl } from "react-intl";
 import { formatTimestamp } from "@/lib/time";
-import { STATUS_LABEL_MESSAGES } from "@/constants/clients";
+import {
+  RETIRED_STATUS_LABEL_MESSAGES,
+  STATUS_LABEL_MESSAGES,
+} from "@/constants/clients";
 import type { ClientStatus, ClientStatusHistory } from "@/types/clients.types";
 
 function statusLabel(intl: IntlShape, raw: unknown): string {
   const s = String(raw ?? "");
-  const message = STATUS_LABEL_MESSAGES[s as ClientStatus];
+  const message =
+    STATUS_LABEL_MESSAGES[s as ClientStatus] ??
+    RETIRED_STATUS_LABEL_MESSAGES[s];
   return message ? intl.formatMessage(message) : s;
 }
 
