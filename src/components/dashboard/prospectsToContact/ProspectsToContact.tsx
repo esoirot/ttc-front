@@ -7,6 +7,7 @@ import type {
   DashboardProspect,
   ProspectsToContactProps as Props,
 } from "@/types/dashboard.types";
+import { UrgencyIcon } from "../UrgencyIcon";
 import { formatTimeSinceContact } from "./formatTimeSinceContact";
 
 export function ProspectsToContact({ prospects }: Props) {
@@ -26,7 +27,7 @@ export function ProspectsToContact({ prospects }: Props) {
           <p className="text-sm text-muted-foreground">
             <FormattedMessage
               id="dashboard.prospectsToContact.empty"
-              defaultMessage="No prospects need follow-up right now."
+              defaultMessage="No prospects to contact in the next 30 days."
             />
           </p>
         ) : (
@@ -35,9 +36,10 @@ export function ProspectsToContact({ prospects }: Props) {
               <Link
                 key={p.id}
                 to={`/clients/${p.id}`}
-                className="flex items-center justify-between py-1 cursor-pointer hover:opacity-80 transition-opacity"
+                className="flex items-center gap-3 py-1 cursor-pointer hover:opacity-80 transition-opacity"
               >
-                <div>
+                <UrgencyIcon due={p.dueAt} />
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{p.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {formatTimeSinceContact(p.contactedAt, intl)}

@@ -44,7 +44,7 @@ const BASE_DASHBOARD_STATS = {
   recentTimeEntries: [],
 };
 
-test("Prospects to contact widget lists due prospects and links to client detail", async ({
+test("Prospects to contact widget lists prospects with urgency icons and links to client detail", async ({
   page,
 }) => {
   await mockGraphQL(page, {
@@ -53,7 +53,13 @@ test("Prospects to contact widget lists due prospects and links to client detail
       dashboard: {
         ...BASE_DASHBOARD_STATS,
         prospectsToContact: [
-          { id: 7, name: "Acme Corp", status: "TO_CONTACT", contactedAt: null },
+          {
+            id: 7,
+            name: "Acme Corp",
+            status: "TO_CONTACT",
+            contactedAt: null,
+            dueAt: null,
+          },
           {
             id: 8,
             name: "Globex Inc",
@@ -61,6 +67,7 @@ test("Prospects to contact widget lists due prospects and links to client detail
             contactedAt: new Date(
               Date.now() - 14 * 24 * 60 * 60 * 1000,
             ).toISOString(),
+            dueAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
           },
         ],
       },
@@ -74,12 +81,22 @@ test("Prospects to contact widget lists due prospects and links to client detail
   await expect(page.getByText("Never contacted")).toBeVisible();
   await expect(page.getByText("Globex Inc")).toBeVisible();
   await expect(page.getByText("2 weeks ago")).toBeVisible();
+  await expect(
+    page
+      .getByRole("link", { name: /Acme Corp/ })
+      .getByRole("img", { name: "Late" }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("link", { name: /Globex Inc/ })
+      .getByRole("img", { name: "Due within a week" }),
+  ).toBeVisible();
 
   await page.getByRole("link", { name: /Acme Corp/ }).click();
   await expect(page).toHaveURL("/clients/7");
 });
 
-test("Prospects to contact widget shows empty state when nothing is due", async ({
+test("Prospects to contact widget shows empty state when nothing is coming due", async ({
   page,
 }) => {
   await mockGraphQL(page, {
@@ -92,7 +109,7 @@ test("Prospects to contact widget shows empty state when nothing is due", async 
   await page.goto("/");
 
   await expect(
-    page.getByText("No prospects need follow-up right now."),
+    page.getByText("No prospects to contact in the next 30 days."),
   ).toBeVisible();
 });
 

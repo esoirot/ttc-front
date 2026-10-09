@@ -795,7 +795,7 @@ export const fr: Record<keyof typeof en, string> = {
 
   "dashboard.prospectsToContact.title": "Prospects à contacter",
   "dashboard.prospectsToContact.empty":
-    "Aucun prospect ne nécessite de suivi pour l'instant.",
+    "Aucun prospect à contacter dans les 30 prochains jours.",
   "dashboard.prospectsToContact.neverContacted": "Jamais contacté",
   "dashboard.prospectsToContact.contactedThisWeek": "Contacté cette semaine",
   "dashboard.prospectsToContact.weeksAgo":
@@ -1184,9 +1184,9 @@ export const fr: Record<keyof typeof en, string> = {
   "dashboard.upcomingDeadlines.kind.project": "Projet",
   "dashboard.upcomingDeadlines.kind.task": "Tâche",
   "dashboard.upcomingDeadlines.kind.checklistItem": "Élément de checklist",
-  "dashboard.upcomingDeadlines.late": "En retard",
-  "dashboard.upcomingDeadlines.thisWeek": "À rendre cette semaine",
-  "dashboard.upcomingDeadlines.later": "À venir",
+  "dashboard.urgency.late": "En retard",
+  "dashboard.urgency.thisWeek": "Cette semaine",
+  "dashboard.urgency.later": "À venir",
   "clients.industry.translationAgency": "Agence de traduction",
   "clients.list.companyName": "Nom de l'entreprise",
   "clients.list.companyNamePlaceholder": "Nom de l'entreprise…",

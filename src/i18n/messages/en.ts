@@ -780,7 +780,7 @@ export const en = {
 
   "dashboard.prospectsToContact.title": "Prospects to contact",
   "dashboard.prospectsToContact.empty":
-    "No prospects need follow-up right now.",
+    "No prospects to contact in the next 30 days.",
   "dashboard.prospectsToContact.neverContacted": "Never contacted",
   "dashboard.prospectsToContact.contactedThisWeek": "Contacted this week",
   "dashboard.prospectsToContact.weeksAgo":
@@ -1155,9 +1155,9 @@ export const en = {
   "dashboard.upcomingDeadlines.kind.project": "Project",
   "dashboard.upcomingDeadlines.kind.task": "Task",
   "dashboard.upcomingDeadlines.kind.checklistItem": "Checklist item",
-  "dashboard.upcomingDeadlines.late": "Late",
-  "dashboard.upcomingDeadlines.thisWeek": "Due within a week",
-  "dashboard.upcomingDeadlines.later": "Upcoming",
+  "dashboard.urgency.late": "Late",
+  "dashboard.urgency.thisWeek": "Due within a week",
+  "dashboard.urgency.later": "Upcoming",
   "clients.industry.translationAgency": "Translation agency",
   "clients.list.companyName": "Company name",
   "clients.list.companyNamePlaceholder": "Company name…",
