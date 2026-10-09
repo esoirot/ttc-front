@@ -6,11 +6,12 @@ import type {
   ClientType,
   ClientStatus,
   ClientIndustry,
+  ClientSort,
   ClientInput,
   CompanyContact,
 } from "@/types/clients.types";
 
-const CONTACT_FIELDS = `id clientId firstName lastName email phone jobTitle color createdAt updatedAt`;
+const CONTACT_FIELDS = `id clientId firstName lastName email phone jobTitle linkedinUrl color createdAt updatedAt`;
 
 const CLIENT_FIELDS = `
   id userId name legalName email phone company address addressLine2
@@ -41,11 +42,15 @@ export const CLIENTS_QUERY: TypedDocumentNode<
     excludeStatus?: ClientStatus;
     status?: ClientStatus;
     industry?: ClientIndustry;
+    companyName?: string;
+    firstName?: string;
+    lastName?: string;
+    sort?: ClientSort;
     pagination?: { limit?: number; cursor?: number };
   }
 > = gql`
-  query Clients($search: String, $clientType: ClientType, $excludeStatus: ClientStatus, $status: ClientStatus, $industry: ClientIndustry, $pagination: PaginationInput) {
-    clients(search: $search, clientType: $clientType, excludeStatus: $excludeStatus, status: $status, industry: $industry, pagination: $pagination) {
+  query Clients($search: String, $clientType: ClientType, $excludeStatus: ClientStatus, $status: ClientStatus, $industry: ClientIndustry, $companyName: String, $firstName: String, $lastName: String, $sort: ClientSortInput, $pagination: PaginationInput) {
+    clients(search: $search, clientType: $clientType, excludeStatus: $excludeStatus, status: $status, industry: $industry, companyName: $companyName, firstName: $firstName, lastName: $lastName, sort: $sort, pagination: $pagination) {
       items { ${CLIENT_FIELDS} }
       nextCursor
       total

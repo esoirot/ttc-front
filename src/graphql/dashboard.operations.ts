@@ -25,10 +25,14 @@ export const DASHBOARD_QUERY: TypedDocumentNode<
       monthToDateRevenue
       yearToDateWords
       upcomingDeadlines {
+        kind
         id
         title
         deadline
-        status
+        projectId
+        projectTitle
+        taskId
+        taskTitle
       }
       recentTimeEntries {
         id

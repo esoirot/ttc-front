@@ -43,6 +43,12 @@ type Story = StoryObj<typeof ContactRow>;
 
 export const Default: Story = { args: { contact: makeContact() } };
 
+export const WithLinkedIn: Story = {
+  args: {
+    contact: makeContact({ linkedinUrl: "https://www.linkedin.com/in/jane" }),
+  },
+};
+
 export const NoNameEmailOnly: Story = {
   args: {
     contact: makeContact({

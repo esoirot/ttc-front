@@ -3,6 +3,7 @@ import type {
   ClientType,
   ClientIndustry,
   ClientStatus,
+  ClientSortField,
 } from "@/types/clients.types";
 
 export const EMPTY_CLIENT_FORM = {
@@ -47,6 +48,7 @@ export const EMPTY_CONTACT = {
   email: "",
   phone: "",
   jobTitle: "",
+  linkedinUrl: "",
   color: "",
 };
 
@@ -56,6 +58,7 @@ export const EMPTY_EDIT = {
   email: "",
   phone: "",
   jobTitle: "",
+  linkedinUrl: "",
   color: "",
 };
 
@@ -160,5 +163,25 @@ export const INDUSTRY_LABEL_MESSAGES: Record<
   },
   TOURISM: { id: "clients.industry.tourism", defaultMessage: "Tourism" },
   LUXE: { id: "clients.industry.luxe", defaultMessage: "Luxury Goods" },
+  TRANSLATION_AGENCY: {
+    id: "clients.industry.translationAgency",
+    defaultMessage: "Translation agency",
+  },
   OTHER: { id: "clients.industry.other", defaultMessage: "Other" },
 };
+
+export const CLIENT_SORT_FIELD_LABELS: Record<
+  ClientSortField,
+  MessageDescriptor
+> = {
+  NAME: { id: "clients.sort.name", defaultMessage: "Company name" },
+  LAST_NAME: { id: "clients.sort.lastName", defaultMessage: "Last name" },
+  FIRST_NAME: { id: "clients.sort.firstName", defaultMessage: "First name" },
+};
+
+/** Sort fields per tab of the Clients page; the first is the default. */
+export const COMPANY_SORT_FIELDS: readonly ClientSortField[] = ["NAME"];
+export const PERSON_SORT_FIELDS: readonly ClientSortField[] = [
+  "LAST_NAME",
+  "FIRST_NAME",
+];

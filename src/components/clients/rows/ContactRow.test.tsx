@@ -90,6 +90,74 @@ describe("ContactRow", () => {
     expect(onEdit).not.toHaveBeenCalled();
   });
 
+  it("shows the contact's LinkedIn as a link opening a new tab", () => {
+    render(
+      <ContactRow
+        contact={makeContact({
+          linkedinUrl: "https://www.linkedin.com/in/jane",
+        })}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+      />,
+      { wrapper },
+    );
+    const link = screen.getByRole("link", { name: "LinkedIn" });
+    expect(link).toHaveAttribute("href", "https://www.linkedin.com/in/jane");
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("complains about a bad LinkedIn URL only once the field is left, and forgets it on reopen", () => {
+    render(
+      <ContactRow
+        contact={makeContact()}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+      />,
+      { wrapper },
+    );
+    fireEvent.click(screen.getByText("✎"));
+    const input = screen.getByLabelText("LinkedIn");
+
+    fireEvent.change(input, { target: { value: "not a link" } });
+    expect(screen.queryByText("Enter a valid URL.")).toBeNull();
+    fireEvent.blur(input);
+    expect(screen.getByText("Enter a valid URL.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Cancel"));
+    fireEvent.click(screen.getByText("✎"));
+    expect(screen.queryByText("Enter a valid URL.")).toBeNull();
+  });
+
+  it("edits the LinkedIn URL: checks it, saves it, clears it", async () => {
+    const onEdit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ContactRow
+        contact={makeContact({
+          linkedinUrl: "https://www.linkedin.com/in/jane",
+        })}
+        onDelete={vi.fn()}
+        onEdit={onEdit}
+      />,
+      { wrapper },
+    );
+    fireEvent.click(screen.getByText("✎"));
+    const input = screen.getByLabelText("LinkedIn");
+    expect(input).toHaveValue("https://www.linkedin.com/in/jane");
+
+    fireEvent.change(input, { target: { value: "not a link" } });
+    fireEvent.submit(screen.getByText("Save").closest("form")!);
+    expect(await screen.findByText("Enter a valid URL.")).toBeInTheDocument();
+    expect(onEdit).not.toHaveBeenCalled();
+
+    fireEvent.change(input, { target: { value: "" } });
+    fireEvent.submit(screen.getByText("Save").closest("form")!);
+    await waitFor(() =>
+      expect(onEdit).toHaveBeenCalledWith(
+        expect.objectContaining({ linkedinUrl: null }),
+      ),
+    );
+  });
+
   it("edit form pre-fills jobTitle and color from the contact", () => {
     render(
       <ContactRow
@@ -162,6 +230,7 @@ describe("ContactRow", () => {
         email: "jane@acme.com",
         phone: "+33100000000",
         jobTitle: null,
+        linkedinUrl: null,
         color: null,
       }),
     );

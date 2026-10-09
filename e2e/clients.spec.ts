@@ -8,6 +8,7 @@ type MockContact = {
   lastName: string | null;
   email: string | null;
   phone: string | null;
+  linkedinUrl?: string | null;
 };
 
 type MockClient = {
@@ -110,13 +111,34 @@ async function mockClientsApi(page: Page, initial: MockClient[]) {
       const clientType = variables?.["clientType"] as string | undefined;
       const search = variables?.["search"] as string | undefined;
       const industry = variables?.["industry"] as string | undefined;
+      const has = (value: string | null, part: unknown) =>
+        !part ||
+        (value ?? "").toLowerCase().includes(String(part).toLowerCase());
       const items = clients.filter(
         (c) =>
+          has(c.name, variables?.["companyName"]) &&
+          has(c.firstName, variables?.["firstName"]) &&
+          has(c.lastName, variables?.["lastName"]) &&
           (!status || c.status === status) &&
           (!clientType || c.clientType === clientType) &&
           (!industry || c.industry === industry) &&
           (!search || c.name.toLowerCase().includes(search.toLowerCase())),
       );
+      const sort = variables?.["sort"] as
+        | { field: "NAME" | "LAST_NAME" | "FIRST_NAME"; direction: string }
+        | undefined;
+      if (sort) {
+        const key = {
+          NAME: "name",
+          LAST_NAME: "lastName",
+          FIRST_NAME: "firstName",
+        }[sort.field] as "name" | "lastName" | "firstName";
+        items.sort(
+          (a, b) =>
+            (sort.direction === "DESC" ? -1 : 1) *
+            (a[key] ?? "").localeCompare(b[key] ?? ""),
+        );
+      }
       return respond({
         clients: { items, nextCursor: null, total: items.length },
       });
@@ -176,6 +198,7 @@ async function mockClientsApi(page: Page, initial: MockClient[]) {
         lastName: input.lastName ?? null,
         email: input.email ?? null,
         phone: input.phone ?? null,
+        linkedinUrl: input.linkedinUrl ?? null,
       };
       clients = clients.map((c) =>
         c.id === input.clientId
@@ -213,7 +236,7 @@ async function mockClientsApi(page: Page, initial: MockClient[]) {
   });
 }
 
-test("search filters the Clients list by name", async ({ page }) => {
+test("Company name filters the Clients list", async ({ page }) => {
   await mockClientsApi(page, [
     makeClient({ id: 1, name: "Acme Corp" }),
     makeClient({ id: 2, name: "Globex Inc" }),
@@ -223,7 +246,7 @@ test("search filters the Clients list by name", async ({ page }) => {
   await expect(page.getByText("Acme Corp")).toBeVisible();
   await expect(page.getByText("Globex Inc")).toBeVisible();
 
-  await page.getByLabel("Search clients").fill("acme");
+  await page.getByLabel("Company name").fill("acme");
 
   await expect(page.getByText("Globex Inc")).not.toBeVisible();
   await expect(page.getByText("Acme Corp")).toBeVisible();
@@ -373,5 +396,66 @@ test("adding a LinkedIn URL in the client edit form shows a LinkedIn link", asyn
   await expect(page.getByRole("link", { name: "LinkedIn" })).toHaveAttribute(
     "href",
     "https://www.linkedin.com/company/acme",
+  );
+});
+
+test("the Individuals tab filters people by last and first name", async ({
+  page,
+}) => {
+  const person = (id: number, firstName: string, lastName: string) =>
+    makeClient({
+      id,
+      name: `${firstName} ${lastName}`,
+      clientType: "INDIVIDUAL",
+      firstName,
+      lastName,
+    });
+  await mockClientsApi(page, [
+    person(1, "Marie", "Curie"),
+    person(2, "Pierre", "Curie"),
+    person(3, "Marie", "Dupont"),
+  ]);
+  await page.goto("/clients");
+
+  await page.getByRole("tab", { name: "Individuals" }).click();
+  await page.getByLabel("Last name").fill("curie");
+  await page.getByLabel("First name").fill("marie");
+
+  await expect(page.getByText("Marie Curie")).toBeVisible();
+  await expect(page.getByText("Pierre Curie")).not.toBeVisible();
+  await expect(page.getByText("Marie Dupont")).not.toBeVisible();
+});
+
+test("the Clients list sorts by company name, A to Z then Z to A", async ({
+  page,
+}) => {
+  await mockClientsApi(page, [
+    makeClient({ id: 1, name: "Beta" }),
+    makeClient({ id: 2, name: "Alpha" }),
+    makeClient({ id: 3, name: "Gamma" }),
+  ]);
+  await page.goto("/clients");
+  const names = page.getByText(/^(Alpha|Beta|Gamma)$/);
+
+  await expect(names).toHaveText(["Alpha", "Beta", "Gamma"]);
+  await page.getByLabel("Order").click();
+  await page.getByRole("option", { name: "Descending" }).click();
+  await expect(names).toHaveText(["Gamma", "Beta", "Alpha"]);
+});
+
+test("a contact added with a LinkedIn URL shows a LinkedIn link", async ({
+  page,
+}) => {
+  await mockClientsApi(page, [makeClient({ id: 6, name: "Acme Corp" })]);
+  await page.goto("/clients/6");
+
+  await page.getByText("+ Add contact").click();
+  await page.getByLabel("First name").fill("Jane");
+  await page.getByLabel("LinkedIn").fill("https://www.linkedin.com/in/jane");
+  await page.getByRole("button", { name: "Add contact" }).click();
+
+  await expect(page.getByRole("link", { name: "LinkedIn" })).toHaveAttribute(
+    "href",
+    "https://www.linkedin.com/in/jane",
   );
 });

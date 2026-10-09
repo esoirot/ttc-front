@@ -781,8 +781,6 @@ export const fr: Record<keyof typeof en, string> = {
   "dashboard.accountDashboard.welcomeBack": "Bon retour, {name}.",
 
   "dashboard.upcomingDeadlines.title": "Échéances à venir",
-  "dashboard.upcomingDeadlines.empty":
-    "Aucune échéance dans les 7 prochains jours.",
   "dashboard.upcomingDeadlines.due": "Échéance {date}",
 
   "dashboard.recentTimeEntries.title": "Entrées de temps récentes",
@@ -879,8 +877,6 @@ export const fr: Record<keyof typeof en, string> = {
 
   "clients.list.title": "Clients",
   "clients.list.newClient": "Nouveau client",
-  "clients.list.searchLabel": "Rechercher des clients",
-  "clients.list.searchPlaceholder": "Rechercher des clients…",
   "clients.list.all": "Tous",
   "clients.list.companies": "Entreprises",
   "clients.list.individuals": "Particuliers",
@@ -1181,4 +1177,29 @@ export const fr: Record<keyof typeof en, string> = {
   "clients.newClientForm.linkedin": "LinkedIn",
   "clients.header.field.linkedin": "LinkedIn",
   "clients.header.linkedinLink": "LinkedIn",
+  "dashboard.upcomingDeadlines.emptyAll":
+    "Rien en retard ni à rendre dans les 30 prochains jours.",
+  "dashboard.upcomingDeadlines.kind.project": "Projet",
+  "dashboard.upcomingDeadlines.kind.task": "Tâche",
+  "dashboard.upcomingDeadlines.kind.checklistItem": "Élément de checklist",
+  "dashboard.upcomingDeadlines.late": "En retard",
+  "dashboard.upcomingDeadlines.thisWeek": "À rendre cette semaine",
+  "dashboard.upcomingDeadlines.later": "À venir",
+  "clients.industry.translationAgency": "Agence de traduction",
+  "clients.list.companyName": "Nom de l'entreprise",
+  "clients.list.companyNamePlaceholder": "Nom de l'entreprise…",
+  "clients.list.lastName": "Nom",
+  "clients.list.lastNamePlaceholder": "Nom…",
+  "clients.list.firstName": "Prénom",
+  "clients.list.firstNamePlaceholder": "Prénom…",
+  "sort.field": "Trier",
+  "sort.direction": "Ordre",
+  "sort.ascending": "Croissant",
+  "sort.descending": "Décroissant",
+  "clients.sort.name": "Nom de l'entreprise",
+  "clients.sort.lastName": "Nom",
+  "clients.sort.firstName": "Prénom",
+  "clients.contactRow.linkedin": "LinkedIn",
+  "clients.contactRow.linkedinError": "Saisissez une URL valide.",
+  "clients.contactRow.linkedinLink": "LinkedIn",
 };

@@ -116,3 +116,53 @@ test("Active Projects KPI card navigates to the projects list", async ({
   await page.getByRole("link", { name: /Active Projects/ }).click();
   await expect(page).toHaveURL("/projects");
 });
+
+test("Upcoming deadlines flags late, this-week and later items and opens a task", async ({
+  page,
+}) => {
+  const inDays = (n: number) =>
+    new Date(Date.now() + n * 24 * 60 * 60 * 1000).toISOString();
+  const row = (
+    kind: string,
+    id: number,
+    title: string,
+    days: number,
+    taskId: number | null,
+  ) => ({
+    kind,
+    id,
+    title,
+    deadline: inDays(days),
+    projectId: 7,
+    projectTitle: "Book",
+    taskId,
+    taskTitle: taskId ? "Chapter 1" : null,
+  });
+  await mockGraphQL(page, {
+    Me: { me: MOCK_USER },
+    Dashboard: {
+      dashboard: {
+        ...BASE_DASHBOARD_STATS,
+        prospectsToContact: [],
+        upcomingDeadlines: [
+          row("TASK", 3, "Chapter 1", -2, 3),
+          row("CHECKLIST_ITEM", 9, "Proofread", 3, 3),
+          row("PROJECT", 7, "Book", 20, null),
+        ],
+      },
+    },
+  });
+  await mockGoogleCalendarStatus(page, { connected: false, email: null });
+  await page.goto("/");
+
+  const link = (name: string) =>
+    page.getByRole("link", { name: new RegExp(`^${name}`) });
+  await expect(link("Late Chapter 1")).toBeVisible();
+  await expect(link("Due within a week Proofread")).toBeVisible();
+  await expect(link("Upcoming Book")).toBeVisible();
+
+  await expect(link("Late Chapter 1")).toHaveAttribute(
+    "href",
+    "/projects/7?task=3",
+  );
+});

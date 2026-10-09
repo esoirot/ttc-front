@@ -169,6 +169,72 @@ describe("ContactsTab", () => {
     );
   });
 
+  it("complains about a bad LinkedIn URL only once the field is left, and not after a successful add", async () => {
+    const onAdd = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ContactsTab
+        contacts={[]}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+        onAdd={onAdd}
+      />,
+      { wrapper },
+    );
+    fireEvent.click(screen.getByText("+ Add contact"));
+    const input = screen.getByLabelText("LinkedIn");
+
+    fireEvent.change(input, { target: { value: "not a link" } });
+    expect(screen.queryByText("Enter a valid URL.")).toBeNull();
+    fireEvent.blur(input);
+    expect(screen.getByText("Enter a valid URL.")).toBeInTheDocument();
+
+    fireEvent.change(input, {
+      target: { value: "https://www.linkedin.com/in/j" },
+    });
+    fireEvent.click(screen.getByText("Add contact"));
+    await waitFor(() => expect(onAdd).toHaveBeenCalled());
+    fireEvent.click(screen.getByText("+ Add contact"));
+    fireEvent.change(screen.getByLabelText("LinkedIn"), {
+      target: { value: "still not a link" },
+    });
+    expect(screen.queryByText("Enter a valid URL.")).toBeNull();
+  });
+
+  it("adds a contact with a LinkedIn URL, refusing one that isn't a web address", async () => {
+    const onAdd = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ContactsTab
+        contacts={[]}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+        onAdd={onAdd}
+      />,
+      { wrapper },
+    );
+
+    fireEvent.click(screen.getByText("+ Add contact"));
+    fireEvent.change(screen.getByLabelText("First name"), {
+      target: { value: "Jane" },
+    });
+    const linkedin = screen.getByLabelText("LinkedIn");
+    fireEvent.change(linkedin, { target: { value: "jane on linkedin" } });
+    fireEvent.click(screen.getByText("Add contact"));
+    expect(await screen.findByText("Enter a valid URL.")).toBeInTheDocument();
+    expect(onAdd).not.toHaveBeenCalled();
+
+    fireEvent.change(linkedin, {
+      target: { value: "https://www.linkedin.com/in/jane" },
+    });
+    fireEvent.click(screen.getByText("Add contact"));
+    await waitFor(() =>
+      expect(onAdd).toHaveBeenCalledWith(
+        expect.objectContaining({
+          linkedinUrl: "https://www.linkedin.com/in/jane",
+        }),
+      ),
+    );
+  });
+
   it("calls onDelete when a contact row's delete is confirmed", () => {
     const onDelete = vi.fn();
     render(

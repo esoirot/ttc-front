@@ -8,7 +8,7 @@ import type { ContactsTabProps } from "@/types/clients.types";
 import { ContactRow } from "../rows/ContactRow";
 import { ColorField } from "../form-fields/ColorField";
 import { EMPTY_CONTACT } from "@/constants/clients";
-import { isValidOptionalEmail } from "@/lib/schemas";
+import { isValidHttpUrl, isValidOptionalEmail } from "@/lib/schemas";
 
 export function ContactsTab({
   contacts,
@@ -22,6 +22,7 @@ export function ContactsTab({
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_CONTACT);
   const [emailTouched, setEmailTouched] = useState(false);
+  const [linkedinTouched, setLinkedinTouched] = useState(false);
 
   function setField(key: keyof typeof EMPTY_CONTACT, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -35,13 +36,31 @@ export function ContactsTab({
         })
       : "";
 
+  const linkedinError =
+    linkedinTouched && !isValidHttpUrl(form.linkedinUrl)
+      ? intl.formatMessage({
+          id: "clients.contactRow.linkedinError",
+          defaultMessage: "Enter a valid URL.",
+        })
+      : "";
+
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    const { firstName, lastName, email, phone, jobTitle, color } = form;
-    if (!firstName && !lastName && !email && !phone && !jobTitle && !color)
+    const { firstName, lastName, email, phone, jobTitle, linkedinUrl, color } =
+      form;
+    if (
+      !firstName &&
+      !lastName &&
+      !email &&
+      !phone &&
+      !jobTitle &&
+      !linkedinUrl &&
+      !color
+    )
       return;
-    if (!isValidOptionalEmail(email)) {
+    if (!isValidOptionalEmail(email) || !isValidHttpUrl(linkedinUrl)) {
       setEmailTouched(true);
+      setLinkedinTouched(true);
       return;
     }
     await onAdd({
@@ -50,10 +69,12 @@ export function ContactsTab({
       email: email || undefined,
       phone: phone || undefined,
       jobTitle: jobTitle || undefined,
+      linkedinUrl: linkedinUrl || undefined,
       color: color || undefined,
     });
     setForm(EMPTY_CONTACT);
     setEmailTouched(false);
+    setLinkedinTouched(false);
     setShowForm(false);
   }
 
@@ -176,6 +197,26 @@ export function ContactsTab({
                       defaultMessage: "Project Manager",
                     })}
                   />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="cli">
+                    <FormattedMessage
+                      id="clients.contactRow.linkedin"
+                      defaultMessage="LinkedIn"
+                    />
+                  </Label>
+                  <Input
+                    id="cli"
+                    value={form.linkedinUrl}
+                    onChange={(e) => setField("linkedinUrl", e.target.value)}
+                    onBlur={() => setLinkedinTouched(true)}
+                    placeholder="https://www.linkedin.com/in/…"
+                  />
+                  {linkedinError && (
+                    <span className="text-xs text-destructive">
+                      {linkedinError}
+                    </span>
+                  )}
                 </div>
                 <ColorField
                   id="ccol"

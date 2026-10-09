@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { FormattedMessage } from "react-intl";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,7 +29,20 @@ export function ProjectDetail() {
   const timeTab = useProjectTimeTab(projectId);
   const { user: currentUser } = useCurrentUser();
 
-  const [openTaskId, setOpenTaskId] = useState<number | null>(null);
+  // ?task=<id> (e.g. from the dashboard deadlines) opens that task.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [openTaskId, setOpenTaskId] = useState<number | null>(
+    () => Number(searchParams.get("task")) || null,
+  );
+
+  function closeTask() {
+    setOpenTaskId(null);
+    if (searchParams.has("task")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("task");
+      setSearchParams(next, { replace: true });
+    }
+  }
 
   if (projectLoading) {
     return (
@@ -149,7 +162,7 @@ export function ProjectDetail() {
           taskId={openTaskId}
           projectId={projectId}
           open={openTaskId !== null}
-          onClose={() => setOpenTaskId(null)}
+          onClose={closeTask}
           currentUserId={currentUser?.id ? Number(currentUser.id) : undefined}
         />
       )}

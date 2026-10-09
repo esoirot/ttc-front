@@ -22,7 +22,14 @@ export type ClientIndustry =
   | "REAL_ESTATE"
   | "TOURISM"
   | "LUXE"
+  | "TRANSLATION_AGENCY"
   | "OTHER";
+
+export type ClientSortField = "NAME" | "LAST_NAME" | "FIRST_NAME";
+export type ClientSort = {
+  field: ClientSortField;
+  direction: "ASC" | "DESC";
+};
 
 export type ClientStatus =
   | "TO_CONTACT"
@@ -43,6 +50,7 @@ export interface CompanyContact {
   email: string | null;
   phone: string | null;
   jobTitle: string | null;
+  linkedinUrl?: string | null;
   color: string | null;
   createdAt: string;
   updatedAt: string;
@@ -156,6 +164,7 @@ export type EditInput = {
   email?: string | null;
   phone?: string | null;
   jobTitle?: string | null;
+  linkedinUrl?: string | null;
   color?: string | null;
 };
 
@@ -165,6 +174,7 @@ export type ContactInput = {
   email?: string | null;
   phone?: string | null;
   jobTitle?: string | null;
+  linkedinUrl?: string | null;
   color?: string | null;
 };
 

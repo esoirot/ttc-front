@@ -19,6 +19,7 @@ import type {
   ClientType,
   ClientStatus,
   ClientIndustry,
+  ClientSort,
   ContactInput,
   ClientInput,
 } from "@/types/clients.types";
@@ -31,25 +32,37 @@ const LIMIT = 20;
 
 export function useClients({
   search,
+  companyName,
+  firstName,
+  lastName,
   clientType,
   excludeStatus,
   status,
   industry,
+  sort,
   limit = LIMIT,
 }: {
   search?: string;
+  companyName?: string;
+  firstName?: string;
+  lastName?: string;
   clientType?: ClientType;
   excludeStatus?: ClientStatus;
   status?: ClientStatus;
   industry?: ClientIndustry;
+  sort?: ClientSort;
   limit?: number;
 } = {}) {
   const baseVars = {
     ...(search ? { search } : {}),
+    ...(companyName ? { companyName } : {}),
+    ...(firstName ? { firstName } : {}),
+    ...(lastName ? { lastName } : {}),
     ...(clientType ? { clientType } : {}),
     ...(excludeStatus ? { excludeStatus } : {}),
     ...(status ? { status } : {}),
     ...(industry ? { industry } : {}),
+    ...(sort ? { sort } : {}),
   };
 
   const { items, total, hasMore, loadMore, loading, error } =
@@ -58,10 +71,14 @@ export function useClients({
         "clients",
         {
           search: search ?? null,
+          companyName: companyName ?? null,
+          firstName: firstName ?? null,
+          lastName: lastName ?? null,
           clientType: clientType ?? null,
           excludeStatus: excludeStatus ?? null,
           status: status ?? null,
           industry: industry ?? null,
+          sort: sort ?? null,
         },
       ],
       query: CLIENTS_QUERY,
