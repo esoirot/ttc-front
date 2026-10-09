@@ -1,24 +1,12 @@
 import { Link } from "react-router-dom";
 import { FormattedMessage, useIntl, type MessageDescriptor } from "react-intl";
-import { Calendar, Clock, TriangleAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UrgencyIcon } from "../UrgencyIcon";
 import type {
   DashboardDeadline,
   DeadlineKind,
   UpcomingDeadlinesProps as Props,
 } from "@/types/dashboard.types";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-const startOfDay = (d: Date) =>
-  new Date(d.getFullYear(), d.getMonth(), d.getDate());
-
-/** Whole calendar days from today to the due date (negative when late). */
-function daysUntil(iso: string, now = new Date()): number {
-  return Math.round(
-    (startOfDay(new Date(iso)).getTime() - startOfDay(now).getTime()) / DAY_MS,
-  );
-}
 
 const localDate = (iso: string) => {
   const d = new Date(iso);
@@ -37,45 +25,6 @@ const KIND_LABELS: Record<DeadlineKind, MessageDescriptor> = {
     defaultMessage: "Checklist item",
   },
 };
-
-function UrgencyIcon({ deadline }: { deadline: string }) {
-  const intl = useIntl();
-  const days = daysUntil(deadline);
-  const [Icon, className, label] =
-    days < 0
-      ? ([
-          TriangleAlert,
-          "text-destructive",
-          intl.formatMessage({
-            id: "dashboard.upcomingDeadlines.late",
-            defaultMessage: "Late",
-          }),
-        ] as const)
-      : days <= 7
-        ? ([
-            Clock,
-            "text-amber-500",
-            intl.formatMessage({
-              id: "dashboard.upcomingDeadlines.thisWeek",
-              defaultMessage: "Due within a week",
-            }),
-          ] as const)
-        : ([
-            Calendar,
-            "text-emerald-600",
-            intl.formatMessage({
-              id: "dashboard.upcomingDeadlines.later",
-              defaultMessage: "Upcoming",
-            }),
-          ] as const);
-  return (
-    <Icon
-      role="img"
-      aria-label={label}
-      className={`size-4 shrink-0 ${className}`}
-    />
-  );
-}
 
 function href(d: DashboardDeadline): string {
   return d.taskId === null
@@ -111,7 +60,7 @@ export function UpcomingDeadlines({ deadlines }: Props) {
                 to={href(d)}
                 className="flex items-center gap-3 py-1 hover:opacity-80 transition-opacity"
               >
-                <UrgencyIcon deadline={d.deadline} />
+                <UrgencyIcon due={d.deadline} />
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{d.title}</p>
                   <p className="text-xs text-muted-foreground truncate">

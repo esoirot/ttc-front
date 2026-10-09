@@ -26,6 +26,8 @@ export interface DashboardProspect {
   name: string;
   status: ClientStatus;
   contactedAt: string | null;
+  /** Null when the prospect needs contacting now. */
+  dueAt: string | null;
 }
 
 export interface DashboardData {

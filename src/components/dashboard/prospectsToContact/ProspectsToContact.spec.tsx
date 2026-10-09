@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { createIntl } from "react-intl";
 import { createIntlWrapper } from "@/test/intlWrapper";
@@ -15,6 +15,25 @@ const intlFr = createIntl({ locale: "fr", messages: messages.fr });
 const daysAgoIso = (days: number) =>
   new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
+function makeProspect(
+  overrides: Partial<DashboardProspect> = {},
+): DashboardProspect {
+  return {
+    id: 1,
+    name: "Acme Corp",
+    status: "TO_CONTACT",
+    contactedAt: null,
+    dueAt: null,
+    ...overrides,
+  };
+}
+
+const iconOf = (name: string, label: string) =>
+  within(screen.getByRole("link", { name: new RegExp(name) })).getByRole(
+    "img",
+    { name: label },
+  );
+
 function renderWidget(prospects: DashboardProspect[]) {
   return render(
     <IntlWrapper>
@@ -29,19 +48,20 @@ describe("ProspectsToContact", () => {
   it("shows empty state when there are no prospects", () => {
     renderWidget([]);
     expect(
-      screen.getByText("No prospects need follow-up right now."),
+      screen.getByText("No prospects to contact in the next 30 days."),
     ).toBeInTheDocument();
   });
 
   it("renders a row per prospect with name, status badge, and time since contact", () => {
     const prospects: DashboardProspect[] = [
-      { id: 1, name: "Acme Corp", status: "TO_CONTACT", contactedAt: null },
-      {
+      makeProspect(),
+      makeProspect({
         id: 2,
         name: "Globex Inc",
         status: "FOLLOW_UP_1",
         contactedAt: daysAgoIso(14),
-      },
+        dueAt: daysAgoIso(0),
+      }),
     ];
     renderWidget(prospects);
 
@@ -55,13 +75,49 @@ describe("ProspectsToContact", () => {
   });
 
   it("links each row to the client detail page", () => {
-    renderWidget([
-      { id: 42, name: "Acme Corp", status: "TO_CONTACT", contactedAt: null },
-    ]);
+    renderWidget([makeProspect({ id: 42 })]);
     expect(screen.getByRole("link", { name: /Acme Corp/ })).toHaveAttribute(
       "href",
       "/clients/42",
     );
+  });
+
+  it("marks a prospect to contact now with a red warning triangle", () => {
+    renderWidget([makeProspect({ name: "Lead", dueAt: null })]);
+    expect(iconOf("Lead", "Late")).toHaveClass("text-destructive");
+  });
+
+  it("marks an overdue follow-up with a red warning triangle", () => {
+    renderWidget([
+      makeProspect({
+        name: "Overdue",
+        status: "FOLLOW_UP_1",
+        dueAt: daysAgoIso(3),
+      }),
+    ]);
+    expect(iconOf("Overdue", "Late")).toHaveClass("text-destructive");
+  });
+
+  it("marks a follow-up due within a week with a yellow clock", () => {
+    renderWidget([
+      makeProspect({
+        name: "Soon",
+        status: "CONTACTED",
+        dueAt: daysAgoIso(-4),
+      }),
+    ]);
+    expect(iconOf("Soon", "Due within a week")).toHaveClass("text-amber-500");
+  });
+
+  it("marks a follow-up due later with a green calendar", () => {
+    renderWidget([
+      makeProspect({
+        name: "Later",
+        status: "FOLLOW_UP_2",
+        dueAt: daysAgoIso(-20),
+      }),
+    ]);
+    expect(iconOf("Later", "Upcoming")).toHaveClass("text-emerald-600");
   });
 
   it("renders French copy when locale is fr", () => {
@@ -74,7 +130,9 @@ describe("ProspectsToContact", () => {
       </FrWrapper>,
     );
     expect(
-      screen.getByText("Aucun prospect ne nécessite de suivi pour l'instant."),
+      screen.getByText(
+        "Aucun prospect à contacter dans les 30 prochains jours.",
+      ),
     ).toBeInTheDocument();
   });
 });

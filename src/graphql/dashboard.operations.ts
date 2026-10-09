@@ -45,6 +45,7 @@ export const DASHBOARD_QUERY: TypedDocumentNode<
         name
         status
         contactedAt
+        dueAt
       }
     }
   }
