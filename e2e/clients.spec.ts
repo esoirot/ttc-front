@@ -17,6 +17,7 @@ type MockClient = {
   status: string;
   clientType: string;
   contactedAt: string | null;
+  toRecontactAt?: string | null;
   email?: string | null;
   contacts?: MockContact[];
   occupations?: { id: number; name: string; occupationType: string }[];
@@ -397,6 +398,19 @@ test("adding a LinkedIn URL in the client edit form shows a LinkedIn link", asyn
     "href",
     "https://www.linkedin.com/company/acme",
   );
+});
+
+test("setting a recontact date in the client edit form shows it in the header", async ({
+  page,
+}) => {
+  await mockClientsApi(page, [makeClient({ id: 5, name: "Acme Corp" })]);
+  await page.goto("/clients/5");
+
+  await page.getByText("Edit").click();
+  await page.getByLabel("To recontact at").fill("2026-11-02");
+  await page.getByText("Save").click();
+
+  await expect(page.getByText(/To recontact on:/)).toBeVisible();
 });
 
 test("the Individuals tab filters people by last and first name", async ({

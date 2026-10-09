@@ -185,6 +185,22 @@ describe("ClientHeader", () => {
     expect(screen.queryByText(/Last contacted:/)).not.toBeInTheDocument();
   });
 
+  it("shows the recontact date in view mode when set", () => {
+    renderHeader(makeClient({ toRecontactAt: "2026-11-02T12:00:00.000Z" }));
+    expect(screen.getByText("To recontact on: 11/2/2026")).toBeInTheDocument();
+  });
+
+  it("hides the recontact line when there is no recontact date", () => {
+    renderHeader(makeClient({ toRecontactAt: null }));
+    expect(screen.queryByText(/To recontact on:/)).not.toBeInTheDocument();
+  });
+
+  it("edit form pre-fills the recontact date input", () => {
+    renderHeader(makeClient({ toRecontactAt: "2026-11-02T00:00:00.000Z" }));
+    fireEvent.click(screen.getByText("Edit"));
+    expect(screen.getByLabelText("To recontact at")).toHaveValue("2026-11-02");
+  });
+
   it("edit form pre-fills the status select and contacted-at date input", () => {
     renderHeader(
       makeClient({
@@ -236,6 +252,23 @@ describe("ClientHeader", () => {
           status: "FOLLOW_UP_2",
           contactedAt: "2026-06-10",
         }),
+      ),
+    );
+  });
+
+  it("saves the recontact date typed in the edit form", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    renderHeader(makeClient({ id: 5 }), onUpdate);
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.change(screen.getByLabelText("To recontact at"), {
+      target: { value: "2026-11-02" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 5, toRecontactAt: "2026-11-02" }),
       ),
     );
   });

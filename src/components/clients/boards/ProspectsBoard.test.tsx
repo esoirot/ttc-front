@@ -121,7 +121,7 @@ describe("ProspectsBoard", () => {
     expect(screen.getByText(/1st Contact/)).toBeInTheDocument();
     expect(screen.getByText(/Follow up 1/)).toBeInTheDocument();
     expect(screen.getByText(/Follow up 2/)).toBeInTheDocument();
-    expect(screen.getByText(/Follow up 3/)).toBeInTheDocument();
+    expect(screen.queryByText(/Follow up 3/)).not.toBeInTheDocument();
     expect(screen.getByText(/Recontact Later/)).toBeInTheDocument();
     expect(screen.getByText(/Talking/)).toBeInTheDocument();
   });
@@ -216,7 +216,7 @@ describe("ProspectsBoard", () => {
     gqlFetch.mockResolvedValueOnce({ clients: makeConnection([]) });
     renderBoard();
     const empties = await screen.findAllByText("Empty");
-    expect(empties).toHaveLength(8);
+    expect(empties).toHaveLength(7);
   });
 
   it("shows Load more button which triggers another fetch when clicked", async () => {

@@ -97,6 +97,25 @@ describe("ClientStatusHistoryFeed", () => {
     expect(screen.getByText(expected, { exact: false })).toBeInTheDocument();
   });
 
+  it("still names the retired Follow up 3 status in old entries", () => {
+    render(
+      <ClientStatusHistoryFeed
+        history={[
+          makeEntry({
+            payload: JSON.stringify({
+              from: "FOLLOW_UP_3",
+              to: "RECONTACT_LATER",
+            }),
+          }),
+        ]}
+      />,
+      { wrapper: IntlWrapper },
+    );
+    expect(
+      screen.getByText("changed status from Follow up 3 to Recontact Later"),
+    ).toBeInTheDocument();
+  });
+
   it("falls back to the raw type on unparseable JSON payload", () => {
     render(
       <ClientStatusHistoryFeed

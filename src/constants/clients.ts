@@ -73,10 +73,6 @@ export const STATUS_LABEL_MESSAGES: Record<ClientStatus, MessageDescriptor> = {
     id: "clients.status.followUp2",
     defaultMessage: "Follow up 2",
   },
-  FOLLOW_UP_3: {
-    id: "clients.status.followUp3",
-    defaultMessage: "Follow up 3",
-  },
   RECONTACT_LATER: {
     id: "clients.status.recontactLater",
     defaultMessage: "Recontact Later",
@@ -89,6 +85,15 @@ export const STATUS_LABEL_MESSAGES: Record<ClientStatus, MessageDescriptor> = {
   },
 };
 
+// Statuses no client has any more, still named in old history entries.
+export const RETIRED_STATUS_LABEL_MESSAGES: Record<string, MessageDescriptor> =
+  {
+    FOLLOW_UP_3: {
+      id: "clients.status.followUp3",
+      defaultMessage: "Follow up 3",
+    },
+  };
+
 export const STATUS_ORDER: ClientStatus[] = [
   // A past client to contact again: where a re-contact starts on the board.
   "FORMER_CLIENT",
@@ -96,7 +101,6 @@ export const STATUS_ORDER: ClientStatus[] = [
   "CONTACTED",
   "FOLLOW_UP_1",
   "FOLLOW_UP_2",
-  "FOLLOW_UP_3",
   "RECONTACT_LATER",
   "TALKING",
   "CLIENT",
@@ -112,7 +116,6 @@ export const ACTIVE_CONTACT_STATUSES = new Set<ClientStatus>([
   "CONTACTED",
   "FOLLOW_UP_1",
   "FOLLOW_UP_2",
-  "FOLLOW_UP_3",
   "TALKING",
 ]);
 

@@ -166,12 +166,12 @@ test("shows all board columns", async ({ page }) => {
     "1st Contact (0)",
     "Follow up 1 (0)",
     "Follow up 2 (0)",
-    "Follow up 3 (0)",
     "Recontact Later (0)",
     "Talking (0)",
   ]) {
     await expect(page.getByText(label)).toBeVisible();
   }
+  await expect(page.getByText(/Follow up 3/)).toHaveCount(0);
 });
 
 test("buckets prospects into the correct column by status", async ({

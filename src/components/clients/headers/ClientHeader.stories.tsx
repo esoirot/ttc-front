@@ -36,6 +36,7 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     industry: "TECHNOLOGY",
     status: "CLIENT",
     contactedAt: "2026-05-01T00:00:00.000Z",
+    toRecontactAt: "2026-11-02T00:00:00.000Z",
     tags: [{ id: 1, name: "VIP" }],
     occupations: [{ id: 1, name: "Translation", occupationType: "TRANSLATOR" }],
     contacts: [],
