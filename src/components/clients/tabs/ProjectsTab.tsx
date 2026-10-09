@@ -62,7 +62,7 @@ export function ProjectsTab({
     0,
   );
   const totalWords = projects.reduce(
-    (sum, p) => sum + (p.totalWordsProcessed ?? 0),
+    (sum, p) => sum + (p.totalTaskWords ?? 0),
     0,
   );
 
@@ -170,7 +170,7 @@ export function ProjectsTab({
                     id: "time.entryRow.wordsCount",
                     defaultMessage: "{count} words",
                   },
-                  { count: intl.formatNumber(p.totalWordsProcessed ?? 0) },
+                  { count: intl.formatNumber(p.totalTaskWords ?? 0) },
                 )}
               </span>
               <span className="font-mono text-sm tabular-nums text-muted-foreground">

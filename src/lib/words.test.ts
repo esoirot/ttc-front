@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseWordCount, taskWordTotal, projectWordTotal } from "./words";
+import { parseWordCount, taskWordTotal } from "./words";
 
 describe("parseWordCount", () => {
   it.each([
@@ -21,49 +21,32 @@ describe("parseWordCount", () => {
 });
 
 describe("taskWordTotal", () => {
-  it("adds the task's own words and its checklist items' words", () => {
+  it("adds the task's own words and its counted checklist items' words", () => {
     expect(
       taskWordTotal({
-        wordCount: 500,
-        subtasks: [{ wordCount: 200 }, { wordCount: null }],
+        wordCount: 50,
+        subtasks: [
+          { wordCount: 100, countInTotal: true },
+          { wordCount: 200, countInTotal: true },
+          { wordCount: null, countInTotal: true },
+        ],
       }),
-    ).toBe(700);
+    ).toBe(350);
   });
 
-  it("also adds the words logged on the task's time entries", () => {
+  it("leaves out items not counted", () => {
     expect(
       taskWordTotal({
-        wordCount: 500,
-        subtasks: [{ wordCount: 200 }],
-        totalWordsProcessed: 300,
+        wordCount: 50,
+        subtasks: [
+          { wordCount: 100, countInTotal: true },
+          { wordCount: 200, countInTotal: false },
+        ],
       }),
-    ).toBe(1000);
+    ).toBe(150);
   });
 
   it("is 0 when nothing is set", () => {
     expect(taskWordTotal({ wordCount: null, subtasks: [] })).toBe(0);
-    expect(
-      taskWordTotal({
-        wordCount: null,
-        subtasks: [],
-        totalWordsProcessed: null,
-      }),
-    ).toBe(0);
-  });
-});
-
-describe("projectWordTotal", () => {
-  it("adds time-entry words to task and checklist words", () => {
-    expect(
-      projectWordTotal({ totalWordsProcessed: 400, totalTaskWords: 700 }),
-    ).toBe(1100);
-  });
-
-  it("counts a missing side as 0", () => {
-    expect(projectWordTotal({ totalWordsProcessed: 400 })).toBe(400);
-    expect(projectWordTotal({ totalTaskWords: 700 })).toBe(700);
-    expect(
-      projectWordTotal({ totalWordsProcessed: null, totalTaskWords: null }),
-    ).toBe(0);
   });
 });

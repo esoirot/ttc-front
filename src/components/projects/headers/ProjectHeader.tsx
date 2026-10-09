@@ -22,7 +22,6 @@ import type { ClientRate } from "@/types/client-rates.types";
 import { useRates } from "@/hooks/rates/useRates";
 import { useClientRates } from "@/hooks/clients/useClientRates";
 import { useClient } from "@/hooks/clients/useClients";
-import { projectWordTotal } from "@/lib/words";
 import { useRateSheets } from "@/hooks/rate-sheets/useRateSheets";
 import {
   defaultClientRateSheetId,
@@ -108,7 +107,7 @@ export function ProjectHeader({
   const clientIdNum = project.clientId;
   const { clientRates } = useClientRates(clientIdNum);
   const { client } = useClient(clientIdNum ?? 0);
-  const wordTotal = projectWordTotal(project);
+  const wordTotal = project.totalTaskWords ?? 0;
   const { rateSheets, loading: rateSheetsLoading } = useRateSheets();
   const resolvedRateSheet = resolveProjectRateSheet(rateSheets, project);
 

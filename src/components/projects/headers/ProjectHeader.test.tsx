@@ -170,40 +170,18 @@ describe("ProjectHeader", () => {
     expect(screen.getByText("0 / 2,500 words")).toBeInTheDocument();
   });
 
-  it("shows the wordsProcessed sum over the wordCount target", () => {
-    renderHeader(makeProject({ wordCount: 2500, totalWordsProcessed: 1200 }));
+  it("shows the task words over the wordCount target", () => {
+    renderHeader(makeProject({ wordCount: 2500, totalTaskWords: 1200 }));
     expect(screen.getByText("1,200 / 2,500 words")).toBeInTheDocument();
   });
 
-  it("counts task and checklist words in the total against the target", () => {
-    renderHeader(
-      makeProject({
-        wordCount: 5000,
-        totalWordsProcessed: 400,
-        totalTaskWords: 700,
-      }),
-    );
-    expect(screen.getByText("1,100 / 5,000 words")).toBeInTheDocument();
-  });
-
-  it("shows the total with task words even when no time entry has words", () => {
-    renderHeader(
-      makeProject({
-        wordCount: null,
-        totalWordsProcessed: 0,
-        totalTaskWords: 700,
-      }),
-    );
-    expect(screen.getByText("700 words logged")).toBeInTheDocument();
-  });
-
-  it("shows just the logged sum when no wordCount target is set", () => {
-    renderHeader(makeProject({ wordCount: null, totalWordsProcessed: 400 }));
+  it("shows just the task words when no wordCount target is set", () => {
+    renderHeader(makeProject({ wordCount: null, totalTaskWords: 400 }));
     expect(screen.getByText("400 words logged")).toBeInTheDocument();
   });
 
-  it("shows no word count badge when neither wordCount nor totalWordsProcessed is set", () => {
-    renderHeader(makeProject({ wordCount: null, totalWordsProcessed: null }));
+  it("shows no word count badge when neither wordCount nor task words are set", () => {
+    renderHeader(makeProject({ wordCount: null, totalTaskWords: null }));
     expect(screen.queryByText(/words/)).not.toBeInTheDocument();
   });
 

@@ -216,11 +216,7 @@ export const fr: Record<keyof typeof en, string> = {
   "time.entryRow.linkOccupationTitle": "Lier un métier",
   "time.entryRow.toggleBillable": "Basculer facturable",
   "time.entryRow.invoiced": "Facturé",
-  "time.entryRow.wordsPlaceholder": "Mots",
-  "time.entryRow.wordsProcessedLabel": "Mots traités",
-  "time.entryRow.editWordsTitle": "Modifier les mots traités",
   "time.entryRow.wordsCount": "{count} mots",
-  "time.entryRow.addWords": "+ mots",
   "time.entryRow.startTimeLabel": "heure de début",
   "time.entryRow.endTimeLabel": "heure de fin",
   "time.entryRow.running": "en cours",
@@ -403,6 +399,8 @@ export const fr: Record<keyof typeof en, string> = {
   "occupations.detail.tags": "Étiquettes",
   "occupations.detail.occupation": "Métier",
 
+  "projects.taskChecklist.countInTotal": "Compter dans le total des mots",
+  "projects.taskChecklist.notCounted": "non compté",
   "projects.taskChecklist.editItem": "Modifier l'élément",
   "projects.taskChecklist.newItem": "Nouvel élément",
   "projects.taskChecklist.itemTitlePlaceholder": "Titre de l'élément…",
@@ -630,7 +628,6 @@ export const fr: Record<keyof typeof en, string> = {
   "projects.overviewCharts.noTimeInMonth": "Aucun temps enregistré en {month}.",
   "projects.overviewCharts.noTimeAllTime": "Aucun temps enregistré.",
   "projects.overviewCharts.wordsPerProject": "Mots par projet",
-  "projects.overviewCharts.noWordsInMonth": "Aucun mot enregistré en {month}.",
   "projects.overviewCharts.noWordsAllTime": "Aucun mot enregistré.",
 
   "occupations.infoForm.invalidEmail":

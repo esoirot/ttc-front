@@ -296,7 +296,7 @@ describe("useTimeEntriesTab", () => {
     expect(result.current.selectedEntryIds.size).toBe(0);
   });
 
-  it("handleBulkAdd prices translation entries by wordsProcessed times the resolved per-word rate", async () => {
+  it("handleBulkAdd prices translation entries by their linked checklist item's words times the resolved per-word rate", async () => {
     const sheet = makeSheet({ pricePerWord: 0.12 });
     const project = makeProject({
       id: 1,
@@ -309,7 +309,14 @@ describe("useTimeEntriesTab", () => {
       makeEntry({
         id: 1,
         description: "Translate",
-        wordsProcessed: 1000,
+        subtaskId: 3,
+        subtask: {
+          id: 3,
+          title: "Section A",
+          checklistTitle: null,
+          wordCount: 1000,
+          countInTotal: true,
+        },
         occupation: {
           id: 1,
           name: "Translation",
@@ -347,13 +354,12 @@ describe("useTimeEntriesTab", () => {
     });
   });
 
-  it("handleBulkAdd still adds a translation entry missing wordsProcessed, at quantity 0 rather than skipping it", async () => {
+  it("handleBulkAdd still adds a translation entry with no linked checklist item, at quantity 0 rather than skipping it", async () => {
     const project = makeProject({ id: 1 });
     const entries = [
       makeEntry({
         id: 1,
         description: "Translate",
-        wordsProcessed: null,
         occupation: {
           id: 1,
           name: "Translation",

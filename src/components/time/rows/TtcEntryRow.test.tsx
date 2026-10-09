@@ -734,7 +734,13 @@ describe("TtcEntryRow", () => {
               taskId: 9,
               task: { id: 9, title: "Draft chapter" },
               subtaskId: 22,
-              subtask: { id: 22, title: "Format", checklistTitle: "Wrap-up" },
+              subtask: {
+                id: 22,
+                title: "Format",
+                checklistTitle: "Wrap-up",
+                wordCount: null,
+                countInTotal: true,
+              },
             }),
           })}
         />,
@@ -758,7 +764,13 @@ describe("TtcEntryRow", () => {
               taskId: 9,
               task: { id: 9, title: "Draft chapter" },
               subtaskId: 21,
-              subtask: { id: 21, title: "Proofread", checklistTitle: null },
+              subtask: {
+                id: 21,
+                title: "Proofread",
+                checklistTitle: null,
+                wordCount: null,
+                countInTotal: true,
+              },
             }),
           })}
         />,
@@ -831,7 +843,13 @@ describe("TtcEntryRow", () => {
               taskId: 9,
               task: { id: 9, title: "Draft chapter" },
               subtaskId: 21,
-              subtask: { id: 21, title: "Proofread", checklistTitle: null },
+              subtask: {
+                id: 21,
+                title: "Proofread",
+                checklistTitle: null,
+                wordCount: null,
+                countInTotal: true,
+              },
             }),
             onUpdate,
           })}
@@ -918,101 +936,25 @@ describe("TtcEntryRow", () => {
     expect(onUpdate).toHaveBeenCalledWith({ id: 1, occupationId: 1 });
   });
 
-  it("does not show a words-processed control when the entry has no occupation or a non-Translator one", () => {
-    const { rerender } = render(wrap(<TtcEntryRow {...baseProps()} />));
+  it("never shows time entry words, even on a Translator entry that has some stored", () => {
+    render(
+      wrap(
+        <TtcEntryRow
+          {...baseProps({
+            entry: makeEntry({
+              occupation: {
+                id: 1,
+                name: "Translation",
+                occupationType: "TRANSLATOR",
+              },
+            }),
+          })}
+        />,
+      ),
+    );
+    expect(screen.queryByText("1,200 words")).not.toBeInTheDocument();
+    expect(screen.queryByText("+ words")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Words processed")).not.toBeInTheDocument();
-
-    rerender(
-      wrap(
-        <TtcEntryRow
-          {...baseProps({
-            entry: makeEntry({
-              occupation: {
-                id: 2,
-                name: "Proofreading",
-                occupationType: "CORRECTOR",
-              },
-            }),
-          })}
-        />,
-      ),
-    );
-    expect(screen.queryByLabelText("Words processed")).not.toBeInTheDocument();
-  });
-
-  it("shows a words-processed control when the entry's occupation is Translator", () => {
-    render(
-      wrap(
-        <TtcEntryRow
-          {...baseProps({
-            entry: makeEntry({
-              occupation: {
-                id: 1,
-                name: "Translation",
-                occupationType: "TRANSLATOR",
-              },
-              wordsProcessed: 1200,
-            }),
-          })}
-        />,
-      ),
-    );
-    expect(screen.getByText("1,200 words")).toBeInTheDocument();
-  });
-
-  it("commits a words-processed edit on Enter", () => {
-    const onUpdate = vi.fn();
-    render(
-      wrap(
-        <TtcEntryRow
-          {...baseProps({
-            entry: makeEntry({
-              occupation: {
-                id: 1,
-                name: "Translation",
-                occupationType: "TRANSLATOR",
-              },
-            }),
-            onUpdate,
-          })}
-        />,
-      ),
-    );
-
-    fireEvent.click(screen.getByTitle("Edit words processed"));
-    const input = screen.getByLabelText("Words processed");
-    fireEvent.change(input, { target: { value: "500" } });
-    fireEvent.keyDown(input, { key: "Enter" });
-
-    expect(onUpdate).toHaveBeenCalledWith({ id: 1, wordsProcessed: 500 });
-  });
-
-  it("clearing the words-processed field commits null", () => {
-    const onUpdate = vi.fn();
-    render(
-      wrap(
-        <TtcEntryRow
-          {...baseProps({
-            entry: makeEntry({
-              occupation: {
-                id: 1,
-                name: "Translation",
-                occupationType: "TRANSLATOR",
-              },
-              wordsProcessed: 500,
-            }),
-            onUpdate,
-          })}
-        />,
-      ),
-    );
-
-    fireEvent.click(screen.getByTitle("Edit words processed"));
-    const input = screen.getByLabelText("Words processed");
-    fireEvent.change(input, { target: { value: "" } });
-    fireEvent.blur(input);
-
-    expect(onUpdate).toHaveBeenCalledWith({ id: 1, wordsProcessed: null });
   });
 
   it("renders French copy when locale is fr", () => {

@@ -11,7 +11,13 @@ export interface TimeEntry {
   taskId?: number | null;
   task?: { id: number; title: string } | null;
   subtaskId?: number | null;
-  subtask?: { id: number; title: string; checklistTitle: string | null } | null;
+  subtask?: {
+    id: number;
+    title: string;
+    checklistTitle: string | null;
+    wordCount: number | null;
+    countInTotal: boolean;
+  } | null;
   description: string | null;
   startTime: string;
   endTime: string | null;
@@ -20,7 +26,6 @@ export interface TimeEntry {
   clockifyEntryId: string | null;
   occupationId?: number | null;
   occupation?: OccupationRef | null;
-  wordsProcessed?: number | null;
   invoicingStatus?: InvoicingStatus;
   tags: { id: number; name: string }[];
   createdAt: string;
@@ -40,7 +45,6 @@ export type TtcUpdateInput = {
   startTime?: string;
   endTime?: string;
   occupationId?: number | null;
-  wordsProcessed?: number | null;
 };
 
 export interface ActiveTimerBannerProps {
@@ -106,5 +110,4 @@ export type UpdateTimeEntryInput = {
   billable?: boolean;
   tagIds?: number[];
   occupationId?: number | null;
-  wordsProcessed?: number | null;
 };

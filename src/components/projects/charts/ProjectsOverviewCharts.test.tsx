@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { IntlProvider } from "react-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -48,7 +48,7 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     deadline: null,
     startDate: null,
     totalTimeSeconds: null,
-    totalWordsProcessed: null,
+    totalTaskWords: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -72,7 +72,6 @@ function makeTimeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
     clockifyEntryId: null,
     occupationId: null,
     occupation: null,
-    wordsProcessed: null,
     tags: [],
     createdAt: "2026-06-10T00:00:00.000Z",
     updatedAt: "2026-06-10T00:00:00.000Z",
@@ -129,38 +128,38 @@ describe("ProjectsOverviewCharts", () => {
     gqlFetch.mockReset();
   });
 
-  it("always shows all 4 chart cards, with empty-state messages when there is no data", async () => {
+  it("shows 2 time charts and 1 all-time words chart, with empty-state messages when there is no data", async () => {
     setupGqlFetch();
     render(<ProjectsOverviewCharts month={september} />, {
       wrapper: makeWrapper(),
     });
 
     expect(await screen.findAllByText("Time per project")).toHaveLength(2);
-    expect(screen.getAllByText("Words per project")).toHaveLength(2);
+    expect(screen.getAllByText("Words per project")).toHaveLength(1);
     expect(
       screen.getByText("No time logged in September 2026."),
     ).toBeInTheDocument();
     expect(screen.getByText("No time logged yet.")).toBeInTheDocument();
     expect(
-      screen.getByText("No words logged in September 2026."),
-    ).toBeInTheDocument();
+      screen.queryByText("No words logged in September 2026."),
+    ).not.toBeInTheDocument();
     expect(screen.getByText("No words logged yet.")).toBeInTheDocument();
   });
 
-  it("shows the all-time Time and Words per project charts from project totals", async () => {
+  it("shows the all-time Time and Words per project charts from project totals (task words)", async () => {
     setupGqlFetch({
       projects: [
         makeProject({
           id: 1,
           title: "Website copy",
           totalTimeSeconds: 3600,
-          totalWordsProcessed: 500,
+          totalTaskWords: 500,
         }),
         makeProject({
           id: 2,
           title: "App localization",
           totalTimeSeconds: 0,
-          totalWordsProcessed: 0,
+          totalTaskWords: 0,
         }),
       ],
     });
@@ -171,16 +170,18 @@ describe("ProjectsOverviewCharts", () => {
     const timeCharts = await screen.findAllByText("Time per project");
     expect(timeCharts).toHaveLength(2);
     expect(screen.getAllByText("All time").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Words per project")).toHaveLength(2);
+    expect(screen.getAllByText("Words per project")).toHaveLength(1);
     expect(
       screen.getByText("No time logged in September 2026."),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("No words logged in September 2026."),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByText("No words logged yet."),
+      ).not.toBeInTheDocument(),
+    );
   });
 
-  it("shows the monthly Time and Words per project charts grouped by projectId, labeled from the projects list", async () => {
+  it("shows the monthly Time per project chart grouped by projectId, never time entry words", async () => {
     setupGqlFetch({
       projects: [makeProject({ id: 1, title: "Website copy" })],
       timeEntries: [
@@ -188,13 +189,11 @@ describe("ProjectsOverviewCharts", () => {
           id: 1,
           projectId: 1,
           durationSeconds: 1000,
-          wordsProcessed: 200,
         }),
         makeTimeEntry({
           id: 2,
           projectId: null,
           durationSeconds: 500,
-          wordsProcessed: null,
         }),
       ],
     });
@@ -203,8 +202,8 @@ describe("ProjectsOverviewCharts", () => {
     });
 
     expect(await screen.findAllByText("Time per project")).toHaveLength(2);
-    expect(screen.getAllByText("September 2026")).toHaveLength(2);
-    expect(screen.getAllByText("Words per project")).toHaveLength(2);
+    expect(screen.getAllByText("September 2026")).toHaveLength(1);
+    expect(screen.getAllByText("Words per project")).toHaveLength(1);
     expect(screen.getByText("No time logged yet.")).toBeInTheDocument();
     expect(screen.getByText("No words logged yet.")).toBeInTheDocument();
   });
@@ -216,7 +215,7 @@ describe("ProjectsOverviewCharts", () => {
     });
 
     expect(await screen.findAllByText("Temps par projet")).toHaveLength(2);
-    expect(screen.getAllByText("Mots par projet")).toHaveLength(2);
+    expect(screen.getAllByText("Mots par projet")).toHaveLength(1);
     expect(screen.getByText("Aucun temps enregistré.")).toBeInTheDocument();
   });
 

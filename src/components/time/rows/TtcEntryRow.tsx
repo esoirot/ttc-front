@@ -64,8 +64,6 @@ export function TtcEntryRow({
   const [editingTask, setEditingTask] = useState(false);
   const [editingSubtask, setEditingSubtask] = useState(false);
   const [editingOccupation, setEditingOccupation] = useState(false);
-  const [editingWords, setEditingWords] = useState(false);
-  const [wordsValue, setWordsValue] = useState("");
   const descInputRef = useRef<HTMLInputElement>(null);
 
   const project = projects.find((p) => p.id === entry.projectId) ?? null;
@@ -91,27 +89,6 @@ export function TtcEntryRow({
   function handleDescKey(e: React.KeyboardEvent) {
     if (e.key === "Enter") commitDesc();
     if (e.key === "Escape") setEditingDesc(false);
-  }
-
-  function startEditWords() {
-    setWordsValue(
-      entry.wordsProcessed != null ? String(entry.wordsProcessed) : "",
-    );
-    setEditingWords(true);
-  }
-
-  function commitWords() {
-    setEditingWords(false);
-    const trimmed = wordsValue.trim();
-    const parsed = trimmed ? Number(trimmed) : null;
-    if (parsed !== (entry.wordsProcessed ?? null)) {
-      onUpdate({ id: entry.id, wordsProcessed: parsed });
-    }
-  }
-
-  function handleWordsKey(e: React.KeyboardEvent) {
-    if (e.key === "Enter") commitWords();
-    if (e.key === "Escape") setEditingWords(false);
   }
 
   return (
@@ -446,55 +423,6 @@ export function TtcEntryRow({
               />
             </Badge>
           )}
-          {entry.occupation?.occupationType === "TRANSLATOR" &&
-            (editingWords ? (
-              <Input
-                type="number"
-                min={0}
-                autoFocus
-                value={wordsValue}
-                onChange={(e) => setWordsValue(e.target.value)}
-                onBlur={commitWords}
-                onKeyDown={handleWordsKey}
-                onClick={(e) => e.stopPropagation()}
-                placeholder={intl.formatMessage({
-                  id: "time.entryRow.wordsPlaceholder",
-                  defaultMessage: "Words",
-                })}
-                aria-label={intl.formatMessage({
-                  id: "time.entryRow.wordsProcessedLabel",
-                  defaultMessage: "Words processed",
-                })}
-                className="h-5 w-20 px-1.5 text-xs"
-              />
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  startEditWords();
-                }}
-                className="h-5 px-1.5 text-xs font-normal text-muted-foreground"
-                title={intl.formatMessage({
-                  id: "time.entryRow.editWordsTitle",
-                  defaultMessage: "Edit words processed",
-                })}
-              >
-                {entry.wordsProcessed != null
-                  ? intl.formatMessage(
-                      {
-                        id: "time.entryRow.wordsCount",
-                        defaultMessage: "{count} words",
-                      },
-                      { count: intl.formatNumber(entry.wordsProcessed) },
-                    )
-                  : intl.formatMessage({
-                      id: "time.entryRow.addWords",
-                      defaultMessage: "+ words",
-                    })}
-              </Button>
-            ))}
         </div>
         {(() => {
           const startField = (

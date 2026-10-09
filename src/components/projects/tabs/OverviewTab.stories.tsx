@@ -25,7 +25,7 @@ const project: Project = {
   deadline: null,
   startDate: null,
   totalTimeSeconds: null,
-  totalWordsProcessed: 4800,
+  totalTaskWords: 4800,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };

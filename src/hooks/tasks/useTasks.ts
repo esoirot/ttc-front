@@ -229,6 +229,8 @@ export function useCreateSubtask(taskId: number) {
       checklistTitle?: string;
       title: string;
       dueDate?: string;
+      wordCount?: number | null;
+      countInTotal?: boolean;
     }) => mutateAsync({ input: { taskId, ...input } }),
     loading: isPending,
   };

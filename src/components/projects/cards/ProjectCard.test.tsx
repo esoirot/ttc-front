@@ -79,10 +79,10 @@ describe("ProjectCard", () => {
     expect(screen.getByText("0 / 1,500 words")).toBeInTheDocument();
   });
 
-  it("shows the wordsProcessed sum over the wordCount target", () => {
+  it("shows the task words over the wordCount target", () => {
     render(
       <ProjectCard
-        project={makeProject({ wordCount: 1500, totalWordsProcessed: 900 })}
+        project={makeProject({ wordCount: 1500, totalTaskWords: 900 })}
         clientName={undefined}
         onDelete={vi.fn()}
         onClick={vi.fn()}
@@ -95,7 +95,7 @@ describe("ProjectCard", () => {
   it("shows just the logged sum when no wordCount target is set", () => {
     render(
       <ProjectCard
-        project={makeProject({ wordCount: null, totalWordsProcessed: 300 })}
+        project={makeProject({ wordCount: null, totalTaskWords: 300 })}
         clientName={undefined}
         onDelete={vi.fn()}
         onClick={vi.fn()}

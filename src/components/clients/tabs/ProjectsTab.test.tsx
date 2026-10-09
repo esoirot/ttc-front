@@ -140,9 +140,9 @@ describe("ProjectsTab", () => {
     expect(screen.getAllByText(/1h 1m/)).not.toHaveLength(0);
   });
 
-  it("shows the total words processed on the project row", () => {
+  it("shows the project task words on the project row", () => {
     renderTab({
-      projects: [makeProject({ id: 5, totalWordsProcessed: 1234 })],
+      projects: [makeProject({ id: 5, totalTaskWords: 1234 })],
       loading: false,
     });
     expect(screen.getByText("1,234 words")).toBeInTheDocument();
@@ -194,12 +194,12 @@ describe("ProjectsTab", () => {
     expect(screen.getByText("USD")).toBeInTheDocument();
   });
 
-  it("shows a Total words card summing totalWordsProcessed across all projects", () => {
+  it("shows a Total words card summing task words across all projects", () => {
     renderTab({
       projects: [
-        makeProject({ id: 1, totalWordsProcessed: 400 }),
-        makeProject({ id: 2, totalWordsProcessed: 600 }),
-        makeProject({ id: 3, totalWordsProcessed: null }),
+        makeProject({ id: 1, totalTaskWords: 400 }),
+        makeProject({ id: 2, totalTaskWords: 600 }),
+        makeProject({ id: 3, totalTaskWords: null }),
       ],
       loading: false,
     });

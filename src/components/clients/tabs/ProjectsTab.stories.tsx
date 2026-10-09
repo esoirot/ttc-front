@@ -91,7 +91,7 @@ export const WithStatsAndRevenue: Story = {
         useCustomRate: true,
         perWordRate: 0.1,
         wordCount: 5000,
-        totalWordsProcessed: 5000,
+        totalTaskWords: 5000,
         totalTimeSeconds: 3600,
         deadline: "2026-08-30T00:00:00.000Z",
         occupations: [

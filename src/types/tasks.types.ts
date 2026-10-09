@@ -13,6 +13,8 @@ export interface Subtask {
   done: boolean;
   dueDate: string | null;
   wordCount: number | null;
+  /** Whether the words count toward the task's total. */
+  countInTotal: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -81,8 +83,6 @@ export interface TaskAttachment {
 }
 
 export interface TaskDetail extends Task {
-  /** Words logged on this task's time entries. */
-  totalWordsProcessed?: number | null;
   checklistTitles: string[];
   subtasks: Subtask[];
   comments: TaskComment[];
@@ -133,6 +133,7 @@ export type UpdateSubtaskInput = {
   done?: boolean;
   dueDate?: string | null;
   wordCount?: number | null;
+  countInTotal?: boolean;
 };
 
 export interface TaskWordsFieldProps {

@@ -16,7 +16,10 @@ import {
 import type { TimeEntriesTabProps as Props } from "@/types/invoices.types";
 import { useTimeEntriesTab } from "@/hooks/invoices/useTimeEntriesTab";
 import { secsToHms } from "@/components/time/ttcHelpers";
-import { isTranslationEntry } from "@/lib/translationPricing";
+import {
+  calculateTranslationLineItem,
+  isTranslationEntry,
+} from "@/lib/translationPricing";
 
 export function TimeEntriesTab({
   invoiceId,
@@ -199,7 +202,10 @@ export function TimeEntriesTab({
                         <FormattedMessage
                           id="invoices.timeEntriesTab.wordsCount"
                           defaultMessage="{count} words"
-                          values={{ count: entry.wordsProcessed ?? 0 }}
+                          values={{
+                            count: calculateTranslationLineItem(entry, null)
+                              .quantity,
+                          }}
                         />
                       ) : entry.durationSeconds != null ? (
                         secsToHms(entry.durationSeconds)

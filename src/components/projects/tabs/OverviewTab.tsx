@@ -3,7 +3,6 @@ import { FormattedMessage, useIntl } from "react-intl";
 import { KpiCard, KpiGrid } from "@/components/kpi/KpiCard";
 import { CompactNumber } from "@/components/kpi/CompactNumber";
 import { formatDuration } from "@/lib/time";
-import { projectWordTotal } from "@/lib/words";
 import {
   calculateProjectRevenue,
   resolveProjectRateSheet,
@@ -44,8 +43,8 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
   const isTranslationOccupation =
     project.occupations?.some((a) => a.occupationType === "TRANSLATOR") ??
     false;
-  const wordsProcessed = project.totalWordsProcessed ?? 0;
-  const showRevenue = isTranslationOccupation && wordsProcessed > 0;
+  const taskWords = project.totalTaskWords ?? 0;
+  const showRevenue = isTranslationOccupation && taskWords > 0;
   const revenue = showRevenue
     ? calculateProjectRevenue(project, totalSeconds, clientRateSheet)
     : 0;
@@ -121,7 +120,7 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
                 defaultMessage="Task words"
               />
             }
-            value={<CompactNumber value={project.totalTaskWords ?? 0} />}
+            value={<CompactNumber value={taskWords} />}
           />
         )}
         {project.wordCount && (
@@ -137,9 +136,7 @@ export function OverviewTab({ project, totalSeconds }: OverviewTabProps) {
                 id="projects.overviewTab.wordsProgress"
                 defaultMessage="{processed} / {total}"
                 values={{
-                  processed: (
-                    <CompactNumber value={projectWordTotal(project)} />
-                  ),
+                  processed: <CompactNumber value={taskWords} />,
                   total: <CompactNumber value={project.wordCount} />,
                 }}
               />

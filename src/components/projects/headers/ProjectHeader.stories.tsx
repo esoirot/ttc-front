@@ -26,7 +26,7 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     currency: "EUR",
     deadline: "2026-08-15T00:00:00.000Z",
     startDate: "2026-07-01T00:00:00.000Z",
-    totalWordsProcessed: 4500,
+    totalTaskWords: 4500,
     occupations: [{ id: 1, name: "Translation", occupationType: "TRANSLATOR" }],
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
