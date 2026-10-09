@@ -335,6 +335,33 @@ test("ContactsTab: add, edit, then delete a contact", async ({ page }) => {
   await expect(page.getByText("No contacts yet.")).toBeVisible();
 });
 
+test("ContactsTab lists contacts by last name A to Z, and re-sorts by first name", async ({
+  page,
+}) => {
+  const person = (id: number, firstName: string, lastName: string) => ({
+    id,
+    firstName,
+    lastName,
+    email: null,
+    phone: null,
+  });
+  await mockClientsApi(page, [
+    makeClient({
+      id: 6,
+      name: "Acme Corp",
+      contacts: [person(1, "Anne", "Martin"), person(2, "Zoé", "Durand")],
+    }),
+  ]);
+  await page.goto("/clients/6");
+
+  const first = page.getByText(/^(Anne Martin|Zoé Durand)$/).first();
+  await expect(first).toHaveText("Zoé Durand");
+
+  await page.getByLabel("Sort").click();
+  await page.getByRole("option", { name: "First name" }).click();
+  await expect(first).toHaveText("Anne Martin");
+});
+
 test("creates a client with an occupation selected, and it persists to the detail page", async ({
   page,
 }) => {

@@ -7,7 +7,16 @@ import { Label } from "@/components/ui/label";
 import type { ContactsTabProps } from "@/types/clients.types";
 import { ContactRow } from "../rows/ContactRow";
 import { ColorField } from "../form-fields/ColorField";
-import { EMPTY_CONTACT } from "@/constants/clients";
+import {
+  CLIENT_SORT_FIELD_LABELS,
+  EMPTY_CONTACT,
+  PERSON_SORT_FIELDS,
+} from "@/constants/clients";
+import {
+  SortControls,
+  type SortDirection,
+} from "@/components/sort/SortControls";
+import { sortContacts, type ContactSortField } from "./sortContacts";
 import { isValidHttpUrl, isValidOptionalEmail } from "@/lib/schemas";
 
 export function ContactsTab({
@@ -23,6 +32,8 @@ export function ContactsTab({
   const [form, setForm] = useState(EMPTY_CONTACT);
   const [emailTouched, setEmailTouched] = useState(false);
   const [linkedinTouched, setLinkedinTouched] = useState(false);
+  const [sortField, setSortField] = useState<ContactSortField>("LAST_NAME");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   function setField(key: keyof typeof EMPTY_CONTACT, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -89,7 +100,20 @@ export function ContactsTab({
         </p>
       ) : (
         <div className="flex flex-col mb-4">
-          {contacts.map((contact) => (
+          {contacts.length > 0 && (
+            <div className="flex flex-wrap items-end gap-3 mb-3">
+              <SortControls
+                idPrefix="contacts"
+                fields={PERSON_SORT_FIELDS}
+                fieldLabels={CLIENT_SORT_FIELD_LABELS}
+                field={sortField}
+                direction={sortDirection}
+                onFieldChange={setSortField}
+                onDirectionChange={setSortDirection}
+              />
+            </div>
+          )}
+          {sortContacts(contacts, sortField, sortDirection).map((contact) => (
             <ContactRow
               key={contact.id}
               contact={contact}
