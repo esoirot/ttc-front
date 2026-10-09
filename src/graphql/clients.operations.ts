@@ -11,7 +11,7 @@ import type {
   CompanyContact,
 } from "@/types/clients.types";
 
-const CONTACT_FIELDS = `id clientId firstName lastName email phone jobTitle color createdAt updatedAt`;
+const CONTACT_FIELDS = `id clientId firstName lastName email phone jobTitle linkedinUrl color createdAt updatedAt`;
 
 const CLIENT_FIELDS = `
   id userId name legalName email phone company address addressLine2

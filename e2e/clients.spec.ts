@@ -8,6 +8,7 @@ type MockContact = {
   lastName: string | null;
   email: string | null;
   phone: string | null;
+  linkedinUrl?: string | null;
 };
 
 type MockClient = {
@@ -197,6 +198,7 @@ async function mockClientsApi(page: Page, initial: MockClient[]) {
         lastName: input.lastName ?? null,
         email: input.email ?? null,
         phone: input.phone ?? null,
+        linkedinUrl: input.linkedinUrl ?? null,
       };
       clients = clients.map((c) =>
         c.id === input.clientId
@@ -439,4 +441,21 @@ test("the Clients list sorts by company name, A to Z then Z to A", async ({
   await page.getByLabel("Order").click();
   await page.getByRole("option", { name: "Descending" }).click();
   await expect(names).toHaveText(["Gamma", "Beta", "Alpha"]);
+});
+
+test("a contact added with a LinkedIn URL shows a LinkedIn link", async ({
+  page,
+}) => {
+  await mockClientsApi(page, [makeClient({ id: 6, name: "Acme Corp" })]);
+  await page.goto("/clients/6");
+
+  await page.getByText("+ Add contact").click();
+  await page.getByLabel("First name").fill("Jane");
+  await page.getByLabel("LinkedIn").fill("https://www.linkedin.com/in/jane");
+  await page.getByRole("button", { name: "Add contact" }).click();
+
+  await expect(page.getByRole("link", { name: "LinkedIn" })).toHaveAttribute(
+    "href",
+    "https://www.linkedin.com/in/jane",
+  );
 });

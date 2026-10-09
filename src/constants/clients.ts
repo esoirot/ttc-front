@@ -48,6 +48,7 @@ export const EMPTY_CONTACT = {
   email: "",
   phone: "",
   jobTitle: "",
+  linkedinUrl: "",
   color: "",
 };
 
@@ -57,6 +58,7 @@ export const EMPTY_EDIT = {
   email: "",
   phone: "",
   jobTitle: "",
+  linkedinUrl: "",
   color: "",
 };
 

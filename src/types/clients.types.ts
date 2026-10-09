@@ -50,6 +50,7 @@ export interface CompanyContact {
   email: string | null;
   phone: string | null;
   jobTitle: string | null;
+  linkedinUrl?: string | null;
   color: string | null;
   createdAt: string;
   updatedAt: string;
@@ -163,6 +164,7 @@ export type EditInput = {
   email?: string | null;
   phone?: string | null;
   jobTitle?: string | null;
+  linkedinUrl?: string | null;
   color?: string | null;
 };
 
@@ -172,6 +174,7 @@ export type ContactInput = {
   email?: string | null;
   phone?: string | null;
   jobTitle?: string | null;
+  linkedinUrl?: string | null;
   color?: string | null;
 };
 

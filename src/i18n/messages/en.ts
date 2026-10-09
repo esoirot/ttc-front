@@ -1170,4 +1170,7 @@ export const en = {
   "clients.sort.name": "Company name",
   "clients.sort.lastName": "Last name",
   "clients.sort.firstName": "First name",
+  "clients.contactRow.linkedin": "LinkedIn",
+  "clients.contactRow.linkedinError": "Enter a valid URL.",
+  "clients.contactRow.linkedinLink": "LinkedIn",
 };

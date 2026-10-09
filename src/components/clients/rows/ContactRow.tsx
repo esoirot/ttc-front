@@ -18,7 +18,11 @@ import {
 import type { CompanyContact, EditInput } from "@/types/clients.types";
 import { ColorField } from "../form-fields/ColorField";
 import { EMPTY_EDIT } from "@/constants/clients";
-import { isValidOptionalEmail } from "@/lib/schemas";
+import {
+  isValidHttpUrl,
+  isValidOptionalEmail,
+  toSafeHref,
+} from "@/lib/schemas";
 
 export function ContactRow({
   contact,
@@ -35,6 +39,7 @@ export function ContactRow({
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(EMPTY_EDIT);
   const [emailTouched, setEmailTouched] = useState(false);
+  const [linkedinTouched, setLinkedinTouched] = useState(false);
 
   function startEdit() {
     setEditForm({
@@ -43,9 +48,11 @@ export function ContactRow({
       email: contact.email ?? "",
       phone: contact.phone ?? "",
       jobTitle: contact.jobTitle ?? "",
+      linkedinUrl: contact.linkedinUrl ?? "",
       color: contact.color ?? "",
     });
     setEmailTouched(false);
+    setLinkedinTouched(false);
     setEditing(true);
   }
 
@@ -57,10 +64,22 @@ export function ContactRow({
         })
       : "";
 
+  const linkedinError =
+    linkedinTouched && !isValidHttpUrl(editForm.linkedinUrl)
+      ? intl.formatMessage({
+          id: "clients.contactRow.linkedinError",
+          defaultMessage: "Enter a valid URL.",
+        })
+      : "";
+
   async function handleSave(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!isValidOptionalEmail(editForm.email)) {
+    if (
+      !isValidOptionalEmail(editForm.email) ||
+      !isValidHttpUrl(editForm.linkedinUrl)
+    ) {
       setEmailTouched(true);
+      setLinkedinTouched(true);
       return;
     }
     await onEdit({
@@ -70,11 +89,13 @@ export function ContactRow({
       email: editForm.email || null,
       phone: editForm.phone || null,
       jobTitle: editForm.jobTitle || null,
+      linkedinUrl: editForm.linkedinUrl || null,
       color: editForm.color || null,
     });
     setEditing(false);
   }
 
+  const linkedinHref = toSafeHref(contact.linkedinUrl);
   const displayName = [contact.firstName, contact.lastName]
     .filter(Boolean)
     .join(" ");
@@ -170,6 +191,28 @@ export function ContactRow({
                   placeholder="Project Manager"
                 />
               </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor={`eli-${contact.id}`}>
+                  <FormattedMessage
+                    id="clients.contactRow.linkedin"
+                    defaultMessage="LinkedIn"
+                  />
+                </Label>
+                <Input
+                  id={`eli-${contact.id}`}
+                  value={editForm.linkedinUrl}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, linkedinUrl: e.target.value }))
+                  }
+                  onBlur={() => setLinkedinTouched(true)}
+                  placeholder="https://www.linkedin.com/in/…"
+                />
+                {linkedinError && (
+                  <span className="text-xs text-destructive">
+                    {linkedinError}
+                  </span>
+                )}
+              </div>
               <ColorField
                 id={`ecol-${contact.id}`}
                 value={editForm.color}
@@ -228,6 +271,19 @@ export function ContactRow({
         <div className="flex gap-3 text-muted-foreground text-xs">
           {contact.email && <span>{contact.email}</span>}
           {contact.phone && <span>{contact.phone}</span>}
+          {linkedinHref && (
+            <a
+              href={linkedinHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              <FormattedMessage
+                id="clients.contactRow.linkedinLink"
+                defaultMessage="LinkedIn"
+              />
+            </a>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-1">

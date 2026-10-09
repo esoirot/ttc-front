@@ -1199,4 +1199,7 @@ export const fr: Record<keyof typeof en, string> = {
   "clients.sort.name": "Nom de l'entreprise",
   "clients.sort.lastName": "Nom",
   "clients.sort.firstName": "Prénom",
+  "clients.contactRow.linkedin": "LinkedIn",
+  "clients.contactRow.linkedinError": "Saisissez une URL valide.",
+  "clients.contactRow.linkedinLink": "LinkedIn",
 };
