@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useTags } from "@/hooks/tags/useTags";
 import { useMyOccupations } from "@/hooks/occupations/useOccupations";
 import { isValidHttpUrl, isValidOptionalEmail } from "@/lib/schemas";
+import { NEXT_STATUS_AFTER_CONTACT } from "@/constants/clients";
 import type {
   Client,
   ClientHeaderProps,
   ClientHeaderFormState,
+  ClientStatus,
 } from "@/types/clients.types";
 
 type TouchedField = "website" | "linkedinUrl" | "email";
@@ -64,9 +66,25 @@ export function useClientHeaderForm(
     setTouched({});
   }
 
+  /** The saved status, stepped when the typed contact date is newer. */
+  function statusForContactDate(date: string): ClientStatus {
+    const newer =
+      !!date &&
+      (!client.contactedAt || new Date(date) > new Date(client.contactedAt));
+    return (newer && NEXT_STATUS_AFTER_CONTACT[client.status]) || client.status;
+  }
+
   function set(field: keyof ClientHeaderFormState) {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      setForm((prev) => ({
+        ...prev,
+        [field]: value,
+        ...(field === "contactedAt" && {
+          status: statusForContactDate(value),
+        }),
+      }));
+    };
   }
 
   function touch(field: TouchedField) {

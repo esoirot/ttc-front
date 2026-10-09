@@ -212,6 +212,115 @@ describe("useClientHeaderForm", () => {
     );
   });
 
+  describe("a newer contact date previews the next status", () => {
+    const typeDate = (
+      result: { current: ReturnType<typeof useClientHeaderForm> },
+      value: string,
+    ) =>
+      act(() => {
+        result.current.set("contactedAt")({
+          target: { value },
+        } as React.ChangeEvent<HTMLInputElement>);
+      });
+    const formFor = (client: Client) =>
+      renderHook(() => useClientHeaderForm(client, vi.fn()), {
+        wrapper: createQueryWrapper(),
+      }).result;
+
+    it.each([
+      ["TO_CONTACT", "CONTACTED"],
+      ["FORMER_CLIENT", "CONTACTED"],
+      ["CONTACTED", "FOLLOW_UP_1"],
+      ["FOLLOW_UP_1", "FOLLOW_UP_2"],
+      ["FOLLOW_UP_2", "RECONTACT_LATER"],
+      ["RECONTACT_LATER", "CONTACTED"],
+    ] as const)("%s shows %s", (from, to) => {
+      const result = formFor(
+        makeClient({ status: from, contactedAt: "2026-09-28T00:00:00.000Z" }),
+      );
+      typeDate(result, "2026-10-09");
+      expect(result.current.form.status).toBe(to);
+    });
+
+    it("counts a first contact date as newer", () => {
+      const result = formFor(
+        makeClient({ status: "TO_CONTACT", contactedAt: null }),
+      );
+      typeDate(result, "2026-10-09");
+      expect(result.current.form.status).toBe("CONTACTED");
+    });
+
+    it.each(["TALKING", "CLIENT"] as const)("%s does not move", (status) => {
+      const result = formFor(
+        makeClient({ status, contactedAt: "2026-09-28T00:00:00.000Z" }),
+      );
+      typeDate(result, "2026-10-09");
+      expect(result.current.form.status).toBe(status);
+    });
+
+    it.each([
+      ["an older date", "2026-09-01"],
+      ["the same date", "2026-09-28"],
+      ["a cleared date", ""],
+    ])("goes back to the saved status on %s", (_, back) => {
+      const result = formFor(
+        makeClient({
+          status: "FORMER_CLIENT",
+          contactedAt: "2026-09-28T00:00:00.000Z",
+        }),
+      );
+      typeDate(result, "2026-10-09");
+      typeDate(result, back);
+      expect(result.current.form.status).toBe("FORMER_CLIENT");
+    });
+
+    it("recalculates from the saved status, over a status picked before", () => {
+      const result = formFor(
+        makeClient({
+          status: "CONTACTED",
+          contactedAt: "2026-09-28T00:00:00.000Z",
+        }),
+      );
+      act(() => {
+        result.current.setForm((prev) => ({ ...prev, status: "TALKING" }));
+      });
+      typeDate(result, "2026-10-09");
+      expect(result.current.form.status).toBe("FOLLOW_UP_1");
+    });
+
+    it("only a contact date change moves the status", () => {
+      const result = formFor(
+        makeClient({
+          status: "CONTACTED",
+          contactedAt: "2026-09-28T00:00:00.000Z",
+        }),
+      );
+      act(() => {
+        result.current.setForm((prev) => ({ ...prev, status: "TALKING" }));
+      });
+      act(() => {
+        result.current.set("name")({
+          target: { value: "Acme 2" },
+        } as React.ChangeEvent<HTMLInputElement>);
+      });
+      expect(result.current.form.status).toBe("TALKING");
+    });
+
+    it("keeps a status picked after the date", () => {
+      const result = formFor(
+        makeClient({
+          status: "CONTACTED",
+          contactedAt: "2026-09-28T00:00:00.000Z",
+        }),
+      );
+      typeDate(result, "2026-10-09");
+      act(() => {
+        result.current.setForm((prev) => ({ ...prev, status: "TALKING" }));
+      });
+      expect(result.current.form.status).toBe("TALKING");
+    });
+  });
+
   it("save: sends null contactedAt when the field is cleared", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     const client = makeClient({
