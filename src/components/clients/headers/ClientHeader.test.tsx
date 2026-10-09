@@ -262,7 +262,7 @@ describe("ClientHeader", () => {
     );
   });
 
-  it("saves a contactedAt change while preserving the current status", async () => {
+  it("a newer contact date shows the next status, saved only on Save", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     renderHeader(makeClient({ id: 5, status: "FOLLOW_UP_2" }), onUpdate);
 
@@ -270,17 +270,39 @@ describe("ClientHeader", () => {
     fireEvent.change(screen.getByLabelText("Contacted At"), {
       target: { value: "2026-06-10" },
     });
+    expect(
+      screen.getByText("Recontact Later", { selector: "span" }),
+    ).toBeInTheDocument();
+    expect(onUpdate).not.toHaveBeenCalled();
     fireEvent.click(screen.getByText("Save"));
 
     await waitFor(() =>
       expect(onUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 5,
-          status: "FOLLOW_UP_2",
+          status: "RECONTACT_LATER",
           contactedAt: "2026-06-10",
         }),
       ),
     );
+  });
+
+  it("Cancel drops the previewed status", () => {
+    const onUpdate = vi.fn();
+    renderHeader(makeClient({ id: 5, status: "FORMER_CLIENT" }), onUpdate);
+
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.change(screen.getByLabelText("Contacted At"), {
+      target: { value: "2026-10-09" },
+    });
+    fireEvent.click(screen.getByText("Cancel"));
+
+    expect(onUpdate).not.toHaveBeenCalled();
+    expect(screen.getByText("Former client")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Edit"));
+    expect(
+      screen.getByText("Former client", { selector: "span" }),
+    ).toBeInTheDocument();
   });
 
   it("saves the recontact date typed in the edit form", async () => {

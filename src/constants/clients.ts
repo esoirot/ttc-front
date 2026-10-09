@@ -94,6 +94,19 @@ export const RETIRED_STATUS_LABEL_MESSAGES: Record<string, MessageDescriptor> =
     },
   };
 
+// Where a prospect goes when a newer contact date is saved — mirrors the
+// server's step (prospect-due.util.ts), so the edit form can show it first.
+export const NEXT_STATUS_AFTER_CONTACT: Partial<
+  Record<ClientStatus, ClientStatus>
+> = {
+  TO_CONTACT: "CONTACTED",
+  FORMER_CLIENT: "CONTACTED",
+  CONTACTED: "FOLLOW_UP_1",
+  FOLLOW_UP_1: "FOLLOW_UP_2",
+  FOLLOW_UP_2: "RECONTACT_LATER",
+  RECONTACT_LATER: "CONTACTED",
+};
+
 export const STATUS_ORDER: ClientStatus[] = [
   // A past client to contact again: where a re-contact starts on the board.
   "FORMER_CLIENT",

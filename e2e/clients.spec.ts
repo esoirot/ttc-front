@@ -413,6 +413,22 @@ test("setting a recontact date in the client edit form shows it in the header", 
   await expect(page.getByText(/To recontact on:/)).toBeVisible();
 });
 
+test("a newer Contacted At previews the next status; Cancel keeps the saved one", async ({
+  page,
+}) => {
+  await mockClientsApi(page, [
+    makeClient({ id: 5, name: "Acme Corp", status: "FORMER_CLIENT" }),
+  ]);
+  await page.goto("/clients/5");
+
+  await page.getByText("Edit").click();
+  await page.getByLabel("Contacted At").fill("2026-10-09");
+  await expect(page.locator("#cl-status")).toHaveText("1st Contact");
+  await page.getByText("Cancel").click();
+
+  await expect(page.getByText("Former client")).toBeVisible();
+});
+
 test("the Individuals tab filters people by last and first name", async ({
   page,
 }) => {
