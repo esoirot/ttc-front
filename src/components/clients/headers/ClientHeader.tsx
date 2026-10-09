@@ -466,10 +466,7 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => {
-              resetForm();
-              setEditing(false);
-            }}
+            onClick={() => setEditing(false)}
           >
             <FormattedMessage
               id="clients.header.cancel"
@@ -550,7 +547,12 @@ export function ClientHeader({ client, onUpdate, saving }: ClientHeaderProps) {
           variant="outline"
           size="sm"
           className="border-blue-600 dark:border-blue-400 text-foreground hover:bg-blue-500/30 hover:text-foreground dark:hover:bg-blue-400/30 dark:hover:text-foreground"
-          onClick={() => setEditing(true)}
+          onClick={() => {
+            // The client may have changed since the last edit (e.g. the
+            // server stepped its status after a contact date was saved).
+            resetForm();
+            setEditing(true);
+          }}
         >
           <FormattedMessage id="clients.header.edit" defaultMessage="Edit" />
         </Button>

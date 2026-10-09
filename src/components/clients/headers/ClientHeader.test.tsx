@@ -235,6 +235,33 @@ describe("ClientHeader", () => {
     );
   });
 
+  it("opens Edit with the client as it is now, so a save never sends back a stale status", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    gqlFetch.mockResolvedValue({ tags: [] });
+    const queryClient = createQueryClient();
+    const view = (client: Client) => (
+      <QueryClientProvider client={queryClient}>
+        <IntlProvider locale="en" messages={messages.en}>
+          <ClientHeader client={client} onUpdate={onUpdate} saving={false} />
+        </IntlProvider>
+      </QueryClientProvider>
+    );
+    const { rerender } = render(
+      view(makeClient({ id: 5, status: "FORMER_CLIENT" })),
+    );
+
+    // The server stepped the status after a contact-date save.
+    rerender(view(makeClient({ id: 5, status: "CONTACTED" })));
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 5, status: "CONTACTED" }),
+      ),
+    );
+  });
+
   it("saves a contactedAt change while preserving the current status", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     renderHeader(makeClient({ id: 5, status: "FOLLOW_UP_2" }), onUpdate);
