@@ -6,14 +6,13 @@ import type { TimeEntry } from "@/types/time-entries.types";
 import type { ProjectsOverviewChartsProps } from "@/types/projects.types";
 import { DistributionPie } from "./DistributionPie";
 
-function sumByProject(
+function secondsByProject(
   entries: TimeEntry[],
   titleOf: (projectId: number | null) => string,
-  valueOf: (e: TimeEntry) => number,
 ): { name: string; value: number }[] {
   const totals = new Map<string, number>();
   for (const e of entries) {
-    const value = valueOf(e);
+    const value = e.durationSeconds ?? 0;
     if (value <= 0) continue;
     const label = titleOf(e.projectId);
     totals.set(label, (totals.get(label) ?? 0) + value);
@@ -63,23 +62,14 @@ export function ProjectsOverviewCharts({ month }: ProjectsOverviewChartsProps) {
       ? (projectTitleById.get(projectId) ?? unknownProject)
       : noProject;
 
-  const monthlyTimeData = sumByProject(
-    monthlyEntries,
-    titleOf,
-    (e) => e.durationSeconds ?? 0,
-  );
-  const monthlyWordsData = sumByProject(
-    monthlyEntries,
-    titleOf,
-    (e) => e.wordsProcessed ?? 0,
-  );
+  const monthlyTimeData = secondsByProject(monthlyEntries, titleOf);
 
   const overallTimeData = projects
     .filter((p) => (p.totalTimeSeconds ?? 0) > 0)
     .map((p) => ({ name: p.title, value: p.totalTimeSeconds ?? 0 }));
   const overallWordsData = projects
-    .filter((p) => (p.totalWordsProcessed ?? 0) > 0)
-    .map((p) => ({ name: p.title, value: p.totalWordsProcessed ?? 0 }));
+    .filter((p) => (p.totalTaskWords ?? 0) > 0)
+    .map((p) => ({ name: p.title, value: p.totalTaskWords ?? 0 }));
 
   return (
     <div className="flex flex-wrap gap-4 mb-6">
@@ -114,22 +104,6 @@ export function ProjectsOverviewCharts({ month }: ProjectsOverviewChartsProps) {
           id: "projects.overviewCharts.noTimeAllTime",
           defaultMessage: "No time logged yet.",
         })}
-      />
-      <DistributionPie
-        title={intl.formatMessage({
-          id: "projects.overviewCharts.wordsPerProject",
-          defaultMessage: "Words per project",
-        })}
-        subtitle={monthLabel}
-        data={monthlyWordsData}
-        formatValue={(v) => intl.formatNumber(v)}
-        emptyMessage={intl.formatMessage(
-          {
-            id: "projects.overviewCharts.noWordsInMonth",
-            defaultMessage: "No words logged in {month}.",
-          },
-          { month: monthLabel },
-        )}
       />
       <DistributionPie
         title={intl.formatMessage({

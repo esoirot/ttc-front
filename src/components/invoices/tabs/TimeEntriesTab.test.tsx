@@ -133,11 +133,18 @@ describe("TimeEntriesTab", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 
-  it("shows word count instead of duration for translation entries", () => {
+  it("shows the linked checklist item's words instead of duration for translation entries", () => {
     renderTab({
       billableEntries: [
         makeEntry({
-          wordsProcessed: 1234,
+          subtaskId: 3,
+          subtask: {
+            id: 3,
+            title: "Section A",
+            checklistTitle: null,
+            wordCount: 1234,
+            countInTotal: true,
+          },
           occupation: {
             id: 1,
             name: "Translation",
@@ -149,11 +156,10 @@ describe("TimeEntriesTab", () => {
     expect(screen.getByText("1234 words")).toBeInTheDocument();
   });
 
-  it("shows 0 words for a translation entry missing wordsProcessed", () => {
+  it("shows 0 words for a translation entry with no linked checklist item, whatever its own words", () => {
     renderTab({
       billableEntries: [
         makeEntry({
-          wordsProcessed: null,
           occupation: {
             id: 1,
             name: "Translation",

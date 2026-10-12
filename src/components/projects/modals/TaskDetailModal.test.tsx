@@ -239,6 +239,7 @@ describe("TaskDetailModal", () => {
             done: false,
             dueDate: null,
             wordCount: null,
+            countInTotal: true,
             createdAt: "",
             updatedAt: "",
           },
@@ -783,6 +784,7 @@ describe("TaskDetailModal", () => {
       title: "Section A",
       done: false,
       dueDate: null,
+      countInTotal: true,
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-01T00:00:00.000Z",
     };
@@ -802,18 +804,22 @@ describe("TaskDetailModal", () => {
       expect(title.nextElementSibling).toBe(total);
     });
 
-    it("adds the words logged on the task's time entries to the total", async () => {
+    it("leaves checklist items not counted out of the total", async () => {
       renderModal(
         makeTaskDetail({
-          wordCount: 500,
-          subtasks: [{ ...item, wordCount: 200 }],
-          totalWordsProcessed: 300,
+          wordCount: 50,
+          subtasks: [
+            { ...item, id: 1, wordCount: 100 },
+            { ...item, id: 2, wordCount: 200 },
+            { ...item, id: 3, wordCount: 7000, countInTotal: false },
+          ],
         }),
         {},
         { project: translatorProject },
       );
 
-      expect(await screen.findByText("1,000 words")).toBeInTheDocument();
+      const title = await screen.findByText("Translate doc");
+      expect(title.nextElementSibling).toHaveTextContent("350 words");
     });
 
     it("shows no total when no words are set", async () => {

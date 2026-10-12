@@ -48,7 +48,7 @@ export function calculateProjectRevenue(
     | "hourlyRate"
     | "perWordRate"
     | "useCustomRate"
-    | "totalWordsProcessed"
+    | "totalTaskWords"
   >,
   totalSeconds: number,
   clientRateSheet: RateSheet | undefined,
@@ -56,7 +56,7 @@ export function calculateProjectRevenue(
   const perWordPrice = project.useCustomRate
     ? project.perWordRate
     : (clientRateSheet?.pricePerWord ?? null);
-  const words = project.totalWordsProcessed ?? 0;
+  const words = project.totalTaskWords ?? 0;
 
   let revenue = 0;
   if (perWordPrice != null) revenue += words * perWordPrice;

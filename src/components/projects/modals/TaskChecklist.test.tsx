@@ -24,6 +24,7 @@ function makeSubtask(overrides: Partial<Subtask> = {}): Subtask {
     done: false,
     dueDate: null,
     wordCount: null,
+    countInTotal: true,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -478,6 +479,85 @@ describe("TaskChecklist", () => {
       expect(screen.queryByText("1,200 words")).not.toBeInTheDocument();
       fireEvent.click(screen.getByText("Section A"));
       expect(screen.queryByLabelText("Words")).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText("Count for total sum words"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("counts a new item's words toward the task total by default", async () => {
+      gqlMutate.mockResolvedValueOnce({
+        createSubtask: makeSubtask({ id: 9 }),
+      });
+      renderChecklist({
+        showWords: true,
+        subtasks: [makeSubtask({ id: 1, checklistTitle: "Setup" })],
+      });
+
+      fireEvent.change(screen.getByPlaceholderText("Add an item…"), {
+        target: { value: "Section B" },
+      });
+      fireEvent.click(screen.getByText("Add"));
+      expect(screen.getByLabelText("Count for total sum words")).toBeChecked();
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+      await waitFor(() =>
+        expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+          input: { title: "Section B", countInTotal: true },
+        }),
+      );
+    });
+
+    it("stops counting an item when unchecked", async () => {
+      gqlMutate.mockResolvedValueOnce({
+        updateSubtask: makeSubtask({ id: 1 }),
+      });
+      renderChecklist({
+        showWords: true,
+        subtasks: [
+          makeSubtask({
+            id: 1,
+            checklistTitle: "Setup",
+            title: "Section A",
+            wordCount: 200,
+          }),
+        ],
+      });
+
+      fireEvent.click(screen.getByText("Section A"));
+      fireEvent.click(screen.getByLabelText("Count for total sum words"));
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+      await waitFor(() =>
+        expect(gqlMutate.mock.calls[0][1]).toMatchObject({
+          input: { id: 1, countInTotal: false },
+        }),
+      );
+    });
+
+    it("marks an item left out of the total", () => {
+      renderChecklist({
+        showWords: true,
+        subtasks: [
+          makeSubtask({
+            id: 1,
+            checklistTitle: "Setup",
+            title: "Section A",
+            wordCount: 200,
+            countInTotal: false,
+          }),
+          makeSubtask({
+            id: 2,
+            checklistTitle: "Setup",
+            title: "Section B",
+            wordCount: 300,
+          }),
+        ],
+      });
+      expect(screen.getAllByText("not counted")).toHaveLength(1);
+      fireEvent.click(screen.getByText("Section A"));
+      expect(
+        screen.getByLabelText("Count for total sum words"),
+      ).not.toBeChecked();
     });
 
     it("creates an item with a word count", async () => {

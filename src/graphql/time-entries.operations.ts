@@ -5,7 +5,7 @@ import type {
   TimeEntryConnection,
 } from "@/types/time-entries.types";
 
-const TE_FIELDS = `id userId projectId taskId task { id title } subtaskId subtask { id title checklistTitle } description startTime endTime durationSeconds billable clockifyEntryId occupationId occupation { id name occupationType } wordsProcessed invoicingStatus tags { id name } createdAt updatedAt`;
+const TE_FIELDS = `id userId projectId taskId task { id title } subtaskId subtask { id title checklistTitle wordCount countInTotal } description startTime endTime durationSeconds billable clockifyEntryId occupationId occupation { id name occupationType } invoicingStatus tags { id name } createdAt updatedAt`;
 
 export const TIME_ENTRIES_QUERY: TypedDocumentNode<
   { timeEntries: TimeEntryConnection },
@@ -59,7 +59,6 @@ export const CREATE_TIME_ENTRY_MUTATION: TypedDocumentNode<
       clockifyEntryId?: string;
       tagIds?: number[];
       occupationId?: number | null;
-      wordsProcessed?: number | null;
     };
   }
 > = gql`
@@ -79,7 +78,6 @@ export const START_TIMER_MUTATION: TypedDocumentNode<
       billable?: boolean;
       tagIds?: number[];
       occupationId?: number | null;
-      wordsProcessed?: number | null;
     };
   }
 > = gql`
@@ -111,7 +109,6 @@ export const UPDATE_TIME_ENTRY_MUTATION: TypedDocumentNode<
       billable?: boolean;
       tagIds?: number[];
       occupationId?: number | null;
-      wordsProcessed?: number | null;
     };
   }
 > = gql`

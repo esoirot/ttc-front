@@ -24,7 +24,6 @@ type MockProject = {
   deadline: string | null;
   startDate: string | null;
   totalTimeSeconds: number;
-  totalWordsProcessed?: number | null;
   totalTaskWords?: number | null;
   occupations?: { id: number; name: string; occupationType: string }[];
   createdAt: string;
@@ -63,7 +62,6 @@ function makeProject(overrides: Partial<MockProject> = {}): MockProject {
     deadline: null,
     startDate: null,
     totalTimeSeconds: 0,
-    totalWordsProcessed: null,
     occupations: [],
     createdAt: NOW,
     updatedAt: NOW,
@@ -325,38 +323,22 @@ test("the project Dashboard shows its KPIs first, then the month filter, then th
   );
 });
 
-test("project word count shows as SUM / TOTAL from totalWordsProcessed and wordCount", async ({
+test("project total words are its task words (own + counted checklist items) against the word count", async ({
   page,
 }) => {
   await mockProjectsApi(page, [
     makeProject({
       id: 8,
       title: "Translate manual",
-      wordCount: 2500,
-      totalWordsProcessed: 1200,
-    }),
-  ]);
-  await page.goto("/projects/8");
-
-  await expect(page.getByText("1,200 / 2,500 words")).toBeVisible();
-});
-
-test("project total words add task and checklist words to time-entry words", async ({
-  page,
-}) => {
-  await mockProjectsApi(page, [
-    makeProject({
-      id: 8,
       wordCount: 5000,
-      totalWordsProcessed: 400,
       totalTaskWords: 700,
     }),
   ]);
   await page.goto("/projects/8");
 
-  await expect(page.getByText("1,100 / 5,000 words")).toBeVisible();
+  await expect(page.getByText("700 / 5,000 words")).toBeVisible();
   await page.getByRole("tab", { name: "Dashboard" }).click();
-  await expect(page.getByText("1,100 / 5,000", { exact: true })).toBeVisible();
+  await expect(page.getByText("700 / 5,000", { exact: true })).toBeVisible();
 });
 
 test.describe("project task toolbar on a phone", () => {
@@ -421,7 +403,8 @@ test("projects page shows the list by default and the charts in the Dashboard ta
   await page.getByRole("tab", { name: "Dashboard" }).click();
 
   await expect(page.getByText("Time per project")).toHaveCount(2);
-  await expect(page.getByText("Words per project")).toHaveCount(2);
+  // Only the all-time words chart: task words have no month.
+  await expect(page.getByText("Words per project")).toHaveCount(1);
   await expect(page.getByText("Translate manual")).toHaveCount(0);
 });
 
@@ -455,9 +438,9 @@ test("the Dashboard month filter loads the selected month's time entries", async
   await expect(page.getByRole("combobox", { name: "Month" })).toHaveText(
     "September",
   );
-  // the two monthly chart subtitles
+  // the monthly chart subtitle (time only: task words have no month)
   await expect(page.getByText("September 2026", { exact: true })).toHaveCount(
-    2,
+    1,
   );
   await expect(
     page.getByText("No time logged in September 2026."),
@@ -544,7 +527,7 @@ test("project detail shows tasks by default and its KPIs and charts in the Dashb
     );
 });
 
-test("a translation task shows its own words plus its checklist words next to its name", async ({
+test("a translation task shows its own words plus its counted checklist words next to its name", async ({
   page,
 }) => {
   await mockProjectsApi(page, [
@@ -598,6 +581,19 @@ test("a translation task shows its own words plus its checklist words next to it
               done: false,
               dueDate: null,
               wordCount: 200,
+              countInTotal: true,
+              createdAt: NOW,
+              updatedAt: NOW,
+            },
+            {
+              id: 2,
+              taskId: 40,
+              checklistTitle: "Sections",
+              title: "Glossary",
+              done: false,
+              dueDate: null,
+              wordCount: 7000,
+              countInTotal: false,
               createdAt: NOW,
               updatedAt: NOW,
             },
@@ -617,6 +613,7 @@ test("a translation task shows its own words plus its checklist words next to it
 
   await expect(page.getByText("700 words")).toBeVisible();
   await expect(page.getByText("200 words")).toBeVisible();
+  await expect(page.getByText("7,000 words · not counted")).toBeVisible();
   await expect(page.locator("#task-words-40")).toHaveValue("500");
 });
 

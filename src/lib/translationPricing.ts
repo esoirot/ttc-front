@@ -31,9 +31,17 @@ export interface TranslationLineItem {
   unitPrice: number;
 }
 
+/**
+ * Interim rule: an entry bills the words of its linked checklist item when
+ * that item counts toward the task total (time entry words never count).
+ */
 export function calculateTranslationLineItem(
-  entry: Pick<TimeEntry, "wordsProcessed">,
+  entry: Pick<TimeEntry, "subtask">,
   perWordPrice: number | null,
 ): TranslationLineItem {
-  return { quantity: entry.wordsProcessed ?? 0, unitPrice: perWordPrice ?? 0 };
+  const item = entry.subtask;
+  return {
+    quantity: item?.countInTotal ? (item.wordCount ?? 0) : 0,
+    unitPrice: perWordPrice ?? 0,
+  };
 }

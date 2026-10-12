@@ -98,6 +98,9 @@ function SubtaskItemDialog({
     initial?.wordCount != null ? String(initial.wordCount) : "",
   );
   const [wordsInvalid, setWordsInvalid] = useState(false);
+  const [countInTotal, setCountInTotal] = useState(
+    initial?.countInTotal ?? true,
+  );
 
   const { createSubtask, loading: creating } = useCreateSubtask(taskId);
   const { updateSubtask, loading: updating } = useUpdateSubtask(taskId);
@@ -119,14 +122,14 @@ function SubtaskItemDialog({
         id: initial!.id,
         title: t,
         dueDate: hasDueDate ? dueDate : null,
-        ...(showWords ? { wordCount } : {}),
+        ...(showWords ? { wordCount, countInTotal } : {}),
       });
     } else {
       await createSubtask({
         checklistTitle: state.checklistTitle,
         title: t,
         dueDate,
-        ...(showWords ? { wordCount } : {}),
+        ...(showWords ? { wordCount, countInTotal } : {}),
       });
     }
     onClose();
@@ -198,6 +201,20 @@ function SubtaskItemDialog({
                   aria-invalid={wordsInvalid || undefined}
                   className="h-8 w-28 text-sm"
                 />
+                <Checkbox
+                  id="subtask-count-in-total"
+                  checked={countInTotal}
+                  onCheckedChange={(v) => setCountInTotal(!!v)}
+                />
+                <Label
+                  htmlFor="subtask-count-in-total"
+                  className="text-xs text-muted-foreground cursor-pointer"
+                >
+                  <FormattedMessage
+                    id="projects.taskChecklist.countInTotal"
+                    defaultMessage="Count for total sum words"
+                  />
+                </Label>
               </div>
               {wordsInvalid && (
                 <p className="text-xs text-destructive">
@@ -461,6 +478,17 @@ function ChecklistGroup({
                         "{count, plural, one {# word} other {# words}}",
                     },
                     { count: s.wordCount },
+                  )}
+                  {!s.countInTotal && (
+                    <>
+                      {" · "}
+                      <span>
+                        <FormattedMessage
+                          id="projects.taskChecklist.notCounted"
+                          defaultMessage="not counted"
+                        />
+                      </span>
+                    </>
                   )}
                 </Badge>
               )}

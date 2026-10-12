@@ -214,11 +214,7 @@ export const en = {
   "time.entryRow.linkOccupationTitle": "Link occupation",
   "time.entryRow.toggleBillable": "Toggle billable",
   "time.entryRow.invoiced": "Invoiced",
-  "time.entryRow.wordsPlaceholder": "Words",
-  "time.entryRow.wordsProcessedLabel": "Words processed",
-  "time.entryRow.editWordsTitle": "Edit words processed",
   "time.entryRow.wordsCount": "{count} words",
-  "time.entryRow.addWords": "+ words",
   "time.entryRow.startTimeLabel": "start time",
   "time.entryRow.endTimeLabel": "end time",
   "time.entryRow.running": "running",
@@ -400,6 +396,8 @@ export const en = {
   "occupations.detail.tags": "Tags",
   "occupations.detail.occupation": "Occupation",
 
+  "projects.taskChecklist.countInTotal": "Count for total sum words",
+  "projects.taskChecklist.notCounted": "not counted",
   "projects.taskChecklist.editItem": "Edit checklist item",
   "projects.taskChecklist.newItem": "New checklist item",
   "projects.taskChecklist.itemTitlePlaceholder": "Item title…",
@@ -619,7 +617,6 @@ export const en = {
   "projects.overviewCharts.noTimeInMonth": "No time logged in {month}.",
   "projects.overviewCharts.noTimeAllTime": "No time logged yet.",
   "projects.overviewCharts.wordsPerProject": "Words per project",
-  "projects.overviewCharts.noWordsInMonth": "No words logged in {month}.",
   "projects.overviewCharts.noWordsAllTime": "No words logged yet.",
 
   "occupations.infoForm.invalidEmail":

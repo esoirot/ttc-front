@@ -35,7 +35,6 @@ type MockEntry = {
   clockifyEntryId: string | null;
   occupationId: number | null;
   occupation: { id: number; name: string; occupationType: string } | null;
-  wordsProcessed: number | null;
   tags: { id: number; name: string }[];
   createdAt: string;
   updatedAt: string;
@@ -56,7 +55,6 @@ function makeEntry(overrides: Partial<MockEntry> = {}): MockEntry {
     clockifyEntryId: null,
     occupationId: null,
     occupation: null,
-    wordsProcessed: null,
     tags: [],
     createdAt: NOW,
     updatedAt: NOW,
@@ -172,7 +170,7 @@ test("the Occupation select on a row is scoped to its project's occupations, and
   await expect(page.getByText("Translation", { exact: true })).toBeVisible();
 });
 
-test("the words-processed control only appears once the entry's occupation is Translator", async ({
+test("time entries have no words control, even on a Translator entry", async ({
   page,
 }) => {
   await mockTimeEntriesApi(
@@ -191,24 +189,7 @@ test("the words-processed control only appears once the entry's occupation is Tr
   await page.goto("/time");
 
   await page.getByRole("button", { name: /Jan 1/ }).click();
-  await expect(page.getByTitle("Edit words processed")).toBeVisible();
-
-  await page.getByTitle("Edit words processed").click();
-  await page.getByLabel("Words processed").fill("1200");
-  await page.getByLabel("Words processed").press("Enter");
-
-  await expect(page.getByText("1,200 words")).toBeVisible();
-});
-
-test("the words-processed control is absent when the entry has no occupation", async ({
-  page,
-}) => {
-  await mockTimeEntriesApi(page, [
-    makeEntry({ id: 1, description: "Untagged work" }),
-  ]);
-  await page.goto("/time");
-
-  await page.getByRole("button", { name: /Jan 1/ }).click();
-  await expect(page.getByText("Untagged work")).toBeVisible();
-  await expect(page.getByTitle("Edit words processed")).not.toBeVisible();
+  await expect(page.getByText("Translate homepage")).toBeVisible();
+  await expect(page.getByText("+ words")).toHaveCount(0);
+  await expect(page.getByLabel("Words processed")).toHaveCount(0);
 });

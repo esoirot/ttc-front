@@ -126,9 +126,8 @@ export const TASK_QUERY: TypedDocumentNode<
   query Task($id: Int!) {
     task(id: $id) {
       ${TASK_FIELDS}
-      totalWordsProcessed
       checklistTitles
-      subtasks { id taskId checklistTitle title done dueDate wordCount createdAt updatedAt }
+      subtasks { id taskId checklistTitle title done dueDate wordCount countInTotal createdAt updatedAt }
       comments { id taskId authorId body createdAt updatedAt }
       labels { id taskId name color createdAt }
       activities {
@@ -149,6 +148,7 @@ export const CREATE_SUBTASK_MUTATION: TypedDocumentNode<
       title: string;
       dueDate?: string;
       wordCount?: number | null;
+      countInTotal?: boolean;
     };
   }
 > = gql`
@@ -161,6 +161,7 @@ export const CREATE_SUBTASK_MUTATION: TypedDocumentNode<
       done
       dueDate
       wordCount
+      countInTotal
       createdAt
       updatedAt
     }
@@ -177,6 +178,7 @@ export const UPDATE_SUBTASK_MUTATION: TypedDocumentNode<
       done?: boolean;
       dueDate?: string | null;
       wordCount?: number | null;
+      countInTotal?: boolean;
     };
   }
 > = gql`
@@ -189,6 +191,7 @@ export const UPDATE_SUBTASK_MUTATION: TypedDocumentNode<
       done
       dueDate
       wordCount
+      countInTotal
       createdAt
       updatedAt
     }

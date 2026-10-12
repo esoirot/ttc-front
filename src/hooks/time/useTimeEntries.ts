@@ -116,7 +116,6 @@ type CreateTimeEntryInput = {
   clockifyEntryId?: string;
   tagIds?: number[];
   occupationId?: number | null;
-  wordsProcessed?: number | null;
 };
 
 export function useCreateTimeEntry() {
@@ -147,7 +146,6 @@ type StartTimerInput = {
   billable?: boolean;
   tagIds?: number[];
   occupationId?: number | null;
-  wordsProcessed?: number | null;
 };
 
 export function useStartTimer() {

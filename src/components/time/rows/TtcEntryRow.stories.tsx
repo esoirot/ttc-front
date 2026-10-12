@@ -98,7 +98,6 @@ export const WithTranslationOccupation: Story = {
     entry: makeEntry({
       occupationId: 1,
       occupation: { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
-      wordsProcessed: 1200,
     }),
   },
 };

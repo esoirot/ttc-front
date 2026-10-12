@@ -263,10 +263,10 @@ describe("OverviewTab", () => {
     expect(screen.queryByText(/\/word$/)).not.toBeInTheDocument();
   });
 
-  it("shows the wordsProcessed sum over the wordCount target", () => {
+  it("shows the task words over the wordCount target", () => {
     render(
       <OverviewTab
-        project={makeProject({ wordCount: 1000, totalWordsProcessed: 400 })}
+        project={makeProject({ wordCount: 1000, totalTaskWords: 400 })}
         totalSeconds={0}
       />,
       { wrapper: createIntlQueryWrapper() },
@@ -279,14 +279,13 @@ describe("OverviewTab", () => {
       <OverviewTab
         project={makeProject({
           wordCount: 5000,
-          totalWordsProcessed: 400,
           totalTaskWords: 700,
         })}
         totalSeconds={0}
       />,
       { wrapper: createIntlQueryWrapper() },
     );
-    expect(screen.getByText(paragraph("1,100 / 5,000"))).toBeInTheDocument();
+    expect(screen.getByText(paragraph("700 / 5,000"))).toBeInTheDocument();
   });
 
   it("shortens a word count target of a million or more", () => {
@@ -294,7 +293,7 @@ describe("OverviewTab", () => {
       <OverviewTab
         project={makeProject({
           wordCount: 2_500_000,
-          totalWordsProcessed: 400,
+          totalTaskWords: 400,
         })}
         totalSeconds={0}
       />,
@@ -418,7 +417,7 @@ describe("OverviewTab", () => {
           occupations: [
             { id: 1, name: "Correction", occupationType: "CORRECTOR" },
           ],
-          totalWordsProcessed: 1000,
+          totalTaskWords: 1000,
           useCustomRate: true,
           perWordRate: 0.1,
         })}
@@ -429,14 +428,14 @@ describe("OverviewTab", () => {
     expect(screen.queryByText("Revenue")).not.toBeInTheDocument();
   });
 
-  it("hides the Revenue card when totalWordsProcessed is 0", () => {
+  it("hides the Revenue card when totalTaskWords is 0", () => {
     render(
       <OverviewTab
         project={makeProject({
           occupations: [
             { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
           ],
-          totalWordsProcessed: 0,
+          totalTaskWords: 0,
           useCustomRate: true,
           perWordRate: 0.1,
         })}
@@ -454,7 +453,7 @@ describe("OverviewTab", () => {
           occupations: [
             { id: 1, name: "Translation", occupationType: "TRANSLATOR" },
           ],
-          totalWordsProcessed: 1000,
+          totalTaskWords: 1000,
           useCustomRate: true,
           fixedFee: 300,
           hourlyRate: 50,
@@ -501,7 +500,7 @@ describe("OverviewTab", () => {
           sourceLanguage: "EN",
           targetLanguage: "FR",
           useCustomRate: false,
-          totalWordsProcessed: 1000,
+          totalTaskWords: 1000,
         })}
         totalSeconds={0}
       />,

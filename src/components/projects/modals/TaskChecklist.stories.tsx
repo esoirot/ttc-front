@@ -14,6 +14,7 @@ function makeSubtask(overrides: Partial<Subtask> = {}): Subtask {
     done: false,
     dueDate: null,
     wordCount: null,
+    countInTotal: true,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -70,4 +71,21 @@ export const Empty: Story = {
 
 export const AddingChecklist: Story = {
   args: { addingChecklist: true },
+};
+
+/** Translation project: word counts, one item left out of the task total. */
+export const WithWords: Story = {
+  args: {
+    showWords: true,
+    subtasks: [
+      makeSubtask({ id: 1, title: "Section A", wordCount: 1200 }),
+      makeSubtask({
+        id: 2,
+        title: "Glossary",
+        wordCount: 300,
+        countInTotal: false,
+      }),
+    ],
+    checklistTitles: ["Setup"],
+  },
 };

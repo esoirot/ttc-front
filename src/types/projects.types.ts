@@ -32,7 +32,6 @@ export interface Project {
   deadline: string | null;
   startDate: string | null;
   totalTimeSeconds?: number | null;
-  totalWordsProcessed?: number | null;
   totalTaskWords?: number | null;
   occupations?: OccupationRef[];
   createdAt: string;

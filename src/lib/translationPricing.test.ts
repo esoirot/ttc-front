@@ -139,30 +139,39 @@ describe("resolvePerWordPrice", () => {
 });
 
 describe("calculateTranslationLineItem", () => {
-  it("multiplies wordsProcessed by the resolved per-word price", () => {
-    expect(
-      calculateTranslationLineItem(
-        { wordsProcessed: 1000 } as Pick<TimeEntry, "wordsProcessed">,
-        0.12,
-      ),
-    ).toEqual({ quantity: 1000, unitPrice: 0.12 });
+  const linked = (wordCount: number | null, countInTotal = true) =>
+    ({
+      subtask: {
+        id: 1,
+        title: "S",
+        checklistTitle: null,
+        wordCount,
+        countInTotal,
+      },
+    }) as Pick<TimeEntry, "subtask">;
+
+  it("prices the words of the linked checklist item at the per-word price", () => {
+    expect(calculateTranslationLineItem(linked(1000), 0.12)).toEqual({
+      quantity: 1000,
+      unitPrice: 0.12,
+    });
   });
 
-  it("defaults quantity to 0 when wordsProcessed is null, without erroring", () => {
-    expect(
-      calculateTranslationLineItem(
-        { wordsProcessed: null } as Pick<TimeEntry, "wordsProcessed">,
-        0.12,
-      ),
-    ).toEqual({ quantity: 0, unitPrice: 0.12 });
+  it.each([
+    ["no linked item", { subtask: null } as Pick<TimeEntry, "subtask">],
+    ["an item without words", linked(null)],
+    ["an item not counted", linked(1000, false)],
+  ])("bills 0 words for %s", (_, entry) => {
+    expect(calculateTranslationLineItem(entry, 0.12)).toEqual({
+      quantity: 0,
+      unitPrice: 0.12,
+    });
   });
 
   it("defaults unitPrice to 0 when the per-word price is unresolvable", () => {
-    expect(
-      calculateTranslationLineItem(
-        { wordsProcessed: 500 } as Pick<TimeEntry, "wordsProcessed">,
-        null,
-      ),
-    ).toEqual({ quantity: 500, unitPrice: 0 });
+    expect(calculateTranslationLineItem(linked(500), null)).toEqual({
+      quantity: 500,
+      unitPrice: 0,
+    });
   });
 });

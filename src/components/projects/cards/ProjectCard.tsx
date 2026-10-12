@@ -69,22 +69,20 @@ export function ProjectCard({
                 id="projects.header.wordsProgress"
                 defaultMessage="{processed} / {total} words"
                 values={{
-                  processed: intl.formatNumber(
-                    project.totalWordsProcessed ?? 0,
-                  ),
+                  processed: intl.formatNumber(project.totalTaskWords ?? 0),
                   total: intl.formatNumber(project.wordCount),
                 }}
               />
             </Badge>
           ) : (
-            project.totalWordsProcessed != null &&
-            project.totalWordsProcessed > 0 && (
+            project.totalTaskWords != null &&
+            project.totalTaskWords > 0 && (
               <Badge variant="outline" className="text-xs">
                 <FormattedMessage
                   id="projects.header.wordsLogged"
                   defaultMessage="{total} words logged"
                   values={{
-                    total: intl.formatNumber(project.totalWordsProcessed),
+                    total: intl.formatNumber(project.totalTaskWords),
                   }}
                 />
               </Badge>

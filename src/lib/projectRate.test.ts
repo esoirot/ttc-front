@@ -154,11 +154,7 @@ describe("resolveProjectRateSheet", () => {
 
 type RevenueProject = Pick<
   Project,
-  | "fixedFee"
-  | "hourlyRate"
-  | "perWordRate"
-  | "useCustomRate"
-  | "totalWordsProcessed"
+  "fixedFee" | "hourlyRate" | "perWordRate" | "useCustomRate" | "totalTaskWords"
 >;
 
 function makeRevenueProject(
@@ -169,7 +165,7 @@ function makeRevenueProject(
     hourlyRate: null,
     perWordRate: null,
     useCustomRate: true,
-    totalWordsProcessed: 0,
+    totalTaskWords: 0,
     ...overrides,
   };
 }
@@ -179,10 +175,10 @@ describe("calculateProjectRevenue", () => {
     expect(calculateProjectRevenue(makeRevenueProject(), 0, undefined)).toBe(0);
   });
 
-  it("computes words processed times custom per-word rate", () => {
+  it("computes task words times custom per-word rate", () => {
     expect(
       calculateProjectRevenue(
-        makeRevenueProject({ perWordRate: 0.1, totalWordsProcessed: 1000 }),
+        makeRevenueProject({ perWordRate: 0.1, totalTaskWords: 1000 }),
         0,
         undefined,
       ),
@@ -216,7 +212,7 @@ describe("calculateProjectRevenue", () => {
           fixedFee: 300,
           hourlyRate: 50,
           perWordRate: 0.1,
-          totalWordsProcessed: 1000,
+          totalTaskWords: 1000,
         }),
         7200,
         undefined,
@@ -230,7 +226,7 @@ describe("calculateProjectRevenue", () => {
       calculateProjectRevenue(
         makeRevenueProject({
           useCustomRate: false,
-          totalWordsProcessed: 1000,
+          totalTaskWords: 1000,
         }),
         0,
         sheet,
@@ -255,7 +251,7 @@ describe("calculateProjectRevenue", () => {
   it("returns 0 when useCustomRate is off and no client rate sheet matches", () => {
     expect(
       calculateProjectRevenue(
-        makeRevenueProject({ useCustomRate: false, totalWordsProcessed: 1000 }),
+        makeRevenueProject({ useCustomRate: false, totalTaskWords: 1000 }),
         0,
         undefined,
       ),

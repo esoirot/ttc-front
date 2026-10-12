@@ -479,16 +479,6 @@ describe("time entry changes refresh the task word totals", () => {
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["task"] });
   });
 
-  it("after editing an entry's words", async () => {
-    gqlMutate.mockResolvedValueOnce({ updateTimeEntry: makeEntry() });
-    const { wrapper, invalidateSpy } = spyOn();
-    const { result } = renderHook(() => useUpdateTimeEntry(), { wrapper });
-
-    await result.current.updateTimeEntry({ id: 1, wordsProcessed: 300 });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["task"] });
-  });
-
   it("after deleting an entry", async () => {
     gqlMutate.mockResolvedValueOnce({ deleteTimeEntry: true });
     const { wrapper, invalidateSpy } = spyOn();
