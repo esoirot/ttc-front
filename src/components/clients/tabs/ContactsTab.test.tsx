@@ -285,4 +285,70 @@ describe("ContactsTab", () => {
     fireEvent.click(screen.getByText("+ Ajouter un contact"));
     expect(screen.getByLabelText("Poste")).toBeInTheDocument();
   });
+
+  describe("sorting", () => {
+    const contacts = [
+      makeContact({ id: 1, firstName: "Zoé", lastName: "Martin" }),
+      makeContact({ id: 2, firstName: "Anne", lastName: "Durand" }),
+    ];
+    const order = () =>
+      ["Anne", "Zoé"].sort((a, b) =>
+        screen
+          .getByText(new RegExp(a))
+          .compareDocumentPosition(screen.getByText(new RegExp(b))) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+          ? -1
+          : 1,
+      );
+
+    function renderTab() {
+      render(
+        <ContactsTab
+          contacts={contacts}
+          onDelete={vi.fn()}
+          onEdit={vi.fn()}
+          onAdd={vi.fn()}
+        />,
+        { wrapper },
+      );
+    }
+
+    it("lists contacts by last name, A to Z, by default", () => {
+      renderTab();
+      expect(screen.getByLabelText("Sort")).toHaveTextContent("Last name");
+      expect(screen.getByLabelText("Order")).toHaveTextContent("Ascending");
+      expect(order()).toEqual(["Anne", "Zoé"]);
+    });
+
+    it("re-sorts on a new field or order", async () => {
+      renderTab();
+      fireEvent.click(screen.getByLabelText("Order"));
+      fireEvent.click(
+        await screen.findByRole("option", { name: "Descending" }),
+      );
+      expect(order()).toEqual(["Zoé", "Anne"]);
+
+      fireEvent.click(screen.getByLabelText("Sort"));
+      fireEvent.click(
+        await screen.findByRole("option", { name: "First name" }),
+      );
+      expect(screen.getByLabelText("Sort")).toHaveTextContent("First name");
+      expect(order()).toEqual(["Zoé", "Anne"]);
+    });
+
+    it("shows no sort controls without contacts", () => {
+      render(
+        <ContactsTab
+          contacts={[]}
+          onDelete={vi.fn()}
+          onEdit={vi.fn()}
+          onAdd={vi.fn()}
+        />,
+        { wrapper },
+      );
+      expect(screen.queryByLabelText("Sort")).not.toBeInTheDocument();
+      fireEvent.click(screen.getByText("+ Add contact"));
+      expect(screen.queryByLabelText("Sort")).not.toBeInTheDocument();
+    });
+  });
 });

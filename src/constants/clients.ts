@@ -197,7 +197,7 @@ export const CLIENT_SORT_FIELD_LABELS: Record<
 
 /** Sort fields per tab of the Clients page; the first is the default. */
 export const COMPANY_SORT_FIELDS: readonly ClientSortField[] = ["NAME"];
-export const PERSON_SORT_FIELDS: readonly ClientSortField[] = [
+export const PERSON_SORT_FIELDS = [
   "LAST_NAME",
   "FIRST_NAME",
-];
+] as const satisfies readonly ClientSortField[];
