@@ -26,7 +26,7 @@ pnpm run test:mutation  # StrykerJS (scope it with --mutate)
 pnpm run check          # full gate (below)
 ```
 
-`pnpm run check` (`scripts/check.mjs`) runs, in order, stopping at the first failure: `typecheck`, `circular`, `depcheck`, `prune`, `format`, `lint` (no auto-fix — it fails instead), `audit`, `unit`, `stories`, `build`, `e2e`, `mutation` (Stryker on lines changed since `origin/main`).
+`pnpm run check` (`scripts/check.mjs`) runs, in order, stopping at the first failure: `typecheck`, `circular`, `knip`, `format`, `lint` (no auto-fix — it fails instead), `audit`, `unit`, `stories`, `build`, `e2e`, `mutation` (Stryker on lines changed since `origin/main`).
 
 ```bash
 pnpm run check --list                 # step names
@@ -34,14 +34,9 @@ pnpm run check --skip e2e             # skip one step
 pnpm run check --skip e2e,mutation    # skip several (or repeat --skip)
 ```
 
-### Known `pnpm audit` findings (2026-10-14)
+`knip` (`knip.json`) replaces depcheck and ts-prune: it fails on unused files, exports, types and dependencies. Exports used only in their own file are allowed, and shadcn primitives in `src/components/ui/` keep their full export sets. Delete what it reports rather than ignoring it.
 
-No fixed version is published yet for these two (dev tooling only, never shipped). They are listed in `auditConfig.ignoreGhsas` (`pnpm-workspace.yaml`) so `pnpm audit` passes; any **new** advisory still fails it. Add an override and remove the entry once a fix ships.
-
-| Package      | Severity | Advisory                                                                 | Pulled in by           |
-| ------------ | -------- | ------------------------------------------------------------------------ | ---------------------- |
-| `braces`     | high     | [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | `ts-prune`, `depcheck` |
-| `sprintf-js` | moderate | [GHSA-hp3w-g68c-fv3c](https://github.com/advisories/GHSA-hp3w-g68c-fv3c) | `depcheck`             |
+`pnpm audit` has no ignored findings; overrides for vulnerable transitive dependencies are in `pnpm-workspace.yaml`.
 
 ## Pages
 

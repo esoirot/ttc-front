@@ -181,10 +181,4 @@ export type ProjectInput = {
   occupationIds?: number[];
 };
 
-export type ProjectsVars = {
-  status?: ProjectStatus;
-  search?: string;
-  pagination?: { limit?: number; cursor?: number };
-};
-
 export type UpdateProjectInput = Partial<ProjectInput> & { id: number };

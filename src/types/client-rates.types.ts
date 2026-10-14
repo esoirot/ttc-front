@@ -1,7 +1,5 @@
 import type { TranslationRateType } from "./rates.types";
 
-export type { TranslationRateType as RateType };
-
 export interface ClientRate {
   id: number;
   clientId: number;

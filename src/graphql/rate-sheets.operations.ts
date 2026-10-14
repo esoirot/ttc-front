@@ -47,15 +47,6 @@ export const RATE_SHEETS_QUERY: TypedDocumentNode<
   }
 `;
 
-export const RATE_SHEET_QUERY: TypedDocumentNode<
-  { rateSheet: RateSheet },
-  { id: number }
-> = gql`
-  query RateSheet($id: Int!) {
-    rateSheet(id: $id) { ${RATE_SHEET_FIELDS} }
-  }
-`;
-
 export const CREATE_RATE_SHEET_MUTATION: TypedDocumentNode<
   { createRateSheet: RateSheet },
   { input: CreateRateSheetInput }

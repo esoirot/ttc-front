@@ -1,18 +1,8 @@
 import { gql } from "@apollo/client/core";
 import type { TypedDocumentNode } from "@apollo/client/core";
-import type {
-  DashboardDeadline,
-  DashboardTimeEntry,
-  DashboardProspect,
-  DashboardData,
-} from "@/types/dashboard.types";
+import type { DashboardData } from "@/types/dashboard.types";
 
-export type {
-  DashboardDeadline,
-  DashboardTimeEntry,
-  DashboardProspect,
-  DashboardData,
-};
+export type { DashboardData };
 
 export const DASHBOARD_QUERY: TypedDocumentNode<
   { dashboard: DashboardData },

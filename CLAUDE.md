@@ -16,7 +16,7 @@ Test-first (BDD-style titles), then code. A change is done when:
 2. Every touched component has an up-to-date `<name>.stories.tsx` (new component, variant, size or prop) — see **Storybook**.
 3. New user-facing text is in `en.ts` **and** `fr.ts` — see **i18n**.
 4. Targeted tests pass.
-5. `pnpm run check` passes (`scripts/check.mjs`): typecheck, circular, depcheck, prune, format, lint (no fix — fails), audit (known findings ignored in `pnpm-workspace.yaml`, see README), unit, stories, build, e2e, then mutation on the lines changed since `origin/main` (`scripts/mutate-changed.mjs`), which ends by listing the surviving mutants on those lines only. Add a test only for a survivor that guards real behaviour. Skip steps with `--skip a,b` (`--list` for names) — say which steps you skipped and why.
+5. `pnpm run check` passes (`scripts/check.mjs`): typecheck, circular, knip (unused files, exports and dependencies — `knip.json`), format, lint (no fix — fails), audit, unit, stories, build, e2e, then mutation on the lines changed since `origin/main` (`scripts/mutate-changed.mjs`), which ends by listing the surviving mutants on those lines only. Add a test only for a survivor that guards real behaviour. Skip steps with `--skip a,b` (`--list` for names) — say which steps you skipped and why.
 
 ## Commands
 
@@ -28,7 +28,7 @@ pnpm run test:e2e [e2e/<spec>]    # Playwright (headless; :ui / :headed variants
 pnpm run test:mutation:changed    # Stryker on lines changed since origin/main (part of check)
 pnpm run test:mutation --mutate "<file>:<from>-<to>,…" --incremental   # by hand
 pnpm run check [--skip a,b] [--list]   # full gate (see checklist)
-pnpm run typecheck | lint | format | format:check | circular | depcheck | prune
+pnpm run typecheck | lint | format | format:check | circular | knip
 pnpm run build | preview | storybook | build-storybook
 ```
 

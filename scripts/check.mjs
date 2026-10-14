@@ -5,8 +5,7 @@ import { spawnSync } from "node:child_process";
 const STEPS = [
   ["typecheck", "pnpm run typecheck"],
   ["circular", "pnpm run circular"],
-  ["depcheck", "pnpm run depcheck"],
-  ["prune", "pnpm run prune"],
+  ["knip", "pnpm run knip"], // unused files, exports, dependencies
   ["format", "pnpm run format:check"],
   ["lint", "pnpm exec eslint ."], // fails instead of fixing; `pnpm run lint` fixes
   ["audit", "pnpm audit"],

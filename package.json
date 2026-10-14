@@ -10,8 +10,6 @@
     "typecheck": "tsc -b",
     "circular": "madge --circular --extensions ts,tsx --ts-config tsconfig.app.json src/",
     "circular:warnings": "madge --circular --warning --extensions ts,tsx --ts-config tsconfig.app.json src/",
-    "depcheck": "depcheck",
-    "prune": "ts-prune",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "lint": "eslint . --fix",
@@ -27,7 +25,8 @@
     "test:e2e:headed": "playwright test --headed",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test-storybook": "vitest run --project=storybook --no-file-parallelism"
+    "test-storybook": "vitest run --project=storybook --no-file-parallelism",
+    "knip": "knip"
   },
   "dependencies": {
     "@apollo/client": "^4.1.9",
@@ -54,19 +53,6 @@
     "tw-animate-css": "^1.4.0",
     "zod": "^4.4.3"
   },
-  "depcheck": {
-    "ignores": [
-      "tailwindcss",
-      "@types/babel__core",
-      "@fontsource-variable/geist",
-      "tw-animate-css",
-      "@chromatic-com/storybook",
-      "@storybook/addon-a11y",
-      "@storybook/addon-docs",
-      "@storybook/addon-mcp",
-      "@stryker-mutator/vitest-runner"
-    ]
-  },
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@chromatic-com/storybook": "^5.2.1",
@@ -91,18 +77,17 @@
     "@vitest/browser-playwright": "^4.1.11",
     "@vitest/coverage-v8": "^4.1.11",
     "babel-plugin-react-compiler": "^1.0.0",
-    "depcheck": "^1.4.7",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "eslint-plugin-storybook": "^10.4.6",
     "globals": "^17.6.0",
     "jsdom": "^27.0.0",
+    "knip": "^6.41.0",
     "madge": "^8.0.0",
     "playwright": "^1.61.0",
     "prettier": "^3.8.3",
     "storybook": "^10.4.6",
-    "ts-prune": "^0.10.3",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.11",

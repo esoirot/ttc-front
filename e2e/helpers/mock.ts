@@ -30,10 +30,6 @@ export async function mockGraphQL(
   });
 }
 
-export async function mockAuthenticated(page: Page, user = MOCK_USER) {
-  await mockGraphQL(page, { Me: { me: user } });
-}
-
 export async function mockUnauthenticated(page: Page) {
   await mockGraphQL(page, { Me: { me: null } });
 }
@@ -140,41 +136,4 @@ export async function mockGoogleCalendarStatus(
       body: JSON.stringify(status),
     });
   });
-}
-
-export async function mockGoogleCalendarEvents(
-  page: Page,
-  events: {
-    id: string;
-    summary?: string;
-    start: { date?: string; dateTime?: string };
-    end: { date?: string; dateTime?: string };
-    htmlLink?: string;
-  }[] = [],
-) {
-  await page.route(
-    new RegExp("/google-calendar/events(\\?.*)?$"),
-    async (route) => {
-      if (route.request().method() === "GET") {
-        await route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({ items: events }),
-        });
-        return;
-      }
-      if (route.request().method() === "POST") {
-        await route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            id: "e-new",
-            ...(route.request().postDataJSON() as object),
-          }),
-        });
-        return;
-      }
-      await route.continue();
-    },
-  );
 }

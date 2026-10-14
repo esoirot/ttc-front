@@ -76,15 +76,6 @@ export const LOGOUT_MUTATION: TypedDocumentNode<
   }
 `;
 
-export const REFRESH_TOKEN_MUTATION: TypedDocumentNode<
-  { refreshToken: boolean },
-  Record<string, never>
-> = gql`
-  mutation RefreshToken {
-    refreshToken
-  }
-`;
-
 export const SETUP_TWO_FACTOR_MUTATION: TypedDocumentNode<
   { setupTwoFactor: { qrCodeUrl: string; secret: string } },
   Record<string, never>

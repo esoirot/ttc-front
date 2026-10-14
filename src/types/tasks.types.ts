@@ -118,14 +118,6 @@ export type UpdateTaskInput = {
   wordCount?: number | null;
 };
 
-export type CreateSubtaskInput = {
-  taskId: number;
-  checklistTitle?: string;
-  title: string;
-  dueDate?: string;
-  wordCount?: number | null;
-};
-
 export type UpdateSubtaskInput = {
   id: number;
   checklistTitle?: string;
