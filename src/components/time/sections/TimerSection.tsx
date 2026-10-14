@@ -6,7 +6,6 @@ export function TimerSection({
   activeTimer,
   stopTimer,
   stopping,
-  refetch,
   tags,
   recentDescriptions,
   initialProjectId,
@@ -19,7 +18,6 @@ export function TimerSection({
         activeTimer={activeTimer}
         stopTimer={stopTimer}
         stopping={stopping}
-        refetch={refetch}
       />
     );
   }

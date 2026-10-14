@@ -51,12 +51,10 @@ export interface ActiveTimerBannerProps {
   activeTimer: TimeEntry;
   stopTimer: () => Promise<unknown>;
   stopping: boolean;
-  refetch: () => void;
 }
 
 export interface ClockifyImportFormProps {
   workspaceId: string;
-  refetch: () => void;
   onClose: () => void;
 }
 

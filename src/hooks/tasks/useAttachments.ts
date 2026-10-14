@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { reloadWhereShown } from "@/lib/cacheDeps";
 
 const API_BASE = (import.meta.env.VITE_API_URL as string).replace(
   "/graphql",
@@ -20,9 +21,7 @@ export function useCreateAttachment(taskId: number) {
       if (!res.ok) throw new Error("Upload failed");
       return res.json() as Promise<unknown>;
     },
-    onSuccess: () => {
-      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "taskDetail"),
   });
 
   const { mutateAsync: createUrl, isPending: urlPending } = useMutation({
@@ -36,9 +35,7 @@ export function useCreateAttachment(taskId: number) {
       if (!res.ok) throw new Error("Failed to add link");
       return res.json() as Promise<unknown>;
     },
-    onSuccess: () => {
-      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "taskDetail"),
   });
 
   return {
@@ -73,9 +70,7 @@ export function useUpdateAttachment(taskId: number) {
       if (!res.ok) throw new Error("Update failed");
       return res.json() as Promise<unknown>;
     },
-    onSuccess: () => {
-      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "taskDetail"),
   });
 
   return {
@@ -95,9 +90,7 @@ export function useDeleteAttachment(taskId: number) {
       });
       if (!res.ok) throw new Error("Delete failed");
     },
-    onSuccess: () => {
-      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "taskDetail"),
   });
 
   return { deleteAttachment: (id: number) => mutateAsync(id) };

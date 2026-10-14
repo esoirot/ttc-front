@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { FormattedMessage, useIntl } from "react-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditableTimeField } from "@/components/time/EditableTimeField";
@@ -16,13 +15,10 @@ function formatDuration(seconds: number): string {
 
 export function RecentTimeEntries({ entries }: Props) {
   const intl = useIntl();
-  const queryClient = useQueryClient();
   const { updateTimeEntry } = useUpdateTimeEntry();
 
   function commitStartTime(id: number, newIso: string) {
-    void updateTimeEntry({ id, startTime: newIso }).then(() => {
-      void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-    });
+    void updateTimeEntry({ id, startTime: newIso });
   }
 
   return (

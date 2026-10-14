@@ -402,6 +402,21 @@ describe("useImportClockifyEntries", () => {
       { start: "2026-06-01", end: "2026-06-30" },
     );
   });
+
+  it("reloads TTC time entries, which the import just created", async () => {
+    apiPost.mockResolvedValueOnce({ imported: 3, skipped: 1 });
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(["timeEntries", {}], {});
+    const { result } = renderHook(() => useImportClockifyEntries("w1"), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    await result.current.mutateAsync({ start: "a", end: "b" });
+
+    expect(queryClient.getQueryState(["timeEntries", {}])?.isInvalidated).toBe(
+      true,
+    );
+  });
 });
 
 describe("ApiError import sanity", () => {

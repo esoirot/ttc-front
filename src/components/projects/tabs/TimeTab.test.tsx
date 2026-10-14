@@ -43,7 +43,6 @@ function baseProps(
       activeTimer: null,
       stopTimer: vi.fn(),
       stopping: false,
-      refetch: vi.fn(),
       tags: [],
       recentDescriptions: [],
       initialProjectId: 5,
@@ -68,18 +67,16 @@ describe("TimeTab", () => {
 
   it("passes timer-related props through to TimerSection", () => {
     const stopTimer = vi.fn();
-    const refetch = vi.fn();
     render(
       <TimeTab
         {...baseProps({
-          timer: { stopTimer, stopping: true, refetch },
+          timer: { stopTimer, stopping: true },
         })}
       />,
     );
 
     expect(timerSectionProps.stopTimer).toBe(stopTimer);
     expect(timerSectionProps.stopping).toBe(true);
-    expect(timerSectionProps.refetch).toBe(refetch);
   });
 
   it("passes entry list props through, wiring onResume/onUpdate", () => {

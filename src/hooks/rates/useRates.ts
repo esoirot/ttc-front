@@ -9,6 +9,7 @@ import {
 } from "../../graphql/rates.operations";
 import { useGqlQuery } from "@/lib/gqlQuery";
 import { useGqlMutation } from "@/lib/gqlMutation";
+import { reloadWhereShown } from "@/lib/cacheDeps";
 import {
   appendToFlatArray,
   patchFlatArray,
@@ -40,11 +41,7 @@ export function useCreateRate() {
         ["translationRates", created.type],
         created,
       );
-      if (created.occupationId != null) {
-        void queryClient.invalidateQueries({
-          queryKey: ["occupation", created.occupationId],
-        });
-      }
+      reloadWhereShown(queryClient, "rate");
     },
   });
   return {
@@ -71,11 +68,7 @@ export function useUpdateRate() {
         updated,
         (r) => r.id,
       );
-      if (updated.occupationId != null) {
-        void queryClient.invalidateQueries({
-          queryKey: ["occupation", updated.occupationId],
-        });
-      }
+      reloadWhereShown(queryClient, "rate");
     },
   });
   return {
@@ -109,7 +102,7 @@ export function useDeleteRate() {
           (r: TranslationRate) => r.id,
         );
       }
-      void queryClient.invalidateQueries({ queryKey: ["occupation"] });
+      reloadWhereShown(queryClient, "rate");
     },
   });
   return { deleteRate: (id: number) => mutateAsync({ id }) };

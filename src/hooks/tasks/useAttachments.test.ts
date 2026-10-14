@@ -27,10 +27,10 @@ describe("useCreateAttachment", () => {
     vi.unstubAllGlobals();
   });
 
-  it("uploads a file via multipart form data and refetches the task", async () => {
+  it("uploads a file via multipart form data and reloads the task and its project activity", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse(200, { id: 1 }));
     const queryClient = createQueryClient();
-    const refetchSpy = vi.spyOn(queryClient, "refetchQueries");
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
     const { result } = renderHook(() => useCreateAttachment(7), {
       wrapper: createQueryWrapper(queryClient),
@@ -43,14 +43,19 @@ describe("useCreateAttachment", () => {
     expect(url).toBe("http://localhost:3000/tasks/7/attachments/file");
     expect(init.method).toBe("POST");
     expect(init.body).toBeInstanceOf(FormData);
-    expect(refetchSpy).toHaveBeenCalledWith({ queryKey: ["task", 7] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["task"] });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["projectActivities"],
+    });
   });
 
-  it("creates a link attachment via JSON body", async () => {
+  it("creates a link attachment via JSON body and reloads the task", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse(200, { id: 2 }));
+    const queryClient = createQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
     const { result } = renderHook(() => useCreateAttachment(7), {
-      wrapper: createQueryWrapper(),
+      wrapper: createQueryWrapper(queryClient),
     });
 
     await result.current.createUrl("https://example.com", "Doc link");
@@ -61,6 +66,7 @@ describe("useCreateAttachment", () => {
       url: "https://example.com",
       displayText: "Doc link",
     });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["task"] });
   });
 
   it("throws when the upload response is not ok", async () => {
@@ -88,11 +94,13 @@ describe("useUpdateAttachment", () => {
     vi.unstubAllGlobals();
   });
 
-  it("PATCHes the attachment by id", async () => {
+  it("PATCHes the attachment by id and reloads the task", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse(200, { id: 3 }));
+    const queryClient = createQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
     const { result } = renderHook(() => useUpdateAttachment(7), {
-      wrapper: createQueryWrapper(),
+      wrapper: createQueryWrapper(queryClient),
     });
 
     await result.current.updateAttachment(3, "https://x.com", "New text");
@@ -100,6 +108,7 @@ describe("useUpdateAttachment", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("http://localhost:3000/tasks/7/attachments/3");
     expect(init.method).toBe("PATCH");
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["task"] });
   });
 });
 
@@ -115,9 +124,10 @@ describe("useDeleteAttachment", () => {
     vi.unstubAllGlobals();
   });
 
-  it("DELETEs the attachment and refetches the task", async () => {
+  it("DELETEs the attachment and reloads the task and its project activity", async () => {
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
     const queryClient = createQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
     const { result } = renderHook(() => useDeleteAttachment(7), {
       wrapper: createQueryWrapper(queryClient),
@@ -128,5 +138,9 @@ describe("useDeleteAttachment", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("http://localhost:3000/tasks/7/attachments/3");
     expect(init.method).toBe("DELETE");
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["task"] });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["projectActivities"],
+    });
   });
 });

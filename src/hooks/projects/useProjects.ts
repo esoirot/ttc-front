@@ -15,6 +15,7 @@ import type {
 import { gqlFetch } from "@/lib/apollo";
 import { useGqlConnectionQuery } from "@/lib/gqlQuery";
 import { useGqlMutation } from "@/lib/gqlMutation";
+import { reloadWhereShown } from "@/lib/cacheDeps";
 import { patchConnection, removeFromConnection } from "@/lib/cachePatch";
 
 const LIMIT = 20;
@@ -85,9 +86,7 @@ export function useCreateProject() {
   const { mutateAsync, isPending, error } = useGqlMutation({
     mutation: CREATE_PROJECT_MUTATION,
     unwrap: (d) => d.createProject,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["projects"] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "project"),
   });
   return {
     createProject: (input: ProjectInput) => mutateAsync({ input }),
@@ -104,6 +103,7 @@ export function useUpdateProject() {
     onSuccess: (updated) => {
       patchConnection(queryClient, ["projects"], updated, (p) => p.id);
       queryClient.setQueryData(["project", updated.id], updated);
+      reloadWhereShown(queryClient, "project");
     },
   });
   return {
@@ -121,6 +121,7 @@ export function useDeleteProject() {
     onSuccess: (_data, { id }) => {
       removeFromConnection(queryClient, ["projects"], id, (p: Project) => p.id);
       queryClient.removeQueries({ queryKey: ["project", id] });
+      reloadWhereShown(queryClient, "project");
     },
   });
   return {

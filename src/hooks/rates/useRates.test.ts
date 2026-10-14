@@ -118,7 +118,7 @@ describe("useCreateRate", () => {
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["occupation", 42],
+      queryKey: ["occupation"],
     });
   });
 });
@@ -172,7 +172,7 @@ describe("useUpdateRate", () => {
     await result.current.updateRate({ id: 3, sourceLanguage: "EN" });
 
     expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["occupation", 42],
+      queryKey: ["occupation"],
     });
   });
 });

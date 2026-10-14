@@ -103,8 +103,8 @@ function SubtaskItemDialog({
   );
 
   const { createSubtask, loading: creating } = useCreateSubtask(taskId);
-  const { updateSubtask, loading: updating } = useUpdateSubtask(taskId);
-  const { deleteSubtask } = useDeleteSubtask(taskId);
+  const { updateSubtask, loading: updating } = useUpdateSubtask();
+  const { deleteSubtask } = useDeleteSubtask();
   const saving = creating || updating;
 
   async function handleSave() {
@@ -320,7 +320,7 @@ function ChecklistGroup({
   const [dialogState, setDialogState] = useState<DialogState | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleVal, setTitleVal] = useState(checklistTitle);
-  const { updateSubtask } = useUpdateSubtask(taskId);
+  const { updateSubtask } = useUpdateSubtask();
   const { renameChecklist } = useRenameChecklist(taskId);
   const { deleteChecklist } = useDeleteChecklist(taskId);
 

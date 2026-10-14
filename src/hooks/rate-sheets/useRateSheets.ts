@@ -12,6 +12,7 @@ import type {
 } from "@/types/rate-sheets.types";
 import { useGqlQuery } from "@/lib/gqlQuery";
 import { useGqlMutation } from "@/lib/gqlMutation";
+import { reloadWhereShown } from "@/lib/cacheDeps";
 import {
   appendToFlatArray,
   patchFlatArray,
@@ -34,6 +35,7 @@ export function useCreateRateSheet() {
     unwrap: (d) => d.createRateSheet,
     onSuccess: (created) => {
       appendToFlatArray(queryClient, ["rateSheets"], created);
+      reloadWhereShown(queryClient, "rateSheet");
     },
   });
   return {
@@ -49,6 +51,7 @@ export function useUpdateRateSheet() {
     unwrap: (d) => d.updateRateSheet,
     onSuccess: (updated) => {
       patchFlatArray(queryClient, ["rateSheets"], updated, (rs) => rs.id);
+      reloadWhereShown(queryClient, "rateSheet");
     },
   });
   return {
@@ -69,6 +72,7 @@ export function useDeleteRateSheet() {
         id,
         (rs: RateSheet) => rs.id,
       );
+      reloadWhereShown(queryClient, "rateSheet");
     },
   });
   return { deleteRateSheet: (id: number) => mutateAsync({ id }) };

@@ -9,7 +9,7 @@ import type { TaskStatus } from "@/types/tasks.types";
 
 export function useProjectTaskList({ projectId }: { projectId: number }) {
   const { tasks, loading, hasMore, loadMore } = useTasks(projectId);
-  const { createTask, loading: createLoading } = useCreateTask(projectId);
+  const { createTask, loading: createLoading } = useCreateTask();
   const { updateTask } = useUpdateTask(projectId);
   const { deleteTask } = useDeleteTask(projectId);
 

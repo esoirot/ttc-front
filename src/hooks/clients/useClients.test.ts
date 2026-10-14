@@ -4,11 +4,7 @@ import {
   createQueryClient,
   createQueryWrapper,
 } from "@/test/queryClientWrapper";
-import type {
-  Client,
-  ClientConnection,
-  ClientStatus,
-} from "@/types/clients.types";
+import type { Client, ClientConnection } from "@/types/clients.types";
 import type { InfiniteData } from "@tanstack/react-query";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
@@ -303,29 +299,22 @@ describe("useUpdateClient", () => {
     gqlMutate.mockReset();
   });
 
-  it("updates the single-client cache entry on success", async () => {
-    const updated = makeClient({ id: 3, name: "Renamed" });
-    gqlMutate.mockResolvedValueOnce({ updateClient: updated });
-    const queryClient = createQueryClient();
-
-    const { result } = renderHook(() => useUpdateClient(), {
-      wrapper: createQueryWrapper(queryClient),
-    });
-
-    await result.current.updateClient({ id: 3, name: "Renamed" });
-
-    expect(queryClient.getQueryData(["client", 3])).toEqual(updated);
-  });
+  const prospects = {
+    search: null,
+    clientType: null,
+    excludeStatus: "CLIENT" as const,
+    status: null,
+  };
+  const companies = {
+    search: null,
+    clientType: "COMPANY",
+    excludeStatus: null,
+    status: "CLIENT" as const,
+  };
 
   function seedListCache(
     queryClient: ReturnType<typeof createQueryClient>,
-    key: {
-      search: string | null;
-      clientType: string | null;
-      excludeStatus: ClientStatus | null;
-      status: ClientStatus | null;
-      industry?: string | null;
-    },
+    key: object,
     items: Client[],
   ) {
     queryClient.setQueryData<InfiniteData<ClientConnection>>(["clients", key], {
@@ -334,138 +323,90 @@ describe("useUpdateClient", () => {
     });
   }
 
-  it("keeps an edited client in an industry-filtered list while its industry still matches", async () => {
-    const key = {
-      search: null,
-      clientType: null,
-      excludeStatus: null,
-      status: null,
-      industry: "LEGAL",
-    };
-    gqlMutate.mockResolvedValueOnce({
-      updateClient: makeClient({ id: 10, name: "Renamed", industry: "LEGAL" }),
-    });
-    const queryClient = createQueryClient();
-    seedListCache(queryClient, key, [
-      makeClient({ id: 10, industry: "LEGAL" }),
-    ]);
-
-    const { result } = renderHook(() => useUpdateClient(), {
-      wrapper: createQueryWrapper(queryClient),
-    });
-    await result.current.updateClient({ id: 10, name: "Renamed" });
-
-    expect(
-      queryClient
-        .getQueryData<InfiniteData<ClientConnection>>(["clients", key])
-        ?.pages[0].items.map((c) => c.name),
-    ).toEqual(["Renamed"]);
-  });
-
-  it("removes the item from an industry-filtered list cache when its industry changes", async () => {
-    const key = {
-      search: null,
-      clientType: null,
-      excludeStatus: null,
-      status: null,
-      industry: "LEGAL",
-    };
-    gqlMutate.mockResolvedValueOnce({
-      updateClient: makeClient({ id: 10, industry: "FINANCE" }),
-    });
-    const queryClient = createQueryClient();
-    seedListCache(queryClient, key, [
-      makeClient({ id: 10, industry: "LEGAL" }),
-    ]);
-
-    const { result } = renderHook(() => useUpdateClient(), {
-      wrapper: createQueryWrapper(queryClient),
-    });
-    await result.current.updateClient({ id: 10, industry: "FINANCE" });
-
-    expect(
-      queryClient.getQueryData<InfiniteData<ClientConnection>>(["clients", key])
-        ?.pages[0].items,
-    ).toEqual([]);
-  });
-
-  it("removes the item from a status-filtered list cache when its new status no longer matches", async () => {
-    const client = makeClient({ id: 10, status: "TO_CONTACT" });
-    const updated = makeClient({ id: 10, status: "CONTACTED" });
-    gqlMutate.mockResolvedValueOnce({ updateClient: updated });
-    const queryClient = createQueryClient();
-    seedListCache(
-      queryClient,
-      {
-        search: null,
-        clientType: null,
-        excludeStatus: null,
-        status: "TO_CONTACT",
-      },
-      [client],
-    );
-
-    const { result } = renderHook(() => useUpdateClient(), {
-      wrapper: createQueryWrapper(queryClient),
-    });
-    await result.current.updateClient({ id: 10, status: "CONTACTED" });
-
-    const cache = queryClient.getQueryData<InfiniteData<ClientConnection>>([
+  function listItems(
+    queryClient: ReturnType<typeof createQueryClient>,
+    key: object,
+  ) {
+    return queryClient.getQueryData<InfiniteData<ClientConnection>>([
       "clients",
-      {
-        search: null,
-        clientType: null,
-        excludeStatus: null,
-        status: "TO_CONTACT",
-      },
-    ]);
-    expect(cache?.pages[0].items).toEqual([]);
-  });
+      key,
+    ])?.pages[0].items;
+  }
 
-  it("removes the item from an excludeStatus-filtered list cache when its new status now matches the excluded value", async () => {
-    const client = makeClient({ id: 11, status: "TALKING" });
-    const updated = makeClient({ id: 11, status: "CLIENT" });
+  async function update(
+    queryClient: ReturnType<typeof createQueryClient>,
+    updated: Client,
+  ) {
     gqlMutate.mockResolvedValueOnce({ updateClient: updated });
-    const queryClient = createQueryClient();
-    seedListCache(
-      queryClient,
-      { search: null, clientType: null, excludeStatus: "CLIENT", status: null },
-      [client],
-    );
-
     const { result } = renderHook(() => useUpdateClient(), {
       wrapper: createQueryWrapper(queryClient),
     });
-    await result.current.updateClient({ id: 11, status: "CLIENT" });
+    await result.current.updateClient({ id: updated.id });
+  }
 
-    const cache = queryClient.getQueryData<InfiniteData<ClientConnection>>([
-      "clients",
-      { search: null, clientType: null, excludeStatus: "CLIENT", status: null },
-    ]);
-    expect(cache?.pages[0].items).toEqual([]);
+  it("updates the single-client cache entry on success", async () => {
+    const updated = makeClient({ id: 3, name: "Renamed" });
+    const queryClient = createQueryClient();
+
+    await update(queryClient, updated);
+
+    expect(queryClient.getQueryData(["client", 3])).toEqual(updated);
   });
 
-  it("updates the item in place in a filtered list cache when it still matches the filter", async () => {
-    const client = makeClient({ id: 12, name: "Old Name", status: "TALKING" });
+  it("shows the saved client at once in every cached list holding it", async () => {
+    const other = makeClient({ id: 1, status: "TO_CONTACT" });
     const updated = makeClient({ id: 12, name: "New Name", status: "TALKING" });
-    gqlMutate.mockResolvedValueOnce({ updateClient: updated });
     const queryClient = createQueryClient();
-    seedListCache(
+    seedListCache(queryClient, prospects, [
+      other,
+      makeClient({ id: 12, name: "Old Name", status: "TALKING" }),
+    ]);
+
+    await update(queryClient, updated);
+
+    expect(listItems(queryClient, prospects)).toEqual([other, updated]);
+  });
+
+  it("reloads every cached client list, so the server re-applies its filters and sort", async () => {
+    const queryClient = createQueryClient();
+    seedListCache(queryClient, prospects, []);
+    seedListCache(queryClient, companies, [makeClient({ id: 13 })]);
+
+    await update(
       queryClient,
-      { search: null, clientType: null, excludeStatus: "CLIENT", status: null },
-      [client],
+      makeClient({
+        id: 13,
+        clientType: "INDIVIDUAL",
+        status: "FORMER_CLIENT",
+      }),
     );
 
-    const { result } = renderHook(() => useUpdateClient(), {
-      wrapper: createQueryWrapper(queryClient),
-    });
-    await result.current.updateClient({ id: 12, name: "New Name" });
+    expect(
+      queryClient.getQueryState(["clients", prospects])?.isInvalidated,
+    ).toBe(true);
+    expect(
+      queryClient.getQueryState(["clients", companies])?.isInvalidated,
+    ).toBe(true);
+  });
 
-    const cache = queryClient.getQueryData<InfiniteData<ClientConnection>>([
-      "clients",
-      { search: null, clientType: null, excludeStatus: "CLIENT", status: null },
-    ]);
-    expect(cache?.pages[0].items).toEqual([updated]);
+  it("reloads the dashboard, whose prospects to contact copy the client", async () => {
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(["dashboard"], { prospectsToContact: [] });
+
+    await update(queryClient, makeClient({ id: 14, status: "CONTACTED" }));
+
+    expect(queryClient.getQueryState(["dashboard"])?.isInvalidated).toBe(true);
+  });
+
+  it("leaves other caches alone", async () => {
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(["projects", {}], []);
+
+    await update(queryClient, makeClient({ id: 15 }));
+
+    expect(queryClient.getQueryState(["projects", {}])?.isInvalidated).toBe(
+      false,
+    );
   });
 });
 
@@ -558,7 +499,17 @@ describe("company contact mutations keep the client page in sync", () => {
       ["client", 4],
       makeClient({ id: 4, contacts: [jane] }),
     );
+    // Client cards show the first contact's name or a contact count.
+    queryClient.setQueryData(["clients", {}], {
+      pages: [{ items: [], nextCursor: null, total: 0 }],
+      pageParams: [undefined],
+    });
+    queryClient.setQueryData(["projects", {}], []);
     return queryClient;
+  }
+
+  function listStale(queryClient: ReturnType<typeof createQueryClient>) {
+    return queryClient.getQueryState(["clients", {}])?.isInvalidated;
   }
 
   function cachedContacts(queryClient: ReturnType<typeof createQueryClient>) {
@@ -581,6 +532,7 @@ describe("company contact mutations keep the client page in sync", () => {
       input: { firstName: "John", clientId: 4 },
     });
     expect(cachedContacts(queryClient)).toEqual([jane, john]);
+    expect(listStale(queryClient)).toBe(true);
   });
 
   it("replaces an edited contact in the cached client", async () => {
@@ -594,6 +546,10 @@ describe("company contact mutations keep the client page in sync", () => {
     await result.current.updateContact({ id: 1, firstName: "Janet" });
 
     expect(cachedContacts(queryClient)).toEqual([renamed]);
+    expect(listStale(queryClient)).toBe(true);
+    expect(queryClient.getQueryState(["projects", {}])?.isInvalidated).toBe(
+      false,
+    );
   });
 
   it("removes a deleted contact from the cached client", async () => {
@@ -607,5 +563,6 @@ describe("company contact mutations keep the client page in sync", () => {
 
     expect(gqlMutate).toHaveBeenCalledWith(expect.anything(), { id: 1 });
     expect(cachedContacts(queryClient)).toEqual([]);
+    expect(listStale(queryClient)).toBe(true);
   });
 });

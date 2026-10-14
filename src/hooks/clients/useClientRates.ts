@@ -6,6 +6,7 @@ import {
   UPDATE_CLIENT_RATE_MUTATION,
   DELETE_CLIENT_RATE_MUTATION,
 } from "@/graphql/client-rates.operations";
+import { reloadWhereShown } from "@/lib/cacheDeps";
 import { gqlMutate } from "@/lib/apollo";
 import { useGqlQuery } from "@/lib/gqlQuery";
 import type { CreateClientRateInput } from "@/types/clients.types";
@@ -37,6 +38,7 @@ export function useCreateClientRate(clientId: number) {
         ["clientRates", clientId],
         (old) => [...(old ?? []), created],
       );
+      reloadWhereShown(queryClient, "clientRate");
     },
   });
   return {
@@ -61,6 +63,7 @@ export function useUpdateClientRate(clientId: number) {
         ["clientRates", clientId],
         (old) => old?.map((r) => (r.id === updated.id ? updated : r)) ?? [],
       );
+      reloadWhereShown(queryClient, "clientRate");
     },
   });
   return {
@@ -81,6 +84,7 @@ export function useDeleteClientRate(clientId: number) {
         ["clientRates", clientId],
         (old) => old?.filter((r) => r.id !== id) ?? [],
       );
+      reloadWhereShown(queryClient, "clientRate");
     },
   });
   return { deleteClientRate: (id: number) => mutateAsync(id) };

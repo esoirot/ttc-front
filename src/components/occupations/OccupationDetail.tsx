@@ -195,11 +195,7 @@ export function OccupationDetail() {
                 ) : (
                   <div className="divide-y divide-border">
                     {fixedCharges.map((c) => (
-                      <ChargeRow
-                        key={c.id}
-                        charge={c}
-                        occupationId={occupationId}
-                      />
+                      <ChargeRow key={c.id} charge={c} />
                     ))}
                   </div>
                 )}
@@ -222,11 +218,7 @@ export function OccupationDetail() {
                 ) : (
                   <div className="divide-y divide-border">
                     {variableCharges.map((c) => (
-                      <ChargeRow
-                        key={c.id}
-                        charge={c}
-                        occupationId={occupationId}
-                      />
+                      <ChargeRow key={c.id} charge={c} />
                     ))}
                   </div>
                 )}

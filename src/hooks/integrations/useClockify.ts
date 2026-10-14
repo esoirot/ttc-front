@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { reloadWhereShown } from "@/lib/cacheDeps";
 import { apiDelete, apiGet, apiPatch, apiPost, ApiError } from "../../lib/api";
 import type {
   ClockifyWorkspace,
@@ -199,6 +200,7 @@ export function useUpdateEntry(workspaceId: string | null) {
 }
 
 export function useImportClockifyEntries(workspaceId: string | null) {
+  const qc = useQueryClient();
   return useMutation({
     meta: { inlineError: true },
     mutationFn: (range: { start: string; end: string }) =>
@@ -206,5 +208,7 @@ export function useImportClockifyEntries(workspaceId: string | null) {
         `/clockify/workspaces/${workspaceId}/entries/import`,
         range,
       ),
+    // The import creates TTC time entries.
+    onSuccess: () => reloadWhereShown(qc, "timeEntry"),
   });
 }

@@ -7,6 +7,7 @@ import {
 import type { Tag } from "@/types/tags.types";
 import { useGqlQuery } from "@/lib/gqlQuery";
 import { useGqlMutation } from "@/lib/gqlMutation";
+import { reloadWhereShown } from "@/lib/cacheDeps";
 import { appendToFlatArray, removeFromFlatArray } from "@/lib/cachePatch";
 
 export function useTags() {
@@ -27,6 +28,7 @@ export function useCreateTag(opts: { inlineError?: boolean } = {}) {
     unwrap: (d) => d.createTag,
     onSuccess: (newTag) => {
       appendToFlatArray(queryClient, ["tags"], newTag);
+      reloadWhereShown(queryClient, "tag");
     },
   });
   return {
@@ -42,6 +44,7 @@ export function useDeleteTag() {
     unwrap: (d) => d.deleteTag,
     onSuccess: (_data, { id }) => {
       removeFromFlatArray(queryClient, ["tags"], id, (t: Tag) => t.id);
+      reloadWhereShown(queryClient, "tag");
     },
   });
   return { deleteTag: (id: number) => mutateAsync({ id }) };

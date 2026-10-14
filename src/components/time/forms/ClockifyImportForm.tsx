@@ -11,7 +11,6 @@ import { toEndIso, toStartIso } from "@/lib/time";
 
 export function ClockifyImportForm({
   workspaceId,
-  refetch,
   onClose,
 }: ClockifyImportFormProps) {
   const importMutation = useImportClockifyEntries(workspaceId);
@@ -35,7 +34,6 @@ export function ClockifyImportForm({
         end: toEndIso(importTo),
       });
       setImportResult(result);
-      void refetch();
     } catch {
       /* error state is surfaced via importMutation.error */
     }

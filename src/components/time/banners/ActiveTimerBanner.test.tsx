@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const useElapsedTimerMock = vi.fn();
@@ -42,7 +42,6 @@ describe("ActiveTimerBanner", () => {
         activeTimer={makeTimer()}
         stopTimer={vi.fn()}
         stopping={false}
-        refetch={vi.fn()}
       />,
       { wrapper },
     );
@@ -58,7 +57,6 @@ describe("ActiveTimerBanner", () => {
         activeTimer={makeTimer({ description: null })}
         stopTimer={vi.fn()}
         stopping={false}
-        refetch={vi.fn()}
       />,
       { wrapper },
     );
@@ -77,7 +75,6 @@ describe("ActiveTimerBanner", () => {
         })}
         stopTimer={vi.fn()}
         stopping={false}
-        refetch={vi.fn()}
       />,
       { wrapper },
     );
@@ -93,7 +90,6 @@ describe("ActiveTimerBanner", () => {
         activeTimer={makeTimer()}
         stopTimer={vi.fn()}
         stopping={false}
-        refetch={vi.fn()}
       />,
       { wrapper },
     );
@@ -101,15 +97,13 @@ describe("ActiveTimerBanner", () => {
     expect(screen.queryByText(/^\d+:\d{2}:\d{2}$/)).not.toBeInTheDocument();
   });
 
-  it("stops the timer and refetches when Stop is clicked", async () => {
+  it("stops the timer when Stop is clicked", async () => {
     const stopTimer = vi.fn().mockResolvedValue(undefined);
-    const refetch = vi.fn();
     render(
       <ActiveTimerBanner
         activeTimer={makeTimer()}
         stopTimer={stopTimer}
         stopping={false}
-        refetch={refetch}
       />,
       { wrapper },
     );
@@ -117,7 +111,6 @@ describe("ActiveTimerBanner", () => {
     fireEvent.click(screen.getByText("⏹ Stop"));
 
     expect(stopTimer).toHaveBeenCalled();
-    await waitFor(() => expect(refetch).toHaveBeenCalled());
   });
 
   it("disables the button and shows 'Stopping…' while stopping", () => {
@@ -126,7 +119,6 @@ describe("ActiveTimerBanner", () => {
         activeTimer={makeTimer()}
         stopTimer={vi.fn()}
         stopping={true}
-        refetch={vi.fn()}
       />,
       { wrapper },
     );
@@ -140,7 +132,6 @@ describe("ActiveTimerBanner", () => {
         activeTimer={makeTimer()}
         stopTimer={vi.fn()}
         stopping={false}
-        refetch={vi.fn()}
       />,
       { wrapper: createIntlWrapper("fr") },
     );

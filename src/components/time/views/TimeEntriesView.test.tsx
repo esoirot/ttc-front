@@ -47,7 +47,6 @@ function basePageState(overrides: Record<string, unknown> = {}) {
     hasMore: false,
     loadMore: vi.fn(),
     total: 0,
-    refetch: vi.fn(),
     activeTimer: null,
     stopTimer: vi.fn(),
     stopping: false,

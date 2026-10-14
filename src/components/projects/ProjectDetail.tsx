@@ -144,7 +144,6 @@ export function ProjectDetail() {
               activeTimer: timeTab.activeTimer,
               stopTimer: timeTab.stopTimer,
               stopping: timeTab.stopping,
-              refetch: timeTab.refetch,
               tags: timeTab.tags,
               recentDescriptions: timeTab.recentDescriptions,
               initialProjectId: projectId,

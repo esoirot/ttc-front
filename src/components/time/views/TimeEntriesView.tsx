@@ -17,7 +17,6 @@ export function TimeEntriesView() {
     hasMore,
     loadMore,
     total,
-    refetch,
     activeTimer,
     stopTimer,
     stopping,
@@ -48,7 +47,6 @@ export function TimeEntriesView() {
       {showImport && workspaceId && (
         <ClockifyImportForm
           workspaceId={workspaceId}
-          refetch={refetch}
           onClose={() => setShowImport(false)}
         />
       )}
@@ -57,7 +55,6 @@ export function TimeEntriesView() {
         activeTimer={activeTimer}
         stopTimer={stopTimer}
         stopping={stopping}
-        refetch={refetch}
         tags={tags}
         recentDescriptions={recentDescriptions}
       />

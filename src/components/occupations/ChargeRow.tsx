@@ -20,10 +20,10 @@ import {
 import { centsToEuros, eurosToCents, formatCents } from "@/lib/currency";
 import type { ChargeRowProps } from "@/types/occupations.types";
 
-export function ChargeRow({ charge, occupationId }: ChargeRowProps) {
+export function ChargeRow({ charge }: ChargeRowProps) {
   const intl = useIntl();
-  const { updateCharge, loading: updating } = useUpdateCharge(occupationId);
-  const { deleteCharge } = useDeleteCharge(occupationId);
+  const { updateCharge, loading: updating } = useUpdateCharge();
+  const { deleteCharge } = useDeleteCharge();
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(charge.name);
   const [editAmount, setEditAmount] = useState(centsToEuros(charge.amount));
