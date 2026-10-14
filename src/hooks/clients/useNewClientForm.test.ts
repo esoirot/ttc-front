@@ -17,7 +17,7 @@ function submitEvent() {
 
 describe("useNewClientForm", () => {
   beforeEach(() => {
-    gqlFetch.mockReset().mockResolvedValue({ tags: [] });
+    gqlFetch.mockReset().mockResolvedValue({ tags: [], myOccupations: [] });
     gqlMutate.mockReset();
   });
 

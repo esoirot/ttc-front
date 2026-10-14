@@ -51,7 +51,7 @@ function makeClient(overrides: Partial<Client> = {}): Client {
 
 describe("useClientHeaderForm", () => {
   beforeEach(() => {
-    gqlFetch.mockReset().mockResolvedValue({ tags: [] });
+    gqlFetch.mockReset().mockResolvedValue({ tags: [], myOccupations: [] });
     gqlMutate.mockReset();
   });
 

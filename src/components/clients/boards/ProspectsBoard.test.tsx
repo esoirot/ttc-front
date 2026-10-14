@@ -184,7 +184,10 @@ describe("ProspectsBoard", () => {
   });
 
   it("toggles the new-prospect form open and closed", async () => {
-    gqlFetch.mockResolvedValue({ clients: makeConnection([]) });
+    gqlFetch.mockResolvedValue({
+      clients: makeConnection([]),
+      myOccupations: [],
+    });
 
     renderBoard();
     await waitFor(() => expect(gqlFetch).toHaveBeenCalled());

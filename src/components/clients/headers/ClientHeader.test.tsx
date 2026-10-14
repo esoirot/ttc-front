@@ -80,7 +80,7 @@ function renderHeader(
   saving = false,
   locale: "en" | "fr" = "en",
 ) {
-  gqlFetch.mockResolvedValue({ tags: [] });
+  gqlFetch.mockResolvedValue({ tags: [], myOccupations: [] });
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <IntlProvider locale={locale} messages={messages[locale]}>
@@ -237,7 +237,7 @@ describe("ClientHeader", () => {
 
   it("opens Edit with the client as it is now, so a save never sends back a stale status", async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
-    gqlFetch.mockResolvedValue({ tags: [] });
+    gqlFetch.mockResolvedValue({ tags: [], myOccupations: [] });
     const queryClient = createQueryClient();
     const view = (client: Client) => (
       <QueryClientProvider client={queryClient}>

@@ -115,6 +115,8 @@ function mockApi(clients: Client[] = [], extra: Record<string, unknown> = {}) {
     Promise.resolve({
       translationRates: [],
       clientRates: [],
+      rateSheets: [],
+      myOccupations: [],
       clients: { items: clients, nextCursor: null, total: clients.length },
       client: clients.find((c) => c.id === vars?.id) ?? null,
       ...extra,
@@ -385,7 +387,12 @@ describe("ProjectHeader", () => {
       );
       const opName = op?.name?.value ?? String(query);
       if (opName === "RateSheets") return rateSheetsPromise;
-      return Promise.resolve({ translationRates: [], clientRates: [] });
+      return Promise.resolve({
+        translationRates: [],
+        clientRates: [],
+        myOccupations: [],
+        client: null,
+      });
     });
 
     render(
@@ -431,6 +438,8 @@ describe("ProjectHeader", () => {
 
   it("shows the client rate sheet price when a matching sheet is loaded", async () => {
     gqlFetch.mockResolvedValue({
+      myOccupations: [],
+      client: null,
       translationRates: [],
       clientRates: [],
       rateSheets: [
@@ -486,6 +495,8 @@ describe("ProjectHeader", () => {
 
   it("defaults the rate sheet select to the client's isDefault sheet on save", async () => {
     gqlFetch.mockResolvedValue({
+      myOccupations: [],
+      client: null,
       translationRates: [],
       clientRates: [],
       rateSheets: [
@@ -517,6 +528,8 @@ describe("ProjectHeader", () => {
 
   it("defaults to the client's sole rate sheet even when it is not marked isDefault", async () => {
     gqlFetch.mockResolvedValue({
+      myOccupations: [],
+      client: null,
       translationRates: [],
       clientRates: [],
       rateSheets: [makeRateSheet({ id: 5, clientId: 3, isDefault: false })],
@@ -545,6 +558,8 @@ describe("ProjectHeader", () => {
 
   it("lets the user pick a non-default rate sheet from the client's list", async () => {
     gqlFetch.mockResolvedValue({
+      myOccupations: [],
+      client: null,
       translationRates: [],
       clientRates: [],
       rateSheets: [
@@ -650,6 +665,8 @@ describe("ProjectHeader", () => {
 
   it("renders a RatePicker trigger when matching rates are loaded", async () => {
     gqlFetch.mockResolvedValue({
+      myOccupations: [],
+      client: null,
       translationRates: [
         {
           id: 1,
@@ -668,6 +685,7 @@ describe("ProjectHeader", () => {
         },
       ],
       clientRates: [],
+      rateSheets: [],
     });
     render(
       <QueryClientProvider client={createQueryClient()}>
@@ -688,6 +706,8 @@ describe("ProjectHeader", () => {
 
   it("picking a rate from the RatePicker fills the amount and currency", async () => {
     gqlFetch.mockResolvedValue({
+      myOccupations: [],
+      client: null,
       translationRates: [
         {
           id: 1,
@@ -706,6 +726,7 @@ describe("ProjectHeader", () => {
         },
       ],
       clientRates: [],
+      rateSheets: [],
     });
     const onUpdate = vi.fn().mockResolvedValue(undefined);
     render(
@@ -744,6 +765,9 @@ describe("ProjectHeader", () => {
     "picking a %s rate fills only its own field and the currency",
     async (type, name, amount, field) => {
       gqlFetch.mockResolvedValue({
+        myOccupations: [],
+        client: null,
+        rateSheets: [],
         translationRates: [
           {
             id: 1,

@@ -54,7 +54,11 @@ function blanketResponse(project: Project | null) {
     tasks: emptyConnection(),
     timeEntries: emptyConnection(),
     activeTimer: null,
+    firstTimeEntryStart: null,
+    task: null,
     tags: [],
+    myOccupations: [],
+    rateSheets: [],
     members: [],
     me: null,
   });

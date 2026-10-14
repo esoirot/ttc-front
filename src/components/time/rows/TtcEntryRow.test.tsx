@@ -120,6 +120,7 @@ describe("TtcEntryRow", () => {
           });
         }
         return Promise.resolve({
+          project: null,
           task: {
             id: vars.id,
             subtasks: [
