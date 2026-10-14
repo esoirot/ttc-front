@@ -19,22 +19,36 @@ export default defineConfig({
     chunkSizeWarningLimit: 800,
     rolldownOptions: {
       output: {
+        // Match the package name: pnpm folder names list peer deps
+        // (`.pnpm/recharts@3_react-dom@19/…`), so a substring test on the
+        // whole id would pull every React library into the "react" chunk.
+        // Other packages are left to the bundler, so a library used by one
+        // lazy page stays in that page's chunk.
         manualChunks(id: string) {
-          if (!id.includes("node_modules")) return;
-          if (id.includes("@apollo") || id.includes("/graphql/"))
-            return "apollo";
-          if (id.includes("react-dom") || id.includes("react-router"))
+          if (!id.includes("node_modules/")) return;
+          const pkg =
+            id
+              .split("node_modules/")
+              .at(-1)
+              ?.match(/^(@[^/]+\/)?[^/]+/)?.[0] ?? "";
+          if (pkg.startsWith("@apollo/") || pkg === "graphql") return "apollo";
+          if (
+            [
+              "react",
+              "react-dom",
+              "scheduler",
+              "react-router",
+              "react-router-dom",
+            ].includes(pkg)
+          )
             return "react";
           if (
-            id.includes("@radix-ui") ||
-            id.includes("cmdk") ||
-            id.includes("vaul") ||
-            id.includes("sonner")
+            pkg.startsWith("@radix-ui/") ||
+            ["cmdk", "vaul", "sonner"].includes(pkg)
           )
             return "ui";
-          if (id.includes("@tanstack")) return "query";
-          if (id.includes("@dnd-kit")) return "dnd";
-          return "vendor";
+          if (pkg.startsWith("@tanstack/")) return "query";
+          if (pkg.startsWith("@dnd-kit/")) return "dnd";
         },
       },
     },

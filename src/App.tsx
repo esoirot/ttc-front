@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type ComponentType } from "react";
 import {
   createBrowserRouter,
   RouterProvider,
@@ -10,39 +10,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RouteErrorPage } from "./components/layout/RouteErrorPage";
 import { AppLayout } from "./components/layout/AppLayout";
-import { LoginPage } from "./pages/auth/LoginPage";
-import { RegisterPage } from "./pages/auth/RegisterPage";
-import { TwoFactorVerifyPage } from "./pages/auth/TwoFactorVerifyPage";
-import { TwoFactorSetupPage } from "./pages/auth/TwoFactorSetupPage";
-import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
-import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
-import { DashboardPage } from "./pages/dashboard/DashboardPage";
-import { EditProfilePage } from "./pages/account/EditProfilePage";
-import { ClockifyPage } from "./pages/integrations/ClockifyPage";
-import { HubspotPage } from "./pages/integrations/HubspotPage";
-import { GoogleCalendarPage } from "./pages/integrations/GoogleCalendarPage";
-import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
-import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
-import { AdminClientsPage } from "./pages/admin/AdminClientsPage";
-import { AdminProjectsPage } from "./pages/admin/AdminProjectsPage";
-import { AdminInvoicesPage } from "./pages/admin/AdminInvoicesPage";
-import { AdminTimeEntriesPage } from "./pages/admin/AdminTimeEntriesPage";
-import { AdminRatesPage } from "./pages/admin/AdminRatesPage";
-import { AdminAuditPage } from "./pages/admin/AdminAuditPage";
-import { AdminHubspotPage } from "./pages/admin/AdminHubspotPage";
-import { AdminActivityLogPage } from "./pages/admin/AdminActivityLogPage";
-import { ClientsPage } from "./pages/clients/ClientsPage";
-import { ClientDetailPage } from "./pages/clients/ClientDetailPage";
-import { ProspectsPage } from "./pages/clients/ProspectsPage";
-import { ProjectsPage } from "./pages/projects/ProjectsPage";
-import { ProjectDetailPage } from "./pages/projects/ProjectDetailPage";
-import { TimeEntriesPage } from "./pages/time/TimeEntriesPage";
-import { InvoicesPage } from "./pages/invoices/InvoicesPage";
-import { InvoiceDetailPage } from "./pages/invoices/InvoiceDetailPage";
-import { RatesPage } from "./pages/rates/RatesPage";
-import { OccupationsPage } from "./pages/occupations/OccupationsPage";
-import { OccupationDetailPage } from "./pages/occupations/OccupationDetailPage";
 import { AdminLayout } from "./components/admin/layout/AdminLayout";
+
+/** Route fields that load a page on its first visit, in its own chunk. */
+function page<M>(load: () => Promise<M>, name: keyof M) {
+  return {
+    lazy: async () => ({ Component: (await load())[name] as ComponentType }),
+  };
+}
 
 function RootLayout() {
   const queryClient = useQueryClient();
@@ -66,28 +41,114 @@ const router = createBrowserRouter([
   {
     element: <RootLayout />,
     errorElement: <RouteErrorPage />,
+    // Blank while the first page's chunk loads.
+    HydrateFallback: () => null,
     children: [
-      { path: "/login", element: <LoginPage /> },
-      { path: "/register", element: <RegisterPage /> },
-      { path: "/2fa/verify", element: <TwoFactorVerifyPage /> },
-      { path: "/forgot-password", element: <ForgotPasswordPage /> },
-      { path: "/reset-password", element: <ResetPasswordPage /> },
+      {
+        path: "/login",
+        ...page(() => import("./pages/auth/LoginPage"), "LoginPage"),
+      },
+      {
+        path: "/register",
+        ...page(() => import("./pages/auth/RegisterPage"), "RegisterPage"),
+      },
+      {
+        path: "/2fa/verify",
+        ...page(
+          () => import("./pages/auth/TwoFactorVerifyPage"),
+          "TwoFactorVerifyPage",
+        ),
+      },
+      {
+        path: "/forgot-password",
+        ...page(
+          () => import("./pages/auth/ForgotPasswordPage"),
+          "ForgotPasswordPage",
+        ),
+      },
+      {
+        path: "/reset-password",
+        ...page(
+          () => import("./pages/auth/ResetPasswordPage"),
+          "ResetPasswordPage",
+        ),
+      },
       {
         element: <ProtectedRoute />,
         children: [
           {
             element: <AdminLayout />,
             children: [
-              { path: "/admin", element: <AdminDashboardPage /> },
-              { path: "/admin/users", element: <AdminUsersPage /> },
-              { path: "/admin/clients", element: <AdminClientsPage /> },
-              { path: "/admin/projects", element: <AdminProjectsPage /> },
-              { path: "/admin/invoices", element: <AdminInvoicesPage /> },
-              { path: "/admin/time", element: <AdminTimeEntriesPage /> },
-              { path: "/admin/rates", element: <AdminRatesPage /> },
-              { path: "/admin/audit", element: <AdminAuditPage /> },
-              { path: "/admin/hubspot", element: <AdminHubspotPage /> },
-              { path: "/admin/activity", element: <AdminActivityLogPage /> },
+              {
+                path: "/admin",
+                ...page(
+                  () => import("./pages/admin/AdminDashboardPage"),
+                  "AdminDashboardPage",
+                ),
+              },
+              {
+                path: "/admin/users",
+                ...page(
+                  () => import("./pages/admin/AdminUsersPage"),
+                  "AdminUsersPage",
+                ),
+              },
+              {
+                path: "/admin/clients",
+                ...page(
+                  () => import("./pages/admin/AdminClientsPage"),
+                  "AdminClientsPage",
+                ),
+              },
+              {
+                path: "/admin/projects",
+                ...page(
+                  () => import("./pages/admin/AdminProjectsPage"),
+                  "AdminProjectsPage",
+                ),
+              },
+              {
+                path: "/admin/invoices",
+                ...page(
+                  () => import("./pages/admin/AdminInvoicesPage"),
+                  "AdminInvoicesPage",
+                ),
+              },
+              {
+                path: "/admin/time",
+                ...page(
+                  () => import("./pages/admin/AdminTimeEntriesPage"),
+                  "AdminTimeEntriesPage",
+                ),
+              },
+              {
+                path: "/admin/rates",
+                ...page(
+                  () => import("./pages/admin/AdminRatesPage"),
+                  "AdminRatesPage",
+                ),
+              },
+              {
+                path: "/admin/audit",
+                ...page(
+                  () => import("./pages/admin/AdminAuditPage"),
+                  "AdminAuditPage",
+                ),
+              },
+              {
+                path: "/admin/hubspot",
+                ...page(
+                  () => import("./pages/admin/AdminHubspotPage"),
+                  "AdminHubspotPage",
+                ),
+              },
+              {
+                path: "/admin/activity",
+                ...page(
+                  () => import("./pages/admin/AdminActivityLogPage"),
+                  "AdminActivityLogPage",
+                ),
+              },
             ],
           },
           {
@@ -97,25 +158,124 @@ const router = createBrowserRouter([
                 // A crashing page shows the error page inside the layout.
                 errorElement: <RouteErrorPage />,
                 children: [
-                  { path: "/", element: <DashboardPage /> },
-                  { path: "/profile/edit", element: <EditProfilePage /> },
-                  { path: "/settings/2fa", element: <TwoFactorSetupPage /> },
-                  { path: "/time-tracker", element: <ClockifyPage /> },
-                  { path: "/hubspot", element: <HubspotPage /> },
-                  { path: "/google-calendar", element: <GoogleCalendarPage /> },
-                  { path: "/clients", element: <ClientsPage /> },
-                  { path: "/clients/:id", element: <ClientDetailPage /> },
-                  { path: "/prospects", element: <ProspectsPage /> },
-                  { path: "/projects", element: <ProjectsPage /> },
-                  { path: "/projects/:id", element: <ProjectDetailPage /> },
-                  { path: "/time", element: <TimeEntriesPage /> },
-                  { path: "/invoices", element: <InvoicesPage /> },
-                  { path: "/invoices/:id", element: <InvoiceDetailPage /> },
-                  { path: "/rates", element: <RatesPage /> },
-                  { path: "/occupations", element: <OccupationsPage /> },
+                  {
+                    path: "/",
+                    ...page(
+                      () => import("./pages/dashboard/DashboardPage"),
+                      "DashboardPage",
+                    ),
+                  },
+                  {
+                    path: "/profile/edit",
+                    ...page(
+                      () => import("./pages/account/EditProfilePage"),
+                      "EditProfilePage",
+                    ),
+                  },
+                  {
+                    path: "/settings/2fa",
+                    ...page(
+                      () => import("./pages/auth/TwoFactorSetupPage"),
+                      "TwoFactorSetupPage",
+                    ),
+                  },
+                  {
+                    path: "/time-tracker",
+                    ...page(
+                      () => import("./pages/integrations/ClockifyPage"),
+                      "ClockifyPage",
+                    ),
+                  },
+                  {
+                    path: "/hubspot",
+                    ...page(
+                      () => import("./pages/integrations/HubspotPage"),
+                      "HubspotPage",
+                    ),
+                  },
+                  {
+                    path: "/google-calendar",
+                    ...page(
+                      () => import("./pages/integrations/GoogleCalendarPage"),
+                      "GoogleCalendarPage",
+                    ),
+                  },
+                  {
+                    path: "/clients",
+                    ...page(
+                      () => import("./pages/clients/ClientsPage"),
+                      "ClientsPage",
+                    ),
+                  },
+                  {
+                    path: "/clients/:id",
+                    ...page(
+                      () => import("./pages/clients/ClientDetailPage"),
+                      "ClientDetailPage",
+                    ),
+                  },
+                  {
+                    path: "/prospects",
+                    ...page(
+                      () => import("./pages/clients/ProspectsPage"),
+                      "ProspectsPage",
+                    ),
+                  },
+                  {
+                    path: "/projects",
+                    ...page(
+                      () => import("./pages/projects/ProjectsPage"),
+                      "ProjectsPage",
+                    ),
+                  },
+                  {
+                    path: "/projects/:id",
+                    ...page(
+                      () => import("./pages/projects/ProjectDetailPage"),
+                      "ProjectDetailPage",
+                    ),
+                  },
+                  {
+                    path: "/time",
+                    ...page(
+                      () => import("./pages/time/TimeEntriesPage"),
+                      "TimeEntriesPage",
+                    ),
+                  },
+                  {
+                    path: "/invoices",
+                    ...page(
+                      () => import("./pages/invoices/InvoicesPage"),
+                      "InvoicesPage",
+                    ),
+                  },
+                  {
+                    path: "/invoices/:id",
+                    ...page(
+                      () => import("./pages/invoices/InvoiceDetailPage"),
+                      "InvoiceDetailPage",
+                    ),
+                  },
+                  {
+                    path: "/rates",
+                    ...page(
+                      () => import("./pages/rates/RatesPage"),
+                      "RatesPage",
+                    ),
+                  },
+                  {
+                    path: "/occupations",
+                    ...page(
+                      () => import("./pages/occupations/OccupationsPage"),
+                      "OccupationsPage",
+                    ),
+                  },
                   {
                     path: "/occupations/:id",
-                    element: <OccupationDetailPage />,
+                    ...page(
+                      () => import("./pages/occupations/OccupationDetailPage"),
+                      "OccupationDetailPage",
+                    ),
                   },
                 ],
               },
