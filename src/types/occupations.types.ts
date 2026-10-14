@@ -117,7 +117,6 @@ export interface AddChargeFormProps {
 
 export interface ChargeRowProps {
   charge: Charge;
-  occupationId: number;
 }
 
 export interface CreateOccupationFormProps {

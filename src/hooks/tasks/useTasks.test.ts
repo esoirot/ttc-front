@@ -20,6 +20,9 @@ import {
   useCreateSubtask,
   useUpdateSubtask,
   useDeleteSubtask,
+  useCreateChecklist,
+  useDeleteChecklist,
+  useRenameChecklist,
   useCreateTaskLabel,
   useDeleteComment,
   useDeleteTask,
@@ -118,13 +121,13 @@ describe("useCreateTask", () => {
     const queryClient = createQueryClient();
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
-    const { result } = renderHook(() => useCreateTask(1), {
+    const { result } = renderHook(() => useCreateTask(), {
       wrapper: createQueryWrapper(queryClient),
     });
 
     await result.current.createTask({ projectId: 1, title: "New" });
 
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["tasks", 1] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["tasks"] });
   });
 });
 
@@ -158,8 +161,8 @@ describe("useMoveTask", () => {
       input: { id: 3, status: "DONE", position: 2 },
     });
     expect(cached(queryClient)?.status).toBe("DONE");
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["tasks", 1] });
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["task", 3] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["tasks"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["task"] });
   });
 
   it("shows only the moved task in its new column while the move is pending", async () => {
@@ -543,7 +546,7 @@ describe("task and checklist word changes refresh the project total", () => {
 
     await result.current.updateTask({ id: 3, wordCount: 500 });
 
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["project", 1] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["project"] });
   });
 
   it("after deleting a task", async () => {
@@ -553,7 +556,7 @@ describe("task and checklist word changes refresh the project total", () => {
 
     await result.current.deleteTask(3);
 
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["project", 1] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["project"] });
   });
 
   it("after adding a checklist item", async () => {
@@ -569,7 +572,7 @@ describe("task and checklist word changes refresh the project total", () => {
   it("after editing a checklist item", async () => {
     gqlMutate.mockResolvedValueOnce({ updateSubtask: { id: 1 } });
     const { wrapper, invalidateSpy } = spyOn();
-    const { result } = renderHook(() => useUpdateSubtask(3), { wrapper });
+    const { result } = renderHook(() => useUpdateSubtask(), { wrapper });
 
     await result.current.updateSubtask({ id: 1, wordCount: 200 });
 
@@ -579,10 +582,52 @@ describe("task and checklist word changes refresh the project total", () => {
   it("after deleting a checklist item", async () => {
     gqlMutate.mockResolvedValueOnce({ deleteSubtask: true });
     const { wrapper, invalidateSpy } = spyOn();
-    const { result } = renderHook(() => useDeleteSubtask(3), { wrapper });
+    const { result } = renderHook(() => useDeleteSubtask(), { wrapper });
 
     await result.current.deleteSubtask(1);
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["project"] });
+  });
+});
+
+describe("checklist changes reload the time entries copying their titles", () => {
+  beforeEach(() => gqlMutate.mockReset());
+
+  function setup() {
+    const queryClient = createQueryClient();
+    return {
+      wrapper: createQueryWrapper(queryClient),
+      invalidateSpy: vi.spyOn(queryClient, "invalidateQueries"),
+    };
+  }
+
+  it("after creating a checklist", async () => {
+    gqlMutate.mockResolvedValueOnce({ createChecklist: true });
+    const { wrapper, invalidateSpy } = setup();
+    const { result } = renderHook(() => useCreateChecklist(3), { wrapper });
+
+    await result.current.createChecklist("Review");
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["timeEntries"] });
+  });
+
+  it("after renaming a checklist", async () => {
+    gqlMutate.mockResolvedValueOnce({ renameChecklist: true });
+    const { wrapper, invalidateSpy } = setup();
+    const { result } = renderHook(() => useRenameChecklist(3), { wrapper });
+
+    await result.current.renameChecklist("Review", "Proofread");
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["timeEntries"] });
+  });
+
+  it("after deleting a checklist", async () => {
+    gqlMutate.mockResolvedValueOnce({ deleteChecklist: true });
+    const { wrapper, invalidateSpy } = setup();
+    const { result } = renderHook(() => useDeleteChecklist(3), { wrapper });
+
+    await result.current.deleteChecklist("Review");
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["timeEntries"] });
   });
 });

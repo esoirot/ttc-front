@@ -14,7 +14,6 @@ export interface TimerSectionProps extends TimerStartInputProps {
   activeTimer: TimeEntry | null | undefined;
   stopTimer: () => Promise<unknown>;
   stopping: boolean;
-  refetch: () => void;
 }
 
 export interface EntryListProps {

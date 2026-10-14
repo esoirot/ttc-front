@@ -37,6 +37,7 @@ import type {
 import { gqlFetch, gqlMutate } from "@/lib/apollo";
 import { useGqlConnectionQuery } from "@/lib/gqlQuery";
 import { useGqlMutation } from "@/lib/gqlMutation";
+import { reloadWhereShown } from "@/lib/cacheDeps";
 import {
   patchConnection,
   removeFromConnection,
@@ -88,14 +89,12 @@ export function useTask(id: number, options?: { enabled?: boolean }) {
   return { task: data ?? null, loading: isLoading, error, refetch };
 }
 
-export function useCreateTask(projectId: number) {
+export function useCreateTask() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending, error } = useGqlMutation({
     mutation: CREATE_TASK_MUTATION,
     unwrap: (d) => d.createTask,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "task"),
   });
   return {
     createTask: (input: CreateTaskInput) => mutateAsync({ input }),
@@ -145,11 +144,7 @@ export function useMoveTask(projectId: number) {
       }
     },
     // The server renumbered both columns: reload them.
-    onSettled: (moved) => {
-      void queryClient.invalidateQueries({ queryKey: tasksKey });
-      if (moved)
-        void queryClient.invalidateQueries({ queryKey: ["task", moved.id] });
-    },
+    onSettled: () => reloadWhereShown(queryClient, "task"),
   });
   return {
     moveTask: (input: { id: number; status: TaskStatus; position: number }) =>
@@ -179,8 +174,7 @@ export function useUpdateTask(projectId: number) {
       queryClient.setQueryData<TaskDetail>(["task", updated.id], (old) =>
         old ? { ...old, ...updated } : old,
       );
-      void queryClient.invalidateQueries({ queryKey: ["task", updated.id] });
-      void queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+      reloadWhereShown(queryClient, "task");
     },
   });
   return {
@@ -203,7 +197,7 @@ export function useDeleteTask(projectId: number) {
         (t: Task) => t.id,
       );
       queryClient.removeQueries({ queryKey: ["task", id] });
-      void queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+      reloadWhereShown(queryClient, "task");
     },
   });
   return {
@@ -218,11 +212,7 @@ export function useCreateSubtask(taskId: number) {
   const { mutateAsync, isPending } = useGqlMutation({
     mutation: CREATE_SUBTASK_MUTATION,
     unwrap: (d) => d.createSubtask,
-    onSuccess: () => {
-      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
-      // The project's word total includes checklist words.
-      void queryClient.invalidateQueries({ queryKey: ["project"] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "task"),
   });
   return {
     createSubtask: (input: {
@@ -236,16 +226,12 @@ export function useCreateSubtask(taskId: number) {
   };
 }
 
-export function useUpdateSubtask(taskId: number) {
+export function useUpdateSubtask() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useGqlMutation({
     mutation: UPDATE_SUBTASK_MUTATION,
     unwrap: (d) => d.updateSubtask,
-    onSuccess: () => {
-      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
-      // The project's word total includes checklist words.
-      void queryClient.invalidateQueries({ queryKey: ["project"] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "task"),
   });
   return {
     updateSubtask: (input: UpdateSubtaskInput) => mutateAsync({ input }),
@@ -253,16 +239,12 @@ export function useUpdateSubtask(taskId: number) {
   };
 }
 
-export function useDeleteSubtask(taskId: number) {
+export function useDeleteSubtask() {
   const queryClient = useQueryClient();
   const { mutateAsync } = useGqlMutation({
     mutation: DELETE_SUBTASK_MUTATION,
     unwrap: (d) => d.deleteSubtask,
-    onSuccess: () => {
-      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
-      // The project's word total includes checklist words.
-      void queryClient.invalidateQueries({ queryKey: ["project"] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "task"),
   });
   return { deleteSubtask: (id: number) => mutateAsync({ id }) };
 }
@@ -272,9 +254,7 @@ export function useCreateChecklist(taskId: number) {
   const { mutateAsync, isPending } = useGqlMutation({
     mutation: CREATE_CHECKLIST_MUTATION,
     unwrap: (d) => d.createChecklist,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "task"),
   });
   return {
     createChecklist: (title: string) => mutateAsync({ taskId, title }),
@@ -287,9 +267,7 @@ export function useDeleteChecklist(taskId: number) {
   const { mutateAsync, isPending } = useGqlMutation({
     mutation: DELETE_CHECKLIST_MUTATION,
     unwrap: (d) => d.deleteChecklist,
-    onSuccess: () => {
-      void queryClient.refetchQueries({ queryKey: ["task", taskId] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "task"),
   });
   return {
     deleteChecklist: (title: string) => mutateAsync({ taskId, title }),
@@ -302,9 +280,7 @@ export function useRenameChecklist(taskId: number) {
   const { mutateAsync, isPending } = useGqlMutation({
     mutation: RENAME_CHECKLIST_MUTATION,
     unwrap: (d) => d.renameChecklist,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "task"),
   });
   return {
     renameChecklist: (oldTitle: string, newTitle: string) =>
@@ -327,7 +303,7 @@ export function useCreateComment(taskId: number) {
         (c) => c.id,
         "add",
       );
-      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      reloadWhereShown(queryClient, "taskDetail");
     },
   });
   return {
@@ -350,7 +326,7 @@ export function useUpdateComment(taskId: number) {
         (c) => c.id,
         "upsert",
       );
-      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      reloadWhereShown(queryClient, "taskDetail");
     },
   });
   return {
@@ -371,7 +347,7 @@ export function useDeleteComment(taskId: number) {
           ? { ...old, comments: old.comments.filter((c) => c.id !== id) }
           : old,
       );
-      void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      reloadWhereShown(queryClient, "taskDetail");
     },
   });
   return { deleteComment: (id: number) => mutateAsync({ id }) };
@@ -391,6 +367,7 @@ export function useCreateTaskLabel(taskId: number) {
         (l) => l.id,
         "add",
       );
+      reloadWhereShown(queryClient, "taskDetail");
     },
   });
   return {
@@ -409,6 +386,7 @@ export function useDeleteTaskLabel(taskId: number) {
       queryClient.setQueryData<TaskDetail>(["task", taskId], (old) =>
         old ? { ...old, labels: old.labels.filter((l) => l.id !== id) } : old,
       );
+      reloadWhereShown(queryClient, "taskDetail");
     },
   });
   return { deleteLabel: (id: number) => mutateAsync({ id }) };

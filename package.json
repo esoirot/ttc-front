@@ -16,11 +16,12 @@
     "format:check": "prettier . --check",
     "lint": "eslint . --fix",
     "preview": "vite preview",
-    "check": "pnpm run typecheck && pnpm run circular && pnpm run depcheck && pnpm run prune && pnpm run format:check && pnpm run lint && pnpm run test-storybook",
+    "check": "node scripts/check.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:mutation": "stryker run",
+    "test:mutation:changed": "node scripts/mutate-changed.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
@@ -87,8 +88,8 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/browser-playwright": "^4.0.5",
-    "@vitest/coverage-v8": "^4.0.5",
+    "@vitest/browser-playwright": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.11",
     "babel-plugin-react-compiler": "^1.0.0",
     "depcheck": "^1.4.7",
     "eslint": "^10.3.0",
@@ -105,6 +106,6 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.11",
-    "vitest": "^4.0.5"
+    "vitest": "^4.1.11"
   }
 }

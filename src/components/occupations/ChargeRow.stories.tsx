@@ -30,9 +30,7 @@ const meta: Meta<typeof ChargeRow> = {
       </QueryClientProvider>
     ),
   ],
-  args: {
-    occupationId: 10,
-  },
+  args: {},
 };
 export default meta;
 type Story = StoryObj<typeof ChargeRow>;

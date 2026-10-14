@@ -41,7 +41,7 @@ function renderForm(
   props: { defaultStatus?: "TO_CONTACT"; title?: string } = {},
   locale: "en" | "fr" = "en",
 ) {
-  gqlFetch.mockResolvedValue({ tags: [] });
+  gqlFetch.mockResolvedValue({ tags: [], myOccupations: [] });
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <IntlProvider locale={locale} messages={messages[locale]}>

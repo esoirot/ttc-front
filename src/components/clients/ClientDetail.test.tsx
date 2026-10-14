@@ -100,7 +100,12 @@ function routeGqlFetch(
       },
     });
   }
-  return Promise.resolve({ tags: [] });
+  return Promise.resolve({
+    tags: [],
+    myOccupations: [],
+    clientRates: [],
+    rateSheets: [],
+  });
 }
 
 function renderAt(

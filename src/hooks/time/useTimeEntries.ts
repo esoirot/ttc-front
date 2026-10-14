@@ -18,6 +18,7 @@ import type {
 import { gqlFetch } from "@/lib/apollo";
 import { useGqlConnectionQuery } from "@/lib/gqlQuery";
 import { useGqlMutation } from "@/lib/gqlMutation";
+import { reloadWhereShown } from "@/lib/cacheDeps";
 import { patchConnection, removeFromConnection } from "@/lib/cachePatch";
 
 const LIMIT = 20;
@@ -44,7 +45,7 @@ export function useTimeEntries(filters?: TimeEntryFilters) {
     },
   ] as const;
 
-  const { items, total, hasMore, loadMore, loading, error, refetch } =
+  const { items, total, hasMore, loadMore, loading, error } =
     useGqlConnectionQuery({
       queryKey,
       query: TIME_ENTRIES_QUERY,
@@ -53,7 +54,7 @@ export function useTimeEntries(filters?: TimeEntryFilters) {
       limit: LIMIT,
     });
 
-  return { entries: items, total, hasMore, loadMore, loading, error, refetch };
+  return { entries: items, total, hasMore, loadMore, loading, error };
 }
 
 // Charts and totals need every entry in the range, not the first list page.
@@ -123,13 +124,7 @@ export function useCreateTimeEntry() {
   const { mutateAsync, isPending, error } = useGqlMutation({
     mutation: CREATE_TIME_ENTRY_MUTATION,
     unwrap: (d) => d.createTimeEntry,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
-      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      void queryClient.invalidateQueries({ queryKey: ["project"] });
-      void queryClient.invalidateQueries({ queryKey: ["task"] });
-      void queryClient.invalidateQueries({ queryKey: ["projects"] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "timeEntry"),
   });
   return {
     createTimeEntry: (input: CreateTimeEntryInput) => mutateAsync({ input }),
@@ -171,10 +166,7 @@ export function useStopTimer() {
     unwrap: (d) => d.stopTimer,
     onSuccess: () => {
       queryClient.setQueryData(["activeTimer"], null);
-      void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
-      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      void queryClient.invalidateQueries({ queryKey: ["project"] });
-      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      reloadWhereShown(queryClient, "timeEntry");
     },
   });
   return {
@@ -191,10 +183,7 @@ export function useUpdateTimeEntry() {
     unwrap: (d) => d.updateTimeEntry,
     onSuccess: (updated) => {
       patchConnection(queryClient, ["timeEntries"], updated, (e) => e.id);
-      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      void queryClient.invalidateQueries({ queryKey: ["project"] });
-      void queryClient.invalidateQueries({ queryKey: ["task"] });
-      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      reloadWhereShown(queryClient, "timeEntry");
     },
   });
   return {
@@ -211,10 +200,7 @@ export function useResumeTimeEntry() {
     unwrap: (d) => d.resumeTimeEntry,
     onSuccess: (resumed) => {
       queryClient.setQueryData(["activeTimer"], resumed);
-      void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
-      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      void queryClient.invalidateQueries({ queryKey: ["project"] });
-      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      reloadWhereShown(queryClient, "timeEntry");
     },
   });
   return {
@@ -236,10 +222,7 @@ export function useDeleteTimeEntry() {
         id,
         (e: TimeEntry) => e.id,
       );
-      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      void queryClient.invalidateQueries({ queryKey: ["project"] });
-      void queryClient.invalidateQueries({ queryKey: ["task"] });
-      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      reloadWhereShown(queryClient, "timeEntry");
     },
   });
   return {

@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import { playwright } from "@vitest/browser-playwright";
-import { unitTest } from "./vitest.unit";
+import { unitTest } from "./vitest.unit.ts";
 const dirname =
   typeof import.meta.dirname !== "undefined"
     ? import.meta.dirname

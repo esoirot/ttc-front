@@ -18,7 +18,6 @@ function makeProps(
     activeTimer: null,
     stopTimer: vi.fn(),
     stopping: false,
-    refetch: vi.fn(),
     projects: [],
     tags: [],
     recentDescriptions: [],

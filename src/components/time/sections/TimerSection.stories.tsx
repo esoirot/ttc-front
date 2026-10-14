@@ -70,7 +70,6 @@ const meta: Meta<typeof TimerSection> = {
     activeTimer: null,
     stopTimer: () => Promise.resolve(),
     stopping: false,
-    refetch: () => {},
     tags,
     recentDescriptions: ["Translate homepage copy", "Review glossary terms"],
   },

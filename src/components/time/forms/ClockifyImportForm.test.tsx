@@ -20,19 +20,11 @@ import { messages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/useLocale";
 import { ClockifyImportForm } from "./ClockifyImportForm";
 
-function renderForm(
-  refetch = vi.fn(),
-  onClose = vi.fn(),
-  locale: Locale = "en",
-) {
+function renderForm(onClose = vi.fn(), locale: Locale = "en") {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <IntlProvider locale={locale} messages={messages[locale]}>
-        <ClockifyImportForm
-          workspaceId="ws-1"
-          refetch={refetch}
-          onClose={onClose}
-        />
+        <ClockifyImportForm workspaceId="ws-1" onClose={onClose} />
       </IntlProvider>
     </QueryClientProvider>,
   );
@@ -60,16 +52,15 @@ describe("ClockifyImportForm", () => {
 
   it("calls onClose when Cancel is clicked", () => {
     const onClose = vi.fn();
-    renderForm(vi.fn(), onClose);
+    renderForm(onClose);
 
     fireEvent.click(screen.getByText("Cancel"));
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("imports the selected range, shows the result, and refetches", async () => {
+  it("imports the selected range and shows the result", async () => {
     apiPost.mockResolvedValueOnce({ imported: 3, skipped: 1 });
-    const refetch = vi.fn();
-    renderForm(refetch);
+    renderForm();
 
     fireEvent.change(screen.getByLabelText("From"), {
       target: { value: "2026-06-01" },
@@ -91,7 +82,6 @@ describe("ClockifyImportForm", () => {
     expect(
       await screen.findByText("Imported 3, skipped 1 (already in TTC)."),
     ).toBeInTheDocument();
-    expect(refetch).toHaveBeenCalled();
   });
 
   it("shows the error message when the import fails", async () => {
@@ -127,7 +117,7 @@ describe("ClockifyImportForm", () => {
   });
 
   it("renders French copy when locale is fr", () => {
-    renderForm(vi.fn(), vi.fn(), "fr");
+    renderForm(vi.fn(), "fr");
 
     expect(
       screen.getByText("Importer les entrées Clockify dans TTC"),

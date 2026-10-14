@@ -71,6 +71,7 @@ describe("CreateProjectForm", () => {
         nextCursor: null,
         total: 1,
       },
+      client: null,
     });
     gqlMutate.mockResolvedValueOnce({ createProject: { id: 9 } });
     const onClose = vi.fn();

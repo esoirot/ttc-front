@@ -1,7 +1,8 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryWrapper } from "@/test/queryClientWrapper";
 import type { TimeEntry } from "@/types/time-entries.types";
+import { toEndIso, toStartIso } from "@/lib/time";
 
 const { gqlFetch, gqlMutate } = vi.hoisted(() => ({
   gqlFetch: vi.fn(),
@@ -78,6 +79,29 @@ describe("useTimeEntriesPage", () => {
 
     expect(result.current.totalSeconds).toBe(6300);
     expect(result.current.recentDescriptions).toEqual(["Translate", "Review"]);
+  });
+
+  it("loads the time entries of the picked date range", async () => {
+    gqlFetch.mockImplementation(defaultGqlFetch([]));
+    apiGet.mockResolvedValue({ connected: false, workspaceId: null });
+    const { result } = renderHook(() => useTimeEntriesPage(), {
+      wrapper: createQueryWrapper(),
+    });
+
+    act(() => {
+      result.current.setStartDate("2026-06-01");
+      result.current.setEndDate("2026-06-10");
+    });
+
+    await waitFor(() =>
+      expect(gqlFetch).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          start: toStartIso("2026-06-01"),
+          end: toEndIso("2026-06-10"),
+        }),
+      ),
+    );
   });
 
   it("resolves workspaceId from clockify status when connected", async () => {

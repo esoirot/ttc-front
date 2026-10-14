@@ -1,8 +1,4 @@
-import {
-  useMutation,
-  useQueryClient,
-  type InfiniteData,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   CLIENTS_QUERY,
   CLIENT_QUERY,
@@ -15,7 +11,6 @@ import {
 } from "../../graphql/clients.operations";
 import type {
   Client,
-  ClientConnection,
   ClientType,
   ClientStatus,
   ClientIndustry,
@@ -23,10 +18,14 @@ import type {
   ContactInput,
   ClientInput,
 } from "@/types/clients.types";
-import { gqlMutate } from "@/lib/apollo";
 import { useGqlQuery, useGqlConnectionQuery } from "@/lib/gqlQuery";
 import { useGqlMutation } from "@/lib/gqlMutation";
-import { removeFromConnection, patchNestedField } from "@/lib/cachePatch";
+import { reloadWhereShown } from "@/lib/cacheDeps";
+import {
+  patchConnection,
+  removeFromConnection,
+  patchNestedField,
+} from "@/lib/cachePatch";
 
 const LIMIT = 20;
 
@@ -134,9 +133,7 @@ export function useCreateClient() {
   const { mutateAsync, isPending, error } = useGqlMutation({
     mutation: CREATE_CLIENT_MUTATION,
     unwrap: (d) => d.createClient,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["clients"] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "client"),
   });
   return {
     createClient: (input: ClientInput) => mutateAsync({ input }),
@@ -147,58 +144,18 @@ export function useCreateClient() {
 
 export function useUpdateClient() {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending, error } = useMutation({
-    mutationFn: (input: Partial<ClientInput> & { id: number }) =>
-      gqlMutate<{ updateClient: Client }>(UPDATE_CLIENT_MUTATION, {
-        input,
-      }).then((d) => d.updateClient),
+  const { mutateAsync, isPending, error } = useGqlMutation({
+    mutation: UPDATE_CLIENT_MUTATION,
+    unwrap: (d) => d.updateClient,
     onSuccess: (updated) => {
-      queryClient
-        .getQueryCache()
-        .findAll({ queryKey: ["clients"] })
-        .forEach((query) => {
-          const key = query.queryKey[1] as
-            | {
-                excludeStatus?: ClientStatus | null;
-                status?: ClientStatus | null;
-                industry?: ClientIndustry | null;
-              }
-            | undefined;
-          const stillMatches =
-            (!key?.excludeStatus || updated.status !== key.excludeStatus) &&
-            (!key?.status || updated.status === key.status) &&
-            (!key?.industry || updated.industry === key.industry);
-          queryClient.setQueryData<InfiniteData<ClientConnection>>(
-            query.queryKey,
-            (old) =>
-              old
-                ? {
-                    ...old,
-                    pages: old.pages.map((page) =>
-                      stillMatches
-                        ? {
-                            ...page,
-                            items: page.items.map((c) =>
-                              c.id === updated.id ? updated : c,
-                            ),
-                          }
-                        : {
-                            ...page,
-                            items: page.items.filter(
-                              (c) => c.id !== updated.id,
-                            ),
-                          },
-                    ),
-                  }
-                : old,
-          );
-        });
+      patchConnection(queryClient, ["clients"], updated, (c) => c.id);
       queryClient.setQueryData(["client", updated.id], updated);
+      reloadWhereShown(queryClient, "client");
     },
   });
   return {
     updateClient: (input: Partial<ClientInput> & { id: number }) =>
-      mutateAsync(input),
+      mutateAsync({ input }),
     loading: isPending,
     error,
   };
@@ -212,6 +169,7 @@ export function useDeleteClient() {
     onSuccess: (_data, { id }) => {
       removeFromConnection(queryClient, ["clients"], id, (c: Client) => c.id);
       queryClient.removeQueries({ queryKey: ["client", id] });
+      reloadWhereShown(queryClient, "client");
     },
   });
   return {
@@ -237,6 +195,7 @@ export function useCreateCompanyContact(clientId: number) {
         (c) => c.id,
         "add",
       );
+      reloadWhereShown(queryClient, "contact");
     },
   });
   return {
@@ -261,6 +220,7 @@ export function useUpdateCompanyContact(clientId: number) {
         (c) => c.id,
         "upsert",
       );
+      reloadWhereShown(queryClient, "contact");
     },
   });
   return {
@@ -283,6 +243,7 @@ export function useDeleteCompanyContact(clientId: number) {
           ? { ...old, contacts: old.contacts.filter((c) => c.id !== id) }
           : old,
       );
+      reloadWhereShown(queryClient, "contact");
     },
   });
   return {

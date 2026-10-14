@@ -11,7 +11,7 @@ import { useTags } from "../tags/useTags";
 import type { TimeEntry } from "@/types/time-entries.types";
 
 export function useProjectTimeTab(projectId: number) {
-  const { entries, loading, hasMore, loadMore, refetch } = useTimeEntries({
+  const { entries, loading, hasMore, loadMore } = useTimeEntries({
     projectId,
   });
   const { activeTimer } = useActiveTimer();
@@ -43,7 +43,6 @@ export function useProjectTimeTab(projectId: number) {
     loading,
     hasMore,
     loadMore,
-    refetch,
     activeTimer,
     stopTimer,
     stopping,

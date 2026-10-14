@@ -93,7 +93,10 @@ describe("ClientsList", () => {
   });
 
   it("toggles the new-client form open and closed", async () => {
-    gqlFetch.mockResolvedValue({ clients: makeConnection([]) });
+    gqlFetch.mockResolvedValue({
+      clients: makeConnection([]),
+      myOccupations: [],
+    });
 
     renderList();
     await screen.findByText("No clients yet. Create one above.");

@@ -36,7 +36,6 @@ const meta: Meta<typeof ActiveTimerBanner> = {
     activeTimer: makeActiveTimer(),
     stopTimer: () => Promise.resolve(),
     stopping: false,
-    refetch: () => {},
   },
 };
 export default meta;

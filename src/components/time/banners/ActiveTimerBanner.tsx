@@ -9,7 +9,6 @@ export function ActiveTimerBanner({
   activeTimer,
   stopTimer,
   stopping,
-  refetch,
 }: ActiveTimerBannerProps) {
   const intl = useIntl();
   const elapsed = useElapsedTimer(activeTimer.startTime);
@@ -64,7 +63,7 @@ export function ActiveTimerBanner({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => void stopTimer().then(() => refetch())}
+          onClick={() => void stopTimer()}
           disabled={stopping}
         >
           {stopping

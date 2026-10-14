@@ -185,6 +185,7 @@ describe("OverviewTab", () => {
       if (opName === "RateSheets") return rateSheetsPromise;
       return Promise.resolve({
         timeEntries: { items: [], nextCursor: null, total: 0 },
+        firstTimeEntryStart: null,
       });
     });
 

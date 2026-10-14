@@ -13,6 +13,7 @@ import type { AnyOccupation, OccupationType } from "@/types/occupations.types";
 import { gqlMutate } from "@/lib/apollo";
 import { useGqlQuery } from "@/lib/gqlQuery";
 import { useGqlMutation } from "@/lib/gqlMutation";
+import { reloadWhereShown } from "@/lib/cacheDeps";
 import {
   appendToFlatArray,
   patchFlatArray,
@@ -53,6 +54,7 @@ export function useCreateOccupation() {
     unwrap: (d) => d.createOccupation,
     onSuccess: (newOccupation) => {
       appendToFlatArray(queryClient, ["occupations"], newOccupation);
+      reloadWhereShown(queryClient, "occupation");
     },
   });
   return {
@@ -88,6 +90,7 @@ export function useUpdateOccupation(opts: { inlineError?: boolean } = {}) {
     onSuccess: (updated) => {
       patchFlatArray(queryClient, ["occupations"], updated, (a) => a.id);
       queryClient.setQueryData(["occupation", updated.id], updated);
+      reloadWhereShown(queryClient, "occupation");
     },
   });
   return {
@@ -110,6 +113,7 @@ export function useDeleteOccupation() {
         (a: AnyOccupation) => a.id,
       );
       queryClient.removeQueries({ queryKey: ["occupation", id] });
+      reloadWhereShown(queryClient, "occupation");
     },
   });
   return { deleteOccupation: (id: number) => mutateAsync({ id }) };
@@ -122,11 +126,7 @@ export function useCreateCharge(occupationId: number) {
       gqlMutate<{ createCharge: { id: number } }>(CREATE_CHARGE_MUTATION, {
         input: { ...input, occupationId },
       }).then((d) => d.createCharge),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: ["occupation", occupationId],
-      });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "charge"),
   });
   return {
     createCharge: (input: { name: string; amount: number; type: string }) =>
@@ -135,7 +135,7 @@ export function useCreateCharge(occupationId: number) {
   };
 }
 
-export function useUpdateCharge(occupationId: number) {
+export function useUpdateCharge() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (input: {
@@ -147,11 +147,7 @@ export function useUpdateCharge(occupationId: number) {
       gqlMutate<{ updateCharge: { id: number } }>(UPDATE_CHARGE_MUTATION, {
         input,
       }).then((d) => d.updateCharge),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: ["occupation", occupationId],
-      });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "charge"),
   });
   return {
     updateCharge: (input: Parameters<typeof mutateAsync>[0]) =>
@@ -160,18 +156,14 @@ export function useUpdateCharge(occupationId: number) {
   };
 }
 
-export function useDeleteCharge(occupationId: number) {
+export function useDeleteCharge() {
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationFn: (id: number) =>
       gqlMutate<{ deleteCharge: boolean }>(DELETE_CHARGE_MUTATION, {
         id,
       }).then((d) => d.deleteCharge),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: ["occupation", occupationId],
-      });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "charge"),
   });
   return { deleteCharge: (id: number) => mutateAsync(id) };
 }

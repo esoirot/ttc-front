@@ -18,6 +18,7 @@ import type {
 import { gqlFetch } from "@/lib/apollo";
 import { useGqlConnectionQuery } from "@/lib/gqlQuery";
 import { useGqlMutation } from "@/lib/gqlMutation";
+import { reloadWhereShown } from "@/lib/cacheDeps";
 import {
   patchConnection,
   removeFromConnection,
@@ -73,9 +74,7 @@ export function useCreateInvoice() {
   const { mutateAsync, isPending, error } = useGqlMutation({
     mutation: CREATE_INVOICE_MUTATION,
     unwrap: (d) => d.createInvoice,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["invoices"] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "invoice"),
   });
   return {
     createInvoice: (input: {
@@ -94,10 +93,7 @@ export function useGenerateInvoice() {
   const { mutateAsync, isPending, error } = useGqlMutation({
     mutation: GENERATE_INVOICE_MUTATION,
     unwrap: (d) => d.generateInvoice,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
-    },
+    onSuccess: () => reloadWhereShown(queryClient, "invoice"),
   });
   return {
     generateInvoice: (input: {
@@ -120,6 +116,7 @@ export function useUpdateInvoice(id: number) {
     onSuccess: (updated) => {
       patchConnection(queryClient, ["invoices"], updated, (inv) => inv.id);
       queryClient.setQueryData(["invoice", id], updated);
+      reloadWhereShown(queryClient, "invoice");
     },
   });
   return {
@@ -150,6 +147,7 @@ export function useDeleteInvoice() {
         (inv: Invoice) => inv.id,
       );
       queryClient.removeQueries({ queryKey: ["invoice", id] });
+      reloadWhereShown(queryClient, "invoice");
     },
   });
   return {
@@ -173,7 +171,7 @@ export function useAddInvoiceItem(invoiceId: number) {
         (i) => i.id,
         "add",
       );
-      void queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
+      reloadWhereShown(queryClient, "invoiceItem");
     },
   });
   return {
@@ -204,6 +202,7 @@ export function useUpdateInvoiceItem(invoiceId: number) {
         (i) => i.id,
         "upsert",
       );
+      reloadWhereShown(queryClient, "invoiceItem");
     },
   });
   return {
@@ -227,6 +226,7 @@ export function useRemoveInvoiceItem(invoiceId: number) {
           ? { ...old, items: old.items.filter((item) => item.id !== id) }
           : old,
       );
+      reloadWhereShown(queryClient, "invoiceItem");
     },
   });
   return {

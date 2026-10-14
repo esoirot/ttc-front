@@ -17,8 +17,10 @@ export function useTimeEntriesPage() {
   const { startDate, setStartDate, endDate, setEndDate, startIso, endIso } =
     useDateRangeFilter();
 
-  const { entries, loading, hasMore, loadMore, total, refetch } =
-    useTimeEntries({ start: startIso, end: endIso });
+  const { entries, loading, hasMore, loadMore, total } = useTimeEntries({
+    start: startIso,
+    end: endIso,
+  });
   const { activeTimer } = useActiveTimer();
   const { stopTimer, loading: stopping } = useStopTimer();
   const { deleteTimeEntry } = useDeleteTimeEntry();
@@ -59,7 +61,6 @@ export function useTimeEntriesPage() {
     hasMore,
     loadMore,
     total,
-    refetch,
     activeTimer,
     stopTimer,
     stopping,

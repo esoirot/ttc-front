@@ -139,6 +139,7 @@ describe("TimerStartInput", () => {
         nextCursor: null,
         total: 1,
       },
+      project: null,
     });
     gqlMutate.mockResolvedValueOnce({ startTimer: { id: 1 } });
     renderInput();

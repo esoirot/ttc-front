@@ -31,7 +31,7 @@ function renderRow(charge: Charge = makeCharge()) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <IntlWrapper>
-        <ChargeRow charge={charge} occupationId={10} />
+        <ChargeRow charge={charge} />
       </IntlWrapper>
     </QueryClientProvider>,
   );

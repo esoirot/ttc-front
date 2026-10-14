@@ -18,7 +18,6 @@ const meta: Meta<typeof ClockifyImportForm> = {
   ],
   args: {
     workspaceId: "ws-1",
-    refetch: () => {},
     onClose: () => {},
   },
 };

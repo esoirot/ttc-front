@@ -174,7 +174,7 @@ describe("useCreateCharge", () => {
       input: { name: "Travel", amount: 20, type: "FIXED", occupationId: 5 },
     });
     expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["occupation", 5],
+      queryKey: ["occupation"],
     });
   });
 });
@@ -185,14 +185,14 @@ describe("useUpdateCharge", () => {
     const queryClient = createQueryClient();
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
-    const { result } = renderHook(() => useUpdateCharge(8), {
+    const { result } = renderHook(() => useUpdateCharge(), {
       wrapper: createQueryWrapper(queryClient),
     });
 
     await result.current.updateCharge({ id: 1, name: "Renamed" });
 
     expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["occupation", 8],
+      queryKey: ["occupation"],
     });
   });
 });
@@ -203,14 +203,14 @@ describe("useDeleteCharge", () => {
     const queryClient = createQueryClient();
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
-    const { result } = renderHook(() => useDeleteCharge(11), {
+    const { result } = renderHook(() => useDeleteCharge(), {
       wrapper: createQueryWrapper(queryClient),
     });
 
     await result.current.deleteCharge(1);
 
     expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["occupation", 11],
+      queryKey: ["occupation"],
     });
   });
 });
